@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/HexMaster.ThePrey.Core/HexMaster.ThePrey.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Users/">
+    <Project Path="src/Users/HexMaster.ThePrey.Users.Abstractions/HexMaster.ThePrey.Users.Abstractions.csproj" />
+    <Project Path="src/Users/HexMaster.ThePrey.Users.Api/HexMaster.ThePrey.Users.Api.csproj" />
+    <Project Path="src/Users/HexMaster.ThePrey.Users.Data.InMemory/HexMaster.ThePrey.Users.Data.InMemory.csproj" />
+    <Project Path="src/Users/HexMaster.ThePrey.Users.Tests/HexMaster.ThePrey.Users.Tests.csproj" />
+    <Project Path="src/Users/HexMaster.ThePrey.Users/HexMaster.ThePrey.Users.csproj" />
+  </Folder>
+</Solution>

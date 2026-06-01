@@ -1,0 +1,6 @@
+@HexMaster.ThePrey.Users.Api_HostAddress = http://localhost:5015
+
+GET {{HexMaster.ThePrey.Users.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
