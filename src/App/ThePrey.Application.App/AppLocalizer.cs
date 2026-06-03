@@ -50,6 +50,7 @@ internal static class AppLocalizer
     public static string SearchEmpty => Get(nameof(SearchEmpty));
     public static string SearchError => Get(nameof(SearchError));
     public static string SavedLocallyPending => Get(nameof(SavedLocallyPending));
+    public static string AuthSignInTitle => Get(nameof(AuthSignInTitle));
 
     private static string Get(string key) =>
         ResourceManager.GetString(key, CultureInfo.CurrentUICulture) ?? key;

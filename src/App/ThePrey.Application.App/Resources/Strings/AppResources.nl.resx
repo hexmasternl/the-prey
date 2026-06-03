@@ -129,4 +129,7 @@
   <data name="SavedLocallyPending" xml:space="preserve">
     <value>Lokaal opgeslagen. Het speelveld wordt geüpload zodra er een verbinding beschikbaar is.</value>
   </data>
+  <data name="AuthSignInTitle" xml:space="preserve">
+    <value>INLOGGEN</value>
+  </data>
 </root>

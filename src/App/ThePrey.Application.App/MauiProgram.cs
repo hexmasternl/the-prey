@@ -7,17 +7,10 @@ namespace ThePrey.Application.App;
 
 public static class MauiProgram
 {
-    // TODO: Replace these placeholders with your actual Auth0 application credentials.
-    // Domain:   Your Auth0 tenant domain, e.g. "your-tenant.auth0.com"
-    // ClientId: The Client ID of your Auth0 native application.
-    private const string Auth0Domain = "theprey.eu.auth0.com";
-    private const string Auth0ClientId = "tJrm2nPrAX4kES7XEnjUsL38cqbAbraJ";
-
-    // Audience (API identifier) requested at login so Auth0 issues a JWT access token that the
-    // backend APIs accept. Must match the APIs' configured audience (Auth0:Audience).
+    internal const string Auth0Domain = "theprey.eu.auth0.com";
+    internal const string Auth0ClientId = "tJrm2nPrAX4kES7XEnjUsL38cqbAbraJ";
     internal const string Auth0Audience = "https://api.theprey.eu";
-
-    private const string RedirectUri = "com.hexmaster.theprey.application.app://callback";
+    internal const string RedirectUri = "com.hexmaster.theprey.application.app://callback";
 
     public static MauiApp CreateMauiApp()
     {
@@ -34,13 +27,13 @@ public static class MauiProgram
                 fonts.AddFont("PTMono-Regular.ttf", "PTMono");
             });
 
+        // Auth0Client is kept solely for RefreshTokenAsync (HTTP-only, no browser involved).
         builder.Services.AddSingleton(new Auth0Client(new Auth0ClientOptions
         {
             Domain = Auth0Domain,
             ClientId = Auth0ClientId,
             RedirectUri = RedirectUri,
             PostLogoutRedirectUri = RedirectUri,
-            // offline_access requests a refresh token so the login session can be remembered/restored.
             Scope = "openid profile email offline_access"
         }));
 

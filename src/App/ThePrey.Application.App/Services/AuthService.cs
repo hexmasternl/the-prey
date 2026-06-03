@@ -1,4 +1,5 @@
 using Auth0.OidcClient;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
@@ -24,22 +25,20 @@ public interface IAuthService
     /// <summary>Attempts to restore a previously remembered session using the stored refresh token.</summary>
     Task<bool> RestoreSessionAsync();
 
-    /// <summary>Runs the interactive Auth0 login (optionally the sign-up screen).</summary>
+    /// <summary>Runs the interactive Auth0 login inside an embedded WebView (optionally the sign-up screen).</summary>
     Task<bool> LoginAsync(bool signUp = false);
 
-    /// <summary>Clears the session and the remembered refresh token.</summary>
+    /// <summary>Revokes the refresh token on Auth0 and clears the local session.</summary>
     Task LogoutAsync();
 }
 
-public sealed class AuthService(Auth0Client client) : IAuthService
+public sealed class AuthService(Auth0Client auth0Client, IHttpClientFactory httpClientFactory) : IAuthService
 {
     private const string RefreshTokenKey = "auth0_refresh_token";
-
-    // Serializes concurrent GetAccessTokenAsync calls so only one refresh is in-flight at a time.
-    private readonly SemaphoreSlim _refreshLock = new(1, 1);
-
-    // Seconds before expiry at which we proactively refresh (clock-skew buffer).
     private const int ExpiryBufferSeconds = 30;
+
+    private readonly SemaphoreSlim _refreshLock = new(1, 1);
+    private readonly HttpClient _http = httpClientFactory.CreateClient();
 
     public bool IsAuthenticated { get; private set; }
     public string? AccessToken { get; private set; }
@@ -55,7 +54,6 @@ public sealed class AuthService(Auth0Client client) : IAuthService
         await _refreshLock.WaitAsync(ct);
         try
         {
-            // Re-check under the lock: another caller may have refreshed while we waited.
             if (!IsTokenExpiredOrExpiringSoon(AccessToken))
                 return AccessToken;
 
@@ -66,7 +64,7 @@ public sealed class AuthService(Auth0Client client) : IAuthService
                 return null;
             }
 
-            var result = await client.RefreshTokenAsync(refreshToken);
+            var result = await auth0Client.RefreshTokenAsync(refreshToken);
             if (result.IsError)
             {
                 Clear();
@@ -95,7 +93,7 @@ public sealed class AuthService(Auth0Client client) : IAuthService
             if (string.IsNullOrWhiteSpace(refreshToken))
                 return false;
 
-            var result = await client.RefreshTokenAsync(refreshToken);
+            var result = await auth0Client.RefreshTokenAsync(refreshToken);
             if (result.IsError)
             {
                 Clear();
@@ -107,7 +105,6 @@ public sealed class AuthService(Auth0Client client) : IAuthService
         }
         catch
         {
-            // A failed/expired refresh must never block startup — fall back to interactive login.
             Clear();
             return false;
         }
@@ -115,33 +112,149 @@ public sealed class AuthService(Auth0Client client) : IAuthService
 
     public async Task<bool> LoginAsync(bool signUp = false)
     {
-        // Auth0Client.LoginAsync reflects over the extra-parameters object, so pass an anonymous
-        // object (not a dictionary). offline_access (configured on the client) yields the refresh token.
-        var result = signUp
-            ? await client.LoginAsync(new { screen_hint = "signup", audience = MauiProgram.Auth0Audience })
-            : await client.LoginAsync(new { audience = MauiProgram.Auth0Audience });
+        // PKCE: generate a high-entropy verifier and its SHA-256 challenge.
+        var verifier = GenerateRandomBase64Url(32);
+        var challenge = Base64UrlEncode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
+        var state = GenerateRandomBase64Url(16);
 
-        if (result.IsError)
+        var authUrl = BuildAuthorizationUrl(state, challenge, signUp);
+        var callbackUrl = await ShowEmbeddedBrowserAsync(authUrl);
+        if (callbackUrl is null)
             return false;
 
-        await StoreSessionAsync(result.AccessToken, result.RefreshToken);
-        return true;
+        var query = ParseQueryString(callbackUrl);
+
+        // Validate state to prevent CSRF.
+        if (!query.TryGetValue("state", out var returnedState) || returnedState != state)
+            return false;
+
+        if (!query.TryGetValue("code", out var code) || string.IsNullOrEmpty(code))
+            return false;
+
+        return await ExchangeCodeAndStoreAsync(code, verifier);
     }
 
     public async Task LogoutAsync()
     {
         try
         {
-            await client.LogoutAsync();
+            var refreshToken = await SecureStorage.Default.GetAsync(RefreshTokenKey);
+            if (!string.IsNullOrWhiteSpace(refreshToken))
+                await RevokeTokenAsync(refreshToken);
         }
         catch
         {
-            // Best-effort: clear local state even if the remote logout call fails.
+            // Best-effort: clear local state even if revocation fails.
         }
 
         Clear();
         SecureStorage.Default.Remove(RefreshTokenKey);
     }
+
+    // ── PKCE + OAuth helpers ─────────────────────────────────────────────────
+
+    private static string BuildAuthorizationUrl(string state, string codeChallenge, bool signUp)
+    {
+        var parameters = new Dictionary<string, string>
+        {
+            ["response_type"] = "code",
+            ["client_id"] = MauiProgram.Auth0ClientId,
+            ["redirect_uri"] = MauiProgram.RedirectUri,
+            ["scope"] = "openid profile email offline_access",
+            ["audience"] = MauiProgram.Auth0Audience,
+            ["state"] = state,
+            ["code_challenge"] = codeChallenge,
+            ["code_challenge_method"] = "S256",
+        };
+        if (signUp)
+            parameters["screen_hint"] = "signup";
+
+        var qs = string.Join("&", parameters.Select(kv =>
+            $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}"));
+
+        return $"https://{MauiProgram.Auth0Domain}/authorize?{qs}";
+    }
+
+    private async Task<bool> ExchangeCodeAndStoreAsync(string code, string verifier)
+    {
+        try
+        {
+            using var response = await _http.PostAsync(
+                $"https://{MauiProgram.Auth0Domain}/oauth/token",
+                new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["grant_type"] = "authorization_code",
+                    ["client_id"] = MauiProgram.Auth0ClientId,
+                    ["code_verifier"] = verifier,
+                    ["code"] = code,
+                    ["redirect_uri"] = MauiProgram.RedirectUri,
+                }));
+
+            if (!response.IsSuccessStatusCode)
+                return false;
+
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var accessToken = doc.RootElement.GetProperty("access_token").GetString();
+            var refreshToken = doc.RootElement.TryGetProperty("refresh_token", out var rt)
+                ? rt.GetString() : null;
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+                return false;
+
+            await StoreSessionAsync(accessToken, refreshToken);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async Task RevokeTokenAsync(string refreshToken)
+    {
+        await _http.PostAsync(
+            $"https://{MauiProgram.Auth0Domain}/oauth/revoke",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = MauiProgram.Auth0ClientId,
+                ["token"] = refreshToken,
+            }));
+    }
+
+    private static Task<string?> ShowEmbeddedBrowserAsync(string startUrl)
+    {
+        var tcs = new TaskCompletionSource<string?>();
+        var page = new AuthWebViewPage(startUrl, MauiProgram.RedirectUri, tcs);
+        MainThread.BeginInvokeOnMainThread(() =>
+            _ = Shell.Current.Navigation.PushModalAsync(new NavigationPage(page), animated: true));
+        return tcs.Task;
+    }
+
+    private static Dictionary<string, string> ParseQueryString(string url)
+    {
+        var idx = url.IndexOf('?');
+        if (idx < 0)
+            return [];
+
+        return url[(idx + 1)..].Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Split('=', 2))
+            .Where(p => p.Length == 2)
+            .ToDictionary(
+                p => Uri.UnescapeDataString(p[0]),
+                p => Uri.UnescapeDataString(p[1]));
+    }
+
+    private static string GenerateRandomBase64Url(int byteCount)
+    {
+        var bytes = new byte[byteCount];
+        RandomNumberGenerator.Fill(bytes);
+        return Base64UrlEncode(bytes);
+    }
+
+    private static string Base64UrlEncode(byte[] bytes) =>
+        Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+    // ── Session management ───────────────────────────────────────────────────
 
     private async Task StoreSessionAsync(string? accessToken, string? refreshToken)
     {
@@ -153,13 +266,11 @@ public sealed class AuthService(Auth0Client client) : IAuthService
 
         try
         {
-            // Refresh tokens may be rotated on each use; always persist the latest one.
             await SecureStorage.Default.SetAsync(RefreshTokenKey, refreshToken);
         }
         catch
         {
-            // Persisting is best-effort: the session is valid for this run even if the
-            // platform secure store is unavailable; it just won't be remembered next launch.
+            // Persisting is best-effort; the session is still valid for this run.
         }
     }
 
@@ -169,10 +280,6 @@ public sealed class AuthService(Auth0Client client) : IAuthService
         AccessToken = null;
     }
 
-    /// <summary>
-    /// Returns true when the JWT is missing, malformed, already expired, or expiring within
-    /// <see cref="ExpiryBufferSeconds"/> seconds.
-    /// </summary>
     private static bool IsTokenExpiredOrExpiringSoon(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -184,17 +291,12 @@ public sealed class AuthService(Auth0Client client) : IAuthService
             if (parts.Length != 3)
                 return true;
 
-            // Base64url → standard Base64 → bytes → JSON
             var payload = parts[1].Replace("-", "+").Replace("_", "/");
             var remainder = payload.Length % 4;
-            if (remainder == 2)
-                payload += "==";
-            else if (remainder == 3)
-                payload += "=";
+            if (remainder == 2) payload += "==";
+            else if (remainder == 3) payload += "=";
 
-            var bytes = Convert.FromBase64String(payload);
-            using var doc = JsonDocument.Parse(Encoding.UTF8.GetString(bytes));
-
+            using var doc = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(payload)));
             if (!doc.RootElement.TryGetProperty("exp", out var expElement))
                 return true;
 

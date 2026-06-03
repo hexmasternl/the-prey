@@ -129,4 +129,7 @@
   <data name="SavedLocallyPending" xml:space="preserve">
     <value>Saved locally. The playfield will upload when a connection is available.</value>
   </data>
+  <data name="AuthSignInTitle" xml:space="preserve">
+    <value>SIGN IN</value>
+  </data>
 </root>
