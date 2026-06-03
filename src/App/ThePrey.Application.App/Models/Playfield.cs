@@ -6,6 +6,7 @@ public sealed class Playfield
     public string Name { get; set; } = string.Empty;
     public bool IsPublic { get; set; }
     public string? OwnerId { get; set; }
+    public string? OwnerName { get; set; }
     public List<PlayfieldCoordinate> Coordinates { get; set; } = [];
 }
 

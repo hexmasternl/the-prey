@@ -23,6 +23,11 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            // Map API keys are configured in platform manifests:
+            //   Android: Platforms/Android/AndroidManifest.xml  (com.google.android.maps.v2.API_KEY)
+            //   Windows: no separate key needed for Bing Maps via MAUI Controls Maps on Windows
+            // Do NOT commit real API keys to source control.
+            .UseMauiMaps()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -51,6 +56,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<IPlayfieldService, PlayfieldService>();
         builder.Services.AddSingleton<PlayfieldCacheService>();
         builder.Services.AddTransient<PlayfieldsPage>();
+        builder.Services.AddTransient<PlayfieldDetailsPage>();
+        builder.Services.AddSingleton<PlayfieldEditingContext>();
 
 #if DEBUG
         builder.Logging.AddDebug();

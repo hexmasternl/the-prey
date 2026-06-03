@@ -1,29 +1,29 @@
 ## 1. Service Layer
 
-- [ ] 1.1 Add `SearchPublicPlayfieldsAsync(string query, CancellationToken ct)` to `IPlayfieldService`
-- [ ] 1.2 Implement in `PlayfieldService`: call `GET /playfields/public?q={query}` with the bearer token and forward the `CancellationToken` to `HttpClient.GetAsync`; catch `OperationCanceledException` and return an empty list (silently discard cancelled requests); handle 401 by throwing a typed auth exception consistent with existing service methods
+- [x] 1.1 Add `SearchPublicPlayfieldsAsync(string query, CancellationToken ct)` to `IPlayfieldService`
+- [x] 1.2 Implement in `PlayfieldService`: call `GET /playfields/public?q={query}` with the bearer token and forward the `CancellationToken` to `HttpClient.GetAsync`; catch `OperationCanceledException` and return an empty list (silently discard cancelled requests); handle 401 by throwing a typed auth exception consistent with existing service methods
 
 ## 2. PlayfieldDetailsPage — Read-Only Mode
 
-- [ ] 2.1 Add `[QueryProperty("IsReadOnly", "readonly")]` property to `PlayfieldDetailsPage`
-- [ ] 2.2 In `OnAppearing`, when `IsReadOnly` is `true`: disable name `Entry`, disable visibility `Switch`, disable "Set Area" button, hide Save button, set page title to "View Playfield" (localised)
-- [ ] 2.3 Add "View Playfield" string resource to both `AppResources.resx` and `AppResources.nl.resx`
+- [x] 2.1 Add `[QueryProperty("IsReadOnly", "readonly")]` property to `PlayfieldDetailsPage`
+- [x] 2.2 In `OnAppearing`, when `IsReadOnly` is `true`: disable name `Entry`, disable visibility `Switch`, disable "Set Area" button, hide Save button, set page title to "View Playfield" (localised)
+- [x] 2.3 Add "View Playfield" string resource to both `AppResources.resx` and `AppResources.nl.resx`
 
 ## 3. PlayfieldsPage — Tab Structure
 
-- [ ] 3.1 Add a tab header section to `PlayfieldsPage.xaml`: a `Grid` (or `HorizontalStackLayout`) with two `Button` elements — "Private" and "Public" — styled as active/inactive tab selectors
-- [ ] 3.2 Wrap the existing private playfields `CollectionView` (and its related controls: Create New button, empty/error labels) in a dedicated container (`VerticalStackLayout` or `Grid`) bound to `IsVisible`
-- [ ] 3.3 Add the Public tab container (`VerticalStackLayout` or `Grid`) with `IsVisible="False"` initially — contains search `Entry`, loading indicator (`ActivityIndicator`), results `CollectionView`, prompt label, empty-state label, and error label
-- [ ] 3.4 Implement tab switching in code-behind: track `_activeTab` (Private/Public); on tab button tap, toggle `IsVisible` of the two containers and update button styles to reflect active/inactive state
+- [x] 3.1 Add a tab header section to `PlayfieldsPage.xaml`: a `Grid` (or `HorizontalStackLayout`) with two `Button` elements — "Private" and "Public" — styled as active/inactive tab selectors
+- [x] 3.2 Wrap the existing private playfields `CollectionView` (and its related controls: Create New button, empty/error labels) in a dedicated container (`VerticalStackLayout` or `Grid`) bound to `IsVisible`
+- [x] 3.3 Add the Public tab container (`VerticalStackLayout` or `Grid`) with `IsVisible="False"` initially — contains search `Entry`, loading indicator (`ActivityIndicator`), results `CollectionView`, prompt label, empty-state label, and error label
+- [x] 3.4 Implement tab switching in code-behind: track `_activeTab` (Private/Public); on tab button tap, toggle `IsVisible` of the two containers and update button styles to reflect active/inactive state
 
 ## 4. Public Tab — Search & Debounce Logic
 
-- [ ] 4.1 Declare `_searchCts` (`CancellationTokenSource?`) field in `PlayfieldsPage`
-- [ ] 4.2 Wire `SearchEntry.TextChanged` to `OnSearchTextChanged` handler
-- [ ] 4.3 Implement `OnSearchTextChanged`:
+- [x] 4.1 Declare `_searchCts` (`CancellationTokenSource?`) field in `PlayfieldsPage`
+- [x] 4.2 Wire `SearchEntry.TextChanged` to `OnSearchTextChanged` handler
+- [x] 4.3 Implement `OnSearchTextChanged`:
   - If text length < 3: cancel `_searchCts`, clear results list, show prompt label, hide error/loading/results
   - If text length ≥ 3: cancel `_searchCts`, create new `CancellationTokenSource` for `_searchCts`, call `ExecuteSearchAsync(text, _searchCts.Token)` (fire-and-forget with `_ =` or `async void` wrapper)
-- [ ] 4.4 Implement `ExecuteSearchAsync(string query, CancellationToken ct)`:
+- [x] 4.4 Implement `ExecuteSearchAsync(string query, CancellationToken ct)`:
   - `await Task.Delay(400, ct)` — returns silently on cancellation
   - Show loading indicator, hide prompt/results/error
   - Call `IPlayfieldService.SearchPublicPlayfieldsAsync(query, ct)`
@@ -33,18 +33,18 @@
 
 ## 5. Public Tab — Results Display & Navigation
 
-- [ ] 5.1 Define `CollectionView` item template for public playfield results: show playfield name and owner name
-- [ ] 5.2 Wire `CollectionView.SelectionChanged` (or `TapGestureRecognizer`) to navigate to `"playfield-details?id={id}&readonly=true"` for the selected public playfield
-- [ ] 5.3 Clear `CollectionView` selection immediately after navigation to avoid stale highlight on back-navigation
+- [x] 5.1 Define `CollectionView` item template for public playfield results: show playfield name and owner name
+- [x] 5.2 Wire `CollectionView.SelectionChanged` (or `TapGestureRecognizer`) to navigate to `"playfield-details?id={id}&readonly=true"` for the selected public playfield
+- [x] 5.3 Clear `CollectionView` selection immediately after navigation to avoid stale highlight on back-navigation
 
 ## 6. State Management on Tab Switch & Page Leave
 
-- [ ] 6.1 When switching to the Private tab: cancel `_searchCts` if active; leave the Private list state untouched (no re-fetch)
-- [ ] 6.2 In `OnDisappearing`: cancel `_searchCts` if active and dispose it to avoid dangling async operations
+- [x] 6.1 When switching to the Private tab: cancel `_searchCts` if active; leave the Private list state untouched (no re-fetch)
+- [x] 6.2 In `OnDisappearing`: cancel `_searchCts` if active and dispose it to avoid dangling async operations
 
 ## 7. Localization
 
-- [ ] 7.1 Add string resources for: "Private" (tab label), "Public" (tab label), search box placeholder, "Type at least 3 characters to search" (prompt), "No public playfields found" (empty state), search error message — in both `AppResources.resx` and `AppResources.nl.resx`
+- [x] 7.1 Add string resources for: "Private" (tab label), "Public" (tab label), search box placeholder, "Type at least 3 characters to search" (prompt), "No public playfields found" (empty state), search error message — in both `AppResources.resx` and `AppResources.nl.resx`
 
 ## 8. Verification
 

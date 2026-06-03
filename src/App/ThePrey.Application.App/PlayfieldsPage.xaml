@@ -5,69 +5,204 @@
              x:Class="ThePrey.Application.App.PlayfieldsPage"
              Style="{StaticResource PreyPage}">
 
-    <ContentPage.ToolbarItems>
-        <ToolbarItem x:Name="CreateNewButton"
-                     Clicked="OnCreateNewClicked" />
-    </ContentPage.ToolbarItems>
+    <Grid RowDefinitions="Auto,*">
 
-    <Grid>
+        <!-- ===== Tab header ===== -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="*,*"
+              BackgroundColor="{StaticResource Base}"
+              HeightRequest="48">
 
-        <ActivityIndicator x:Name="LoadingIndicator"
-                           Style="{StaticResource PreySpinner}"
-                           IsRunning="False"
-                           IsVisible="False"
-                           VerticalOptions="Center" />
+            <Button x:Name="PrivateTabBtn"
+                    Grid.Column="0"
+                    Clicked="OnPrivateTabClicked"
+                    FontFamily="PTMono"
+                    FontSize="12"
+                    CharacterSpacing="2"
+                    BackgroundColor="{StaticResource Surface}"
+                    TextColor="{StaticResource Signal}"
+                    BorderWidth="0"
+                    CornerRadius="0"
+                    HeightRequest="48" />
 
-        <Label x:Name="EmptyStateLabel"
-               IsVisible="False"
-               FontFamily="PTMono"
-               FontSize="14"
-               TextColor="{StaticResource TextSoft}"
-               HorizontalTextAlignment="Center"
-               VerticalOptions="Center"
-               Margin="32,0" />
+            <Button x:Name="PublicTabBtn"
+                    Grid.Column="1"
+                    Clicked="OnPublicTabClicked"
+                    FontFamily="PTMono"
+                    FontSize="12"
+                    CharacterSpacing="2"
+                    BackgroundColor="{StaticResource Base}"
+                    TextColor="{StaticResource TextGhost}"
+                    BorderWidth="0"
+                    CornerRadius="0"
+                    HeightRequest="48" />
 
-        <CollectionView x:Name="PlayfieldsList"
-                        IsVisible="False">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Playfield">
-                    <SwipeView>
-                        <SwipeView.RightItems>
-                            <SwipeItems Mode="Reveal">
-                                <SwipeItem Text="DELETE"
-                                           BackgroundColor="{StaticResource Hunter}"
-                                           Invoked="OnDeleteSwipeInvoked" />
-                            </SwipeItems>
-                        </SwipeView.RightItems>
+        </Grid>
 
-                        <Grid BackgroundColor="{StaticResource Surface}"
-                              Padding="20,16"
-                              Margin="0,0,0,1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnPlayfieldTapped" />
-                            </Grid.GestureRecognizers>
+        <!-- ===== Private tab content ===== -->
+        <Grid x:Name="PrivateContent" Grid.Row="1" RowDefinitions="Auto,*">
 
-                            <Label Grid.Column="0"
-                                   Text="{Binding Name}"
-                                   FontFamily="PTMono"
-                                   FontSize="14"
-                                   TextColor="{StaticResource TextPrimary}"
+            <Button x:Name="CreateNewButton"
+                    Grid.Row="0"
+                    Clicked="OnCreateNewClicked"
+                    Style="{StaticResource BtnGhost}"
+                    Margin="20,14,20,0" />
+
+            <ActivityIndicator x:Name="LoadingIndicator"
+                               Grid.Row="1"
+                               Style="{StaticResource PreySpinner}"
+                               IsRunning="False"
+                               IsVisible="False"
+                               VerticalOptions="Center" />
+
+            <Label x:Name="EmptyStateLabel"
+                   Grid.Row="1"
+                   IsVisible="False"
+                   FontFamily="PTMono"
+                   FontSize="14"
+                   TextColor="{StaticResource TextSoft}"
+                   HorizontalTextAlignment="Center"
+                   VerticalOptions="Center"
+                   Margin="32,0" />
+
+            <CollectionView x:Name="PlayfieldsList"
+                            Grid.Row="1"
+                            IsVisible="False">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Playfield">
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems Mode="Reveal">
+                                    <SwipeItem Text="DELETE"
+                                               BackgroundColor="{StaticResource Hunter}"
+                                               Invoked="OnDeleteSwipeInvoked" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <Grid BackgroundColor="{StaticResource Surface}"
+                                  Padding="20,16"
+                                  Margin="0,0,0,1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPlayfieldTapped" />
+                                </Grid.GestureRecognizers>
+
+                                <Label Grid.Column="0"
+                                       Text="{Binding Name}"
+                                       FontFamily="PTMono"
+                                       FontSize="14"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       VerticalOptions="Center" />
+
+                                <Label Grid.Column="1"
+                                       Text="▶"
+                                       FontSize="11"
+                                       TextColor="{StaticResource SignalDim}"
+                                       VerticalOptions="Center" />
+                            </Grid>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </Grid>
+
+        <!-- ===== Public tab content ===== -->
+        <Grid x:Name="PublicContent" Grid.Row="1" IsVisible="False" RowDefinitions="Auto,*">
+
+            <Entry x:Name="SearchEntry"
+                   Grid.Row="0"
+                   TextChanged="OnSearchTextChanged"
+                   FontFamily="PTMono"
+                   FontSize="14"
+                   TextColor="{StaticResource TextPrimary}"
+                   BackgroundColor="{StaticResource Surface}"
+                   PlaceholderColor="{StaticResource TextGhost}"
+                   Margin="20,14,20,0" />
+
+            <!-- Results / states layer -->
+            <Grid Grid.Row="1">
+
+                <ActivityIndicator x:Name="SearchLoadingIndicator"
+                                   Style="{StaticResource PreySpinner}"
+                                   IsRunning="False"
+                                   IsVisible="False"
                                    VerticalOptions="Center" />
 
-                            <Label Grid.Column="1"
-                                   Text="▶"
-                                   FontSize="11"
-                                   TextColor="{StaticResource SignalDim}"
-                                   VerticalOptions="Center" />
-                        </Grid>
-                    </SwipeView>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                <Label x:Name="SearchPromptLabel"
+                       FontFamily="PTMono"
+                       FontSize="14"
+                       TextColor="{StaticResource TextSoft}"
+                       HorizontalTextAlignment="Center"
+                       VerticalOptions="Center"
+                       Margin="32,0" />
+
+                <Label x:Name="SearchEmptyLabel"
+                       IsVisible="False"
+                       FontFamily="PTMono"
+                       FontSize="14"
+                       TextColor="{StaticResource TextSoft}"
+                       HorizontalTextAlignment="Center"
+                       VerticalOptions="Center"
+                       Margin="32,0" />
+
+                <Label x:Name="SearchErrorLabel"
+                       IsVisible="False"
+                       FontFamily="PTMono"
+                       FontSize="14"
+                       TextColor="{StaticResource Hunter}"
+                       HorizontalTextAlignment="Center"
+                       VerticalOptions="Center"
+                       Margin="32,0" />
+
+                <CollectionView x:Name="PublicResultsList"
+                                IsVisible="False">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Playfield">
+                            <Grid BackgroundColor="{StaticResource Surface}"
+                                  Padding="20,14"
+                                  Margin="0,0,0,1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPublicPlayfieldTapped" />
+                                </Grid.GestureRecognizers>
+
+                                <Label Grid.Row="0" Grid.Column="0"
+                                       Text="{Binding Name}"
+                                       FontFamily="PTMono"
+                                       FontSize="14"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       VerticalOptions="Center" />
+
+                                <Label Grid.Row="1" Grid.Column="0"
+                                       Text="{Binding OwnerName}"
+                                       FontFamily="PTMono"
+                                       FontSize="11"
+                                       TextColor="{StaticResource TextSoft}" />
+
+                                <Label Grid.Row="0" Grid.Column="1"
+                                       Grid.RowSpan="2"
+                                       Text="▶"
+                                       FontSize="11"
+                                       TextColor="{StaticResource SignalDim}"
+                                       VerticalOptions="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </Grid>
+        </Grid>
 
     </Grid>
 

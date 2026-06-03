@@ -1,5 +1,7 @@
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using ThePrey.Application.App.Models;
 
 namespace ThePrey.Application.App.Services;
@@ -31,5 +33,43 @@ public sealed class PlayfieldService(IHttpClientFactory httpClientFactory, IAuth
         if (response.StatusCode == HttpStatusCode.Unauthorized)
             throw new UnauthorizedException();
         response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<IReadOnlyList<Playfield>> SearchPublicPlayfieldsAsync(string query, CancellationToken ct = default)
+    {
+        try
+        {
+            var client = CreateClient();
+            var response = await client.GetAsync(
+                $"playfields/public?q={Uri.EscapeDataString(query)}", ct);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                throw new UnauthorizedException();
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<List<Playfield>>(ct) ?? [];
+        }
+        catch (OperationCanceledException)
+        {
+            return [];
+        }
+    }
+
+    public async Task<Playfield> CreatePlayfieldAsync(Playfield playfield, CancellationToken ct = default)
+    {
+        var client = CreateClient();
+        var response = await client.PostAsJsonAsync("playfields", playfield, ct);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            throw new UnauthorizedException();
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Playfield>(ct) ?? playfield;
+    }
+
+    public async Task<Playfield> UpdatePlayfieldAsync(Playfield playfield, CancellationToken ct = default)
+    {
+        var client = CreateClient();
+        var response = await client.PutAsJsonAsync($"playfields/{playfield.Id}", playfield, ct);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+            throw new UnauthorizedException();
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Playfield>(ct) ?? playfield;
     }
 }

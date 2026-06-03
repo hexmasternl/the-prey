@@ -69,4 +69,58 @@
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="ViewPlayfieldTitle" xml:space="preserve">
+    <value>VIEW PLAYFIELD</value>
+  </data>
+  <data name="EditPlayfieldTitle" xml:space="preserve">
+    <value>EDIT PLAYFIELD</value>
+  </data>
+  <data name="NewPlayfieldTitle" xml:space="preserve">
+    <value>NEW PLAYFIELD</value>
+  </data>
+  <data name="SetAreaButton" xml:space="preserve">
+    <value>Set Area</value>
+  </data>
+  <data name="SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="NameValidationMessage" xml:space="preserve">
+    <value>Name must be at least 5 characters.</value>
+  </data>
+  <data name="LocationUnavailableNotice" xml:space="preserve">
+    <value>Location unavailable — map centered at default position.</value>
+  </data>
+  <data name="PlayfieldNotFoundError" xml:space="preserve">
+    <value>Playfield not found.</value>
+  </data>
+  <data name="SaveError" xml:space="preserve">
+    <value>Could not save the playfield. Please try again.</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>NAME</value>
+  </data>
+  <data name="VisibilityLabel" xml:space="preserve">
+    <value>PUBLIC PLAYFIELD</value>
+  </data>
+  <data name="AreaLabel" xml:space="preserve">
+    <value>AREA</value>
+  </data>
+  <data name="TabPrivate" xml:space="preserve">
+    <value>PRIVATE</value>
+  </data>
+  <data name="TabPublic" xml:space="preserve">
+    <value>PUBLIC</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Search playfields…</value>
+  </data>
+  <data name="SearchPrompt" xml:space="preserve">
+    <value>Type at least 3 characters to search.</value>
+  </data>
+  <data name="SearchEmpty" xml:space="preserve">
+    <value>No public playfields found.</value>
+  </data>
+  <data name="SearchError" xml:space="preserve">
+    <value>Search failed. Please check your connection and try again.</value>
+  </data>
 </root>

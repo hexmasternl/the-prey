@@ -69,4 +69,58 @@
   <data name="Error" xml:space="preserve">
     <value>Fout</value>
   </data>
+  <data name="ViewPlayfieldTitle" xml:space="preserve">
+    <value>SPEELVELD BEKIJKEN</value>
+  </data>
+  <data name="EditPlayfieldTitle" xml:space="preserve">
+    <value>SPEELVELD BEWERKEN</value>
+  </data>
+  <data name="NewPlayfieldTitle" xml:space="preserve">
+    <value>NIEUW SPEELVELD</value>
+  </data>
+  <data name="SetAreaButton" xml:space="preserve">
+    <value>Gebied instellen</value>
+  </data>
+  <data name="SaveButton" xml:space="preserve">
+    <value>Opslaan</value>
+  </data>
+  <data name="NameValidationMessage" xml:space="preserve">
+    <value>Naam moet minimaal 5 tekens bevatten.</value>
+  </data>
+  <data name="LocationUnavailableNotice" xml:space="preserve">
+    <value>Locatie niet beschikbaar — kaart gecentreerd op standaardpositie.</value>
+  </data>
+  <data name="PlayfieldNotFoundError" xml:space="preserve">
+    <value>Speelveld niet gevonden.</value>
+  </data>
+  <data name="SaveError" xml:space="preserve">
+    <value>Kan het speelveld niet opslaan. Probeer het opnieuw.</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>NAAM</value>
+  </data>
+  <data name="VisibilityLabel" xml:space="preserve">
+    <value>OPENBAAR SPEELVELD</value>
+  </data>
+  <data name="AreaLabel" xml:space="preserve">
+    <value>GEBIED</value>
+  </data>
+  <data name="TabPrivate" xml:space="preserve">
+    <value>PRIVÉ</value>
+  </data>
+  <data name="TabPublic" xml:space="preserve">
+    <value>OPENBAAR</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Speelvelden zoeken…</value>
+  </data>
+  <data name="SearchPrompt" xml:space="preserve">
+    <value>Typ minimaal 3 tekens om te zoeken.</value>
+  </data>
+  <data name="SearchEmpty" xml:space="preserve">
+    <value>Geen openbare speelvelden gevonden.</value>
+  </data>
+  <data name="SearchError" xml:space="preserve">
+    <value>Zoeken mislukt. Controleer uw verbinding en probeer opnieuw.</value>
+  </data>
 </root>

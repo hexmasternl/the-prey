@@ -35,4 +35,15 @@ public sealed class PlayfieldCacheService
         current.RemoveAll(p => p.Id == id);
         await SaveAsync(current);
     }
+
+    public async Task UpsertAsync(Playfield playfield)
+    {
+        var current = (await LoadAsync()).ToList();
+        var idx = current.FindIndex(p => p.Id == playfield.Id);
+        if (idx >= 0)
+            current[idx] = playfield;
+        else
+            current.Add(playfield);
+        await SaveAsync(current);
+    }
 }
