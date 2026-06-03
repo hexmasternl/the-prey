@@ -154,9 +154,9 @@ public partial class PlayfieldsPage : ContentPage
         ToastLabel.Text = message;
         ToastBorder.Opacity = 0;
         ToastBorder.IsVisible = true;
-        await ToastBorder.FadeTo(1, 200);
+        await ToastBorder.FadeToAsync(1, 200);
         await Task.Delay(3000);
-        await ToastBorder.FadeTo(0, 400);
+        await ToastBorder.FadeToAsync(0, 400);
         ToastBorder.IsVisible = false;
     }
 
