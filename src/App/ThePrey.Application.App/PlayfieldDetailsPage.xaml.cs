@@ -1,6 +1,15 @@
-using System.Text.Json;
+using Mapsui;
+using Mapsui.Layers;
+using Mapsui.Nts;
+using Mapsui.Projections;
+using Mapsui.Styles;
+using Mapsui.Tiling;
+using NetTopologySuite.Geometries;
 using ThePrey.Application.App.Models;
 using ThePrey.Application.App.Services;
+using MBrush = Mapsui.Styles.Brush;
+using MColor = Mapsui.Styles.Color;
+using NtsPolygon = NetTopologySuite.Geometries.Polygon;
 
 namespace ThePrey.Application.App;
 
@@ -8,19 +17,24 @@ namespace ThePrey.Application.App;
 [QueryProperty(nameof(IsReadOnly), "readonly")]
 public partial class PlayfieldDetailsPage : ContentPage
 {
+    // ─── Design-system colours (mirror area editor) ──────────────────────────
+    private static readonly MColor SignalGreen  = new(100, 255, 0, 255);
+    private static readonly MColor SignalFill50 = new(100, 255, 0, 128); // 50 % alpha
+
+    // ─── State ───────────────────────────────────────────────────────────────
     private readonly IPlayfieldService _service;
     private readonly PlayfieldCacheService _cache;
     private readonly PlayfieldEditingContext _editingContext;
 
     private List<PlayfieldCoordinate> _coordinates = [];
     private bool _isInitialized;
-    private bool _mapReady;
-    private (double Lat, double Lon)? _userLocation;
+    private WritableLayer? _miniShapeLayer;
 
     public string? PlayfieldId { get; set; }
     public string? IsReadOnly { get; set; }
 
-    private bool ReadOnly => string.Equals(IsReadOnly, "true", StringComparison.OrdinalIgnoreCase);
+    private bool ReadOnly =>
+        string.Equals(IsReadOnly, "true", StringComparison.OrdinalIgnoreCase);
 
     public PlayfieldDetailsPage(
         IPlayfieldService service,
@@ -33,11 +47,32 @@ public partial class PlayfieldDetailsPage : ContentPage
         _editingContext = editingContext;
 
         NameValidationLabel.Text = AppLocalizer.NameValidationMessage;
-        VisibilityLabel.Text = AppLocalizer.VisibilityLabel;
-        AreaLabel.Text = AppLocalizer.AreaLabel;
-        SetAreaButton.Text = AppLocalizer.SetAreaButton;
-        SaveToolbarItem.Text = AppLocalizer.SaveButton;
+        VisibilityLabel.Text     = AppLocalizer.VisibilityLabel;
+        AreaLabel.Text           = AppLocalizer.AreaLabel;
+        SetAreaButton.Text       = AppLocalizer.SetAreaButton;
+        SaveToolbarItem.Text     = AppLocalizer.SaveButton;
         LocationNoticeLabel.Text = AppLocalizer.LocationUnavailableNotice;
+
+        InitializeMiniMap();
+    }
+
+    // ─── Mini-map init ───────────────────────────────────────────────────────
+
+    private void InitializeMiniMap()
+    {
+        var map = new Mapsui.Map();
+        map.Layers.Add(OpenStreetMap.CreateTileLayer("ThePrey/1.0"));
+
+        _miniShapeLayer = new WritableLayer { Name = "Shape" };
+        map.Layers.Add(_miniShapeLayer);
+
+        // Default home — Amsterdam; overridden once data or location is known.
+        var (ax, ay) = SphericalMercator.FromLonLat(4.9041, 52.3676);
+        var fallback = SquareExtent(ax, ay, 5000);
+        map.ViewportInitialized += (_, _) => FitMiniMap(fallbackExtent: fallback);
+
+        MiniMap.Map = map;
+        // No Info handler → mini-map is display-only.
     }
 
     // ─── Lifecycle ──────────────────────────────────────────────────────────
@@ -53,9 +88,9 @@ public partial class PlayfieldDetailsPage : ContentPage
         }
         else
         {
-            // Returning from area editor — pick up any coordinate changes
+            // Returning from area editor — pick up coordinate changes.
             _coordinates = [.. _editingContext.CurrentCoordinates];
-            await SendMapInitAsync();
+            UpdateMiniMap();
             UpdateSaveButton();
         }
     }
@@ -75,11 +110,7 @@ public partial class PlayfieldDetailsPage : ContentPage
 
             if (playfield is null)
             {
-                if (ReadOnly)
-                {
-                    Title ??= AppLocalizer.ViewPlayfieldTitle;
-                    return;
-                }
+                if (ReadOnly) { Title ??= AppLocalizer.ViewPlayfieldTitle; return; }
                 await DisplayAlertAsync(AppLocalizer.Error, AppLocalizer.PlayfieldNotFoundError, AppLocalizer.Ok);
                 await Shell.Current.GoToAsync("..");
                 return;
@@ -98,10 +129,11 @@ public partial class PlayfieldDetailsPage : ContentPage
 
         _editingContext.CurrentCoordinates = [.. _coordinates];
 
-        if (_coordinates.Count == 0)
-            _ = FetchUserLocationAsync();
+        UpdateMiniMap();
 
-        await SendMapInitAsync();
+        if (_coordinates.Count == 0)
+            _ = CenterMiniMapOnUserAsync();
+
         UpdateSaveButton();
     }
 
@@ -113,41 +145,59 @@ public partial class PlayfieldDetailsPage : ContentPage
         ToolbarItems.Remove(SaveToolbarItem);
     }
 
-    // ─── Mini-map (HybridWebView + Leaflet) ─────────────────────────────────
+    // ─── Mini-map drawing ────────────────────────────────────────────────────
 
-    private void OnMiniMapMessageReceived(object? sender, HybridWebViewRawMessageReceivedEventArgs e)
+    private void UpdateMiniMap()
     {
-        if (string.IsNullOrEmpty(e.Message)) return;
-        JsonDocument doc;
-        try { doc = JsonDocument.Parse(e.Message); } catch { return; }
+        if (_miniShapeLayer is null) return;
 
-        if (doc.RootElement.TryGetProperty("type", out var t) && t.GetString() == "ready")
+        _miniShapeLayer.Clear();
+
+        if (_coordinates.Count >= 2)
         {
-            _mapReady = true;
-            _ = SendMapInitAsync();
+            var projected = _coordinates
+                .Select(c => { var (x, y) = SphericalMercator.FromLonLat(c.Longitude, c.Latitude); return new Coordinate(x, y); })
+                .ToArray();
+
+            GeometryFeature feature;
+            if (_coordinates.Count >= 3)
+            {
+                var ring = new LinearRing([.. projected, projected[0]]);
+                feature = new GeometryFeature { Geometry = new NtsPolygon(ring) };
+                feature.Styles.Add(new VectorStyle
+                {
+                    Fill    = new MBrush(SignalFill50),   // 50 % transparent fill
+                    Outline = new Pen(SignalGreen, 2)
+                });
+            }
+            else
+            {
+                feature = new GeometryFeature { Geometry = new LineString(projected) };
+                feature.Styles.Add(new VectorStyle { Fill = null, Line = new Pen(SignalGreen, 2) });
+            }
+
+            _miniShapeLayer.Add(feature);
+        }
+
+        FitMiniMap(fallbackExtent: null);
+        MiniMap.Map.RefreshGraphics();
+    }
+
+    /// <summary>Fits the mini-map viewport to the shape bounds, or the fallback extent when empty.</summary>
+    private void FitMiniMap(MRect? fallbackExtent)
+    {
+        if (_coordinates.Count > 0)
+        {
+            var bbox = BoundsOf(_coordinates, 0.2);
+            MiniMap.Map.Navigator.ZoomToBox(bbox, MBoxFit.Fit, 0, null);
+        }
+        else if (fallbackExtent is not null)
+        {
+            MiniMap.Map.Navigator.ZoomToBox(fallbackExtent, MBoxFit.Fit, 0, null);
         }
     }
 
-    private async Task SendMapInitAsync()
-    {
-        if (!_mapReady) return;
-
-        object? center = null;
-        if (_coordinates.Count == 0 && _userLocation.HasValue)
-            center = new { lat = _userLocation.Value.Lat, lon = _userLocation.Value.Lon };
-
-        var payload = new
-        {
-            type = "init",
-            coordinates = _coordinates.Select(c => new { lat = c.Latitude, lon = c.Longitude }),
-            center
-        };
-
-        var json = JsonSerializer.Serialize(payload);
-        await MainThread.InvokeOnMainThreadAsync(() => MiniMap.SendRawMessage(json));
-    }
-
-    private async Task FetchUserLocationAsync()
+    private async Task CenterMiniMapOnUserAsync()
     {
         try
         {
@@ -162,21 +212,42 @@ public partial class PlayfieldDetailsPage : ContentPage
                 ?? await Geolocation.GetLocationAsync(
                     new GeolocationRequest(GeolocationAccuracy.Low, TimeSpan.FromSeconds(5)));
 
-            if (loc is not null)
-            {
-                _userLocation = (loc.Latitude, loc.Longitude);
-                await SendMapInitAsync();
-            }
-            else
+            if (loc is null)
             {
                 await MainThread.InvokeOnMainThreadAsync(() => LocationNoticeLabel.IsVisible = true);
+                return;
             }
+
+            var (x, y) = SphericalMercator.FromLonLat(loc.Longitude, loc.Latitude);
+            var extent = SquareExtent(x, y, 1000);
+            await MainThread.InvokeOnMainThreadAsync(() =>
+                MiniMap.Map.Navigator.ZoomToBox(extent, MBoxFit.Fit, 0, null));
         }
         catch
         {
             await MainThread.InvokeOnMainThreadAsync(() => LocationNoticeLabel.IsVisible = true);
         }
     }
+
+    // ─── Geometry utilities ───────────────────────────────────────────────────
+
+    private static MRect BoundsOf(List<PlayfieldCoordinate> coords, double padding = 0.1)
+    {
+        double minX = double.MaxValue, minY = double.MaxValue;
+        double maxX = double.MinValue, maxY = double.MinValue;
+        foreach (var c in coords)
+        {
+            var (x, y) = SphericalMercator.FromLonLat(c.Longitude, c.Latitude);
+            if (x < minX) minX = x; if (x > maxX) maxX = x;
+            if (y < minY) minY = y; if (y > maxY) maxY = y;
+        }
+        var px = Math.Max((maxX - minX) * padding, 100);
+        var py = Math.Max((maxY - minY) * padding, 100);
+        return new MRect(minX - px, minY - py, maxX + px, maxY + py);
+    }
+
+    private static MRect SquareExtent(double cx, double cy, double meters)
+        => new(cx - meters, cy - meters, cx + meters, cy + meters);
 
     // ─── Validation ──────────────────────────────────────────────────────────
 
@@ -185,8 +256,7 @@ public partial class PlayfieldDetailsPage : ContentPage
 
     private void UpdateSaveButton()
     {
-        if (!ReadOnly)
-            SaveToolbarItem.IsEnabled = IsFormValid;
+        if (!ReadOnly) SaveToolbarItem.IsEnabled = IsFormValid;
     }
 
     private void OnNameTextChanged(object? sender, TextChangedEventArgs e) => UpdateSaveButton();
@@ -212,9 +282,9 @@ public partial class PlayfieldDetailsPage : ContentPage
         var isNew = string.IsNullOrEmpty(PlayfieldId);
         var playfield = new Playfield
         {
-            Id = isNew ? Guid.NewGuid().ToString() : PlayfieldId!,
-            Name = NameEntry.Text?.Trim() ?? string.Empty,
-            IsPublic = PublicSwitch.IsToggled,
+            Id          = isNew ? Guid.NewGuid().ToString() : PlayfieldId!,
+            Name        = NameEntry.Text?.Trim() ?? string.Empty,
+            IsPublic    = PublicSwitch.IsToggled,
             Coordinates = [.. _coordinates]
         };
 

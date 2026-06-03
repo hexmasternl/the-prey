@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mapsui="clr-namespace:Mapsui.UI.Maui;assembly=Mapsui.UI.Maui"
              x:Class="ThePrey.Application.App.PlayfieldAreaEditorPage"
              Style="{StaticResource PreyPage}"
              Shell.NavBarIsVisible="False">
 
-    <!--
-        Full-screen map via HybridWebView + Leaflet.js.
-        Cancel / OK buttons float as a MAUI overlay above the WebView so they
-        use the app's design-system styles without any JS/HTML button code.
-    -->
     <Grid>
 
-        <HybridWebView x:Name="MapWebView"
-                       HybridRoot="map-editor"
-                       DefaultFile="index.html"
-                       RawMessageReceived="OnRawMessageReceived" />
+        <!-- Full-screen Mapsui map -->
+        <mapsui:MapControl x:Name="MapControl" />
 
-        <!-- Floating button bar at the top -->
+        <!-- Floating Cancel / OK buttons overlaid at the top -->
         <Grid VerticalOptions="Start"
               HorizontalOptions="Fill"
               Padding="20,52,20,0"
