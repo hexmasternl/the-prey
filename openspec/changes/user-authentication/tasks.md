@@ -1,21 +1,22 @@
 ## 1. App — Token Management
 
-- [ ] 1.1 Add `Task<string?> GetAccessTokenAsync(CancellationToken ct = default)` to `IAuthService`; implementation checks `exp` claim (with 30-second buffer), calls `client.RefreshTokenAsync` when expired, stores the rotated refresh token, and returns `null` on failure (clearing session)
-- [ ] 1.2 Add a `SemaphoreSlim(1)` guard inside `AuthService.GetAccessTokenAsync` to prevent concurrent refresh calls
-- [ ] 1.3 Update `PlayfieldService.CreateClient()` to use `await authService.GetAccessTokenAsync()` instead of the raw `authService.AccessToken` property; propagate `null` (cleared session) as `UnauthorizedException`
-- [ ] 1.4 Update all other HTTP service classes (if any are added in future) to use the same pattern — document the convention in `IPlayfieldService` XML summary
+- [x] 1.1 Add `Task<string?> GetAccessTokenAsync(CancellationToken ct = default)` to `IAuthService`; implementation checks `exp` claim (with 30-second buffer), calls `client.RefreshTokenAsync` when expired, stores the rotated refresh token, and returns `null` on failure (clearing session)
+- [x] 1.2 Add a `SemaphoreSlim(1)` guard inside `AuthService.GetAccessTokenAsync` to prevent concurrent refresh calls
+- [x] 1.3 Update `PlayfieldService.CreateClient()` to use `await authService.GetAccessTokenAsync()` instead of the raw `authService.AccessToken` property; propagate `null` (cleared session) as `UnauthorizedException`
+- [x] 1.4 Update all other HTTP service classes (if any are added in future) to use the same pattern — document the convention in `IPlayfieldService` XML summary
 
 ## 2. App — Logout Surface
 
-- [ ] 2.1 Add a `LogoutAsync` call path reachable from the main menu or a future settings page; for now add a logout action to `MainPage` (button or menu item) that calls `IAuthService.LogoutAsync()` and navigates back to the landing page
-- [ ] 2.2 Add localization strings for the logout action in `AppResources.resx` and `AppResources.nl.resx`; expose via `AppLocalizer`
+- [x] 2.1 Add a `LogoutAsync` call path reachable from the main menu or a future settings page; for now add a logout action to `MainPage` (button or menu item) that calls `IAuthService.LogoutAsync()` and navigates back to the landing page
+- [x] 2.2 Add localization strings for the logout action in `AppResources.resx` and `AppResources.nl.resx`; expose via `AppLocalizer`
 
 ## 3. Server — JWT Validation Specification Compliance
 
-- [ ] 3.1 Verify `UseAuthentication()` and `UseAuthorization()` middleware are in the correct pipeline order (before `MapPlayFieldEndpoints()`) in every API `Program.cs` — confirm PlayFields API is correct; ensure new API modules follow the same pattern
-- [ ] 3.2 Confirm `AddDefaultAuthentication()` is called in the PlayFields API `Program.cs` and document in `CLAUDE.md` that every new API module MUST call `builder.AddDefaultAuthentication()` before `app.UseAuthentication()`
+- [x] 3.1 Verify `UseAuthentication()` and `UseAuthorization()` middleware are in the correct pipeline order (before `MapPlayFieldEndpoints()`) in every API `Program.cs` — confirm PlayFields API is correct; ensure new API modules follow the same pattern
+- [x] 3.2 Confirm `AddDefaultAuthentication()` is called in the PlayFields API `Program.cs` and document in `CLAUDE.md` that every new API module MUST call `builder.AddDefaultAuthentication()` before `app.UseAuthentication()`
 
-## 4. Verification
+## 4. Verification (manual — requires device/emulator)
+
 
 - [ ] 4.1 Launch the app cold with no stored refresh token; verify the landing page shows login buttons after the entrance animation
 - [ ] 4.2 Log in successfully; kill and relaunch the app; verify the session is silently restored (login buttons never appear)

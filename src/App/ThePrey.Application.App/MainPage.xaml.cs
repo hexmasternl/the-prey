@@ -43,6 +43,7 @@ public partial class MainPage : ContentPage
         PlayButton.Text = AppLocalizer.PlayButton;
         PlayfieldsButton.Text = AppLocalizer.PlayfieldsButton;
         FriendsButton.Text = AppLocalizer.FriendsButton;
+        LogoutButton.Text = AppLocalizer.LogoutButton;
         QuitButton.Text = AppLocalizer.QuitButton;
     }
 
@@ -51,10 +52,11 @@ public partial class MainPage : ContentPage
         var authenticated = Auth?.IsAuthenticated ?? false;
 
         // Play & Playfields require a logged-in operative; Friends is not available yet;
-        // Quit is always allowed so the player is never trapped on a locked menu.
+        // Logout only makes sense when authenticated; Quit is always allowed.
         PlayButton.IsEnabled = authenticated;
         PlayfieldsButton.IsEnabled = authenticated;
         FriendsButton.IsEnabled = false;
+        LogoutButton.IsEnabled = authenticated;
         QuitButton.IsEnabled = true;
     }
 
@@ -63,6 +65,16 @@ public partial class MainPage : ContentPage
 
     private async void OnPlayfieldsClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync(AppShell.PlayfieldsRoute);
+
+    private async void OnLogoutClicked(object? sender, EventArgs e)
+    {
+        var auth = Auth;
+        if (auth is null) return;
+
+        await auth.LogoutAsync();
+        UpdateMenuState();
+        await Shell.Current.GoToAsync(AppShell.LoginRoute);
+    }
 
     private void OnQuitClicked(object? sender, EventArgs e)
         => Microsoft.Maui.Controls.Application.Current?.Quit();

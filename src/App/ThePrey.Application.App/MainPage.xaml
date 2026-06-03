@@ -31,6 +31,10 @@
                         Style="{StaticResource BtnGhost}"
                         IsEnabled="False" />
 
+                <Button x:Name="LogoutButton"
+                        Style="{StaticResource BtnGhost}"
+                        Clicked="OnLogoutClicked" />
+
                 <Button x:Name="QuitButton"
                         Style="{StaticResource BtnGhost}"
                         Clicked="OnQuitClicked" />

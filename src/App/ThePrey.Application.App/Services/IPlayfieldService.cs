@@ -2,6 +2,12 @@ using ThePrey.Application.App.Models;
 
 namespace ThePrey.Application.App.Services;
 
+/// <summary>
+/// HTTP client abstraction for the PlayFields API.
+/// Implementations MUST obtain the access token via <see cref="IAuthService.GetAccessTokenAsync"/>
+/// (never read <c>IAuthService.AccessToken</c> directly) so that expired tokens are transparently
+/// refreshed before each request.
+/// </summary>
 public interface IPlayfieldService
 {
     Task<IReadOnlyList<Playfield>> GetPlayfieldsAsync(CancellationToken ct = default);

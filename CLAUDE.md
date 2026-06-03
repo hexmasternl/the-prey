@@ -53,6 +53,28 @@ Use the MCP tools `mcp__hexmaster-coding-guidelines__list_docs` and `mcp__hexmas
 | `0009-feature-slices-module-structure` | Physical file layout inside a module |
 | `unit-testing-xunit-moq-bogus` | Writing unit tests |
 
+### Authentication & Authorization
+
+Every new API module **must** follow this exact pattern:
+
+1. Call `builder.AddDefaultAuthentication()` in `Program.cs` (after `builder.AddServiceDefaults()`).
+2. Call `app.UseAuthentication()` then `app.UseAuthorization()` in the middleware pipeline **before** any `app.Map*Endpoints()` call.
+3. Use `.RequireAuthorization()` on endpoint `MapGroup(...)` so all routes in the group are protected by default.
+
+```csharp
+// Program.cs — correct order
+builder.AddServiceDefaults();
+builder.AddDefaultAuthentication();      // ← MUST be here
+// ...
+app.UseAuthentication();                 // ← MUST be before Map*
+app.UseAuthorization();
+app.MapMyModuleEndpoints();
+```
+
+The caller's identity is available in handlers via the `sub` claim (`principal.FindFirstValue("sub")`). `MapInboundClaims = false` is set in `ServiceDefaults`, so claims keep their JWT names.
+
+**App-side**: HTTP service classes must obtain the access token via `IAuthService.GetAccessTokenAsync()` — never read `IAuthService.AccessToken` directly. `GetAccessTokenAsync` silently refreshes expired tokens and throws `UnauthorizedException` when the session cannot be recovered.
+
 ### CQRS Pattern
 
 All application logic uses a lightweight CQRS pattern via `ICommandHandler<TCommand, TResult>` and `IQueryHandler<TQuery, TResult>` from `HexMaster.ThePrey.Core`. **Never use MediatR.**

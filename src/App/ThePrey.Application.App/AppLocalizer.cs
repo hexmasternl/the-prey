@@ -19,6 +19,7 @@ internal static class AppLocalizer
     public static string PlayButton => Get(nameof(PlayButton));
     public static string PlayfieldsButton => Get(nameof(PlayfieldsButton));
     public static string FriendsButton => Get(nameof(FriendsButton));
+    public static string LogoutButton => Get(nameof(LogoutButton));
     public static string QuitButton => Get(nameof(QuitButton));
     public static string PlayfieldsPageTitle => Get(nameof(PlayfieldsPageTitle));
     public static string PlayfieldsCreateNew => Get(nameof(PlayfieldsCreateNew));

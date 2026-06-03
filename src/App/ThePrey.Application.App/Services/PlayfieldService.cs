@@ -17,17 +17,19 @@ public sealed class PlayfieldService(IHttpClientFactory httpClientFactory, IAuth
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    private HttpClient CreateClient()
+    private async Task<HttpClient> CreateClientAsync(CancellationToken ct = default)
     {
         var client = httpClientFactory.CreateClient("playfields");
-        if (authService.AccessToken is { } token)
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var token = await authService.GetAccessTokenAsync(ct);
+        if (token is null)
+            throw new UnauthorizedException();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }
 
     public async Task<IReadOnlyList<Playfield>> GetPlayfieldsAsync(CancellationToken ct = default)
     {
-        var client = CreateClient();
+        var client = await CreateClientAsync(ct);
         var response = await client.GetAsync("playfields", ct);
         if (response.StatusCode == HttpStatusCode.Unauthorized)
             throw new UnauthorizedException();
@@ -37,7 +39,7 @@ public sealed class PlayfieldService(IHttpClientFactory httpClientFactory, IAuth
 
     public async Task DeletePlayfieldAsync(string id, CancellationToken ct = default)
     {
-        var client = CreateClient();
+        var client = await CreateClientAsync(ct);
         var response = await client.DeleteAsync($"playfields/{id}", ct);
         if (response.StatusCode == HttpStatusCode.Unauthorized)
             throw new UnauthorizedException();
@@ -48,7 +50,7 @@ public sealed class PlayfieldService(IHttpClientFactory httpClientFactory, IAuth
     {
         try
         {
-            var client = CreateClient();
+            var client = await CreateClientAsync(ct);
             var response = await client.GetAsync(
                 $"playfields/public?q={Uri.EscapeDataString(query)}", ct);
             if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -64,7 +66,7 @@ public sealed class PlayfieldService(IHttpClientFactory httpClientFactory, IAuth
 
     public async Task<Playfield> CreatePlayfieldAsync(Playfield playfield, CancellationToken ct = default)
     {
-        var client = CreateClient();
+        var client = await CreateClientAsync(ct);
         var response = await client.PostAsJsonAsync("playfields", playfield, ct);
         if (response.StatusCode == HttpStatusCode.Unauthorized)
             throw new UnauthorizedException();
@@ -74,7 +76,7 @@ public sealed class PlayfieldService(IHttpClientFactory httpClientFactory, IAuth
 
     public async Task<Playfield> UpdatePlayfieldAsync(Playfield playfield, CancellationToken ct = default)
     {
-        var client = CreateClient();
+        var client = await CreateClientAsync(ct);
         var response = await client.PutAsJsonAsync($"playfields/{playfield.Id}", playfield, ct);
         if (response.StatusCode == HttpStatusCode.Unauthorized)
             throw new UnauthorizedException();
@@ -92,7 +94,7 @@ public sealed class PlayfieldService(IHttpClientFactory httpClientFactory, IAuth
             LastUpdatedOn = playfield.LastUpdatedOn
         };
 
-        var client = CreateClient();
+        var client = await CreateClientAsync(ct);
         var response = await client.PutAsJsonAsync($"playfields/{playfield.Id}", payload, ct);
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)

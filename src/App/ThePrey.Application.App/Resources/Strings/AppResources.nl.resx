@@ -36,6 +36,9 @@
   <data name="FriendsButton" xml:space="preserve">
     <value>Vrienden</value>
   </data>
+  <data name="LogoutButton" xml:space="preserve">
+    <value>Uitloggen</value>
+  </data>
   <data name="QuitButton" xml:space="preserve">
     <value>Afsluiten</value>
   </data>
