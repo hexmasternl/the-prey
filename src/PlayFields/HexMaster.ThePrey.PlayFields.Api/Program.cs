@@ -1,45 +1,53 @@
+using HexMaster.ThePrey.PlayFields;
+using HexMaster.ThePrey.PlayFields.Api.Endpoints;
+using HexMaster.ThePrey.PlayFields.Data.TableStorage;
+using HexMaster.ThePrey.PlayFields.Observability;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using Scalar.AspNetCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Auth0:Domain"];
+        options.Audience = builder.Configuration["Auth0:Audience"];
+        options.MapInboundClaims = false;
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddPlayFieldsModule();
+builder.AddPlayFieldsTableStorage();
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddSource(PlayFieldObservabilityConstants.ActivitySourceName))
+    .WithMetrics(metrics => metrics
+        .AddMeter(PlayFieldObservabilityConstants.MeterName));
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapPlayFieldEndpoints();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

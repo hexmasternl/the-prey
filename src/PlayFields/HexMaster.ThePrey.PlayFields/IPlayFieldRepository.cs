@@ -1,0 +1,13 @@
+using HexMaster.ThePrey.PlayFields.DomainModels;
+
+namespace HexMaster.ThePrey.PlayFields;
+
+public interface IPlayFieldRepository
+{
+    Task AddAsync(PlayField playField, CancellationToken ct);
+
+    Task<PlayField?> GetByIdAsync(Guid id, CancellationToken ct);
+
+    /// <summary>Returns the play fields owned by the given player plus all public play fields owned by others.</summary>
+    Task<IReadOnlyList<PlayField>> ListVisibleToAsync(string ownerId, CancellationToken ct);
+}

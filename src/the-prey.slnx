@@ -8,7 +8,11 @@
   </Folder>
   <Folder Name="/Games/" />
   <Folder Name="/Playfields/">
+    <Project Path="Playfields/HexMaster.ThePrey.PlayFields/HexMaster.ThePrey.PlayFields.csproj" />
+    <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Abstractions/HexMaster.ThePrey.PlayFields.Abstractions.csproj" />
     <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Api/HexMaster.ThePrey.PlayFields.Api.csproj" />
+    <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Data.TableStorage/HexMaster.ThePrey.PlayFields.Data.TableStorage.csproj" />
+    <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Tests/HexMaster.ThePrey.PlayFields.Tests.csproj" />
   </Folder>
   <Folder Name="/Shared/">
     <Project Path="Shared/ThePrey.Core.Tests/ThePrey.Core.Tests.csproj" Id="1b7069ce-b7da-4dc0-85f4-5a5591886938" />
