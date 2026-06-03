@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
              x:Class="ThePrey.Application.App.PlayfieldDetailsPage"
              Style="{StaticResource PreyPage}">
 
@@ -67,11 +66,13 @@
                    TextColor="{StaticResource SignalDim}"
                    Margin="0,0,0,6" />
 
-            <maps:Map x:Name="MiniMap"
-                      HeightRequest="200"
-                      IsScrollEnabled="False"
-                      IsZoomEnabled="False"
-                      Margin="0,0,0,4" />
+            <!-- Mini-map: Leaflet via HybridWebView (same library as area editor, no API key) -->
+            <HybridWebView x:Name="MiniMap"
+                           HybridRoot="map-editor"
+                           DefaultFile="mini-map.html"
+                           HeightRequest="200"
+                           Margin="0,0,0,4"
+                           RawMessageReceived="OnMiniMapMessageReceived" />
 
             <Label x:Name="LocationNoticeLabel"
                    IsVisible="False"

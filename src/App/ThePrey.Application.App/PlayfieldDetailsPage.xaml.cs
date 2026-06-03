@@ -1,8 +1,6 @@
-using Microsoft.Maui.Controls.Maps;
-using Microsoft.Maui.Maps;
+using System.Text.Json;
 using ThePrey.Application.App.Models;
 using ThePrey.Application.App.Services;
-using Map = Microsoft.Maui.Controls.Maps.Map;
 
 namespace ThePrey.Application.App;
 
@@ -16,6 +14,8 @@ public partial class PlayfieldDetailsPage : ContentPage
 
     private List<PlayfieldCoordinate> _coordinates = [];
     private bool _isInitialized;
+    private bool _mapReady;
+    private (double Lat, double Lon)? _userLocation;
 
     public string? PlayfieldId { get; set; }
     public string? IsReadOnly { get; set; }
@@ -55,7 +55,7 @@ public partial class PlayfieldDetailsPage : ContentPage
         {
             // Returning from area editor — pick up any coordinate changes
             _coordinates = [.. _editingContext.CurrentCoordinates];
-            UpdateMap();
+            await SendMapInitAsync();
             UpdateSaveButton();
         }
     }
@@ -77,11 +77,9 @@ public partial class PlayfieldDetailsPage : ContentPage
             {
                 if (ReadOnly)
                 {
-                    // Public playfield — not in local cache; show placeholder
                     Title ??= AppLocalizer.ViewPlayfieldTitle;
                     return;
                 }
-
                 await DisplayAlertAsync(AppLocalizer.Error, AppLocalizer.PlayfieldNotFoundError, AppLocalizer.Ok);
                 await Shell.Current.GoToAsync("..");
                 return;
@@ -98,10 +96,12 @@ public partial class PlayfieldDetailsPage : ContentPage
             _coordinates = [];
         }
 
-        // Seed the editing context so Set Area starts with current coordinates
         _editingContext.CurrentCoordinates = [.. _coordinates];
 
-        UpdateMap();
+        if (_coordinates.Count == 0)
+            _ = FetchUserLocationAsync();
+
+        await SendMapInitAsync();
         UpdateSaveButton();
     }
 
@@ -110,102 +110,72 @@ public partial class PlayfieldDetailsPage : ContentPage
         NameEntry.IsEnabled = false;
         PublicSwitch.IsEnabled = false;
         SetAreaButton.IsEnabled = false;
-        SaveToolbarItem.IsEnabled = false;
-        SaveToolbarItem.IsDestructive = false;
-        // Hide Save from toolbar in a readable way — set text to empty so it takes no space
         ToolbarItems.Remove(SaveToolbarItem);
     }
 
-    // ─── Map rendering ───────────────────────────────────────────────────────
+    // ─── Mini-map (HybridWebView + Leaflet) ─────────────────────────────────
 
-    private async void UpdateMap()
+    private void OnMiniMapMessageReceived(object? sender, HybridWebViewRawMessageReceivedEventArgs e)
     {
-        MiniMap.MapElements.Clear();
-        MiniMap.Pins.Clear();
+        if (string.IsNullOrEmpty(e.Message)) return;
+        JsonDocument doc;
+        try { doc = JsonDocument.Parse(e.Message); } catch { return; }
 
-        if (_coordinates.Count > 0)
+        if (doc.RootElement.TryGetProperty("type", out var t) && t.GetString() == "ready")
         {
-            var polygon = new Polygon
-            {
-                StrokeColor = Color.FromArgb("#64FF00"),
-                StrokeWidth = 2,
-                FillColor = Color.FromArgb("#2064FF00")
-            };
-            foreach (var c in _coordinates)
-                polygon.Geopath.Add(new Location(c.Latitude, c.Longitude));
-            MiniMap.MapElements.Add(polygon);
-
-            var center = CalculateCenter(_coordinates);
-            var radiusKm = CalculateRadiusKm(_coordinates, center);
-            MiniMap.MoveToRegion(MapSpan.FromCenterAndRadius(
-                new Location(center.Latitude, center.Longitude),
-                Distance.FromKilometers(Math.Max(radiusKm * 1.5, 0.1))));
-        }
-        else
-        {
-            await CenterOnUserLocationAsync();
+            _mapReady = true;
+            _ = SendMapInitAsync();
         }
     }
 
-    private async Task CenterOnUserLocationAsync()
+    private async Task SendMapInitAsync()
+    {
+        if (!_mapReady) return;
+
+        object? center = null;
+        if (_coordinates.Count == 0 && _userLocation.HasValue)
+            center = new { lat = _userLocation.Value.Lat, lon = _userLocation.Value.Lon };
+
+        var payload = new
+        {
+            type = "init",
+            coordinates = _coordinates.Select(c => new { lat = c.Latitude, lon = c.Longitude }),
+            center
+        };
+
+        var json = JsonSerializer.Serialize(payload);
+        await MainThread.InvokeOnMainThreadAsync(() => MiniMap.SendRawMessage(json));
+    }
+
+    private async Task FetchUserLocationAsync()
     {
         try
         {
             var status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
             if (status != PermissionStatus.Granted)
             {
-                ShowLocationNotice();
+                await MainThread.InvokeOnMainThreadAsync(() => LocationNoticeLabel.IsVisible = true);
                 return;
             }
 
-            var location = await Geolocation.GetLastKnownLocationAsync()
+            var loc = await Geolocation.GetLastKnownLocationAsync()
                 ?? await Geolocation.GetLocationAsync(
                     new GeolocationRequest(GeolocationAccuracy.Low, TimeSpan.FromSeconds(5)));
 
-            if (location is not null)
+            if (loc is not null)
             {
-                LocationNoticeLabel.IsVisible = false;
-                MiniMap.MoveToRegion(MapSpan.FromCenterAndRadius(
-                    new Location(location.Latitude, location.Longitude),
-                    Distance.FromKilometers(0.5)));
+                _userLocation = (loc.Latitude, loc.Longitude);
+                await SendMapInitAsync();
             }
             else
             {
-                ShowLocationNotice();
+                await MainThread.InvokeOnMainThreadAsync(() => LocationNoticeLabel.IsVisible = true);
             }
         }
         catch
         {
-            ShowLocationNotice();
+            await MainThread.InvokeOnMainThreadAsync(() => LocationNoticeLabel.IsVisible = true);
         }
-    }
-
-    private void ShowLocationNotice()
-    {
-        LocationNoticeLabel.IsVisible = true;
-        MiniMap.MoveToRegion(MapSpan.FromCenterAndRadius(
-            new Location(52.3676, 4.9041), // Amsterdam fallback
-            Distance.FromKilometers(10)));
-    }
-
-    private static PlayfieldCoordinate CalculateCenter(List<PlayfieldCoordinate> coords)
-    {
-        var lat = coords.Average(c => c.Latitude);
-        var lon = coords.Average(c => c.Longitude);
-        return new PlayfieldCoordinate { Latitude = lat, Longitude = lon };
-    }
-
-    private static double CalculateRadiusKm(List<PlayfieldCoordinate> coords, PlayfieldCoordinate center)
-    {
-        double maxDistKm = 0;
-        foreach (var c in coords)
-        {
-            var dLat = (c.Latitude - center.Latitude) * 111.0;
-            var dLon = (c.Longitude - center.Longitude) * 111.0 * Math.Cos(center.Latitude * Math.PI / 180);
-            var dist = Math.Sqrt(dLat * dLat + dLon * dLon);
-            if (dist > maxDistKm) maxDistKm = dist;
-        }
-        return maxDistKm;
     }
 
     // ─── Validation ──────────────────────────────────────────────────────────
@@ -219,8 +189,7 @@ public partial class PlayfieldDetailsPage : ContentPage
             SaveToolbarItem.IsEnabled = IsFormValid;
     }
 
-    private void OnNameTextChanged(object? sender, TextChangedEventArgs e)
-        => UpdateSaveButton();
+    private void OnNameTextChanged(object? sender, TextChangedEventArgs e) => UpdateSaveButton();
 
     private void OnNameUnfocused(object? sender, FocusEventArgs e)
     {
