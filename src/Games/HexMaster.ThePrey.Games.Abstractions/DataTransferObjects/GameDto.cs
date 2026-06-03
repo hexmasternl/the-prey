@@ -1,0 +1,24 @@
+namespace HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
+
+/// <summary>The full state of a game, including its lobby and — once started — its hunter and preys.</summary>
+public sealed record GameDto(
+    Guid Id,
+    Guid PlayfieldId,
+    Guid OwnerUserId,
+    string Status,
+    GameConfigurationDto Configuration,
+    IReadOnlyList<LobbyPlayerDto> Lobby,
+    ParticipantDto? Hunter,
+    IReadOnlyList<ParticipantDto> Preys,
+    DateTimeOffset? StartedAt);
+
+/// <summary>A condensed view of a game for list results.</summary>
+public sealed record GameSummaryDto(
+    Guid Id,
+    Guid PlayfieldId,
+    Guid OwnerUserId,
+    string Status,
+    int PlayerCount);
+
+/// <summary>The result of recording a location: whether it was accepted and when to report next.</summary>
+public sealed record RecordLocationResponse(bool Accepted, int NextLocationIntervalSeconds);

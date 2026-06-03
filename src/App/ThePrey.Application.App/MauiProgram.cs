@@ -8,10 +8,10 @@ public static class MauiProgram
     // TODO: Replace these placeholders with your actual Auth0 application credentials.
     // Domain:   Your Auth0 tenant domain, e.g. "your-tenant.auth0.com"
     // ClientId: The Client ID of your Auth0 native application.
-    private const string Auth0Domain = "YOUR_AUTH0_DOMAIN";
-    private const string Auth0ClientId = "YOUR_AUTH0_CLIENT_ID";
+    private const string Auth0Domain = "theprey.eu.auth0.com";
+    private const string Auth0ClientId = "tJrm2nPrAX4kES7XEnjUsL38cqbAbraJ";
 
-    private const string RedirectUri = "com.companyname.theprey.application.app://callback";
+    private const string RedirectUri = "com.hexmaster.theprey.application.app://callback";
 
     public static MauiApp CreateMauiApp()
     {

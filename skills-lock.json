@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "auth0-maui": {
+      "source": "auth0/agent-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/auth0/skills/auth0-maui/SKILL.md",
+      "computedHash": "e8f0fa8212e85731d97757166a04a65288ba7fb5e96bc8639590c79956540674"
+    },
+    "auth0-quickstart": {
+      "source": "auth0/agent-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/auth0/skills/auth0-quickstart/SKILL.md",
+      "computedHash": "fde383fc91a232bc41d951791e9622725e35fd7839e7b4596c1e0175340c5f86"
+    }
+  }
+}

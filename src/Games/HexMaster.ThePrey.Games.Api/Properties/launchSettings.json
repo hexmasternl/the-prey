@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "HexMaster.ThePrey.Games.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:50440;http://localhost:50441"
+    }
+  }
+}

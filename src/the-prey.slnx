@@ -6,7 +6,16 @@
     <Project Path="Aspire/ThePrey.Aspire.AppHost/ThePrey.Aspire.AppHost.csproj" Id="d84e51c3-a882-4aff-9929-24f696a8babe" />
     <Project Path="Aspire/ThePrey.Aspire.ServiceDefaults/ThePrey.Aspire.ServiceDefaults.csproj" />
   </Folder>
-  <Folder Name="/Games/" />
+  <Folder Name="/Core/">
+    <Project Path="Core/HexMaster.ThePrey.Core/HexMaster.ThePrey.Core.csproj" />
+  </Folder>
+  <Folder Name="/Games/">
+    <Project Path="Games/HexMaster.ThePrey.Games.Abstractions/HexMaster.ThePrey.Games.Abstractions.csproj" />
+    <Project Path="Games/HexMaster.ThePrey.Games.Api/HexMaster.ThePrey.Games.Api.csproj" />
+    <Project Path="Games/HexMaster.ThePrey.Games.Data.Postgres/HexMaster.ThePrey.Games.Data.Postgres.csproj" />
+    <Project Path="Games/HexMaster.ThePrey.Games.Tests/HexMaster.ThePrey.Games.Tests.csproj" />
+    <Project Path="Games/HexMaster.ThePrey.Games/HexMaster.ThePrey.Games.csproj" />
+  </Folder>
   <Folder Name="/Playfields/">
     <Project Path="Playfields/HexMaster.ThePrey.PlayFields/HexMaster.ThePrey.PlayFields.csproj" />
     <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Abstractions/HexMaster.ThePrey.PlayFields.Abstractions.csproj" />

@@ -16,4 +16,12 @@ builder.AddProject<Projects.HexMaster_ThePrey_PlayFields_Api>(AspireConstants.Re
     .WithReference(playFieldsTables)
     .WaitFor(playFieldsTables);
 
+var postgres = builder.AddPostgres(AspireConstants.Resources.Postgres);
+
+var gamesDatabase = postgres.AddDatabase(AspireConstants.Resources.GamesDatabase);
+
+builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireConstants.Resources.GamesApi)
+    .WithReference(gamesDatabase)
+    .WaitFor(gamesDatabase);
+
 builder.Build().Run();

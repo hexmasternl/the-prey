@@ -1,7 +1,17 @@
 <Solution>
   <Folder Name="/src/" />
+  <Folder Name="/src/Aspire/">
+    <Project Path="src/Aspire/ThePrey.Aspire.ServiceDefaults/ThePrey.Aspire.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/src/Core/">
     <Project Path="src/Core/HexMaster.ThePrey.Core/HexMaster.ThePrey.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Games/">
+    <Project Path="src/Games/HexMaster.ThePrey.Games.Abstractions/HexMaster.ThePrey.Games.Abstractions.csproj" />
+    <Project Path="src/Games/HexMaster.ThePrey.Games.Api/HexMaster.ThePrey.Games.Api.csproj" />
+    <Project Path="src/Games/HexMaster.ThePrey.Games.Data.Postgres/HexMaster.ThePrey.Games.Data.Postgres.csproj" />
+    <Project Path="src/Games/HexMaster.ThePrey.Games.Tests/HexMaster.ThePrey.Games.Tests.csproj" />
+    <Project Path="src/Games/HexMaster.ThePrey.Games/HexMaster.ThePrey.Games.csproj" />
   </Folder>
   <Folder Name="/src/Users/">
     <Project Path="src/Users/HexMaster.ThePrey.Users.Abstractions/HexMaster.ThePrey.Users.Abstractions.csproj" />
