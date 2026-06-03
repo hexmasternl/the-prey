@@ -58,6 +58,7 @@ public static class MauiProgram
         builder.Services.AddTransient<PlayfieldsPage>();
         builder.Services.AddTransient<PlayfieldDetailsPage>();
         builder.Services.AddSingleton<PlayfieldEditingContext>();
+        builder.Services.AddTransient<PlayfieldAreaEditorPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

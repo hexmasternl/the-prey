@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Area Editor</title>
+    <link rel="stylesheet" href="leaflet.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; background: #0C0E0C; }
+        #map { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="leaflet.min.js"></script>
+    <script>
+        // ── State ────────────────────────────────────────────────────────────
+        var points   = [];   // [{lat, lon}]
+        var markers  = [];   // Leaflet CircleMarker per point
+        var shape    = null; // current Polygon or Polyline layer
+
+        // ── Map initialisation ───────────────────────────────────────────────
+        var map = L.map('map', {
+            center: [52.3676, 4.9041],  // Amsterdam — overridden by init message
+            zoom: 13,
+            zoomControl: true,
+            attributionControl: true
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            // OSM tile provider — switch to a paid provider before commercial release.
+            attribution: '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // ── Marker helpers ───────────────────────────────────────────────────
+        function makeMarker(lat, lon, index) {
+            var m = L.circleMarker([lat, lon], {
+                radius: 9,
+                color: '#39402F',
+                weight: 2,
+                fillColor: '#64FF00',
+                fillOpacity: 0.9
+            }).addTo(map);
+
+            m.on('click', function (e) {
+                L.DomEvent.stopPropagation(e);
+                removePoint(index);
+            });
+            return m;
+        }
+
+        function rebindMarkerClicks() {
+            markers.forEach(function (m, i) {
+                m.off('click');
+                m.on('click', function (e) {
+                    L.DomEvent.stopPropagation(e);
+                    removePoint(i);
+                });
+            });
+        }
+
+        // ── Shape drawing ────────────────────────────────────────────────────
+        function redraw() {
+            if (shape) { map.removeLayer(shape); shape = null; }
+            if (points.length < 2) return;
+
+            var latlngs = points.map(function (p) { return [p.lat, p.lon]; });
+
+            if (points.length >= 3) {
+                shape = L.polygon(latlngs, {
+                    color: '#64FF00',
+                    weight: 2,
+                    fillColor: '#64FF00',
+                    fillOpacity: 0.12
+                }).addTo(map);
+            } else {
+                shape = L.polyline(latlngs, {
+                    color: '#64FF00',
+                    weight: 2
+                }).addTo(map);
+            }
+        }
+
+        // ── Point management ─────────────────────────────────────────────────
+        function addPoint(lat, lon) {
+            var idx = points.length;
+            points.push({ lat: lat, lon: lon });
+            markers.push(makeMarker(lat, lon, idx));
+            redraw();
+            sendUpdate();
+        }
+
+        function removePoint(index) {
+            map.removeLayer(markers[index]);
+            markers.splice(index, 1);
+            points.splice(index, 1);
+            rebindMarkerClicks();
+            redraw();
+            sendUpdate();
+        }
+
+        // ── Map tap → add point ──────────────────────────────────────────────
+        map.on('click', function (e) {
+            addPoint(e.latlng.lat, e.latlng.lng);
+        });
+
+        // ── HybridWebView bridge ─────────────────────────────────────────────
+
+        // Receive messages from C#
+        window.HybridWebView = window.HybridWebView || {};
+        window.HybridWebView.onRawMessageReceived = function (raw) {
+            var msg;
+            try { msg = JSON.parse(raw); } catch (e) { return; }
+
+            if (msg.type === 'init') {
+                if (msg.coordinates && msg.coordinates.length > 0) {
+                    msg.coordinates.forEach(function (c) {
+                        var idx = points.length;
+                        points.push({ lat: c.lat, lon: c.lon });
+                        markers.push(makeMarker(c.lat, c.lon, idx));
+                    });
+                    rebindMarkerClicks();
+                    redraw();
+
+                    var group = L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.2));
+                } else if (msg.center) {
+                    map.setView([msg.center.lat, msg.center.lon], 15);
+                }
+            }
+        };
+
+        // Send messages to C#
+        function sendUpdate() {
+            send(JSON.stringify({ type: 'update', coordinates: points }));
+        }
+
+        function send(raw) {
+            if (window.HybridWebView && typeof window.HybridWebView.sendRawMessage === 'function') {
+                window.HybridWebView.sendRawMessage(raw);
+            }
+        }
+
+        // Signal ready to C# — retries until the bridge is available
+        function signalReady() {
+            if (window.HybridWebView && typeof window.HybridWebView.sendRawMessage === 'function') {
+                send(JSON.stringify({ type: 'ready' }));
+            } else {
+                setTimeout(signalReady, 80);
+            }
+        }
+
+        window.addEventListener('load', signalReady);
+    </script>
+</body>
+</html>

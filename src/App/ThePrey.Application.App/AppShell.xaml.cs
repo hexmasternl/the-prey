@@ -16,5 +16,6 @@ public partial class AppShell : Shell
 		Routing.RegisterRoute(LoginRoute, typeof(LandingPage));
 		Routing.RegisterRoute(PlayfieldsRoute, typeof(PlayfieldsPage));
 		Routing.RegisterRoute(PlayfieldDetailsRoute, typeof(PlayfieldDetailsPage));
+		Routing.RegisterRoute(PlayfieldAreaEditorRoute, typeof(PlayfieldAreaEditorPage));
 	}
 }
