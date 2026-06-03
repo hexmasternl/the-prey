@@ -15,12 +15,28 @@ public sealed class PlayField
     public string Name { get; private set; } = string.Empty;
     public string OwnerId { get; private set; } = string.Empty;
     public bool IsPublic { get; private set; }
+    public DateTimeOffset LastModifiedOn { get; private set; }
+    public GpsCoordinate? CenterCoordinates { get; private set; }
     public IReadOnlyList<GpsCoordinate> Points => _points.AsReadOnly();
 
     private PlayField() { }
 
+    private static GpsCoordinate? ComputeCentroid(IReadOnlyList<GpsCoordinate> points)
+    {
+        if (points.Count == 0) return null;
+        var lat = points.Average(p => p.Latitude);
+        var lon = points.Average(p => p.Longitude);
+        return new GpsCoordinate(lat, lon);
+    }
+
     /// <summary>Creates a new play field, enforcing all domain invariants.</summary>
-    public static PlayField Create(string name, string ownerId, IReadOnlyList<GpsCoordinate> points, bool isPublic)
+    public static PlayField Create(
+        string name,
+        string ownerId,
+        IReadOnlyList<GpsCoordinate> points,
+        bool isPublic,
+        Guid? id = null,
+        DateTimeOffset? lastModifiedOn = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(ownerId);
@@ -31,12 +47,14 @@ public sealed class PlayField
 
         var playField = new PlayField
         {
-            Id = Guid.NewGuid(),
+            Id = id ?? Guid.NewGuid(),
             Name = name,
             OwnerId = ownerId,
-            IsPublic = isPublic
+            IsPublic = isPublic,
+            LastModifiedOn = lastModifiedOn ?? DateTimeOffset.UtcNow
         };
         playField._points.AddRange(points);
+        playField.CenterCoordinates = ComputeCentroid(points);
         return playField;
     }
 
@@ -44,7 +62,14 @@ public sealed class PlayField
     /// Reconstructs a previously-persisted play field. Intended only for data adapters; it trusts the
     /// supplied identifier and bypasses creation-time identity assignment.
     /// </summary>
-    public static PlayField Rehydrate(Guid id, string name, string ownerId, bool isPublic, IReadOnlyList<GpsCoordinate> points)
+    public static PlayField Rehydrate(
+        Guid id,
+        string name,
+        string ownerId,
+        bool isPublic,
+        IReadOnlyList<GpsCoordinate> points,
+        DateTimeOffset lastModifiedOn,
+        GpsCoordinate? centerCoordinates = null)
     {
         ArgumentNullException.ThrowIfNull(points);
 
@@ -53,10 +78,29 @@ public sealed class PlayField
             Id = id,
             Name = name,
             OwnerId = ownerId,
-            IsPublic = isPublic
+            IsPublic = isPublic,
+            LastModifiedOn = lastModifiedOn
         };
         playField._points.AddRange(points);
+        playField.CenterCoordinates = centerCoordinates ?? ComputeCentroid(points);
         return playField;
+    }
+
+    /// <summary>Updates the play field, re-validates invariants, recomputes the centroid, and stamps the timestamp.</summary>
+    public void Update(string name, bool isPublic, IReadOnlyList<GpsCoordinate> points, DateTimeOffset lastModifiedOn)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(points);
+
+        if (points.Count < MinimumPoints)
+            throw new ArgumentException($"A play field requires at least {MinimumPoints} points.", nameof(points));
+
+        Name = name;
+        IsPublic = isPublic;
+        LastModifiedOn = lastModifiedOn;
+        _points.Clear();
+        _points.AddRange(points);
+        CenterCoordinates = ComputeCentroid(points);
     }
 
     /// <summary>

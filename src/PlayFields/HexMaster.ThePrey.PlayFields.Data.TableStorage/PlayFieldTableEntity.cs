@@ -18,4 +18,7 @@ internal sealed class PlayFieldTableEntity : ITableEntity
     public string Name { get; set; } = string.Empty;
     public bool IsPublic { get; set; }
     public string PointsJson { get; set; } = "[]";
+    public DateTimeOffset LastModifiedOn { get; set; }
+    public double? CenterLatitude { get; set; }
+    public double? CenterLongitude { get; set; }
 }

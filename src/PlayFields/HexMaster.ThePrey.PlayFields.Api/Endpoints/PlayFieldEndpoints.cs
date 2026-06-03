@@ -3,6 +3,7 @@ using HexMaster.ThePrey.PlayFields.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.PlayFields.Features.CreatePlayField;
 using HexMaster.ThePrey.PlayFields.Features.GetPlayField;
 using HexMaster.ThePrey.PlayFields.Features.ListPlayFields;
+using HexMaster.ThePrey.PlayFields.Features.UpsertPlayField;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -23,6 +24,15 @@ public static class PlayFieldEndpoints
             .Produces<PlayFieldDto>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status401Unauthorized);
+
+        group.MapPut("/{id:guid}", UpsertPlayField)
+            .WithName("UpsertPlayField")
+            .Produces<PlayFieldDto>(StatusCodes.Status200OK)
+            .Produces<PlayFieldDto>(StatusCodes.Status201Created)
+            .Produces<PlayFieldDto>(StatusCodes.Status409Conflict)
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
 
         group.MapGet("/{id:guid}", GetPlayField)
             .WithName("GetPlayField")
@@ -100,6 +110,52 @@ public static class PlayFieldEndpoints
         var playFields = await handler.Handle(new ListPlayFieldsQuery(ownerId), ct);
 
         return Results.Ok(playFields);
+    }
+
+    private static async Task<IResult> UpsertPlayField(
+        Guid id,
+        [FromBody] UpsertPlayFieldRequest request,
+        ClaimsPrincipal principal,
+        ICommandHandler<UpsertPlayFieldCommand, UpsertPlayFieldResult> handler,
+        CancellationToken ct)
+    {
+        var ownerId = GetSubjectId(principal);
+        if (ownerId is null)
+            return Results.Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                [nameof(request.Name)] = ["Name is required."]
+            });
+
+        if (request.Points is null || request.Points.Count < 3)
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                [nameof(request.Points)] = ["A play field requires at least 3 points."]
+            });
+
+        try
+        {
+            var command = new UpsertPlayFieldCommand(id, ownerId, request.Name, request.IsPublic, request.Points, request.LastUpdatedOn);
+            var result = await handler.Handle(command, ct);
+
+            return result switch
+            {
+                UpsertPlayFieldResult.Created c => Results.Created($"/playfields/{id}", c.PlayField),
+                UpsertPlayFieldResult.Updated u => Results.Ok(u.PlayField),
+                UpsertPlayFieldResult.Conflict conflict => Results.Conflict(conflict.CurrentPlayField),
+                UpsertPlayFieldResult.Forbidden => Results.Forbid(),
+                _ => Results.StatusCode(500)
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                [ex.ParamName ?? "request"] = [ex.Message]
+            });
+        }
     }
 
     private static string? GetSubjectId(ClaimsPrincipal principal) =>

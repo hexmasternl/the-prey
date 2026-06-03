@@ -123,4 +123,7 @@
   <data name="SearchError" xml:space="preserve">
     <value>Zoeken mislukt. Controleer uw verbinding en probeer opnieuw.</value>
   </data>
+  <data name="SavedLocallyPending" xml:space="preserve">
+    <value>Lokaal opgeslagen. Het speelveld wordt geüpload zodra er een verbinding beschikbaar is.</value>
+  </data>
 </root>

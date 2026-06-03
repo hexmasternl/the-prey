@@ -3,6 +3,7 @@ using HexMaster.ThePrey.PlayFields.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.PlayFields.Features.CreatePlayField;
 using HexMaster.ThePrey.PlayFields.Features.GetPlayField;
 using HexMaster.ThePrey.PlayFields.Features.ListPlayFields;
+using HexMaster.ThePrey.PlayFields.Features.UpsertPlayField;
 using HexMaster.ThePrey.PlayFields.Observability;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +14,7 @@ public static class PlayFieldsModuleRegistration
     public static IServiceCollection AddPlayFieldsModule(this IServiceCollection services)
     {
         services.AddScoped<ICommandHandler<CreatePlayFieldCommand, CreatePlayFieldResult>, CreatePlayFieldCommandHandler>();
+        services.AddScoped<ICommandHandler<UpsertPlayFieldCommand, UpsertPlayFieldResult>, UpsertPlayFieldCommandHandler>();
         services.AddScoped<IQueryHandler<GetPlayFieldQuery, PlayFieldDto?>, GetPlayFieldQueryHandler>();
         services.AddScoped<IQueryHandler<ListPlayFieldsQuery, IReadOnlyList<PlayFieldSummaryDto>>, ListPlayFieldsQueryHandler>();
 

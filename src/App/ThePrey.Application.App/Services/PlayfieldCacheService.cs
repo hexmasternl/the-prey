@@ -36,6 +36,12 @@ public sealed class PlayfieldCacheService
         await SaveAsync(current);
     }
 
+    public async Task<IReadOnlyList<Playfield>> GetUnsynchronizedAsync()
+    {
+        var all = await LoadAsync();
+        return all.Where(p => !p.IsSynchronized).ToList();
+    }
+
     public async Task UpsertAsync(Playfield playfield)
     {
         var current = (await LoadAsync()).ToList();

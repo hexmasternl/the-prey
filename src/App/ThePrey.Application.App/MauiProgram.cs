@@ -50,6 +50,7 @@ public static class MauiProgram
         });
         builder.Services.AddSingleton<IPlayfieldService, PlayfieldService>();
         builder.Services.AddSingleton<PlayfieldCacheService>();
+        builder.Services.AddSingleton<PlayfieldSyncService>();
         builder.Services.AddTransient<PlayfieldsPage>();
         builder.Services.AddTransient<PlayfieldDetailsPage>();
         builder.Services.AddSingleton<PlayfieldEditingContext>();

@@ -1,10 +1,7 @@
 namespace HexMaster.ThePrey.PlayFields.Abstractions.DataTransferObjects;
 
-public sealed record PlayFieldDto(
-    Guid Id,
+public sealed record UpsertPlayFieldRequest(
     string Name,
-    string OwnerId,
     bool IsPublic,
     IReadOnlyList<GpsCoordinateDto> Points,
-    DateTimeOffset LastUpdatedOn,
-    GpsCoordinateDto? CenterCoordinates);
+    DateTimeOffset LastUpdatedOn);

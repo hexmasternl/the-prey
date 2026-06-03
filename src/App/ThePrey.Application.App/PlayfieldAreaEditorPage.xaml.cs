@@ -62,12 +62,26 @@ public partial class PlayfieldAreaEditorPage : ContentPage
         _pointLayer = new WritableLayer { Name = "Points" };
         map.Layers.Add(_pointLayer);
 
-        // Initial viewport: fit existing shape, else center on the player.
+        // Initial viewport: center on CenterCoordinates when editing existing coordinates;
+        // otherwise center on device location for a new playfield.
         if (_coordinates.Count > 0)
         {
-            var bbox = BoundsOf(_coordinates, padding: 0.2);
-            map.ViewportInitialized += (_, _) =>
-                map.Navigator.ZoomToBox(bbox, MBoxFit.Fit, 0, null);
+            var center = _editingContext.CenterCoordinates;
+            if (center is not null)
+            {
+                var bbox = BoundsOf(_coordinates, padding: 0.2);
+                var (cx, cy) = SphericalMercator.FromLonLat(center.Longitude, center.Latitude);
+                var zoom = Math.Max(bbox.Width, bbox.Height);
+                var centeredExtent = new MRect(cx - zoom / 2, cy - zoom / 2, cx + zoom / 2, cy + zoom / 2);
+                map.ViewportInitialized += (_, _) =>
+                    map.Navigator.ZoomToBox(centeredExtent, MBoxFit.Fit, 0, null);
+            }
+            else
+            {
+                var bbox = BoundsOf(_coordinates, padding: 0.2);
+                map.ViewportInitialized += (_, _) =>
+                    map.Navigator.ZoomToBox(bbox, MBoxFit.Fit, 0, null);
+            }
         }
         else
         {

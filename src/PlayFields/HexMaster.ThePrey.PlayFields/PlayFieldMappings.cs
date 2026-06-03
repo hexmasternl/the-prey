@@ -11,8 +11,16 @@ internal static class PlayFieldMappings
             playField.Name,
             playField.OwnerId,
             playField.IsPublic,
-            playField.Points.Select(p => new GpsCoordinateDto(p.Latitude, p.Longitude)).ToList());
+            playField.Points.Select(p => new GpsCoordinateDto(p.Latitude, p.Longitude)).ToList(),
+            playField.LastModifiedOn,
+            playField.CenterCoordinates is { } c ? new GpsCoordinateDto(c.Latitude, c.Longitude) : null);
 
     internal static PlayFieldSummaryDto ToSummaryDto(this PlayField playField) =>
-        new(playField.Id, playField.Name, playField.OwnerId, playField.IsPublic);
+        new(
+            playField.Id,
+            playField.Name,
+            playField.OwnerId,
+            playField.IsPublic,
+            playField.LastModifiedOn,
+            playField.CenterCoordinates is { } c ? new GpsCoordinateDto(c.Latitude, c.Longitude) : null);
 }

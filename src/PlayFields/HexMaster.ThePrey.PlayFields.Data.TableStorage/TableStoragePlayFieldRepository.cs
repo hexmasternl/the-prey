@@ -21,6 +21,14 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         await table.AddEntityAsync(ToEntity(playField), ct);
     }
 
+    public async Task UpsertAsync(PlayField playField, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(playField);
+
+        var table = await GetTableClientAsync(ct);
+        await table.UpsertEntityAsync(ToEntity(playField), TableUpdateMode.Replace, ct);
+    }
+
     public async Task<PlayField?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         var table = await GetTableClientAsync(ct);
@@ -80,7 +88,10 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
             RowKey = playField.Id.ToString(),
             Name = playField.Name,
             IsPublic = playField.IsPublic,
-            PointsJson = JsonSerializer.Serialize(points)
+            PointsJson = JsonSerializer.Serialize(points),
+            LastModifiedOn = playField.LastModifiedOn,
+            CenterLatitude = playField.CenterCoordinates?.Latitude,
+            CenterLongitude = playField.CenterCoordinates?.Longitude
         };
     }
 
@@ -89,12 +100,22 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         var stored = JsonSerializer.Deserialize<List<StoredPoint>>(entity.PointsJson) ?? [];
         var points = stored.Select(p => GpsCoordinate.Create(p.Latitude, p.Longitude)).ToList();
 
+        var lastModifiedOn = entity.LastModifiedOn == default
+            ? DateTimeOffset.MinValue
+            : entity.LastModifiedOn;
+
+        GpsCoordinate? center = entity.CenterLatitude.HasValue && entity.CenterLongitude.HasValue
+            ? new GpsCoordinate(entity.CenterLatitude.Value, entity.CenterLongitude.Value)
+            : null;
+
         return PlayField.Rehydrate(
             Guid.Parse(entity.RowKey),
             entity.Name,
             entity.PartitionKey,
             entity.IsPublic,
-            points);
+            points,
+            lastModifiedOn,
+            center);
     }
 
     private sealed record StoredPoint(double Latitude, double Longitude);

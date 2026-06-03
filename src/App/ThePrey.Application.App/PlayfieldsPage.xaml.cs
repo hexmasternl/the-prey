@@ -7,15 +7,17 @@ public partial class PlayfieldsPage : ContentPage
 {
     private readonly IPlayfieldService _playfieldService;
     private readonly PlayfieldCacheService _cache;
+    private readonly PlayfieldSyncService _sync;
     private List<Playfield> _playfields = [];
     private bool _isPublicTabActive;
     private CancellationTokenSource? _searchCts;
 
-    public PlayfieldsPage(IPlayfieldService playfieldService, PlayfieldCacheService cache)
+    public PlayfieldsPage(IPlayfieldService playfieldService, PlayfieldCacheService cache, PlayfieldSyncService sync)
     {
         InitializeComponent();
         _playfieldService = playfieldService;
         _cache = cache;
+        _sync = sync;
 
         Title = AppLocalizer.PlayfieldsPageTitle;
         CreateNewButton.Text = AppLocalizer.PlayfieldsCreateNew;
@@ -85,21 +87,7 @@ public partial class PlayfieldsPage : ContentPage
         SetPrivateState(loading: true);
         try
         {
-            if (Connectivity.NetworkAccess == NetworkAccess.Internet)
-            {
-                var fetched = await _playfieldService.GetPlayfieldsAsync();
-                _playfields = fetched.ToList();
-                await _cache.SaveAsync(_playfields);
-            }
-            else
-            {
-                _playfields = (await _cache.LoadAsync()).ToList();
-                if (_playfields.Count == 0)
-                {
-                    ShowPrivateEmpty(AppLocalizer.PlayfieldsOfflineEmpty);
-                    return;
-                }
-            }
+            await _sync.SyncAsync();
         }
         catch (UnauthorizedException)
         {
@@ -109,12 +97,14 @@ public partial class PlayfieldsPage : ContentPage
         }
         catch
         {
-            _playfields = (await _cache.LoadAsync()).ToList();
-            if (_playfields.Count == 0)
-            {
-                ShowPrivateEmpty(AppLocalizer.PlayfieldsOfflineEmpty);
-                return;
-            }
+            // Sync failure is non-fatal — fall through to display whatever is cached.
+        }
+
+        _playfields = (await _cache.LoadAsync()).ToList();
+        if (_playfields.Count == 0)
+        {
+            ShowPrivateEmpty(AppLocalizer.PlayfieldsOfflineEmpty);
+            return;
         }
 
         SetPrivateState(loading: false);

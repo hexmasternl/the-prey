@@ -1,0 +1,132 @@
+using HexMaster.ThePrey.PlayFields.Abstractions.DataTransferObjects;
+using HexMaster.ThePrey.PlayFields.DomainModels;
+using HexMaster.ThePrey.PlayFields.Features.UpsertPlayField;
+using HexMaster.ThePrey.PlayFields.Tests.Factories;
+using Microsoft.Extensions.Logging;
+using Moq;
+
+namespace HexMaster.ThePrey.PlayFields.Tests.UpsertPlayField;
+
+public sealed class UpsertPlayFieldCommandHandlerTests
+{
+    private readonly Mock<IPlayFieldRepository> _mockRepository;
+    private readonly Mock<ILogger<UpsertPlayFieldCommandHandler>> _mockLogger;
+    private readonly UpsertPlayFieldCommandHandler _handler;
+
+    public UpsertPlayFieldCommandHandlerTests()
+    {
+        _mockRepository = new Mock<IPlayFieldRepository>();
+        _mockLogger = new Mock<ILogger<UpsertPlayFieldCommandHandler>>();
+        _handler = new UpsertPlayFieldCommandHandler(_mockRepository.Object, _mockLogger.Object);
+    }
+
+    private static IReadOnlyList<GpsCoordinateDto> ValidSquare() =>
+    [
+        new GpsCoordinateDto(52.0, 5.0),
+        new GpsCoordinateDto(52.0, 5.01),
+        new GpsCoordinateDto(52.01, 5.01),
+        new GpsCoordinateDto(52.01, 5.0)
+    ];
+
+    private static UpsertPlayFieldCommand BuildCommand(
+        Guid? id = null,
+        string ownerId = "auth0|owner",
+        DateTimeOffset? lastUpdatedOn = null) =>
+        new(
+            id ?? Guid.NewGuid(),
+            ownerId,
+            "Vondelpark",
+            true,
+            ValidSquare(),
+            lastUpdatedOn ?? DateTimeOffset.UtcNow);
+
+    [Fact]
+    public async Task Handle_ShouldCreatePlayField_WhenNotFound()
+    {
+        _mockRepository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PlayField?)null);
+
+        var command = BuildCommand();
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        var created = Assert.IsType<UpsertPlayFieldResult.Created>(result);
+        Assert.Equal(command.Id, created.PlayField.Id);
+        Assert.Equal("Vondelpark", created.PlayField.Name);
+
+        _mockRepository.Verify(r =>
+            r.UpsertAsync(It.Is<PlayField>(p => p.Id == command.Id), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUpdatePlayField_WhenIncomingTimestampIsNewer()
+    {
+        var existingTs = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var newerTs = existingTs.AddHours(1);
+        var existing = PlayFieldFaker.CreateValid(ownerId: "auth0|owner");
+        // Rehydrate with old timestamp
+        var id = existing.Id;
+        var rehydrated = PlayField.Rehydrate(id, existing.Name, "auth0|owner", false,
+            PlayFieldFaker.SquarePoints(), existingTs);
+
+        _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(rehydrated);
+
+        var command = BuildCommand(id: id, ownerId: "auth0|owner", lastUpdatedOn: newerTs);
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        var updated = Assert.IsType<UpsertPlayFieldResult.Updated>(result);
+        Assert.Equal(id, updated.PlayField.Id);
+        Assert.Equal(newerTs, updated.PlayField.LastUpdatedOn);
+
+        _mockRepository.Verify(r =>
+            r.UpsertAsync(It.Is<PlayField>(p => p.LastModifiedOn == newerTs), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnConflict_WhenIncomingTimestampIsOlderOrEqual()
+    {
+        var storedTs = new DateTimeOffset(2024, 6, 1, 12, 0, 0, TimeSpan.Zero);
+        var staleTs = storedTs.AddMinutes(-1);
+        var id = Guid.NewGuid();
+        var existing = PlayField.Rehydrate(id, "Existing", "auth0|owner", false,
+            PlayFieldFaker.SquarePoints(), storedTs);
+
+        _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+
+        var command = BuildCommand(id: id, ownerId: "auth0|owner", lastUpdatedOn: staleTs);
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        var conflict = Assert.IsType<UpsertPlayFieldResult.Conflict>(result);
+        Assert.Equal(id, conflict.CurrentPlayField.Id);
+
+        _mockRepository.Verify(r =>
+            r.UpsertAsync(It.IsAny<PlayField>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnForbidden_WhenOwnerMismatch()
+    {
+        var id = Guid.NewGuid();
+        var existing = PlayField.Rehydrate(id, "Field", "auth0|real-owner", false,
+            PlayFieldFaker.SquarePoints(), DateTimeOffset.UtcNow);
+
+        _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+
+        var command = BuildCommand(id: id, ownerId: "auth0|attacker");
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        Assert.IsType<UpsertPlayFieldResult.Forbidden>(result);
+
+        _mockRepository.Verify(r =>
+            r.UpsertAsync(It.IsAny<PlayField>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrow_WhenCommandIsNull()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            _handler.Handle(null!, CancellationToken.None));
+    }
+}

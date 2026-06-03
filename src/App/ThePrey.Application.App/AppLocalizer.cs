@@ -48,6 +48,7 @@ internal static class AppLocalizer
     public static string SearchPrompt => Get(nameof(SearchPrompt));
     public static string SearchEmpty => Get(nameof(SearchEmpty));
     public static string SearchError => Get(nameof(SearchError));
+    public static string SavedLocallyPending => Get(nameof(SavedLocallyPending));
 
     private static string Get(string key) =>
         ResourceManager.GetString(key, CultureInfo.CurrentUICulture) ?? key;

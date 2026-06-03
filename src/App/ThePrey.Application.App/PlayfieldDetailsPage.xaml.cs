@@ -27,6 +27,7 @@ public partial class PlayfieldDetailsPage : ContentPage
     private readonly PlayfieldEditingContext _editingContext;
 
     private List<PlayfieldCoordinate> _coordinates = [];
+    private PlayfieldCoordinate? _centerCoordinates;
     private bool _isInitialized;
     private WritableLayer? _miniShapeLayer;
 
@@ -120,6 +121,7 @@ public partial class PlayfieldDetailsPage : ContentPage
             NameEntry.Text = playfield.Name;
             PublicSwitch.IsToggled = playfield.IsPublic;
             _coordinates = [.. playfield.Coordinates];
+            _centerCoordinates = playfield.CenterCoordinates ?? playfield.ComputeCenter();
         }
         else
         {
@@ -150,6 +152,14 @@ public partial class PlayfieldDetailsPage : ContentPage
     private void UpdateMiniMap()
     {
         if (_miniShapeLayer is null) return;
+
+        // Recompute center from current coordinates so the map always centers correctly.
+        if (_coordinates.Count > 0)
+        {
+            var lat = _coordinates.Average(c => c.Latitude);
+            var lon = _coordinates.Average(c => c.Longitude);
+            _centerCoordinates = new PlayfieldCoordinate { Latitude = lat, Longitude = lon };
+        }
 
         _miniShapeLayer.Clear();
 
@@ -183,13 +193,23 @@ public partial class PlayfieldDetailsPage : ContentPage
         MiniMap.Map.RefreshGraphics();
     }
 
-    /// <summary>Fits the mini-map viewport to the shape bounds, or the fallback extent when empty.</summary>
+    /// <summary>Fits the mini-map viewport to the shape bounds (centered on CenterCoordinates), or the fallback extent when empty.</summary>
     private void FitMiniMap(MRect? fallbackExtent)
     {
         if (_coordinates.Count > 0)
         {
             var bbox = BoundsOf(_coordinates, 0.2);
-            MiniMap.Map.Navigator.ZoomToBox(bbox, MBoxFit.Fit, 0, null);
+            if (_centerCoordinates is { } center)
+            {
+                var (cx, cy) = SphericalMercator.FromLonLat(center.Longitude, center.Latitude);
+                var zoom = Math.Max(bbox.Width, bbox.Height);
+                var centered = new MRect(cx - zoom / 2, cy - zoom / 2, cx + zoom / 2, cy + zoom / 2);
+                MiniMap.Map.Navigator.ZoomToBox(centered, MBoxFit.Fit, 0, null);
+            }
+            else
+            {
+                MiniMap.Map.Navigator.ZoomToBox(bbox, MBoxFit.Fit, 0, null);
+            }
         }
         else if (fallbackExtent is not null)
         {
@@ -272,6 +292,7 @@ public partial class PlayfieldDetailsPage : ContentPage
     private async void OnSetAreaClicked(object? sender, EventArgs e)
     {
         _editingContext.CurrentCoordinates = [.. _coordinates];
+        _editingContext.CenterCoordinates = _centerCoordinates;
         await Shell.Current.GoToAsync(AppShell.PlayfieldAreaEditorRoute);
     }
 
@@ -279,33 +300,49 @@ public partial class PlayfieldDetailsPage : ContentPage
 
     private async void OnSaveClicked(object? sender, EventArgs e)
     {
-        var isNew = string.IsNullOrEmpty(PlayfieldId);
         var playfield = new Playfield
         {
-            Id          = isNew ? Guid.NewGuid().ToString() : PlayfieldId!,
-            Name        = NameEntry.Text?.Trim() ?? string.Empty,
-            IsPublic    = PublicSwitch.IsToggled,
-            Coordinates = [.. _coordinates]
+            Id             = string.IsNullOrEmpty(PlayfieldId) ? Guid.NewGuid().ToString() : PlayfieldId!,
+            Name           = NameEntry.Text?.Trim() ?? string.Empty,
+            IsPublic       = PublicSwitch.IsToggled,
+            Coordinates    = [.. _coordinates],
+            LastUpdatedOn  = DateTimeOffset.UtcNow,
+            IsSynchronized = false
         };
+        playfield.CenterCoordinates = playfield.ComputeCenter();
 
         await _cache.UpsertAsync(playfield);
 
-        try
+        if (Connectivity.NetworkAccess == NetworkAccess.Internet)
         {
-            if (isNew)
-                await _service.CreatePlayfieldAsync(playfield);
-            else
-                await _service.UpdatePlayfieldAsync(playfield);
+            try
+            {
+                var synced = await _service.UpsertPlayfieldAsync(playfield);
+                synced.IsSynchronized = true;
+                await _cache.UpsertAsync(synced);
+                await Shell.Current.GoToAsync($"../{AppShell.PlayfieldsRoute}");
+                return;
+            }
+            catch (StaleWriteException ex)
+            {
+                var serverCopy = ex.ServerCopy;
+                serverCopy.IsSynchronized = true;
+                await _cache.UpsertAsync(serverCopy);
+                await Shell.Current.GoToAsync($"../{AppShell.PlayfieldsRoute}");
+                return;
+            }
+            catch (UnauthorizedException)
+            {
+                await Shell.Current.GoToAsync(AppShell.LoginRoute);
+                return;
+            }
+            catch
+            {
+                // Upload failed — data is safe in cache; fall through to show pending message.
+            }
+        }
 
-            await Shell.Current.GoToAsync($"../{AppShell.PlayfieldsRoute}");
-        }
-        catch (UnauthorizedException)
-        {
-            await Shell.Current.GoToAsync(AppShell.LoginRoute);
-        }
-        catch
-        {
-            await DisplayAlertAsync(AppLocalizer.Error, AppLocalizer.SaveError, AppLocalizer.Ok);
-        }
+        await DisplayAlertAsync(AppLocalizer.Error, AppLocalizer.SavedLocallyPending, AppLocalizer.Ok);
+        await Shell.Current.GoToAsync($"../{AppShell.PlayfieldsRoute}");
     }
 }
