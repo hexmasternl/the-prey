@@ -16,6 +16,11 @@ public partial class App : MauiWinUIApplication
 	/// </summary>
 	public App()
 	{
+		// Auth0 callback: if this launch is an OAuth redirect activation, route it to the
+		// existing app instance and stop here. Must run before InitializeComponent().
+		if (Auth0.OidcClient.Platforms.Windows.Activator.Default.CheckRedirectionActivation())
+			return;
+
 		this.InitializeComponent();
 	}
 

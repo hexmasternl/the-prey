@@ -1,95 +1,54 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="ThePrey.Application.App.LandingPage"
+             Style="{StaticResource PreyPage}"
              NavigationPage.HasNavigationBar="False"
              Shell.NavBarIsVisible="False">
 
-    <ContentPage.Background>
-        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#141420" Offset="0" />
-            <GradientStop Color="#0A0A12" Offset="0.5" />
-            <GradientStop Color="#000000" Offset="1" />
-        </LinearGradientBrush>
-    </ContentPage.Background>
+    <Grid x:Name="RootGrid" Style="{StaticResource WelcomeRoot}">
 
-    <Grid>
+        <!-- Designed radar backdrop -->
+        <Image Source="welcomebg.png" Style="{StaticResource BackdropImage}" />
 
-        <!-- Background: animated crosshair -->
-        <Image x:Name="CrosshairImage"
-               Source="crosshair.png"
-               WidthRequest="160"
-               HeightRequest="160"
-               Opacity="0.15"
-               HorizontalOptions="Start"
-               VerticalOptions="Start" />
+        <!-- Animated radar sweep, pivoting on the backdrop's lock point -->
+        <Image x:Name="SweepImage" Source="sweep.png" Style="{StaticResource RadarSweep}" />
 
-        <!-- Vignette overlay for depth -->
-        <BoxView HorizontalOptions="Fill"
-                 VerticalOptions="Fill"
-                 IsEnabled="False">
-            <BoxView.Background>
-                <RadialGradientBrush Center="0.5,0.5" Radius="0.85">
-                    <GradientStop Color="Transparent" Offset="0.2" />
-                    <GradientStop Color="#CC000000" Offset="1.0" />
-                </RadialGradientBrush>
-            </BoxView.Background>
-        </BoxView>
+        <!-- Scan bar travelling down the screen -->
+        <BoxView x:Name="ScanLine" Style="{StaticResource Scanline}" />
 
-        <!-- Foreground content -->
-        <VerticalStackLayout VerticalOptions="Center"
-                             HorizontalOptions="Fill"
-                             Padding="36,0"
-                             Spacing="0">
+        <!-- Foreground: wordmark + actions, anchored to the lower playfield -->
+        <VerticalStackLayout Style="{StaticResource WelcomeFooter}">
 
-            <!-- App title -->
-            <Label Text="THE PREY"
-                   FontSize="68"
-                   FontAttributes="Bold"
-                   TextColor="White"
-                   HorizontalTextAlignment="Center"
-                   CharacterSpacing="10"
-                   Margin="0,0,0,12" />
+            <Grid>
+                <shapes:Ellipse x:Name="TitleHalo" Style="{StaticResource TitleHalo}" />
 
-            <!-- Red accent divider -->
-            <BoxView HeightRequest="2"
-                     WidthRequest="48"
-                     Color="#B71C1C"
-                     HorizontalOptions="Center"
-                     Margin="0,0,0,20" />
+                <VerticalStackLayout Style="{StaticResource BrandStack}">
+                    <Label x:Name="EyebrowLabel"
+                           Text="OPERATIONS // FIELD ACTIVE"
+                           Style="{StaticResource Eyebrow}" />
 
-            <!-- Catchy phrase -->
-            <Label x:Name="CatchyPhraseLabel"
-                   FontSize="17"
-                   FontAttributes="Italic"
-                   TextColor="#8A8A9A"
-                   HorizontalTextAlignment="Center"
-                   Margin="0,0,0,72" />
+                    <Label x:Name="TitleLabel"
+                           Text="THE PREY"
+                           Style="{StaticResource TitleDisplay}" />
 
-            <!-- Create Account button (primary, filled crimson) -->
-            <Button x:Name="CreateAccountButton"
-                    BackgroundColor="#B71C1C"
-                    TextColor="White"
-                    CornerRadius="6"
-                    HeightRequest="54"
-                    FontSize="15"
-                    FontAttributes="Bold"
-                    CharacterSpacing="1"
-                    Shadow="{Shadow Brush='#66B71C1C', Offset='0,4', Radius=12}"
-                    Clicked="OnCreateAccountClicked"
-                    Margin="0,0,0,14" />
+                    <BoxView x:Name="Divider" Style="{StaticResource SignalDivider}" />
 
-            <!-- Log In button (secondary, outlined) -->
-            <Button x:Name="LoginButton"
-                    BackgroundColor="Transparent"
-                    TextColor="White"
-                    BorderColor="#55FFFFFF"
-                    BorderWidth="1.5"
-                    CornerRadius="6"
-                    HeightRequest="54"
-                    FontSize="15"
-                    CharacterSpacing="1"
-                    Clicked="OnLoginClicked" />
+                    <Label x:Name="CatchyPhraseLabel"
+                           Style="{StaticResource Tagline}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <VerticalStackLayout Style="{StaticResource ActionStack}">
+                <Button x:Name="CreateAccountButton"
+                        Style="{StaticResource BtnPrimary}"
+                        Clicked="OnCreateAccountClicked" />
+
+                <Button x:Name="LoginButton"
+                        Style="{StaticResource BtnGhost}"
+                        Clicked="OnLoginClicked" />
+            </VerticalStackLayout>
 
         </VerticalStackLayout>
 

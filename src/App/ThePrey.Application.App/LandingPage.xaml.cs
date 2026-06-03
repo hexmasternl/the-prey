@@ -5,7 +5,6 @@ namespace ThePrey.Application.App;
 public partial class LandingPage : ContentPage
 {
     private CancellationTokenSource? _animationCts;
-    private readonly Random _random = new();
 
     public LandingPage()
     {
@@ -17,7 +16,12 @@ public partial class LandingPage : ContentPage
     {
         base.OnAppearing();
         _animationCts = new CancellationTokenSource();
-        _ = AnimateCrosshairAsync(_animationCts.Token);
+        var token = _animationCts.Token;
+
+        _ = RunEntranceAsync(token);
+        _ = RunSweepAsync(token);
+        _ = RunHaloPulseAsync(token);
+        _ = RunScanlineAsync(token);
     }
 
     protected override void OnDisappearing()
@@ -26,44 +30,126 @@ public partial class LandingPage : ContentPage
         _animationCts?.Cancel();
         _animationCts?.Dispose();
         _animationCts = null;
+
+        // Stop any in-flight transforms so cancelled loops unwind cleanly.
+        foreach (var view in new VisualElement[] { SweepImage, TitleHalo, ScanLine })
+            Microsoft.Maui.Controls.ViewExtensions.CancelAnimations(view);
     }
 
     private void ApplyLocalization()
     {
+        TitleLabel.Text = AppLocalizer.AppTitle;
         CatchyPhraseLabel.Text = AppLocalizer.CatchyPhrase;
         CreateAccountButton.Text = AppLocalizer.CreateAccountButton;
         LoginButton.Text = AppLocalizer.LoginButton;
     }
 
-    private async Task AnimateCrosshairAsync(CancellationToken ct)
+    // Staggered fade + rise for the wordmark and actions.
+    private async Task RunEntranceAsync(CancellationToken ct)
     {
-        // Allow the layout to measure before reading dimensions
-        await Task.Delay(300, ct).ConfigureAwait(false);
-
-        while (!ct.IsCancellationRequested)
+        VisualElement[] sequence =
         {
-            var pageWidth = Width;
-            var pageHeight = Height;
+            EyebrowLabel, TitleLabel, Divider, CatchyPhraseLabel,
+            CreateAccountButton, LoginButton
+        };
 
-            if (pageWidth > 0 && pageHeight > 0)
-            {
-                const double imgSize = 160.0;
-                var newX = _random.NextDouble() * Math.Max(0, pageWidth - imgSize);
-                var newY = _random.NextDouble() * Math.Max(0, pageHeight - imgSize);
+        foreach (var view in sequence)
+        {
+            view.Opacity = 0;
+            view.TranslationY = 26;
+        }
 
-                await CrosshairImage.TranslateToAsync(newX, newY, 2200, Easing.CubicInOut)
-                    .ConfigureAwait(false);
-            }
+        try
+        {
+            await Task.Delay(180, ct).ConfigureAwait(true);
 
-            var delayMs = _random.Next(800, 2000);
-            try
+            foreach (var view in sequence)
             {
-                await Task.Delay(delayMs, ct).ConfigureAwait(false);
+                if (ct.IsCancellationRequested) return;
+                _ = view.FadeToAsync(1, 520, Easing.CubicOut);
+                await view.TranslateToAsync(0, 0, 520, Easing.CubicOut).ConfigureAwait(true);
+                await Task.Delay(90, ct).ConfigureAwait(true);
             }
-            catch (OperationCanceledException)
+        }
+        catch (OperationCanceledException)
+        {
+            // Page left the screen mid-animation.
+        }
+        finally
+        {
+            // Guarantee the final resting state regardless of how we exit.
+            foreach (var view in sequence)
             {
-                break;
+                view.Opacity = 1;
+                view.TranslationY = 0;
             }
+        }
+    }
+
+    // Continuous radar sweep rotating around the backdrop's lock point.
+    private async Task RunSweepAsync(CancellationToken ct)
+    {
+        try
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                await SweepImage.RotateToAsync(360, 4200, Easing.Linear).ConfigureAwait(true);
+                // 360° ≡ 0°, so resetting is visually seamless for the next loop.
+                SweepImage.Rotation = 0;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Page left the screen mid-animation.
+        }
+    }
+
+    // Slow "breathing" of the green halo behind the wordmark.
+    private async Task RunHaloPulseAsync(CancellationToken ct)
+    {
+        try
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                await Task.WhenAll(
+                    TitleHalo.ScaleToAsync(1.12, 1800, Easing.SinInOut),
+                    TitleHalo.FadeToAsync(0.85, 1800, Easing.SinInOut)).ConfigureAwait(true);
+
+                if (ct.IsCancellationRequested) return;
+
+                await Task.WhenAll(
+                    TitleHalo.ScaleToAsync(1.0, 1800, Easing.SinInOut),
+                    TitleHalo.FadeToAsync(0.5, 1800, Easing.SinInOut)).ConfigureAwait(true);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Page left the screen mid-animation.
+        }
+    }
+
+    // Scan bar sweeping top-to-bottom on a loop.
+    private async Task RunScanlineAsync(CancellationToken ct)
+    {
+        try
+        {
+            // Wait for layout so we know how far to travel.
+            while (RootGrid.Height <= 0 && !ct.IsCancellationRequested)
+                await Task.Delay(120, ct).ConfigureAwait(true);
+
+            while (!ct.IsCancellationRequested)
+            {
+                var distance = RootGrid.Height;
+                ScanLine.TranslationY = 0;
+                await ScanLine.FadeToAsync(0.6, 280, Easing.CubicIn).ConfigureAwait(true);
+                await ScanLine.TranslateToAsync(0, distance, 3400, Easing.Linear).ConfigureAwait(true);
+                await ScanLine.FadeToAsync(0, 280, Easing.CubicOut).ConfigureAwait(true);
+                await Task.Delay(900, ct).ConfigureAwait(true);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Page left the screen mid-animation.
         }
     }
 

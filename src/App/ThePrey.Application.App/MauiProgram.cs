@@ -26,6 +26,9 @@ public static class MauiProgram
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                // The Prey design system: Special Elite (display/headings) + PT Mono (body/data).
+                fonts.AddFont("SpecialElite-Regular.ttf", "SpecialElite");
+                fonts.AddFont("PTMono-Regular.ttf", "PTMono");
             });
 
         builder.Services.AddSingleton(new Auth0Client(new Auth0ClientOptions

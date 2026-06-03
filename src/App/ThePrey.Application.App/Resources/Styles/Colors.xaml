@@ -5,6 +5,40 @@
 
     <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
 
+    <!-- ============================================================= -->
+    <!-- THE PREY — Design System palette (designs/the-prey-style-guide) -->
+    <!-- ============================================================= -->
+
+    <!-- Surfaces -->
+    <Color x:Key="Void">#0C0E0C</Color>
+    <Color x:Key="Base">#181B17</Color>
+    <Color x:Key="Surface">#23271F</Color>
+    <Color x:Key="SurfacePlus">#2D3328</Color>
+    <Color x:Key="Line">#39402F</Color>
+    <Color x:Key="LineSoft">#2A2F24</Color>
+
+    <!-- Signal — the hero green -->
+    <Color x:Key="Signal">#64FF00</Color>
+    <Color x:Key="SignalDim">#3F9E00</Color>
+    <Color x:Key="SignalDeep">#1F4D00</Color>
+    <Color x:Key="SignalGlow">#5964FF00</Color>
+
+    <!-- Roles &amp; states -->
+    <Color x:Key="Hunter">#FF2F1F</Color>
+    <Color x:Key="HunterDim">#A01408</Color>
+    <Color x:Key="Caution">#FFB300</Color>
+    <Color x:Key="Info">#13E0C8</Color>
+
+    <!-- Text -->
+    <Color x:Key="TextPrimary">#DCF6D2</Color>
+    <Color x:Key="TextSoft">#8C9A83</Color>
+    <Color x:Key="TextGhost">#5A6553</Color>
+
+    <!-- Reusable solid brushes -->
+    <SolidColorBrush x:Key="SignalBrush" Color="{StaticResource Signal}" />
+    <SolidColorBrush x:Key="VoidBrush" Color="{StaticResource Void}" />
+    <SolidColorBrush x:Key="BaseBrush" Color="{StaticResource Base}" />
+
     <Color x:Key="Primary">#512BD4</Color>
     <Color x:Key="PrimaryDark">#ac99ea</Color>
     <Color x:Key="PrimaryDarkText">#242424</Color>
