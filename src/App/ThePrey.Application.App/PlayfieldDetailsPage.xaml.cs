@@ -62,6 +62,7 @@ public partial class PlayfieldDetailsPage : ContentPage
     private void InitializeMiniMap()
     {
         var map = new Mapsui.Map();
+        map.Widgets.Clear();
         map.Layers.Add(OpenStreetMap.CreateTileLayer("ThePrey/1.0"));
 
         _miniShapeLayer = new WritableLayer { Name = "Shape" };

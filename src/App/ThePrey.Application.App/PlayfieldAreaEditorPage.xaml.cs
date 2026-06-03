@@ -54,6 +54,7 @@ public partial class PlayfieldAreaEditorPage : ContentPage
     private void InitializeMap()
     {
         var map = new Mapsui.Map();
+        map.Widgets.Clear();
         map.Layers.Add(OpenStreetMap.CreateTileLayer("ThePrey/1.0"));
 
         _shapeLayer = new WritableLayer { Name = "Shape" };
