@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ThePrey.Application.App;
 
-public partial class App : Application
+public partial class App
 {
 	public App()
 	{

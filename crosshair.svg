@@ -9,6 +9,9 @@
    id="svg1"
    inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
    sodipodi:docname="crosshair.svg"
+   inkscape:export-filename="src\App\ThePrey.Application.App\Resources\Images\crosshair.png"
+   inkscape:export-xdpi="17.104378"
+   inkscape:export-ydpi="17.104378"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -38,12 +41,13 @@
      inkscape:label="Crosshair"
      inkscape:groupmode="layer"
      id="layer1">
-    <circle
-       style="fill:none;fill-opacity:1;stroke:#00ff00;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+    <ellipse
+       style="fill:none;fill-opacity:1;stroke:#64ff00;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
        id="path1"
        cx="17.150026"
        cy="16.989746"
-       r="13.463573" />
+       rx="13.464"
+       ry="13.463573" />
     <ellipse
        style="fill:none;fill-opacity:1;stroke:#00ff00;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        id="path2"

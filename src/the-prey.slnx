@@ -7,14 +7,18 @@
     <Project Path="Aspire/ThePrey.Aspire.ServiceDefaults/ThePrey.Aspire.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/Games/" />
-  <Folder Name="/Playfields/" />
+  <Folder Name="/Playfields/">
+    <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Api/HexMaster.ThePrey.PlayFields.Api.csproj" />
+  </Folder>
   <Folder Name="/Shared/">
     <Project Path="Shared/ThePrey.Core.Tests/ThePrey.Core.Tests.csproj" Id="1b7069ce-b7da-4dc0-85f4-5a5591886938" />
     <Project Path="Shared/ThePrey.Core/ThePrey.Core.csproj" Id="e86fd50a-8670-4e66-9fe3-972dcab1dd24" />
   </Folder>
   <Folder Name="/Users/">
-    <Project Path="Users/ThePrey.Users.Api/ThePrey.Users.Api.csproj" />
-    <Project Path="Users/ThePrey.Users.Tests/ThePrey.Users.Tests.csproj" Id="a4d3be11-ce7f-4f0d-9cbc-92a01dca0082" />
-    <Project Path="Users/ThePrey.Users/ThePrey.Users.csproj" Id="4abefbbb-1026-4e7f-ba51-b30cf421d193" />
+    <Project Path="Users/HexMaster.ThePrey.Users.Abstractions/HexMaster.ThePrey.Users.Abstractions.csproj" />
+    <Project Path="Users/HexMaster.ThePrey.Users.Api/HexMaster.ThePrey.Users.Api.csproj" />
+    <Project Path="Users/HexMaster.ThePrey.Users.Data.InMemory/HexMaster.ThePrey.Users.Data.InMemory.csproj" />
+    <Project Path="Users/HexMaster.ThePrey.Users.Tests/HexMaster.ThePrey.Users.Tests.csproj" />
+    <Project Path="Users/HexMaster.ThePrey.Users/HexMaster.ThePrey.Users.csproj" />
   </Folder>
 </Solution>

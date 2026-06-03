@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Aspire\ThePrey.Aspire.ServiceDefaults\ThePrey.Aspire.ServiceDefaults.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Users\HexMaster.ThePrey.Users.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Users.Abstractions\HexMaster.ThePrey.Users.Abstractions.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Users.Data.InMemory\HexMaster.ThePrey.Users.Data.InMemory.csproj" />

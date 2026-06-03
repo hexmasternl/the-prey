@@ -9,10 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\ThePrey.Aspire.ServiceDefaults\AspireConstants.cs" Link="AspireConstants.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\App\ThePrey.Application.App\ThePrey.Application.App.csproj">
       <SetTargetFramework>TargetFramework=net10.0</SetTargetFramework>
     </ProjectReference>
-    <ProjectReference Include="..\..\Users\ThePrey.Users.Api\ThePrey.Users.Api.csproj" />
+    <ProjectReference Include="..\..\Playfields\HexMaster.ThePrey.PlayFields.Api\HexMaster.ThePrey.PlayFields.Api.csproj" />
+    <ProjectReference Include="..\..\Users\HexMaster.ThePrey.Users.Api\HexMaster.ThePrey.Users.Api.csproj" />
   </ItemGroup>
 
 </Project>
