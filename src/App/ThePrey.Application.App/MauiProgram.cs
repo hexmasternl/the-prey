@@ -11,6 +11,10 @@ public static class MauiProgram
     private const string Auth0Domain = "theprey.eu.auth0.com";
     private const string Auth0ClientId = "tJrm2nPrAX4kES7XEnjUsL38cqbAbraJ";
 
+    // Audience (API identifier) requested at login so Auth0 issues a JWT access token that the
+    // backend APIs accept. Must match the APIs' configured audience (Auth0:Audience).
+    internal const string Auth0Audience = "https://api.theprey.eu";
+
     private const string RedirectUri = "com.hexmaster.theprey.application.app://callback";
 
     public static MauiApp CreateMauiApp()

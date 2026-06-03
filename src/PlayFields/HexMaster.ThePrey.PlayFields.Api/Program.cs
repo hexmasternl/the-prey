@@ -2,7 +2,6 @@ using HexMaster.ThePrey.PlayFields;
 using HexMaster.ThePrey.PlayFields.Api.Endpoints;
 using HexMaster.ThePrey.PlayFields.Data.TableStorage;
 using HexMaster.ThePrey.PlayFields.Observability;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
@@ -13,15 +12,7 @@ builder.AddServiceDefaults();
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = builder.Configuration["Auth0:Domain"];
-        options.Audience = builder.Configuration["Auth0:Audience"];
-        options.MapInboundClaims = false;
-    });
-
-builder.Services.AddAuthorization();
+builder.AddDefaultAuthentication();
 
 builder.Services.AddPlayFieldsModule();
 builder.AddPlayFieldsTableStorage();

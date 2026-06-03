@@ -2,7 +2,6 @@ using HexMaster.ThePrey.Games;
 using HexMaster.ThePrey.Games.Api.Endpoints;
 using HexMaster.ThePrey.Games.Data.Postgres;
 using HexMaster.ThePrey.Games.Observability;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -14,15 +13,7 @@ builder.AddServiceDefaults();
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = builder.Configuration["Auth0:Domain"];
-        options.Audience = builder.Configuration["Auth0:Audience"];
-        options.MapInboundClaims = false;
-    });
-
-builder.Services.AddAuthorization();
+builder.AddDefaultAuthentication();
 
 builder.Services.AddGamesModule();
 builder.AddGamesPostgres();

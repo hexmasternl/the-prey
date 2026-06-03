@@ -2,7 +2,6 @@ using HexMaster.ThePrey.Users;
 using HexMaster.ThePrey.Users.Api.Endpoints;
 using HexMaster.ThePrey.Users.Data.InMemory;
 using HexMaster.ThePrey.Users.Observability;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Scalar.AspNetCore;
 using OpenTelemetry.Trace;
 
@@ -12,15 +11,7 @@ builder.AddServiceDefaults();
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = builder.Configuration["Auth0:Domain"];
-        options.Audience = builder.Configuration["Auth0:Audience"];
-        options.MapInboundClaims = false;
-    });
-
-builder.Services.AddAuthorization();
+builder.AddDefaultAuthentication();
 
 builder.Services.AddUsersModule();
 builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();

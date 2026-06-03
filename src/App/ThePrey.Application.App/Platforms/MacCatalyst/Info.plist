@@ -43,7 +43,7 @@
 			<string>Auth0</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.companyname.theprey.application.app</string>
+				<string>com.hexmaster.theprey.application.app</string>
 			</array>
 		</dict>
 	</array>

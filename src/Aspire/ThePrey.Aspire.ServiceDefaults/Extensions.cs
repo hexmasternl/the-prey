@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,11 @@ public static class Extensions
 {
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
+
+    // Auth0 tenant authority and API identifier (audience) shared by every backend service.
+    // Override per environment via configuration keys "Auth0:Domain" and "Auth0:Audience".
+    private const string DefaultAuthority = "https://theprey.eu.auth0.com/";
+    private const string DefaultAudience = "https://api.theprey.eu";
 
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
@@ -40,6 +46,26 @@ public static class Extensions
         // {
         //     options.AllowedSchemes = ["https"];
         // });
+
+        return builder;
+    }
+
+    // Configures JWT bearer authentication against Auth0 for every backend API, so each service
+    // validates tokens identically. Call this from each API's Program.cs after AddServiceDefaults.
+    public static TBuilder AddDefaultAuthentication<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
+        var authority = builder.Configuration["Auth0:Domain"] ?? DefaultAuthority;
+        var audience = builder.Configuration["Auth0:Audience"] ?? DefaultAudience;
+
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.Authority = authority;
+                options.Audience = audience;
+                options.MapInboundClaims = false;
+            });
+
+        builder.Services.AddAuthorization();
 
         return builder;
     }

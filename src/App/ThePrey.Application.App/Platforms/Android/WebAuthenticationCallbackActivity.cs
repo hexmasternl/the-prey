@@ -12,7 +12,7 @@ namespace ThePrey.Application.App;
 [IntentFilter(
     new[] { Intent.ActionView },
     Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
-    DataScheme = "com.companyname.theprey.application.app",
+    DataScheme = "com.hexmaster.theprey.application.app",
     DataHost = "callback")]
 public class WebAuthenticationCallbackActivity
     : Microsoft.Maui.Authentication.WebAuthenticatorCallbackActivity

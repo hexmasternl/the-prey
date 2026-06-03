@@ -77,7 +77,7 @@ public partial class LandingPage : ContentPage
             CreateAccountButton.IsEnabled = false;
             LoginButton.IsEnabled = false;
 
-            var result = await auth0Client.LoginAsync(new { screen_hint = "signup" });
+            var result = await auth0Client.LoginAsync(new { screen_hint = "signup", audience = MauiProgram.Auth0Audience });
 
             if (!result.IsError)
                 await HandleSuccessfulLogin(result.AccessToken);
@@ -105,7 +105,7 @@ public partial class LandingPage : ContentPage
             CreateAccountButton.IsEnabled = false;
             LoginButton.IsEnabled = false;
 
-            var result = await auth0Client.LoginAsync();
+            var result = await auth0Client.LoginAsync(new { audience = MauiProgram.Auth0Audience });
 
             if (!result.IsError)
                 await HandleSuccessfulLogin(result.AccessToken);
