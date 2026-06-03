@@ -24,4 +24,49 @@
   <data name="CreateAccountButton" xml:space="preserve">
     <value>Account aanmaken</value>
   </data>
+  <data name="RestoringSession" xml:space="preserve">
+    <value>SESSIE HERSTELLEN…</value>
+  </data>
+  <data name="PlayButton" xml:space="preserve">
+    <value>Spelen</value>
+  </data>
+  <data name="PlayfieldsButton" xml:space="preserve">
+    <value>Speelvelden</value>
+  </data>
+  <data name="FriendsButton" xml:space="preserve">
+    <value>Vrienden</value>
+  </data>
+  <data name="QuitButton" xml:space="preserve">
+    <value>Afsluiten</value>
+  </data>
+  <data name="PlayfieldsPageTitle" xml:space="preserve">
+    <value>SPEELVELDEN</value>
+  </data>
+  <data name="PlayfieldsCreateNew" xml:space="preserve">
+    <value>+ NIEUW</value>
+  </data>
+  <data name="PlayfieldsOfflineEmpty" xml:space="preserve">
+    <value>Geen speelvelden beschikbaar offline.</value>
+  </data>
+  <data name="PlayfieldsDeleteTitle" xml:space="preserve">
+    <value>Speelveld verwijderen</value>
+  </data>
+  <data name="PlayfieldsDeleteMessage" xml:space="preserve">
+    <value>'{0}' verwijderen? Dit kan niet ongedaan worden gemaakt.</value>
+  </data>
+  <data name="PlayfieldsDeleteConfirm" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="PlayfieldsDeleteError" xml:space="preserve">
+    <value>Kan het speelveld niet verwijderen. Probeer het opnieuw.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Fout</value>
+  </data>
 </root>

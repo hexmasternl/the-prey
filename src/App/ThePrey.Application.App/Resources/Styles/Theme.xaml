@@ -142,6 +142,25 @@
         <Setter Property="HorizontalOptions" Value="Fill" />
     </Style>
 
+    <!-- Main-menu button column. -->
+    <Style x:Key="MenuStack" TargetType="VerticalStackLayout">
+        <Setter Property="Spacing" Value="14" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+    </Style>
+
+    <!-- Session-restore indicator group (spinner + label). -->
+    <Style x:Key="RestoreStack" TargetType="VerticalStackLayout">
+        <Setter Property="Spacing" Value="14" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="PreySpinner" TargetType="ActivityIndicator">
+        <Setter Property="Color" Value="{StaticResource Signal}" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="WidthRequest" Value="40" />
+        <Setter Property="HeightRequest" Value="40" />
+    </Style>
+
     <!-- ===================== BUTTONS ===================== -->
 
     <!-- Primary: solid signal fill, void text, glow on press. One per screen. -->

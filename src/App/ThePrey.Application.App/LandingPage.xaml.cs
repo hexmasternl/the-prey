@@ -1,4 +1,4 @@
-using Auth0.OidcClient;
+using ThePrey.Application.App.Services;
 
 namespace ThePrey.Application.App;
 
@@ -12,16 +12,18 @@ public partial class LandingPage : ContentPage
         ApplyLocalization();
     }
 
+    private static IAuthService? Auth => IPlatformApplication.Current?.Services.GetService<IAuthService>();
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
         _animationCts = new CancellationTokenSource();
         var token = _animationCts.Token;
 
-        _ = RunEntranceAsync(token);
         _ = RunSweepAsync(token);
         _ = RunHaloPulseAsync(token);
         _ = RunScanlineAsync(token);
+        _ = StartAsync(token);
     }
 
     protected override void OnDisappearing()
@@ -40,20 +42,43 @@ public partial class LandingPage : ContentPage
     {
         TitleLabel.Text = AppLocalizer.AppTitle;
         CatchyPhraseLabel.Text = AppLocalizer.CatchyPhrase;
+        RestoringLabel.Text = AppLocalizer.RestoringSession;
         CreateAccountButton.Text = AppLocalizer.CreateAccountButton;
         LoginButton.Text = AppLocalizer.LoginButton;
     }
 
-    // Staggered fade + rise for the wordmark and actions.
-    private async Task RunEntranceAsync(CancellationToken ct)
+    // Brand entrance runs while we attempt to restore a remembered session in the background.
+    // If restore succeeds we close this page and return to the main menu; otherwise we reveal
+    // the login actions.
+    private async Task StartAsync(CancellationToken ct)
     {
-        VisualElement[] sequence =
-        {
-            EyebrowLabel, TitleLabel, Divider, CatchyPhraseLabel,
-            CreateAccountButton, LoginButton
-        };
+        var restoreTask = Auth?.RestoreSessionAsync() ?? Task.FromResult(false);
 
-        foreach (var view in sequence)
+        await RunFadeRiseAsync(
+            new VisualElement[] { EyebrowLabel, TitleLabel, Divider, CatchyPhraseLabel }, ct);
+
+        bool restored;
+        try { restored = await restoreTask; }
+        catch { restored = false; }
+
+        if (ct.IsCancellationRequested)
+            return;
+
+        if (restored)
+        {
+            await GoToMainAsync();
+            return;
+        }
+
+        RestoreStack.IsVisible = false;
+        LoginActions.IsVisible = true;
+        await RunFadeRiseAsync(new VisualElement[] { CreateAccountButton, LoginButton }, ct);
+    }
+
+    // Staggered fade + rise for a group of elements.
+    private static async Task RunFadeRiseAsync(VisualElement[] views, CancellationToken ct)
+    {
+        foreach (var view in views)
         {
             view.Opacity = 0;
             view.TranslationY = 26;
@@ -61,9 +86,7 @@ public partial class LandingPage : ContentPage
 
         try
         {
-            await Task.Delay(180, ct).ConfigureAwait(true);
-
-            foreach (var view in sequence)
+            foreach (var view in views)
             {
                 if (ct.IsCancellationRequested) return;
                 _ = view.FadeToAsync(1, 520, Easing.CubicOut);
@@ -77,8 +100,7 @@ public partial class LandingPage : ContentPage
         }
         finally
         {
-            // Guarantee the final resting state regardless of how we exit.
-            foreach (var view in sequence)
+            foreach (var view in views)
             {
                 view.Opacity = 1;
                 view.TranslationY = 0;
@@ -154,49 +176,25 @@ public partial class LandingPage : ContentPage
     }
 
     private async void OnCreateAccountClicked(object? sender, EventArgs e)
-    {
-        var auth0Client = GetAuth0Client();
-        if (auth0Client is null) return;
-
-        try
-        {
-            CreateAccountButton.IsEnabled = false;
-            LoginButton.IsEnabled = false;
-
-            var result = await auth0Client.LoginAsync(new { screen_hint = "signup", audience = MauiProgram.Auth0Audience });
-
-            if (!result.IsError)
-                await HandleSuccessfulLogin(result.AccessToken);
-            else
-                await DisplayAlertAsync("Error", result.ErrorDescription ?? result.Error, "OK");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlertAsync("Error", ex.Message, "OK");
-        }
-        finally
-        {
-            CreateAccountButton.IsEnabled = true;
-            LoginButton.IsEnabled = true;
-        }
-    }
+        => await AttemptLoginAsync(signUp: true);
 
     private async void OnLoginClicked(object? sender, EventArgs e)
+        => await AttemptLoginAsync(signUp: false);
+
+    private async Task AttemptLoginAsync(bool signUp)
     {
-        var auth0Client = GetAuth0Client();
-        if (auth0Client is null) return;
+        var auth = Auth;
+        if (auth is null) return;
 
         try
         {
             CreateAccountButton.IsEnabled = false;
             LoginButton.IsEnabled = false;
 
-            var result = await auth0Client.LoginAsync(new { audience = MauiProgram.Auth0Audience });
-
-            if (!result.IsError)
-                await HandleSuccessfulLogin(result.AccessToken);
+            if (await auth.LoginAsync(signUp))
+                await GoToMainAsync();
             else
-                await DisplayAlertAsync("Error", result.ErrorDescription ?? result.Error, "OK");
+                await DisplayAlertAsync("Login failed", "Could not sign you in. Please try again.", "OK");
         }
         catch (Exception ex)
         {
@@ -209,12 +207,6 @@ public partial class LandingPage : ContentPage
         }
     }
 
-    private static Auth0Client? GetAuth0Client() =>
-        IPlatformApplication.Current?.Services.GetService<Auth0Client>();
-
-    private static Task HandleSuccessfulLogin(string? accessToken)
-    {
-        // TODO: navigate to the main app shell after a successful login
-        return Task.CompletedTask;
-    }
+    // Closes the login/welcome page and returns to the main menu.
+    private static Task GoToMainAsync() => Shell.Current.GoToAsync("..");
 }

@@ -7,8 +7,8 @@
     Title="The Prey">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:LandingPage}"
-        Route="LandingPage" />
+        Title="The Prey"
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="main" />
 
 </Shell>

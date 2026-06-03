@@ -40,7 +40,18 @@
                 </VerticalStackLayout>
             </Grid>
 
-            <VerticalStackLayout Style="{StaticResource ActionStack}">
+            <!-- Shown while a remembered session is being restored -->
+            <VerticalStackLayout x:Name="RestoreStack" Style="{StaticResource RestoreStack}">
+                <ActivityIndicator x:Name="RestoreSpinner"
+                                   Style="{StaticResource PreySpinner}"
+                                   IsRunning="True" />
+                <Label x:Name="RestoringLabel" Style="{StaticResource Eyebrow}" />
+            </VerticalStackLayout>
+
+            <!-- Shown when interactive login is required -->
+            <VerticalStackLayout x:Name="LoginActions"
+                                 Style="{StaticResource ActionStack}"
+                                 IsVisible="False">
                 <Button x:Name="CreateAccountButton"
                         Style="{StaticResource BtnPrimary}"
                         Clicked="OnCreateAccountClicked" />

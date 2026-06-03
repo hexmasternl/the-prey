@@ -42,6 +42,11 @@
 		     WindowsPackageType unset builds the Windows head as a packaged app. -->
 		<EnableMsixTooling>true</EnableMsixTooling>
 
+		<!-- Bundle the Windows App SDK runtime inside the package (self-contained) so it does
+		     not depend on a separately-registered framework package on the machine. Without
+		     this the DeploymentManager auto-initializer fails with REGDB_E_CLASSNOTREG. -->
+		<WindowsAppSDKSelfContained Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">true</WindowsAppSDKSelfContained>
+
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
@@ -101,6 +106,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Auth0.OidcClient.MAUI" Version="1.*" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>

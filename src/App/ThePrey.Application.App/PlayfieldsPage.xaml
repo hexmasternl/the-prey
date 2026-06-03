@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ThePrey.Application.App.Models"
+             x:Class="ThePrey.Application.App.PlayfieldsPage"
+             Style="{StaticResource PreyPage}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem x:Name="CreateNewButton"
+                     Clicked="OnCreateNewClicked" />
+    </ContentPage.ToolbarItems>
+
+    <Grid>
+
+        <ActivityIndicator x:Name="LoadingIndicator"
+                           Style="{StaticResource PreySpinner}"
+                           IsRunning="False"
+                           IsVisible="False"
+                           VerticalOptions="Center" />
+
+        <Label x:Name="EmptyStateLabel"
+               IsVisible="False"
+               FontFamily="PTMono"
+               FontSize="14"
+               TextColor="{StaticResource TextSoft}"
+               HorizontalTextAlignment="Center"
+               VerticalOptions="Center"
+               Margin="32,0" />
+
+        <CollectionView x:Name="PlayfieldsList"
+                        IsVisible="False">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Playfield">
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem Text="DELETE"
+                                           BackgroundColor="{StaticResource Hunter}"
+                                           Invoked="OnDeleteSwipeInvoked" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+
+                        <Grid BackgroundColor="{StaticResource Surface}"
+                              Padding="20,16"
+                              Margin="0,0,0,1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnPlayfieldTapped" />
+                            </Grid.GestureRecognizers>
+
+                            <Label Grid.Column="0"
+                                   Text="{Binding Name}"
+                                   FontFamily="PTMono"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center" />
+
+                            <Label Grid.Column="1"
+                                   Text="▶"
+                                   FontSize="11"
+                                   TextColor="{StaticResource SignalDim}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+
+</ContentPage>

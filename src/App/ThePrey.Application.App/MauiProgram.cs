@@ -1,5 +1,6 @@
 using Auth0.OidcClient;
 using Microsoft.Extensions.Logging;
+using ThePrey.Application.App.Services;
 
 namespace ThePrey.Application.App;
 
@@ -37,8 +38,19 @@ public static class MauiProgram
             ClientId = Auth0ClientId,
             RedirectUri = RedirectUri,
             PostLogoutRedirectUri = RedirectUri,
-            Scope = "openid profile email"
+            // offline_access requests a refresh token so the login session can be remembered/restored.
+            Scope = "openid profile email offline_access"
         }));
+
+        builder.Services.AddSingleton<IAuthService, AuthService>();
+
+        builder.Services.AddHttpClient("playfields", client =>
+        {
+            client.BaseAddress = new Uri("https://api.theprey.eu/");
+        });
+        builder.Services.AddSingleton<IPlayfieldService, PlayfieldService>();
+        builder.Services.AddSingleton<PlayfieldCacheService>();
+        builder.Services.AddTransient<PlayfieldsPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
