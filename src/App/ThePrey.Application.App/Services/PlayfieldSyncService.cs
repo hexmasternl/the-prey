@@ -6,10 +6,11 @@ public sealed class PlayfieldSyncService(
     IPlayfieldService playfieldService,
     PlayfieldCacheService cache)
 {
-    public async Task SyncAsync(CancellationToken ct = default)
+    /// <returns><c>true</c> if the remote pull succeeded; <c>false</c> if it failed (cached data is still shown).</returns>
+    public async Task<bool> SyncAsync(CancellationToken ct = default)
     {
         if (Connectivity.NetworkAccess != NetworkAccess.Internet)
-            return;
+            return false;
 
         var allCached = (await cache.LoadAsync()).ToList();
 
@@ -38,6 +39,7 @@ public sealed class PlayfieldSyncService(
         }
 
         // Pull phase: fetch server list and merge per LWW rule.
+        bool pullSucceeded;
         try
         {
             var serverList = await playfieldService.GetPlayfieldsAsync(ct);
@@ -46,24 +48,24 @@ public sealed class PlayfieldSyncService(
                 var localIdx = allCached.FindIndex(p => p.Id == server.Id);
                 if (localIdx < 0)
                 {
-                    // New on server — add as synced.
                     server.IsSynchronized = true;
                     allCached.Add(server);
                 }
                 else if (server.LastUpdatedOn > allCached[localIdx].LastUpdatedOn)
                 {
-                    // Server copy is newer — replace.
                     server.IsSynchronized = true;
                     allCached[localIdx] = server;
                 }
                 // else: local copy is newer or same — keep.
             }
+            pullSucceeded = true;
         }
         catch
         {
-            // Pull failure is non-fatal — we still persist whatever we pushed.
+            pullSucceeded = false;
         }
 
         await cache.SaveAsync(allCached);
+        return pullSucceeded;
     }
 }

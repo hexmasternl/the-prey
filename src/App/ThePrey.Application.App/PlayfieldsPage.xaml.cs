@@ -11,6 +11,7 @@ public partial class PlayfieldsPage : ContentPage
     private List<Playfield> _playfields = [];
     private bool _isPublicTabActive;
     private CancellationTokenSource? _searchCts;
+    private CancellationTokenSource? _syncCts;
 
     public PlayfieldsPage(IPlayfieldService playfieldService, PlayfieldCacheService cache, PlayfieldSyncService sync)
     {
@@ -42,6 +43,7 @@ public partial class PlayfieldsPage : ContentPage
     {
         base.OnDisappearing();
         CancelSearch();
+        CancelSync();
     }
 
     // ─── Tab switching ───────────────────────────────────────────────────────
@@ -84,29 +86,47 @@ public partial class PlayfieldsPage : ContentPage
 
     private async Task LoadPlayfieldsAsync()
     {
-        SetPrivateState(loading: true);
+        CancelSync();
+
+        // Show whatever is cached right away — no waiting for the network.
+        var cached = (await _cache.LoadAsync()).ToList();
+        if (cached.Count == 0)
+            SetPrivateState(loading: true);
+        else
+            ShowPlayfields(cached);
+
+        // Refresh from the server in the background.
+        _syncCts = new CancellationTokenSource();
+        _ = BackgroundSyncAsync(_syncCts.Token);
+    }
+
+    private async Task BackgroundSyncAsync(CancellationToken ct)
+    {
+        bool pullSucceeded;
         try
         {
-            await _sync.SyncAsync();
+            pullSucceeded = await _sync.SyncAsync(ct);
         }
-        catch (UnauthorizedException)
+        catch (OperationCanceledException)
         {
-            SetPrivateState(loading: false);
-            await Shell.Current.GoToAsync(AppShell.LoginRoute);
             return;
         }
-        catch
-        {
-            // Sync failure is non-fatal — fall through to display whatever is cached.
-        }
 
+        // Reload cache after sync and refresh the list.
         _playfields = (await _cache.LoadAsync()).ToList();
-        if (_playfields.Count == 0)
-        {
-            ShowPrivateEmpty(AppLocalizer.PlayfieldsOfflineEmpty);
-            return;
-        }
 
+        if (_playfields.Count == 0)
+            ShowPrivateEmpty(AppLocalizer.PlayfieldsOfflineEmpty);
+        else
+            ShowPlayfields(_playfields);
+
+        if (!pullSucceeded)
+            _ = ShowToastAsync(AppLocalizer.PlayfieldsSyncError);
+    }
+
+    private void ShowPlayfields(List<Playfield> playfields)
+    {
+        _playfields = playfields;
         SetPrivateState(loading: false);
         PlayfieldsList.ItemsSource = _playfields;
         PlayfieldsList.IsVisible = true;
@@ -127,6 +147,24 @@ public partial class PlayfieldsPage : ContentPage
         EmptyStateLabel.Text = message;
         EmptyStateLabel.IsVisible = true;
         PlayfieldsList.IsVisible = false;
+    }
+
+    private async Task ShowToastAsync(string message)
+    {
+        ToastLabel.Text = message;
+        ToastBorder.Opacity = 0;
+        ToastBorder.IsVisible = true;
+        await ToastBorder.FadeTo(1, 200);
+        await Task.Delay(3000);
+        await ToastBorder.FadeTo(0, 400);
+        ToastBorder.IsVisible = false;
+    }
+
+    private void CancelSync()
+    {
+        _syncCts?.Cancel();
+        _syncCts?.Dispose();
+        _syncCts = null;
     }
 
     // ─── Private tab: actions ────────────────────────────────────────────────

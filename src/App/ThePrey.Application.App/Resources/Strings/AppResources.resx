@@ -132,4 +132,7 @@
   <data name="AuthSignInTitle" xml:space="preserve">
     <value>SIGN IN</value>
   </data>
+  <data name="PlayfieldsSyncError" xml:space="preserve">
+    <value>Could not reach the server. Showing local data.</value>
+  </data>
 </root>

@@ -204,6 +204,25 @@
             </Grid>
         </Grid>
 
+        <!-- Toast notification (sync failure) — overlays full page, anchored to bottom -->
+        <Border x:Name="ToastBorder"
+                Grid.RowSpan="2"
+                VerticalOptions="End"
+                HorizontalOptions="Fill"
+                Margin="24,0,24,32"
+                BackgroundColor="{StaticResource Hunter}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 6"
+                Padding="16,10"
+                IsVisible="False"
+                InputTransparent="True">
+            <Label x:Name="ToastLabel"
+                   FontFamily="PTMono"
+                   FontSize="13"
+                   TextColor="{StaticResource TextPrimary}"
+                   HorizontalTextAlignment="Center" />
+        </Border>
+
     </Grid>
 
 </ContentPage>

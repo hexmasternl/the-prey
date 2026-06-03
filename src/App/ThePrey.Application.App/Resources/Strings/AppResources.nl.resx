@@ -132,4 +132,7 @@
   <data name="AuthSignInTitle" xml:space="preserve">
     <value>INLOGGEN</value>
   </data>
+  <data name="PlayfieldsSyncError" xml:space="preserve">
+    <value>Server niet bereikbaar. Lokale data wordt getoond.</value>
+  </data>
 </root>
