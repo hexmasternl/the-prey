@@ -27,11 +27,14 @@ internal static class GameFaker
     internal static LobbyPlayer Player(Guid? userId = null, string? displayName = null, string? profilePictureUrl = null) =>
         LobbyPlayer.Create(userId ?? Guid.NewGuid(), displayName ?? _faker.Name.FullName(), profilePictureUrl);
 
+    internal static string ValidGameCode() => _faker.Random.Int(0, 99_999_999).ToString("D8");
+
     internal static Game LobbyGame(
         Guid? ownerId = null,
         Guid? playfieldId = null,
+        string? gameCode = null,
         GameConfiguration? configuration = null) =>
-        Game.Create(ownerId ?? Guid.NewGuid(), playfieldId ?? Guid.NewGuid(), configuration ?? ValidConfiguration());
+        Game.Create(ownerId ?? Guid.NewGuid(), playfieldId ?? Guid.NewGuid(), gameCode ?? ValidGameCode(), configuration ?? ValidConfiguration());
 
     /// <summary>A lobby game pre-filled with <paramref name="playerCount"/> players; returns their ids in join order.</summary>
     internal static Game LobbyGameWithPlayers(int playerCount, out IReadOnlyList<Guid> playerIds, GameConfiguration? configuration = null)

@@ -5,6 +5,8 @@ namespace HexMaster.ThePrey.Games.Features.CreateGame;
 public sealed record CreateGameCommand(
     Guid OwnerUserId,
     Guid PlayfieldId,
+    string DisplayName,
+    string? ProfilePictureUrl,
     int GameDuration,
     int HunterDelayTime,
     int FinalStageDuration,

@@ -10,6 +10,9 @@ public sealed class Game
     /// <summary>Minimum lobby size required to start: one hunter plus at least one prey.</summary>
     public const int MinimumPlayersToStart = 2;
 
+    /// <summary>Length of the shareable game code: exactly this many decimal digits.</summary>
+    public const int GameCodeLength = 8;
+
     /// <summary>Reporting interval, in seconds, that applies while a participant has an active penalty.</summary>
     public const int PenaltyReportingIntervalSeconds = 10;
 
@@ -17,6 +20,10 @@ public sealed class Game
     private readonly List<GameParticipant> _participants = [];
 
     public Guid Id { get; private set; }
+
+    /// <summary>The shareable code players use to find this game: exactly 8 decimal digits.</summary>
+    public string GameCode { get; private set; } = default!;
+
     public Guid PlayfieldId { get; private set; }
     public Guid OwnerUserId { get; private set; }
     public GameStatus Status { get; private set; }
@@ -35,7 +42,7 @@ public sealed class Game
     private Game() { }
 
     /// <summary>Creates a new game in the Lobby state with an empty lobby.</summary>
-    public static Game Create(Guid ownerUserId, Guid playfieldId, GameConfiguration configuration)
+    public static Game Create(Guid ownerUserId, Guid playfieldId, string gameCode, GameConfiguration configuration)
     {
         if (ownerUserId == Guid.Empty)
             throw new ArgumentException("A game requires a non-empty owner identifier.", nameof(ownerUserId));
@@ -43,11 +50,13 @@ public sealed class Game
         if (playfieldId == Guid.Empty)
             throw new ArgumentException("A game requires a non-empty play-field identifier.", nameof(playfieldId));
 
+        ValidateGameCode(gameCode);
         ArgumentNullException.ThrowIfNull(configuration);
 
         return new Game
         {
             Id = Guid.NewGuid(),
+            GameCode = gameCode,
             OwnerUserId = ownerUserId,
             PlayfieldId = playfieldId,
             Configuration = configuration,
@@ -58,6 +67,7 @@ public sealed class Game
     /// <summary>Reconstructs a previously-persisted game. Intended only for data adapters.</summary>
     public static Game Rehydrate(
         Guid id,
+        string gameCode,
         Guid ownerUserId,
         Guid playfieldId,
         GameStatus status,
@@ -71,6 +81,7 @@ public sealed class Game
         var game = new Game
         {
             Id = id,
+            GameCode = gameCode,
             OwnerUserId = ownerUserId,
             PlayfieldId = playfieldId,
             Status = status,
@@ -225,4 +236,13 @@ public sealed class Game
 
     private GameParticipant? FindParticipant(Guid userId) =>
         _participants.FirstOrDefault(p => p.UserId == userId);
+
+    private static void ValidateGameCode(string gameCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(gameCode);
+
+        if (gameCode.Length != GameCodeLength || !gameCode.All(char.IsAsciiDigit))
+            throw new ArgumentException(
+                $"A game code must consist of exactly {GameCodeLength} decimal digits.", nameof(gameCode));
+    }
 }

@@ -8,6 +8,7 @@ internal static class GameMappings
     internal static GameDto ToDto(this Game game) =>
         new(
             game.Id,
+            game.GameCode,
             game.PlayfieldId,
             game.OwnerUserId,
             game.Status.ToString(),
@@ -18,7 +19,7 @@ internal static class GameMappings
             game.StartedAt);
 
     internal static GameSummaryDto ToSummaryDto(this Game game) =>
-        new(game.Id, game.PlayfieldId, game.OwnerUserId, game.Status.ToString(), game.Lobby.Count);
+        new(game.Id, game.GameCode, game.PlayfieldId, game.OwnerUserId, game.Status.ToString(), game.Lobby.Count);
 
     internal static GameConfigurationDto ToDto(this GameConfiguration configuration) =>
         new(

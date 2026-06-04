@@ -3,6 +3,7 @@ namespace HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 /// <summary>The full state of a game, including its lobby and — once started — its hunter and preys.</summary>
 public sealed record GameDto(
     Guid Id,
+    string GameCode,
     Guid PlayfieldId,
     Guid OwnerUserId,
     string Status,
@@ -15,6 +16,7 @@ public sealed record GameDto(
 /// <summary>A condensed view of a game for list results.</summary>
 public sealed record GameSummaryDto(
     Guid Id,
+    string GameCode,
     Guid PlayfieldId,
     Guid OwnerUserId,
     string Status,

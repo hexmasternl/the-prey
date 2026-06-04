@@ -13,9 +13,10 @@ public sealed class GameTests
         var ownerId = Guid.NewGuid();
         var playfieldId = Guid.NewGuid();
 
-        var game = Game.Create(ownerId, playfieldId, GameFaker.ValidConfiguration());
+        var game = Game.Create(ownerId, playfieldId, "01234567", GameFaker.ValidConfiguration());
 
         Assert.NotEqual(Guid.Empty, game.Id);
+        Assert.Equal("01234567", game.GameCode);
         Assert.Equal(ownerId, game.OwnerUserId);
         Assert.Equal(playfieldId, game.PlayfieldId);
         Assert.Equal(GameStatus.Lobby, game.Status);
@@ -23,6 +24,18 @@ public sealed class GameTests
         Assert.Null(game.Hunter);
         Assert.Empty(game.Preys);
         Assert.Null(game.StartedAt);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("1234567")]
+    [InlineData("123456789")]
+    [InlineData("1234567a")]
+    [InlineData("1234 678")]
+    public void Create_ShouldThrow_WhenGameCodeIsNotEightDigits(string gameCode)
+    {
+        Assert.Throws<ArgumentException>(() =>
+            Game.Create(Guid.NewGuid(), Guid.NewGuid(), gameCode, GameFaker.ValidConfiguration()));
     }
 
     [Fact]

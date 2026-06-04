@@ -1,15 +1,20 @@
 namespace HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 
-/// <summary>Create a game. The owner is taken from the authenticated caller.</summary>
+/// <summary>
+/// Create a game. The owner is taken from the authenticated caller and joins the lobby as its
+/// first player under <paramref name="DisplayName"/>.
+/// </summary>
 public sealed record CreateGameRequest(
     Guid PlayfieldId,
+    string DisplayName,
     int GameDuration,
     int HunterDelayTime,
     int FinalStageDuration,
     int DefaultLocationInterval,
     int FinalLocationInterval,
     bool EnablePreyBoundaryPenalties = false,
-    bool EnableHunterBoundaryPenalty = false);
+    bool EnableHunterBoundaryPenalty = false,
+    string? ProfilePictureUrl = null);
 
 /// <summary>Join a game's lobby. The user id is taken from the authenticated caller.</summary>
 public sealed record JoinGameRequest(string DisplayName, string? ProfilePictureUrl = null);

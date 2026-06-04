@@ -17,8 +17,8 @@ public sealed class CreateGameCommandHandlerTests
         _handler = new CreateGameCommandHandler(_repository.Object, _metrics.Object, Mock.Of<ILogger<CreateGameCommandHandler>>());
     }
 
-    private static CreateGameCommand ValidCommand() =>
-        new(Guid.NewGuid(), Guid.NewGuid(), 60, 5, 10, 30, 10, false, false);
+    private static CreateGameCommand ValidCommand(string displayName = "Owner") =>
+        new(Guid.NewGuid(), Guid.NewGuid(), displayName, null, 60, 5, 10, 30, 10, false, false);
 
     [Fact]
     public async Task Handle_ShouldCreateAndPersist_WhenCommandIsValid()
@@ -36,10 +36,73 @@ public sealed class CreateGameCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldAssignEightDigitGameCode_WhenCommandIsValid()
+    {
+        var result = await _handler.Handle(ValidCommand(), CancellationToken.None);
+
+        Assert.Equal(Game.GameCodeLength, result.Game.GameCode.Length);
+        Assert.All(result.Game.GameCode, c => Assert.True(char.IsAsciiDigit(c)));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldAddCreatorToLobby_WhenCommandIsValid()
+    {
+        var command = ValidCommand(displayName: "The Creator");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        var player = Assert.Single(result.Game.Lobby);
+        Assert.Equal(command.OwnerUserId, player.UserId);
+        Assert.Equal("The Creator", player.DisplayName);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldRetryWithFreshCode_WhenGameCodeCollides()
+    {
+        var seenCodes = new List<string>();
+        _repository
+            .Setup(r => r.AddAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()))
+            .Callback<Game, CancellationToken>((game, _) => seenCodes.Add(game.GameCode))
+            .Returns<Game, CancellationToken>((game, _) =>
+                seenCodes.Count < 3 ? throw new DuplicateGameCodeException(game.GameCode) : Task.CompletedTask);
+
+        var result = await _handler.Handle(ValidCommand(), CancellationToken.None);
+
+        Assert.Equal(3, seenCodes.Count);
+        Assert.Equal(seenCodes[^1], result.Game.GameCode);
+        _repository.Verify(r => r.AddAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
+        _metrics.Verify(m => m.RecordGameCreated(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrow_WhenGameCodeKeepsColliding()
+    {
+        _repository
+            .Setup(r => r.AddAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DuplicateGameCodeException("00000000"));
+
+        await Assert.ThrowsAsync<DuplicateGameCodeException>(() => _handler.Handle(ValidCommand(), CancellationToken.None));
+
+        _repository.Verify(
+            r => r.AddAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(CreateGameCommandHandler.MaxGameCodeAttempts));
+        _metrics.Verify(m => m.RecordGameCreated(), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Handle_ShouldThrowAndNotPersist_WhenDisplayNameIsEmpty(string displayName)
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() => _handler.Handle(ValidCommand(displayName), CancellationToken.None));
+        _repository.Verify(r => r.AddAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_ShouldThrowAndNotPersist_WhenConfigurationIsInvalid()
     {
         // FinalStageDuration not shorter than GameDuration.
-        var command = new CreateGameCommand(Guid.NewGuid(), Guid.NewGuid(), 60, 5, 60, 30, 10, false, false);
+        var command = new CreateGameCommand(Guid.NewGuid(), Guid.NewGuid(), "Owner", null, 60, 5, 60, 30, 10, false, false);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _handler.Handle(command, CancellationToken.None));
         _repository.Verify(r => r.AddAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);

@@ -18,6 +18,8 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
 
         builder.HasKey(g => g.Id);
         builder.Property(g => g.Id).ValueGeneratedNever();
+        builder.Property(g => g.GameCode).HasMaxLength(Game.GameCodeLength).IsRequired();
+        builder.HasIndex(g => g.GameCode).IsUnique();
         builder.Property(g => g.PlayfieldId);
         builder.Property(g => g.OwnerUserId);
         builder.Property(g => g.Status).HasConversion<string>().HasMaxLength(32);

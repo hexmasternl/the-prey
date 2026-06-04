@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Games.DomainModels;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace HexMaster.ThePrey.Games.Data.Postgres;
 
@@ -13,8 +14,25 @@ public sealed class GameRepository : IGameRepository
     {
         ArgumentNullException.ThrowIfNull(game);
         await _db.Games.AddAsync(game, ct);
-        await _db.SaveChangesAsync(ct);
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsGameCodeViolation(ex))
+        {
+            // Detach the failed aggregate so the caller can retry with a fresh code on this same scoped context.
+            _db.ChangeTracker.Clear();
+            throw new DuplicateGameCodeException(game.GameCode, ex);
+        }
     }
+
+    private static bool IsGameCodeViolation(DbUpdateException ex) =>
+        ex.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: { } constraint
+        } && constraint.Contains(nameof(Game.GameCode), StringComparison.OrdinalIgnoreCase);
 
     public async Task<Game?> GetByIdAsync(Guid id, CancellationToken ct)
     {

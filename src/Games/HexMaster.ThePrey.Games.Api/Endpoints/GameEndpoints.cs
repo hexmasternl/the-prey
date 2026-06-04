@@ -73,6 +73,8 @@ public static class GameEndpoints
         var command = new CreateGameCommand(
             ownerId,
             request.PlayfieldId,
+            request.DisplayName,
+            request.ProfilePictureUrl,
             request.GameDuration,
             request.HunterDelayTime,
             request.FinalStageDuration,
