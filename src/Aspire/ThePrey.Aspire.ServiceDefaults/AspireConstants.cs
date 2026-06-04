@@ -19,6 +19,7 @@ namespace ThePrey.Aspire.ServiceDefaults
 
             /// <summary>The PostgreSQL database (and Aspire connection) name; must match the Games data adapter's connection name.</summary>
             public const string GamesDatabase = "games";
+            public const string Gateway = "gateway";
         }
 
     }
