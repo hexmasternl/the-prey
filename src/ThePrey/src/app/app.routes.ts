@@ -37,7 +37,7 @@ export const routes: Routes = [
   {
     path: 'playfields/:id/area',
     loadComponent: () =>
-      import('./playfields/playfield-detail.page').then((m) => m.PlayfieldDetailPage),
+      import('./playfields/area/playfield-area.page').then((m) => m.PlayfieldAreaPage),
     canActivate: [authGuardFn],
   },
   {

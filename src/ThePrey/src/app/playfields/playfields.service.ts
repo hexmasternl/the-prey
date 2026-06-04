@@ -66,6 +66,12 @@ export class PlayfieldsService {
     return firstValueFrom(this.http.get<PlayFieldDetailDto>(`${this.apiBase}/${id}`));
   }
 
+  updateArea(id: string, coordinates: GpsCoordinateDto[]): Promise<PlayFieldDetailDto> {
+    return firstValueFrom(
+      this.http.patch<PlayFieldDetailDto>(`${this.apiBase}/${id}`, { points: coordinates }),
+    );
+  }
+
   patchVisibility(current: PlayFieldDetailDto, isPublic: boolean): Promise<PlayFieldDetailDto> {
     const body: UpsertPlayFieldRequest = {
       name: current.name,
