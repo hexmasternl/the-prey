@@ -34,4 +34,4 @@
 
 ## 6. i18n
 
-- [ ] 6.1 Add translation keys for the detail page (name label, visibility toggle labels, Set Area button, not-found message, error toast) in all existing locale files under `src/ThePrey/src/assets/i18n/`
+- [x] 6.1 Add translation keys for the detail page (name label, visibility toggle labels, Set Area button, not-found message, error toast) in all existing locale files under `src/ThePrey/src/assets/i18n/`
