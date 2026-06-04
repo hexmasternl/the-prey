@@ -5,7 +5,10 @@ import {
   IonButton,
   IonButtons,
   IonContent,
+  IonFab,
+  IonFabButton,
   IonHeader,
+  IonIcon,
   IonItem,
   IonItemOption,
   IonItemOptions,
@@ -18,6 +21,8 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { add } from 'ionicons/icons';
 import { PlayFieldRecord } from './playfield.model';
 import { PlayfieldsService } from './playfields.service';
 
@@ -34,6 +39,9 @@ type Tab = 'private' | 'public';
     IonButtons,
     IonButton,
     IonContent,
+    IonFab,
+    IonFabButton,
+    IonIcon,
     IonSegment,
     IonSegmentButton,
     IonList,
@@ -49,6 +57,10 @@ type Tab = 'private' | 'public';
 export class PlayfieldsListPage implements OnInit {
   private readonly router = inject(Router);
   private readonly playfieldsService = inject(PlayfieldsService);
+
+  constructor() {
+    addIcons({ add });
+  }
 
   readonly activeTab = signal<Tab>('private');
   readonly playfields = signal<PlayFieldRecord[]>([]);
@@ -84,6 +96,10 @@ export class PlayfieldsListPage implements OnInit {
     await sliding.close();
     await this.playfieldsService.deleteLocal(id);
     this.playfields.update((list) => list.filter((p) => p.id !== id));
+  }
+
+  createPlayfield(): void {
+    this.router.navigate(['/playfields/new']);
   }
 
   back(): void {

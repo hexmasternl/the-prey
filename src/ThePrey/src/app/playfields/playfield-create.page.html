@@ -1,0 +1,79 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="back()">&#8592; Back</ion-button>
+    </ion-buttons>
+    <ion-title>New Playfield</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Name -->
+  <ion-item>
+    <ion-input
+      label="Name"
+      labelPlacement="floating"
+      [ngModel]="name()"
+      (ngModelChange)="name.set($event)"
+      placeholder="e.g. City Park Arena"
+      clearInput
+    ></ion-input>
+  </ion-item>
+
+  <!-- Public toggle -->
+  <ion-item>
+    <ion-label>Public</ion-label>
+    <ion-toggle
+      slot="end"
+      [checked]="isPublic()"
+      (ionChange)="isPublic.set($any($event).detail.checked)"
+    ></ion-toggle>
+  </ion-item>
+
+  <!-- GPS Points -->
+  <div class="section-header">
+    <span>GPS Points ({{ points().length }}/3 minimum)</span>
+  </div>
+
+  <ion-list>
+    @for (pt of points(); track $index) {
+      <ion-item>
+        <ion-label>
+          <p>{{ pt.latitude | number: '1.5-5' }}, {{ pt.longitude | number: '1.5-5' }}</p>
+        </ion-label>
+        <ion-button slot="end" fill="clear" color="danger" (click)="removePoint($index)">&#x2715;</ion-button>
+      </ion-item>
+    } @empty {
+      <ion-item>
+        <ion-label><p class="empty-hint">Walk to a corner and tap "Add Point"</p></ion-label>
+      </ion-item>
+    }
+  </ion-list>
+
+  <ion-button
+    expand="block"
+    fill="outline"
+    [disabled]="isCapturing()"
+    (click)="addCurrentLocation()"
+  >
+    @if (isCapturing()) {
+      <ion-spinner name="lines" slot="start"></ion-spinner> Capturing...
+    } @else {
+      Add Current Location
+    }
+  </ion-button>
+
+  <ion-button
+    expand="block"
+    color="primary"
+    class="save-btn"
+    [disabled]="!canSave() || isSaving()"
+    (click)="save()"
+  >
+    @if (isSaving()) {
+      <ion-spinner name="lines" slot="start"></ion-spinner> Saving...
+    } @else {
+      Save Playfield
+    }
+  </ion-button>
+</ion-content>

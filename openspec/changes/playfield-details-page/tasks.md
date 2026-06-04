@@ -1,7 +1,7 @@
 ## 1. Dependencies & Configuration
 
-- [ ] 1.1 Install `leaflet`, `@asymmetrik/ngx-leaflet`, and their TypeScript types (`@types/leaflet`)
-- [ ] 1.2 Add `leaflet/dist/leaflet.css` to the `styles` array in `angular.json`
+- [x] 1.1 Install `leaflet`, `@asymmetrik/ngx-leaflet`, and their TypeScript types (`@types/leaflet`)
+- [x] 1.2 Add `leaflet/dist/leaflet.css` to the `styles` array in `angular.json`
 
 ## 2. Playfield Service
 

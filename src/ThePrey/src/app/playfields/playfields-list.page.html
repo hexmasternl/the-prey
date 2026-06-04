@@ -20,6 +20,14 @@
 </ion-header>
 
 <ion-content>
+  @if (activeTab() === 'private') {
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button (click)="createPlayfield()">
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
+
   @switch (activeTab()) {
     @case ('private') {
       @if (isSyncing()) {
