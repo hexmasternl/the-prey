@@ -7,7 +7,7 @@
 - [x] 1.3 Update `CreateGameCommandHandler`: generate the game code with `RandomNumberGenerator`, add the creator as the first lobby player, and retry code generation (bounded, e.g. 5 attempts) when the repository reports a duplicate code; instrument with OTel activity tags/status per guidelines
 - [x] 1.4 Persistence: add `GameCode` column with a unique index in `GamesDbContext`/`GameEntityTypeConfiguration`, surface duplicate-code violations from `GameRepository` distinguishably, and add the EF Core migration
 - [x] 1.5 Update/extend unit tests in `HexMaster.ThePrey.Games.Tests`: code format, collision retry, creator present in lobby after create, empty-display-name rejection, DTO mapping carries `GameCode`; update `GameFaker` and existing `CreateGameCommandHandlerTests`
-- [ ] 1.6 Run `dotnet test src/Games/HexMaster.ThePrey.Games.Tests/` — all green
+- [x] 1.6 Run `dotnet test src/Games/HexMaster.ThePrey.Games.Tests/` — all green
 
 ## 2. App — service layer & models
 
