@@ -35,6 +35,12 @@ export const routes: Routes = [
     canActivate: [authGuardFn],
   },
   {
+    path: 'playfields/:id/area',
+    loadComponent: () =>
+      import('./playfields/playfield-detail.page').then((m) => m.PlayfieldDetailPage),
+    canActivate: [authGuardFn],
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./settings/settings.page').then((m) => m.SettingsPage),
     canActivate: [authGuardFn],

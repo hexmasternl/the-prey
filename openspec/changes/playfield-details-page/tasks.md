@@ -29,8 +29,8 @@
 
 ## 5. Routing
 
-- [ ] 5.1 Add the `/playfields/:id` route to `app.routes.ts` pointing to `PlayfieldDetailPage` with `canActivate: [authGuardFn]`
-- [ ] 5.2 Add a stub `/playfields/:id/area` route (can point at a placeholder or the same detail page for now)
+- [x] 5.1 Add the `/playfields/:id` route to `app.routes.ts` pointing to `PlayfieldDetailPage` with `canActivate: [authGuardFn]`
+- [x] 5.2 Add a stub `/playfields/:id/area` route (can point at a placeholder or the same detail page for now)
 
 ## 6. i18n
 
