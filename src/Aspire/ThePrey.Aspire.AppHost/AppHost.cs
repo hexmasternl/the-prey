@@ -3,8 +3,6 @@ using ThePrey.Aspire.ServiceDefaults;
 var builder = DistributedApplication.CreateBuilder(args);
 
 
-builder.AddProject<Projects.ThePrey_Application_App>(AspireConstants.Resources.MauiApp);
-
 var usersApi = builder.AddProject<Projects.HexMaster_ThePrey_Users_Api>(AspireConstants.Resources.UsersApi);
 
 var storage = builder.AddAzureStorage(AspireConstants.Resources.Storage)
@@ -24,12 +22,16 @@ var gamesApi = builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireCo
     .WithReference(gamesDatabase)
     .WaitFor(gamesDatabase);
 
-builder.AddYarp(AspireConstants.Resources.Gateway)
+var gateway = builder.AddYarp(AspireConstants.Resources.Gateway)
     .WithConfiguration(yarp =>
     {
         yarp.AddRoute("/users/{**catch-all}", usersApi);
         yarp.AddRoute("/playfields/{**catch-all}", playFieldsApi);
         yarp.AddRoute("/games/{**catch-all}", gamesApi);
     });
+
+builder.AddProject<Projects.ThePrey_Application_App>(AspireConstants.Resources.MauiApp)
+    .WithEnvironment("BACKEND_URL", gateway.GetEndpoint("https"))
+    .WaitFor(gateway);
 
 builder.Build().Run();

@@ -1,4 +1,3 @@
-using Auth0.OidcClient;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -17,7 +16,9 @@ public interface IAuthService
 
     /// <summary>
     /// Returns a valid access token, transparently refreshing it when it is expired or within
-    /// 30 seconds of expiry. Returns <c>null</c> and clears the session when refresh fails.
+    /// 30 seconds of expiry. Returns <c>null</c> when no token is available; the session is only
+    /// cleared when Auth0 definitively rejects the refresh token (transient network failures
+    /// keep the session for a later retry).
     /// All HTTP service classes MUST use this method instead of reading <see cref="AccessToken"/> directly.
     /// </summary>
     Task<string?> GetAccessTokenAsync(CancellationToken ct = default);
@@ -32,10 +33,23 @@ public interface IAuthService
     Task LogoutAsync();
 }
 
-public sealed class AuthService(Auth0Client auth0Client, IHttpClientFactory httpClientFactory) : IAuthService
+public sealed class AuthService(IHttpClientFactory httpClientFactory) : IAuthService
 {
     private const string RefreshTokenKey = "auth0_refresh_token";
     private const int ExpiryBufferSeconds = 30;
+
+    /// <summary>The outcome of a refresh-token exchange.</summary>
+    private enum RefreshOutcome
+    {
+        /// <summary>A fresh access token was obtained and stored.</summary>
+        Success,
+        /// <summary>No refresh token is stored; an interactive login is required.</summary>
+        NoSession,
+        /// <summary>Auth0 rejected the refresh token (revoked/rotated away); the session is gone.</summary>
+        Rejected,
+        /// <summary>A network or server hiccup; the stored refresh token is kept for a retry.</summary>
+        Transient
+    }
 
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
     private readonly HttpClient _http = httpClientFactory.CreateClient();
@@ -57,27 +71,7 @@ public sealed class AuthService(Auth0Client auth0Client, IHttpClientFactory http
             if (!IsTokenExpiredOrExpiringSoon(AccessToken))
                 return AccessToken;
 
-            var refreshToken = await SecureStorage.Default.GetAsync(RefreshTokenKey);
-            if (string.IsNullOrWhiteSpace(refreshToken))
-            {
-                Clear();
-                return null;
-            }
-
-            var result = await auth0Client.RefreshTokenAsync(refreshToken);
-            if (result.IsError)
-            {
-                Clear();
-                return null;
-            }
-
-            await StoreSessionAsync(result.AccessToken, result.RefreshToken);
-            return AccessToken;
-        }
-        catch
-        {
-            Clear();
-            return null;
+            return await RefreshSessionCoreAsync(ct) == RefreshOutcome.Success ? AccessToken : null;
         }
         finally
         {
@@ -87,26 +81,102 @@ public sealed class AuthService(Auth0Client auth0Client, IHttpClientFactory http
 
     public async Task<bool> RestoreSessionAsync()
     {
+        // Serialized with GetAccessTokenAsync: with refresh-token rotation enabled, two
+        // concurrent exchanges of the same token trip Auth0's reuse detection, which revokes
+        // the whole token family and permanently kills the remembered session.
+        await _refreshLock.WaitAsync();
         try
         {
-            var refreshToken = await SecureStorage.Default.GetAsync(RefreshTokenKey);
-            if (string.IsNullOrWhiteSpace(refreshToken))
-                return false;
+            if (IsAuthenticated && !IsTokenExpiredOrExpiringSoon(AccessToken))
+                return true;
 
-            var result = await auth0Client.RefreshTokenAsync(refreshToken);
-            if (result.IsError)
-            {
-                Clear();
-                return false;
-            }
+            return await RefreshSessionCoreAsync(CancellationToken.None) == RefreshOutcome.Success;
+        }
+        finally
+        {
+            _refreshLock.Release();
+        }
+    }
 
-            await StoreSessionAsync(result.AccessToken, result.RefreshToken);
-            return true;
+    /// <summary>
+    /// Exchanges the stored refresh token for a fresh access token via a direct
+    /// <c>grant_type=refresh_token</c> call — the same raw OAuth style as the login code
+    /// exchange (no OidcClient response validation involved). The refreshed access token keeps
+    /// the API audience granted at login. Callers must hold <see cref="_refreshLock"/>.
+    /// </summary>
+    private async Task<RefreshOutcome> RefreshSessionCoreAsync(CancellationToken ct)
+    {
+        string? refreshToken;
+        try
+        {
+            refreshToken = await SecureStorage.Default.GetAsync(RefreshTokenKey);
         }
         catch
         {
+            refreshToken = null;
+        }
+
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
             Clear();
-            return false;
+            return RefreshOutcome.NoSession;
+        }
+
+        HttpResponseMessage response;
+        string body;
+        try
+        {
+            response = await _http.PostAsync(
+                $"https://{MauiProgram.Auth0Domain}/oauth/token",
+                new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["grant_type"] = "refresh_token",
+                    ["client_id"] = MauiProgram.Auth0ClientId,
+                    ["refresh_token"] = refreshToken,
+                }), ct);
+            body = await response.Content.ReadAsStringAsync(ct);
+        }
+        catch
+        {
+            // Network hiccup: keep the stored refresh token (and any in-memory session) for a retry.
+            return RefreshOutcome.Transient;
+        }
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                // 4xx (e.g. invalid_grant) means the token was revoked or rotated away — the
+                // remembered session is definitively gone. 5xx is a server hiccup; retry later.
+                if ((int)response.StatusCode is >= 400 and < 500)
+                {
+                    Clear();
+                    SecureStorage.Default.Remove(RefreshTokenKey);
+                    return RefreshOutcome.Rejected;
+                }
+
+                return RefreshOutcome.Transient;
+            }
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            var accessToken = doc.RootElement.GetProperty("access_token").GetString();
+            var newRefreshToken = doc.RootElement.TryGetProperty("refresh_token", out var rt)
+                ? rt.GetString() : null;
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+                return RefreshOutcome.Transient;
+
+            // With rotation enabled the response carries a new refresh token; store it so the
+            // next refresh uses the live token instead of the consumed one.
+            await StoreSessionAsync(accessToken, newRefreshToken);
+            return RefreshOutcome.Success;
+        }
+        catch
+        {
+            return RefreshOutcome.Transient;
         }
     }
 

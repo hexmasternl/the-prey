@@ -1,4 +1,3 @@
-using Auth0.OidcClient;
 using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using ThePrey.Application.App.Services;
@@ -11,6 +10,27 @@ public static class MauiProgram
     internal const string Auth0ClientId = "tJrm2nPrAX4kES7XEnjUsL38cqbAbraJ";
     internal const string Auth0Audience = "https://api.theprey.eu";
     internal const string RedirectUri = "com.hexmaster.theprey.application.app://callback";
+
+    internal const string DefaultBackendUrl = "https://api.theprey.eu/";
+
+    /// <summary>
+    /// Backend host base URL. Defaults to <see cref="DefaultBackendUrl"/> and can be
+    /// overridden with the BACKEND_URL environment variable (set by Aspire to the
+    /// YARP gateway endpoint during local development).
+    /// </summary>
+    internal static Uri BackendUrl { get; } = ResolveBackendUrl();
+
+    private static Uri ResolveBackendUrl()
+    {
+        var fromEnvironment = Environment.GetEnvironmentVariable("BACKEND_URL");
+        if (string.IsNullOrWhiteSpace(fromEnvironment))
+        {
+            return new Uri(DefaultBackendUrl);
+        }
+
+        // HttpClient.BaseAddress needs a trailing slash for relative paths to resolve correctly.
+        return new Uri(fromEnvironment.EndsWith('/') ? fromEnvironment : fromEnvironment + "/");
+    }
 
     public static MauiApp CreateMauiApp()
     {
@@ -27,25 +47,17 @@ public static class MauiProgram
                 fonts.AddFont("PTMono-Regular.ttf", "PTMono");
             });
 
-        // Auth0Client is kept solely for RefreshTokenAsync (HTTP-only, no browser involved).
-        builder.Services.AddSingleton(new Auth0Client(new Auth0ClientOptions
-        {
-            Domain = Auth0Domain,
-            ClientId = Auth0ClientId,
-            RedirectUri = RedirectUri,
-            PostLogoutRedirectUri = RedirectUri,
-            Scope = "openid profile email offline_access"
-        }));
-
+        // The whole OAuth flow (PKCE login, code exchange, refresh, revoke) is raw HTTP inside
+        // AuthService; the Auth0.OidcClient library is no longer used at runtime.
         builder.Services.AddSingleton<IAuthService, AuthService>();
 
         builder.Services.AddHttpClient("playfields", client =>
         {
-            client.BaseAddress = new Uri("https://api.theprey.eu/");
+            client.BaseAddress = BackendUrl;
         });
         builder.Services.AddHttpClient("games", client =>
         {
-            client.BaseAddress = new Uri("https://api.theprey.eu/");
+            client.BaseAddress = BackendUrl;
         });
         builder.Services.AddSingleton<IPlayfieldService, PlayfieldService>();
         builder.Services.AddSingleton<IGameService, GameService>();
