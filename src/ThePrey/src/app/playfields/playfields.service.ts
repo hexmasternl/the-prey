@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { GpsCoordinateDto, PlayFieldRecord, PlayFieldSummaryDto, UpsertPlayFieldRequest } from './playfield.model';
+import { GpsCoordinateDto, PlayFieldDetailDto, PlayFieldRecord, PlayFieldSummaryDto, UpsertPlayFieldRequest } from './playfield.model';
 import { PlayfieldsDbService } from './playfields-db.service';
 import { UserStateService } from '../users/user-state.service';
 
@@ -60,6 +60,22 @@ export class PlayfieldsService {
     }
 
     return this.db.getAll(ownerId);
+  }
+
+  getById(id: string): Promise<PlayFieldDetailDto> {
+    return firstValueFrom(this.http.get<PlayFieldDetailDto>(`${this.apiBase}/${id}`));
+  }
+
+  patchVisibility(current: PlayFieldDetailDto, isPublic: boolean): Promise<PlayFieldDetailDto> {
+    const body: UpsertPlayFieldRequest = {
+      name: current.name,
+      isPublic,
+      points: current.points,
+      lastUpdatedOn: current.lastUpdatedOn,
+    };
+    return firstValueFrom(
+      this.http.put<PlayFieldDetailDto>(`${this.apiBase}/${current.id}`, body),
+    );
   }
 
   async deleteLocal(id: string): Promise<void> {
