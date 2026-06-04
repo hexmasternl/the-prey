@@ -52,6 +52,29 @@ internal static class AppLocalizer
     public static string SavedLocallyPending => Get(nameof(SavedLocallyPending));
     public static string AuthSignInTitle => Get(nameof(AuthSignInTitle));
     public static string PlayfieldsSyncError => Get(nameof(PlayfieldsSyncError));
+    public static string GameStartTitle => Get(nameof(GameStartTitle));
+    public static string PlayfieldLabel => Get(nameof(PlayfieldLabel));
+    public static string ChoosePlayfieldButton => Get(nameof(ChoosePlayfieldButton));
+    public static string NoPlayfieldsAvailable => Get(nameof(NoPlayfieldsAvailable));
+    public static string GameDurationLabel => Get(nameof(GameDurationLabel));
+    public static string HunterDelayLabel => Get(nameof(HunterDelayLabel));
+    public static string FinalStageLabel => Get(nameof(FinalStageLabel));
+    public static string DefaultIntervalLabel => Get(nameof(DefaultIntervalLabel));
+    public static string FinalIntervalLabel => Get(nameof(FinalIntervalLabel));
+    public static string PreyPenaltyLabel => Get(nameof(PreyPenaltyLabel));
+    public static string HunterPenaltyLabel => Get(nameof(HunterPenaltyLabel));
+    public static string MinutesFormat => Get(nameof(MinutesFormat));
+    public static string CreateGameButton => Get(nameof(CreateGameButton));
+    public static string CreateGameError => Get(nameof(CreateGameError));
+    public static string DefaultPlayerName => Get(nameof(DefaultPlayerName));
+    public static string WaitingForPlayersTitle => Get(nameof(WaitingForPlayersTitle));
+    public static string GameCodeLabel => Get(nameof(GameCodeLabel));
+    public static string PlayersLabel => Get(nameof(PlayersLabel));
+    public static string HunterTag => Get(nameof(HunterTag));
+    public static string StartNowButton => Get(nameof(StartNowButton));
+    public static string StartGameError => Get(nameof(StartGameError));
+    public static string GameProgressTitle => Get(nameof(GameProgressTitle));
+    public static string GameProgressPlaceholder => Get(nameof(GameProgressPlaceholder));
 
     private static string Get(string key) =>
         ResourceManager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
