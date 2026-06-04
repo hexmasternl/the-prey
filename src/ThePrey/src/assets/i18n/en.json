@@ -20,6 +20,16 @@
     "UPLINK_FAILED_BODY": "Command server unreachable. Your operative file could not be retrieved. Check your signal and re-enter the field.",
     "UPLINK_RETRY": "RETRY"
   },
+  "PLAYFIELD_DETAIL": {
+    "TITLE": "PLAYFIELD",
+    "BACK": "BACK",
+    "VISIBILITY_LABEL": "PUBLIC",
+    "VISIBILITY_ON": "PUBLIC",
+    "VISIBILITY_OFF": "PRIVATE",
+    "SET_AREA": "SET AREA",
+    "NOT_FOUND": "PLAYFIELD NOT FOUND",
+    "ERROR_VISIBILITY": "FAILED TO UPDATE VISIBILITY — TRY AGAIN"
+  },
   "SETTINGS": {
     "TITLE": "SETTINGS",
     "BACK": "← BACK",

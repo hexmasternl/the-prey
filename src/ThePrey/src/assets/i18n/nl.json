@@ -20,6 +20,16 @@
     "UPLINK_FAILED_BODY": "Commandoserver onbereikbaar. Jouw operatief dossier kon niet worden opgehaald. Controleer je signaal en betreedt opnieuw het veld.",
     "UPLINK_RETRY": "OPNIEUW PROBEREN"
   },
+  "PLAYFIELD_DETAIL": {
+    "TITLE": "SPEELVELD",
+    "BACK": "TERUG",
+    "VISIBILITY_LABEL": "OPENBAAR",
+    "VISIBILITY_ON": "OPENBAAR",
+    "VISIBILITY_OFF": "PRIVÉ",
+    "SET_AREA": "GEBIED INSTELLEN",
+    "NOT_FOUND": "SPEELVELD NIET GEVONDEN",
+    "ERROR_VISIBILITY": "ZICHTBAARHEID WIJZIGEN MISLUKT — PROBEER OPNIEUW"
+  },
   "SETTINGS": {
     "TITLE": "INSTELLINGEN",
     "BACK": "← TERUG",
