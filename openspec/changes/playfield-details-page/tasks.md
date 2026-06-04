@@ -20,12 +20,12 @@
 
 ## 4. Detail Page
 
-- [ ] 4.1 Create standalone Ionic page `PlayfieldDetailPage` at `src/ThePrey/src/app/playfields/detail/playfield-detail.page.ts`
-- [ ] 4.2 On `ionViewWillEnter`, load the playfield via `PlayfieldService.getById()` and store in a signal/property; show a loading spinner while in flight; show "not found" state on 404
-- [ ] 4.3 Render the playfield name
-- [ ] 4.4 Add an `ion-toggle` bound to `isPublic`; on change call `patchVisibility` and roll back on error with a toast notification
-- [ ] 4.5 Embed `PlayfieldMapComponent`; resolve the `fallbackCenter` by calling `Geolocation.getCurrentPosition()` when coordinates are empty (handle denial gracefully)
-- [ ] 4.6 Add a **Set Area** button that navigates to `/playfields/:id/area` (stub route acceptable for now)
+- [x] 4.1 Create standalone Ionic page `PlayfieldDetailPage` at `src/ThePrey/src/app/playfields/detail/playfield-detail.page.ts`
+- [x] 4.2 On `ionViewWillEnter`, load the playfield via `PlayfieldService.getById()` and store in a signal/property; show a loading spinner while in flight; show "not found" state on 404
+- [x] 4.3 Render the playfield name
+- [x] 4.4 Add an `ion-toggle` bound to `isPublic`; on change call `patchVisibility` and roll back on error with a toast notification
+- [x] 4.5 Embed `PlayfieldMapComponent`; resolve the `fallbackCenter` by calling `Geolocation.getCurrentPosition()` when coordinates are empty (handle denial gracefully)
+- [x] 4.6 Add a **Set Area** button that navigates to `/playfields/:id/area` (stub route acceptable for now)
 
 ## 5. Routing
 
