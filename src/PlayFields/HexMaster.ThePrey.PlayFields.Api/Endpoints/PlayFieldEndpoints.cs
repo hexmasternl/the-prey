@@ -3,6 +3,7 @@ using HexMaster.ThePrey.PlayFields.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.PlayFields.Features.CreatePlayField;
 using HexMaster.ThePrey.PlayFields.Features.GetPlayField;
 using HexMaster.ThePrey.PlayFields.Features.ListPlayFields;
+using HexMaster.ThePrey.PlayFields.Features.SearchPublicPlayFields;
 using HexMaster.ThePrey.PlayFields.Features.UpsertPlayField;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -42,6 +43,12 @@ public static class PlayFieldEndpoints
         group.MapGet("/", ListPlayFields)
             .WithName("ListPlayFields")
             .Produces<IReadOnlyList<PlayFieldSummaryDto>>();
+
+        group.MapGet("/public", SearchPublicPlayFields)
+            .WithName("SearchPublicPlayFields")
+            .Produces<IReadOnlyList<PlayFieldSummaryDto>>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized);
 
         return app;
     }
@@ -154,6 +161,36 @@ public static class PlayFieldEndpoints
             return Results.ValidationProblem(new Dictionary<string, string[]>
             {
                 [ex.ParamName ?? "request"] = [ex.Message]
+            });
+        }
+    }
+
+    private static async Task<IResult> SearchPublicPlayFields(
+        [FromQuery(Name = "q")] string? query,
+        ClaimsPrincipal principal,
+        IQueryHandler<SearchPublicPlayFieldsQuery, IReadOnlyList<PlayFieldSummaryDto>> handler,
+        CancellationToken ct)
+    {
+        var ownerId = GetSubjectId(principal);
+        if (ownerId is null)
+            return Results.Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < SearchPublicPlayFieldsQuery.MinimumSearchLength)
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["q"] = [$"The search text must be at least {SearchPublicPlayFieldsQuery.MinimumSearchLength} characters long."]
+            });
+
+        try
+        {
+            var playFields = await handler.Handle(new SearchPublicPlayFieldsQuery(query.Trim()), ct);
+            return Results.Ok(playFields);
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["q"] = [ex.Message]
             });
         }
     }

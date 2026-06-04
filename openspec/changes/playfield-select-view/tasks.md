@@ -2,11 +2,11 @@
 
 ## 1. Server — public playfield search slice
 
-- [ ] 1.1 Add `SearchPublicAsync(string searchText, CancellationToken ct)` to `IPlayFieldRepository` and implement it in the Table Storage adapter (query public playfields, case-insensitive in-memory name-contains filter)
-- [ ] 1.2 Add feature slice `Features/SearchPublicPlayFields/` with `SearchPublicPlayFieldsQuery(string SearchText)` (sealed record) and `SearchPublicPlayFieldsQueryHandler` returning `IReadOnlyList<PlayFieldSummaryDto>`; reject search text shorter than 3 characters with `ArgumentException`
-- [ ] 1.3 Instrument the handler with OTel: activity via `PlayFieldActivitySource`, error status + exception recording on failure, and a search counter on `IPlayFieldMetrics`/`PlayFieldMetrics` (no user ids or raw query text in tags)
-- [ ] 1.4 Register the handler in `PlayFieldsModuleRegistration`
-- [ ] 1.5 Map `GET /public` on the authorized `/playfields` group in `PlayFieldEndpoints`: parse `q`, return `ValidationProblem` for missing/too-short query, 200 with summaries otherwise
+- [x] 1.1 Add `SearchPublicAsync(string searchText, CancellationToken ct)` to `IPlayFieldRepository` and implement it in the Table Storage adapter (query public playfields, case-insensitive in-memory name-contains filter)
+- [x] 1.2 Add feature slice `Features/SearchPublicPlayFields/` with `SearchPublicPlayFieldsQuery(string SearchText)` (sealed record) and `SearchPublicPlayFieldsQueryHandler` returning `IReadOnlyList<PlayFieldSummaryDto>`; reject search text shorter than 3 characters with `ArgumentException`
+- [x] 1.3 Instrument the handler with OTel: activity via `PlayFieldActivitySource`, error status + exception recording on failure, and a search counter on `IPlayFieldMetrics`/`PlayFieldMetrics` (no user ids or raw query text in tags)
+- [x] 1.4 Register the handler in `PlayFieldsModuleRegistration`
+- [x] 1.5 Map `GET /public` on the authorized `/playfields` group in `PlayFieldEndpoints`: parse `q`, return `ValidationProblem` for missing/too-short query, 200 with summaries otherwise
 - [ ] 1.6 Unit tests in `HexMaster.ThePrey.PlayFields.Tests/SearchPublicPlayFields/` (xUnit + Moq + Bogus): matching/public-only/empty results, too-short query rejected, repository mock verification
 - [ ] 1.7 Run `dotnet test src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/` and confirm green
 

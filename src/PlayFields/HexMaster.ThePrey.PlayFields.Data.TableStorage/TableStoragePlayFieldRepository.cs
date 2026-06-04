@@ -72,6 +72,25 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         return results;
     }
 
+    public async Task<IReadOnlyList<PlayField>> SearchPublicAsync(string searchText, CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(searchText);
+
+        var table = await GetTableClientAsync(ct);
+
+        // Table Storage has no 'contains' filter — fetch public play fields and match the
+        // name in memory. Acceptable at current volume; revisit with a search index when needed.
+        var results = new List<PlayField>();
+        var publicFields = table.QueryAsync<PlayFieldTableEntity>(e => e.IsPublic, cancellationToken: ct);
+        await foreach (var entity in publicFields)
+        {
+            if (entity.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                results.Add(ToDomain(entity));
+        }
+
+        return results;
+    }
+
     private async Task<TableClient> GetTableClientAsync(CancellationToken ct)
     {
         var table = _serviceClient.GetTableClient(TableName);
