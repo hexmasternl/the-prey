@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { PlayFieldRecord, PlayFieldSummaryDto, UpsertPlayFieldRequest } from './playfield.model';
+import { GpsCoordinateDto, PlayFieldRecord, PlayFieldSummaryDto, UpsertPlayFieldRequest } from './playfield.model';
 import { PlayfieldsDbService } from './playfields-db.service';
 import { UserStateService } from '../users/user-state.service';
 

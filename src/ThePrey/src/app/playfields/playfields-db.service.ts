@@ -46,6 +46,15 @@ export class PlayfieldsDbService {
     const db = await this.appDb.getDb();
     await idbDelete(db, STORE, id);
   }
+
+  /**
+   * Persist a brand-new local record directly, bypassing conflict-resolution logic.
+   * Use only for records that have no server counterpart yet (isSynced = false).
+   */
+  async saveLocal(record: PlayFieldRecord): Promise<void> {
+    const db = await this.appDb.getDb();
+    await idbPut(db, STORE, record);
+  }
 }
 
 function idbGet<T>(db: IDBDatabase, store: string, key: string): Promise<T | null> {
