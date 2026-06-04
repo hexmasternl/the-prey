@@ -23,7 +23,7 @@ export const routes: Routes = [
   },
   {
     path: 'settings',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+    loadComponent: () => import('./settings/settings.page').then((m) => m.SettingsPage),
     canActivate: [authGuardFn],
   },
   {

@@ -1,0 +1,93 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" class="back-btn" (click)="back()">
+        {{ 'SETTINGS.BACK' | translate }}
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'SETTINGS.TITLE' | translate }}</ion-title>
+    <div slot="end" class="sync-status">
+      @if (saveStatus === 'saving') {
+        <span class="saving">{{ 'SETTINGS.SYNCING' | translate }}</span>
+      }
+      @if (saveStatus === 'saved') {
+        <span class="saved">{{ 'SETTINGS.SYNCED' | translate }}</span>
+      }
+      @if (saveStatus === 'error') {
+        <span class="error">{{ 'SETTINGS.SYNC_FAILED' | translate }}</span>
+      }
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="form" class="settings-form">
+
+    <!-- Section 1: CALL SIGN -->
+    <section class="settings-section">
+      <div class="section-head">
+        <span class="section-label">{{ 'SETTINGS.CALLSIGN_LABEL' | translate }}</span>
+        <span
+          class="char-count"
+          [class.warn]="callsignLength > 24"
+          [class.limit]="callsignLength >= 30"
+        >
+          {{ callsignLength }} / 30
+        </span>
+      </div>
+      <div
+        class="input-wrap"
+        [class.focused]="callsignFocused"
+        [class.invalid]="callsign.invalid && callsign.touched"
+      >
+        <span class="input-caret">&#9658;</span>
+        <input
+          formControlName="callsign"
+          type="text"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          maxlength="30"
+          [placeholder]="'SETTINGS.CALLSIGN_PLACEHOLDER' | translate"
+          (focus)="callsignFocused = true"
+          (blur)="callsignFocused = false; callsign.markAsTouched()"
+        />
+      </div>
+      @if (callsign.invalid && callsign.touched && callsignError) {
+        <p class="field-error">{{ callsignError | translate }}</p>
+      }
+      <p class="field-hint">{{ 'SETTINGS.CALLSIGN_HINT' | translate }}</p>
+    </section>
+
+    <!-- Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Section 2: LANGUAGE -->
+    <section class="settings-section">
+      <div class="section-head">
+        <span class="section-label">{{ 'SETTINGS.LANGUAGE_LABEL' | translate }}</span>
+      </div>
+      <div class="lang-grid">
+        <button
+          type="button"
+          class="lang-btn"
+          [class.active]="form.value.language === 'en'"
+          (click)="selectLanguage('en')"
+        >
+          <span class="lang-code">EN</span>
+          <span class="lang-name">{{ 'SETTINGS.LANG_EN' | translate }}</span>
+        </button>
+        <button
+          type="button"
+          class="lang-btn"
+          [class.active]="form.value.language === 'nl'"
+          (click)="selectLanguage('nl')"
+        >
+          <span class="lang-code">NL</span>
+          <span class="lang-name">{{ 'SETTINGS.LANG_NL' | translate }}</span>
+        </button>
+      </div>
+    </section>
+
+  </form>
+</ion-content>

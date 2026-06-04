@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -18,6 +19,9 @@ public static class Extensions
 {
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
+
+    public const string DefaultCorsPolicyName = "DefaultCors";
+    private const string DefaultCorsOrigin = "http://localhost:8100";
 
     // Auth0 tenant authority and API identifier (audience) shared by every backend service.
     // Override per environment via configuration keys "Auth0:Domain" and "Auth0:Audience".
@@ -68,6 +72,29 @@ public static class Extensions
         builder.Services.AddAuthorization();
 
         return builder;
+    }
+
+    public static TBuilder AddDefaultCors<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
+        var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]
+            ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            ?? [DefaultCorsOrigin];
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(DefaultCorsPolicyName, policy => policy
+                .WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod());
+        });
+
+        return builder;
+    }
+
+    public static WebApplication UseDefaultCors(this WebApplication app)
+    {
+        app.UseCors(DefaultCorsPolicyName);
+        return app;
     }
 
     public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder

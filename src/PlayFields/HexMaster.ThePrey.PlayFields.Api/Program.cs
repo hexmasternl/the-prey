@@ -13,6 +13,7 @@ builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 
 builder.AddDefaultAuthentication();
+builder.AddDefaultCors();
 
 builder.Services.AddPlayFieldsModule();
 builder.AddPlayFieldsTableStorage();
@@ -36,6 +37,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseDefaultCors();
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -4,7 +4,10 @@
   },
   "HOME": {
     "TAG": "Operations Field Manual — v1.0",
-    "TITLE": "STAY <em>HIDDEN.</em><br/>HUNT <em>SMART.</em>",
+    "TITLE_LINE1": "STAY",
+    "TITLE_LINE1_EM": "HIDDEN.",
+    "TITLE_LINE2": "HUNT",
+    "TITLE_LINE2_EM": "SMART.",
     "LEDE": "A GPS-based, real-world hide-and-seek game. Enter the playfield. Don't get caught.",
     "PLAY_NOW": "PLAY NOW",
     "PLAYFIELDS": "PLAYFIELDS",
@@ -12,6 +15,25 @@
     "LOGOUT": "LOGOUT",
     "QUIT": "QUIT",
     "COORDS_NO_SIGNAL": "-- ° N // -- ° E // NO SIGNAL",
-    "COORDS_SIGNAL_LOCK": "{{lat}}° N // {{lon}}° E // SIGNAL LOCK"
+    "COORDS_SIGNAL_LOCK": "{{lat}}° N // {{lon}}° E // SIGNAL LOCK",
+    "UPLINK_FAILED_TITLE": "TACTICAL UPLINK SEVERED",
+    "UPLINK_FAILED_BODY": "Command server unreachable. Your operative file could not be retrieved. Check your signal and re-enter the field.",
+    "UPLINK_RETRY": "RETRY"
+  },
+  "SETTINGS": {
+    "TITLE": "SETTINGS",
+    "BACK": "← BACK",
+    "CALLSIGN_LABEL": "CALL SIGN",
+    "CALLSIGN_PLACEHOLDER": "your call sign",
+    "CALLSIGN_HINT": "3–30 characters · letters · numbers · spaces · - _ & $ # @",
+    "CALLSIGN_ERROR_REQUIRED": "CALL SIGN REQUIRED",
+    "CALLSIGN_ERROR_MIN": "MINIMUM 3 CHARACTERS",
+    "CALLSIGN_ERROR_PATTERN": "INVALID CHARACTERS",
+    "LANGUAGE_LABEL": "LANGUAGE PROTOCOL",
+    "LANG_EN": "ENGLISH",
+    "LANG_NL": "NEDERLANDS",
+    "SYNCING": "SYNCING...",
+    "SYNCED": "SYNCED ✓",
+    "SYNC_FAILED": "SYNC FAILED"
   }
 }

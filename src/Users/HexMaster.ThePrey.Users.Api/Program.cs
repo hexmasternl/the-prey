@@ -12,6 +12,7 @@ builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 
 builder.AddDefaultAuthentication();
+builder.AddDefaultCors();
 
 builder.Services.AddUsersModule();
 builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
@@ -35,6 +36,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseDefaultCors();
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -4,7 +4,10 @@
   },
   "HOME": {
     "TAG": "Operationeel Veldhandboek — v1.0",
-    "TITLE": "BLIJF <em>VERBORGEN.</em><br/>JAAG <em>SLIM.</em>",
+    "TITLE_LINE1": "BLIJF",
+    "TITLE_LINE1_EM": "VERBORGEN.",
+    "TITLE_LINE2": "JAAG",
+    "TITLE_LINE2_EM": "SLIM.",
     "LEDE": "Een gps-spel van verstoppertje in de echte wereld. Betreed het speelveld. Laat je niet vangen.",
     "PLAY_NOW": "SPEEL NU",
     "PLAYFIELDS": "SPEELVELDEN",
@@ -12,6 +15,25 @@
     "LOGOUT": "UITLOGGEN",
     "QUIT": "AFSLUITEN",
     "COORDS_NO_SIGNAL": "-- ° N // -- ° O // GEEN SIGNAAL",
-    "COORDS_SIGNAL_LOCK": "{{lat}}° N // {{lon}}° O // SIGNAAL VAST"
+    "COORDS_SIGNAL_LOCK": "{{lat}}° N // {{lon}}° O // SIGNAAL VAST",
+    "UPLINK_FAILED_TITLE": "TACTISCHE UPLINK VERBROKEN",
+    "UPLINK_FAILED_BODY": "Commandoserver onbereikbaar. Jouw operatief dossier kon niet worden opgehaald. Controleer je signaal en betreedt opnieuw het veld.",
+    "UPLINK_RETRY": "OPNIEUW PROBEREN"
+  },
+  "SETTINGS": {
+    "TITLE": "INSTELLINGEN",
+    "BACK": "← TERUG",
+    "CALLSIGN_LABEL": "ROEPNAAM",
+    "CALLSIGN_PLACEHOLDER": "jouw roepnaam",
+    "CALLSIGN_HINT": "3–30 tekens · letters · cijfers · spaties · - _ & $ # @",
+    "CALLSIGN_ERROR_REQUIRED": "ROEPNAAM VEREIST",
+    "CALLSIGN_ERROR_MIN": "MINIMAAL 3 TEKENS",
+    "CALLSIGN_ERROR_PATTERN": "ONGELDIGE TEKENS",
+    "LANGUAGE_LABEL": "TAALPROTOCOL",
+    "LANG_EN": "ENGLISH",
+    "LANG_NL": "NEDERLANDS",
+    "SYNCING": "SYNCHRONISEREN...",
+    "SYNCED": "GESYNCHRONISEERD ✓",
+    "SYNC_FAILED": "SYNCHRONISATIE MISLUKT"
   }
 }

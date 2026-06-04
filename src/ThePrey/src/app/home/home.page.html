@@ -17,42 +17,77 @@
 
     <!-- Title block -->
     <div class="tag">{{ 'HOME.TAG' | translate }}</div>
-    <h1 [innerHTML]="'HOME.TITLE' | translate"></h1>
+    <h1>
+      {{ 'HOME.TITLE_LINE1' | translate }} <em>{{ 'HOME.TITLE_LINE1_EM' | translate }}</em><br />
+      {{ 'HOME.TITLE_LINE2' | translate }} <em>{{ 'HOME.TITLE_LINE2_EM' | translate }}</em>
+    </h1>
     <p class="lede">{{ 'HOME.LEDE' | translate }}</p>
 
-    <!-- Action buttons -->
-    <div class="buttons">
-      <ion-button expand="block" color="primary" (click)="goToPlay()">
-        {{ 'HOME.PLAY_NOW' | translate }}
-      </ion-button>
+    <!-- Action buttons — only rendered once the user profile is available -->
+    @if (userState.profile(); as profile) {
+      <div class="buttons">
+        <ion-button expand="block" color="primary" (click)="goToPlay()">
+          {{ 'HOME.PLAY_NOW' | translate }}
+        </ion-button>
 
-      <ion-button
-        expand="block"
-        fill="outline"
-        color="primary"
-        (click)="goToPlayfields()"
-      >
-        {{ 'HOME.PLAYFIELDS' | translate }}
-      </ion-button>
-      <ion-button
-        expand="block"
-        fill="outline"
-        color="primary"
-        (click)="goToSettings()"
-      >
-        {{ 'HOME.SETTINGS' | translate }}
-      </ion-button>
-      <ion-button fill="outline" color="primary" (click)="logout()">{{
-        'HOME.LOGOUT' | translate
-      }}</ion-button>
-      <ion-button
-        expand="block"
-        fill="outline"
-        color="primary"
-        (click)="quit()"
-      >
-        {{ 'HOME.QUIT' | translate }}
-      </ion-button>
-    </div>
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="primary"
+          (click)="goToPlayfields()"
+        >
+          {{ 'HOME.PLAYFIELDS' | translate }}
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="primary"
+          (click)="goToSettings()"
+        >
+          {{ 'HOME.SETTINGS' | translate }}
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="primary"
+          (click)="logout()"
+        >
+          {{ 'HOME.LOGOUT' | translate }}
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="primary"
+          (click)="quit()"
+        >
+          {{ 'HOME.QUIT' | translate }}
+        </ion-button>
+
+        <div class="callsign">{{ profile.callsign }}</div>
+      </div>
+    } @else if (userState.syncFailed()) {
+      <!-- Server unreachable and no cached profile to fall back on -->
+      <div class="uplink-error">
+        <div class="uplink-error__icon">!</div>
+        <div class="uplink-error__title">{{ 'HOME.UPLINK_FAILED_TITLE' | translate }}</div>
+        <div class="uplink-error__body">{{ 'HOME.UPLINK_FAILED_BODY' | translate }}</div>
+        <ion-button
+          fill="outline"
+          color="danger"
+          expand="block"
+          (click)="retrySync()"
+        >
+          {{ 'HOME.UPLINK_RETRY' | translate }}
+        </ion-button>
+      </div>
+    } @else {
+      <!-- Profile initialising: IndexedDB miss + server sync in progress -->
+      <div class="buttons loading">
+        <ion-spinner name="lines" color="primary"></ion-spinner>
+      </div>
+    }
   </div>
 </ion-content>

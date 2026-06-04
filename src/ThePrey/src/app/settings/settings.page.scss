@@ -1,0 +1,230 @@
+// ─── Shell ───────────────────────────────────────────────────────────────────
+
+ion-header {
+  ion-toolbar {
+    --background: var(--tp-bg-void);
+    --border-color: var(--tp-line);
+    --color: var(--tp-text);
+  }
+}
+
+ion-content {
+  --background: var(--tp-bg-void);
+}
+
+// ─── Back button ─────────────────────────────────────────────────────────────
+
+.back-btn {
+  --color: var(--tp-text-soft);
+  font-family: var(--tp-body);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+// ─── Sync status chip ────────────────────────────────────────────────────────
+
+.sync-status {
+  padding-right: 12px;
+  font-family: var(--tp-body);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+
+  .saving {
+    color: var(--tp-text-ghost);
+    animation: pulse-opacity 1.2s ease-in-out infinite;
+  }
+
+  .saved {
+    color: var(--tp-signal);
+  }
+
+  .error {
+    color: var(--tp-hunter);
+  }
+}
+
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+// ─── Form layout ─────────────────────────────────────────────────────────────
+
+.settings-form {
+  padding: 24px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.settings-section {
+  margin-bottom: 32px;
+}
+
+// ─── Section header ──────────────────────────────────────────────────────────
+
+.section-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.section-label {
+  font-family: var(--tp-head);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--tp-signal-dim);
+}
+
+.char-count {
+  font-family: var(--tp-body);
+  font-size: 11px;
+  color: var(--tp-text-ghost);
+  transition: color 0.2s;
+
+  &.warn {
+    color: var(--tp-caution);
+  }
+
+  &.limit {
+    color: var(--tp-hunter);
+  }
+}
+
+// ─── Text input ──────────────────────────────────────────────────────────────
+
+.input-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border: 1px solid var(--tp-line);
+  background: var(--tp-bg-surface);
+  padding: 0 14px;
+  border-radius: 3px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+
+  &.focused {
+    border-color: var(--tp-signal-dim);
+    box-shadow: 0 0 0 2px var(--tp-signal-glow);
+  }
+
+  &.invalid {
+    border-color: var(--tp-hunter);
+  }
+}
+
+.input-caret {
+  color: var(--tp-signal);
+  font-size: 12px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.input-wrap input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--tp-body);
+  font-size: 18px;
+  color: var(--tp-text);
+  padding: 14px 0;
+
+  &::placeholder {
+    color: var(--tp-text-ghost);
+  }
+}
+
+// ─── Field messages ──────────────────────────────────────────────────────────
+
+.field-error {
+  font-family: var(--tp-body);
+  font-size: 11px;
+  color: var(--tp-hunter);
+  letter-spacing: 1px;
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.field-hint {
+  font-family: var(--tp-body);
+  font-size: 11px;
+  color: var(--tp-text-ghost);
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+// ─── Divider ─────────────────────────────────────────────────────────────────
+
+.section-divider {
+  border-top: 1px solid var(--tp-line-soft);
+  margin: 8px 0 32px;
+}
+
+// ─── Language grid ───────────────────────────────────────────────────────────
+
+.lang-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.lang-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 12px;
+  background: var(--tp-bg-surface);
+  border: 1px solid var(--tp-line);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+
+  &:hover:not(.active) {
+    border-color: var(--tp-text-ghost);
+    background: var(--tp-bg-surface-2);
+  }
+
+  &.active {
+    background: var(--tp-bg-surface-2);
+    border-color: var(--tp-signal);
+    box-shadow: 0 0 12px var(--tp-signal-glow);
+
+    .lang-code {
+      color: var(--tp-signal);
+    }
+
+    .lang-name {
+      color: var(--tp-text-soft);
+    }
+  }
+}
+
+.lang-code {
+  font-family: var(--tp-head);
+  font-size: 22px;
+  color: var(--tp-text-ghost);
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+
+.lang-name {
+  font-family: var(--tp-body);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--tp-text-ghost);
+  transition: color 0.2s;
+}

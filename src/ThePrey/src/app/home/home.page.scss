@@ -12,7 +12,7 @@ ion-content {
   overflow: hidden;
   border: 1px solid var(--tp-line);
   background:
-    linear-gradient(135deg, rgba(100, 255, 0, 0.05), transparent 50%),
+    linear-gradient(135deg, rgba(100, 255, 0, 0.1), transparent 90%),
     var(--tp-bg-void);
 }
 
@@ -97,5 +97,71 @@ h1 {
 
   ion-button[disabled] {
     opacity: 0.6;
+  }
+
+  // Loading state while profile is being resolved
+  &.loading {
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+
+    ion-spinner {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+}
+
+// Uplink failure — replaces the button block when server is unreachable
+.uplink-error {
+  margin-top: 40px;
+  border-left: 3px solid var(--tp-hunter);
+  padding: 18px 20px;
+  background: var(--tp-bg-void);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &__icon {
+    font-family: var(--tp-head);
+    font-size: 20px;
+    color: var(--tp-hunter);
+    line-height: 1;
+  }
+
+  &__title {
+    font-family: var(--tp-head);
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    color: var(--tp-hunter);
+  }
+
+  &__body {
+    font-family: var(--tp-body);
+    font-size: 13px;
+    color: var(--tp-text-soft);
+    line-height: 1.6;
+  }
+
+  ion-button {
+    --border-radius: 3px;
+    font-family: var(--tp-head);
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin-top: 6px;
+  }
+}
+
+.buttons {
+  // Callsign badge shown below buttons once profile loads
+  .callsign {
+    font-family: var(--tp-body);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--tp-text-ghost);
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 8px;
   }
 }
