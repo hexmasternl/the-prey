@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ThePrey.Application.App.GameProgressPage"
+             Style="{StaticResource PreyPage}">
+
+    <!-- Placeholder: the actual game-progress UI (map, countdowns, hunter/prey state) is a future change. -->
+    <VerticalStackLayout Padding="20,16,20,32" Spacing="12" VerticalOptions="Center">
+
+        <Label x:Name="GameCodeCaption"
+               FontFamily="PTMono"
+               FontSize="11"
+               CharacterSpacing="2"
+               TextColor="{StaticResource SignalDim}"
+               HorizontalTextAlignment="Center" />
+
+        <Label x:Name="GameCodeLabel"
+               FontFamily="SpecialElite"
+               FontSize="32"
+               CharacterSpacing="6"
+               TextColor="{StaticResource Signal}"
+               HorizontalTextAlignment="Center" />
+
+        <Label x:Name="PlaceholderLabel"
+               FontFamily="PTMono"
+               FontSize="14"
+               TextColor="{StaticResource TextSoft}"
+               HorizontalTextAlignment="Center"
+               Margin="0,24,0,0" />
+
+    </VerticalStackLayout>
+
+</ContentPage>
