@@ -190,12 +190,30 @@ public sealed class Game
         var participant = FindParticipant(userId)
             ?? throw new InvalidOperationException("Only a participant of the game has a reporting interval.");
 
-        if (participant.HasActivePenalty(now))
-            return PenaltyReportingIntervalSeconds;
+        return participant.HasActivePenalty(now)
+            ? PenaltyReportingIntervalSeconds
+            : RegularReportingIntervalAt(now);
+    }
 
-        return IsInFinalStage(now)
+    /// <summary>
+    /// The regular (penalty-agnostic) reporting interval, in seconds, at <paramref name="now"/>:
+    /// the final-stage interval during the final stage, otherwise the default interval.
+    /// </summary>
+    public int RegularReportingIntervalAt(DateTimeOffset now) =>
+        IsInFinalStage(now)
             ? Configuration.FinalLocationInterval
             : Configuration.DefaultLocationInterval;
+
+    /// <summary>
+    /// The moment the given participant's active penalty expires, or null when no penalty is active
+    /// at <paramref name="now"/>. When multiple penalties overlap, the latest expiry wins.
+    /// </summary>
+    public DateTimeOffset? ActivePenaltyEndsAtFor(Guid userId, DateTimeOffset now)
+    {
+        var participant = FindParticipant(userId)
+            ?? throw new InvalidOperationException("Only a participant of the game can have a penalty.");
+
+        return participant.ActivePenaltyEndsAt(now);
     }
 
     /// <summary>True when the given user is the hunter or one of the preys.</summary>

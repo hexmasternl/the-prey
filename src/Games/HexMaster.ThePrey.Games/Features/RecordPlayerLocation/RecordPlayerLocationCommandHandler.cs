@@ -33,6 +33,7 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
         using var activity = GameActivitySource.Source.StartActivity("RecordPlayerLocation");
         activity?.SetTag("game.id", game.Id);
         activity?.SetTag("game.user_id", command.UserId);
+        activity?.SetTag("game.location_accuracy_meters", command.Accuracy);
 
         var now = _timeProvider.GetUtcNow();
         var recordedAt = command.RecordedAt ?? now;
@@ -44,7 +45,11 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
 
         _metrics.RecordLocationRecorded();
 
-        var nextInterval = game.ReportingIntervalFor(command.UserId, now);
-        return new RecordPlayerLocationResult(new RecordLocationResponse(true, nextInterval));
+        var nextInterval = game.RegularReportingIntervalAt(now);
+        var penaltyEndsAt = game.ActivePenaltyEndsAtFor(command.UserId, now);
+        var penaltyInterval = penaltyEndsAt is null ? (int?)null : Game.PenaltyReportingIntervalSeconds;
+
+        return new RecordPlayerLocationResult(
+            new RecordLocationResponse(true, nextInterval, penaltyInterval, penaltyEndsAt));
     }
 }

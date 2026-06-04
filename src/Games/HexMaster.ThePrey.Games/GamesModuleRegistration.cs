@@ -2,6 +2,7 @@ using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
+using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
@@ -20,6 +21,7 @@ public static class GamesModuleRegistration
         services.AddScoped<ICommandHandler<StartGameCommand, StartGameResult?>, StartGameCommandHandler>();
         services.AddScoped<ICommandHandler<RecordPlayerLocationCommand, RecordPlayerLocationResult?>, RecordPlayerLocationCommandHandler>();
         services.AddScoped<IQueryHandler<GetGameQuery, GameDto?>, GetGameQueryHandler>();
+        services.AddScoped<IQueryHandler<GetGameStateQuery, GameStateDto?>, GetGameStateQueryHandler>();
         services.AddScoped<IQueryHandler<ListGamesQuery, IReadOnlyList<GameSummaryDto>>, ListGamesQueryHandler>();
 
         services.AddSingleton<IGameMetrics, GameMetrics>();

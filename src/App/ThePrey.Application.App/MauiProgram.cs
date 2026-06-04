@@ -43,7 +43,14 @@ public static class MauiProgram
         {
             client.BaseAddress = new Uri("https://api.theprey.eu/");
         });
+        builder.Services.AddHttpClient("games", client =>
+        {
+            client.BaseAddress = new Uri("https://api.theprey.eu/");
+        });
         builder.Services.AddSingleton<IPlayfieldService, PlayfieldService>();
+        builder.Services.AddSingleton<IGameService, GameService>();
+        builder.Services.AddSingleton<GameStateContext>();
+        builder.Services.AddSingleton<IGameEngineService, GameEngineService>();
         builder.Services.AddSingleton<PlayfieldCacheService>();
         builder.Services.AddSingleton<PlayfieldSyncService>();
         builder.Services.AddTransient<PlayfieldsPage>();

@@ -7,6 +7,7 @@ public sealed record RecordPlayerLocationCommand(
     Guid UserId,
     double Latitude,
     double Longitude,
-    DateTimeOffset? RecordedAt);
+    DateTimeOffset? RecordedAt,
+    double? Accuracy = null);
 
 public sealed record RecordPlayerLocationResult(RecordLocationResponse Response);

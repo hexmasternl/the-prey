@@ -8,7 +8,7 @@ The app already has:
 - `PlayfieldSyncService` as the pattern for a singleton orchestration service.
 - `MauiProgram.cs` for DI wiring.
 
-The server exposes (or will expose) a `POST /games/{gameId}/locations/push` endpoint and a `GET /games/{gameId}/state` endpoint in the Games module API.
+The server exposes (or will expose) a `POST /games/{gameId}/locations` endpoint and a `GET /games/{gameId}/state` endpoint in the Games module API.
 
 ## Goals / Non-Goals
 
@@ -62,7 +62,7 @@ The server exposes (or will expose) a `POST /games/{gameId}/locations/push` endp
 
 ### 5. Interval controlled via server response
 
-**Decision**: Each `POST /games/{gameId}/locations/push` response body includes a `nextPushIntervalSeconds` field (and optional `penaltyEndsAt` timestamp). The service reads this on every response and adjusts the timer accordingly.
+**Decision**: Each `POST /games/{gameId}/locations` response body includes a `nextLocationIntervalSeconds` field (and optional `penaltyEndsAt` timestamp). The service reads this on every response and adjusts the timer accordingly.
 
 **Rationale**: This avoids a separate "get settings" poll. The push acknowledgement is the natural place to carry the next-interval directive since the server already processes the push and knows current penalty state.
 
@@ -77,7 +77,7 @@ The server exposes (or will expose) a `POST /games/{gameId}/locations/push` endp
 - **GPS accuracy on low-end devices** → Mitigation: use `GeolocationAccuracy.Medium`; fallback to last known location if fresh fix takes >5 s.
 - **Token expiry mid-loop** → Mitigation: always call `IAuthService.GetAccessTokenAsync()` per request (not once at start); it handles silent refresh automatically.
 - **Timer drift under load** → Mitigation: `PeriodicTimer` in .NET 6+ already compensates for drift; not a concern.
-- **Server interval response missing** → Mitigation: if `nextPushIntervalSeconds` is absent or zero, retain the previous interval.
+- **Server interval response missing** → Mitigation: if `nextLocationIntervalSeconds` is absent or zero, retain the previous interval.
 - **App backgrounding differs by OS** → Mitigation: rely on MAUI's cross-platform lifecycle events (`Application.Paused` / `Resumed`), not OS-specific APIs.
 - **Concurrent state writes** → Mitigation: `GameStateContext` property setters are `lock`-protected; UI thread marshalling via `MainThread.BeginInvokeOnMainThread`.
 

@@ -33,8 +33,43 @@ public sealed class RecordPlayerLocationCommandHandlerTests
         Assert.NotNull(result);
         Assert.True(result!.Response.Accepted);
         Assert.Equal(30, result.Response.NextLocationIntervalSeconds);
+        Assert.Null(result.Response.PenaltyIntervalSeconds);
+        Assert.Null(result.Response.PenaltyEndsAt);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _metrics.Verify(m => m.RecordLocationRecorded(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnPenaltyOverride_WhenParticipantHasActivePenalty()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        var penaltyEndsAt = Now.AddMinutes(2);
+        game.ApplyPenalty(preyIds[0], penaltyEndsAt);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, preyIds[0], 52.1, 5.1, null), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.True(result!.Response.Accepted);
+        Assert.Equal(30, result.Response.NextLocationIntervalSeconds);
+        Assert.Equal(Game.PenaltyReportingIntervalSeconds, result.Response.PenaltyIntervalSeconds);
+        Assert.Equal(penaltyEndsAt, result.Response.PenaltyEndsAt);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldOmitPenaltyOverride_WhenPenaltyHasExpired()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        game.ApplyPenalty(preyIds[0], Now.AddMinutes(-1));
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, preyIds[0], 52.1, 5.1, null), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Null(result!.Response.PenaltyIntervalSeconds);
+        Assert.Null(result.Response.PenaltyEndsAt);
     }
 
     [Fact]

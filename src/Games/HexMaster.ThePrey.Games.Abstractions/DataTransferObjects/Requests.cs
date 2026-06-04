@@ -18,4 +18,8 @@ public sealed record JoinGameRequest(string DisplayName, string? ProfilePictureU
 public sealed record StartGameRequest(Guid HunterUserId);
 
 /// <summary>Report a GPS location. The user id is taken from the authenticated caller.</summary>
-public sealed record RecordLocationRequest(double Latitude, double Longitude, DateTimeOffset? RecordedAt = null);
+public sealed record RecordLocationRequest(
+    double Latitude,
+    double Longitude,
+    DateTimeOffset? RecordedAt = null,
+    double? Accuracy = null);

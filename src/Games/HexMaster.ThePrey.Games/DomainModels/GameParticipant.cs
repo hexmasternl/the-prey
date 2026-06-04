@@ -64,4 +64,11 @@ public sealed class GameParticipant
 
     /// <summary>True when the participant has at least one penalty that has not yet expired.</summary>
     public bool HasActivePenalty(DateTimeOffset now) => _penalties.Any(p => p.IsActive(now));
+
+    /// <summary>
+    /// The expiry of the participant's active penalty, or null when none is active. When multiple
+    /// penalties overlap, the latest expiry wins.
+    /// </summary>
+    public DateTimeOffset? ActivePenaltyEndsAt(DateTimeOffset now) =>
+        _penalties.Where(p => p.IsActive(now)).Select(p => (DateTimeOffset?)p.EndsAt).Max();
 }

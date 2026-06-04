@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Device GPS coordinates are pushed to the server periodically
-The system SHALL acquire the device's current GPS coordinates using `Microsoft.Maui.Devices.Sensors.Geolocation` at `GeolocationAccuracy.Medium` and POST them to `POST /games/{gameId}/locations/push` with the player's access token in the `Authorization: Bearer` header.
+The system SHALL acquire the device's current GPS coordinates using `Microsoft.Maui.Devices.Sensors.Geolocation` at `GeolocationAccuracy.Medium` and POST them to `POST /games/{gameId}/locations` (the existing RecordPlayerLocation endpoint) with the player's access token in the `Authorization: Bearer` header.
 
 #### Scenario: Successful location push
 - **WHEN** the push timer fires and GPS is available

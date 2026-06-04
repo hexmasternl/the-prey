@@ -3,6 +3,7 @@ using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
+using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
@@ -46,6 +47,11 @@ public static class GameEndpoints
         group.MapGet("/{id:guid}", GetGame)
             .WithName("GetGame")
             .Produces<GameDto>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id:guid}/state", GetGameState)
+            .WithName("GetGameState")
+            .Produces<GameStateDto>()
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/", ListGames)
@@ -141,7 +147,7 @@ public static class GameEndpoints
         try
         {
             var result = await handler.Handle(
-                new RecordPlayerLocationCommand(id, userId, request.Latitude, request.Longitude, request.RecordedAt), ct);
+                new RecordPlayerLocationCommand(id, userId, request.Latitude, request.Longitude, request.RecordedAt, request.Accuracy), ct);
             return result is null ? Results.NotFound() : Results.Ok(result.Response);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -161,6 +167,19 @@ public static class GameEndpoints
 
         var game = await handler.Handle(new GetGameQuery(id), ct);
         return game is not null ? Results.Ok(game) : Results.NotFound();
+    }
+
+    private static async Task<IResult> GetGameState(
+        Guid id,
+        ClaimsPrincipal principal,
+        IQueryHandler<GetGameStateQuery, GameStateDto?> handler,
+        CancellationToken ct)
+    {
+        if (GetUserId(principal) is not { } userId)
+            return Results.Unauthorized();
+
+        var state = await handler.Handle(new GetGameStateQuery(id, userId), ct);
+        return state is not null ? Results.Ok(state) : Results.NotFound();
     }
 
     private static async Task<IResult> ListGames(

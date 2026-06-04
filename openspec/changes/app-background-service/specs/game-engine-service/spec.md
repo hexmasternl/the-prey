@@ -18,7 +18,7 @@ The system SHALL provide an `IGameEngineService` interface and a `GameEngineServ
 - **THEN** the existing loops are not duplicated and no exception is thrown
 
 ### Requirement: Game loop pauses when app is backgrounded
-The service SHALL subscribe to `Application.Current.Paused` and cancel the active game loops. It SHALL resume the loops on `Application.Current.Resumed`.
+The service SHALL suspend the active game loops when the app moves to the background and restart them on foreground while a game session is active. (.NET MAUI exposes no `Application.Current.Paused`/`Resumed` events; the cross-platform equivalents `Window.Stopped` and `Window.Resumed` are wired to `IGameEngineService.SuspendAsync()`/`ResumeAsync()` in `App.CreateWindow`.)
 
 #### Scenario: App moves to background
 - **WHEN** the OS sends an app-pause lifecycle event

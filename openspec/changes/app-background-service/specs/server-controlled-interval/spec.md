@@ -1,14 +1,14 @@
 ## ADDED Requirements
 
 ### Requirement: Location push interval is determined by the server
-The service SHALL use a default bootstrap interval of 10 seconds until the first successful server response. Each `POST /games/{gameId}/locations/push` response SHALL include a `nextPushIntervalSeconds` integer field. The service SHALL apply this value to the next timer cycle.
+The service SHALL use a default bootstrap interval of 10 seconds until the first successful server response. Each `POST /games/{gameId}/locations` response SHALL include a `nextLocationIntervalSeconds` integer field. The service SHALL apply this value to the next timer cycle.
 
 #### Scenario: Server provides a new interval
-- **WHEN** the push response contains `nextPushIntervalSeconds: 30`
+- **WHEN** the push response contains `nextLocationIntervalSeconds: 30`
 - **THEN** the next push is scheduled 30 seconds after the current push completes
 
 #### Scenario: Server response omits the interval field
-- **WHEN** `nextPushIntervalSeconds` is absent or zero in the response
+- **WHEN** `nextLocationIntervalSeconds` is absent or zero in the response
 - **THEN** the service retains the previously active interval unchanged
 
 #### Scenario: Bootstrap interval before first response
@@ -16,12 +16,12 @@ The service SHALL use a default bootstrap interval of 10 seconds until the first
 - **THEN** the push fires every 10 seconds
 
 ### Requirement: Penalty overrides temporarily change the push frequency
-The push response MAY include a `penaltyIntervalSeconds` integer and a `penaltyEndsAt` ISO-8601 timestamp. When present, the service SHALL use `penaltyIntervalSeconds` as the push interval until `penaltyEndsAt` is reached, then revert to `nextPushIntervalSeconds`.
+The push response MAY include a `penaltyIntervalSeconds` integer and a `penaltyEndsAt` ISO-8601 timestamp. When present, the service SHALL use `penaltyIntervalSeconds` as the push interval until `penaltyEndsAt` is reached, then revert to `nextLocationIntervalSeconds`.
 
 #### Scenario: Penalty increases push frequency
 - **WHEN** the server returns `penaltyIntervalSeconds: 5` and `penaltyEndsAt: <future>`
 - **THEN** the service pushes every 5 seconds until `penaltyEndsAt`
-- **AND** reverts to `nextPushIntervalSeconds` afterwards
+- **AND** reverts to `nextLocationIntervalSeconds` afterwards
 
 #### Scenario: Penalty decreases push frequency
 - **WHEN** the server returns `penaltyIntervalSeconds: 60` and `penaltyEndsAt: <future>`
@@ -29,7 +29,7 @@ The push response MAY include a `penaltyIntervalSeconds` integer and a `penaltyE
 
 #### Scenario: Penalty expires
 - **WHEN** the current time passes `penaltyEndsAt`
-- **THEN** the service reverts to `nextPushIntervalSeconds` on the next timer evaluation
+- **THEN** the service reverts to `nextLocationIntervalSeconds` on the next timer evaluation
 
 #### Scenario: No penalty in response
 - **WHEN** `penaltyIntervalSeconds` or `penaltyEndsAt` are absent
