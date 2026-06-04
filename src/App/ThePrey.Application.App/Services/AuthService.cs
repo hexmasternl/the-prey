@@ -14,6 +14,12 @@ public interface IAuthService
     bool IsAuthenticated { get; }
     string? AccessToken { get; }
 
+    /// <summary>The user's display name from the OpenID profile, or null when not authenticated.</summary>
+    string? DisplayName { get; }
+
+    /// <summary>The user's profile picture URL from the OpenID profile, or null when unavailable.</summary>
+    string? ProfilePictureUrl { get; }
+
     /// <summary>
     /// Returns a valid access token, transparently refreshing it when it is expired or within
     /// 30 seconds of expiry. Returns <c>null</c> when no token is available; the session is only
@@ -56,6 +62,8 @@ public sealed class AuthService(IHttpClientFactory httpClientFactory) : IAuthSer
 
     public bool IsAuthenticated { get; private set; }
     public string? AccessToken { get; private set; }
+    public string? DisplayName { get; private set; }
+    public string? ProfilePictureUrl { get; private set; }
 
     public async Task<string?> GetAccessTokenAsync(CancellationToken ct = default)
     {
@@ -165,13 +173,15 @@ public sealed class AuthService(IHttpClientFactory httpClientFactory) : IAuthSer
             var accessToken = doc.RootElement.GetProperty("access_token").GetString();
             var newRefreshToken = doc.RootElement.TryGetProperty("refresh_token", out var rt)
                 ? rt.GetString() : null;
+            var idToken = doc.RootElement.TryGetProperty("id_token", out var it)
+                ? it.GetString() : null;
 
             if (string.IsNullOrWhiteSpace(accessToken))
                 return RefreshOutcome.Transient;
 
             // With rotation enabled the response carries a new refresh token; store it so the
             // next refresh uses the live token instead of the consumed one.
-            await StoreSessionAsync(accessToken, newRefreshToken);
+            await StoreSessionAsync(accessToken, newRefreshToken, idToken);
             return RefreshOutcome.Success;
         }
         catch
@@ -267,11 +277,13 @@ public sealed class AuthService(IHttpClientFactory httpClientFactory) : IAuthSer
             var accessToken = doc.RootElement.GetProperty("access_token").GetString();
             var refreshToken = doc.RootElement.TryGetProperty("refresh_token", out var rt)
                 ? rt.GetString() : null;
+            var idToken = doc.RootElement.TryGetProperty("id_token", out var it)
+                ? it.GetString() : null;
 
             if (string.IsNullOrWhiteSpace(accessToken))
                 return false;
 
-            await StoreSessionAsync(accessToken, refreshToken);
+            await StoreSessionAsync(accessToken, refreshToken, idToken);
             return true;
         }
         catch
@@ -326,10 +338,11 @@ public sealed class AuthService(IHttpClientFactory httpClientFactory) : IAuthSer
 
     // ── Session management ───────────────────────────────────────────────────
 
-    private async Task StoreSessionAsync(string? accessToken, string? refreshToken)
+    private async Task StoreSessionAsync(string? accessToken, string? refreshToken, string? idToken = null)
     {
         AccessToken = accessToken;
         IsAuthenticated = true;
+        CaptureProfile(idToken);
 
         if (string.IsNullOrWhiteSpace(refreshToken))
             return;
@@ -344,10 +357,39 @@ public sealed class AuthService(IHttpClientFactory httpClientFactory) : IAuthSer
         }
     }
 
+    /// <summary>Picks the display name and picture from the OpenID id_token claims, when present.</summary>
+    private void CaptureProfile(string? idToken)
+    {
+        if (string.IsNullOrWhiteSpace(idToken))
+            return;
+
+        try
+        {
+            using var doc = DecodeJwtPayload(idToken);
+            if (doc is null)
+                return;
+
+            var root = doc.RootElement;
+            DisplayName = GetClaim(root, "name") ?? GetClaim(root, "nickname") ?? GetClaim(root, "email") ?? DisplayName;
+            ProfilePictureUrl = GetClaim(root, "picture") ?? ProfilePictureUrl;
+        }
+        catch
+        {
+            // The profile is a nicety; an unparsable id_token must not break the session.
+        }
+    }
+
+    private static string? GetClaim(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString()
+            : null;
+
     private void Clear()
     {
         IsAuthenticated = false;
         AccessToken = null;
+        DisplayName = null;
+        ProfilePictureUrl = null;
     }
 
     private static bool IsTokenExpiredOrExpiringSoon(string? token)
@@ -357,17 +399,8 @@ public sealed class AuthService(IHttpClientFactory httpClientFactory) : IAuthSer
 
         try
         {
-            var parts = token.Split('.');
-            if (parts.Length != 3)
-                return true;
-
-            var payload = parts[1].Replace("-", "+").Replace("_", "/");
-            var remainder = payload.Length % 4;
-            if (remainder == 2) payload += "==";
-            else if (remainder == 3) payload += "=";
-
-            using var doc = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(payload)));
-            if (!doc.RootElement.TryGetProperty("exp", out var expElement))
+            using var doc = DecodeJwtPayload(token);
+            if (doc is null || !doc.RootElement.TryGetProperty("exp", out var expElement))
                 return true;
 
             var exp = DateTimeOffset.FromUnixTimeSeconds(expElement.GetInt64());
@@ -377,5 +410,20 @@ public sealed class AuthService(IHttpClientFactory httpClientFactory) : IAuthSer
         {
             return true;
         }
+    }
+
+    /// <summary>Decodes a JWT's payload segment without validating the signature.</summary>
+    private static JsonDocument? DecodeJwtPayload(string token)
+    {
+        var parts = token.Split('.');
+        if (parts.Length != 3)
+            return null;
+
+        var payload = parts[1].Replace("-", "+").Replace("_", "/");
+        var remainder = payload.Length % 4;
+        if (remainder == 2) payload += "==";
+        else if (remainder == 3) payload += "=";
+
+        return JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(payload)));
     }
 }

@@ -135,4 +135,73 @@
   <data name="PlayfieldsSyncError" xml:space="preserve">
     <value>Server niet bereikbaar. Lokale data wordt getoond.</value>
   </data>
+  <data name="GameStartTitle" xml:space="preserve">
+    <value>Spel starten</value>
+  </data>
+  <data name="PlayfieldLabel" xml:space="preserve">
+    <value>SPEELVELD</value>
+  </data>
+  <data name="ChoosePlayfieldButton" xml:space="preserve">
+    <value>Kies speelveld</value>
+  </data>
+  <data name="NoPlayfieldsAvailable" xml:space="preserve">
+    <value>Geen gesynchroniseerde speelvelden beschikbaar. Maak eerst een speelveld aan.</value>
+  </data>
+  <data name="GameDurationLabel" xml:space="preserve">
+    <value>SPELDUUR</value>
+  </data>
+  <data name="HunterDelayLabel" xml:space="preserve">
+    <value>VOORSPRONG OP JAGER</value>
+  </data>
+  <data name="FinalStageLabel" xml:space="preserve">
+    <value>DUUR EINDFASE</value>
+  </data>
+  <data name="DefaultIntervalLabel" xml:space="preserve">
+    <value>LOCATIE-INTERVAL</value>
+  </data>
+  <data name="FinalIntervalLabel" xml:space="preserve">
+    <value>INTERVAL EINDFASE</value>
+  </data>
+  <data name="PreyPenaltyLabel" xml:space="preserve">
+    <value>GRENSSTRAF PROOI</value>
+  </data>
+  <data name="HunterPenaltyLabel" xml:space="preserve">
+    <value>GRENSSTRAF JAGER</value>
+  </data>
+  <data name="MinutesFormat" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="CreateGameButton" xml:space="preserve">
+    <value>Aanmaken</value>
+  </data>
+  <data name="CreateGameError" xml:space="preserve">
+    <value>Het spel kon niet worden aangemaakt. Probeer het opnieuw.</value>
+  </data>
+  <data name="DefaultPlayerName" xml:space="preserve">
+    <value>Speler</value>
+  </data>
+  <data name="WaitingForPlayersTitle" xml:space="preserve">
+    <value>Wachten op spelers</value>
+  </data>
+  <data name="GameCodeLabel" xml:space="preserve">
+    <value>SPELCODE</value>
+  </data>
+  <data name="PlayersLabel" xml:space="preserve">
+    <value>SPELERS</value>
+  </data>
+  <data name="HunterTag" xml:space="preserve">
+    <value>JAGER</value>
+  </data>
+  <data name="StartNowButton" xml:space="preserve">
+    <value>Nu starten</value>
+  </data>
+  <data name="StartGameError" xml:space="preserve">
+    <value>Het spel kon niet worden gestart. Probeer het opnieuw.</value>
+  </data>
+  <data name="GameProgressTitle" xml:space="preserve">
+    <value>Spelverloop</value>
+  </data>
+  <data name="GameProgressPlaceholder" xml:space="preserve">
+    <value>De jacht is begonnen. Het spelverloopscherm volgt in een latere update.</value>
+  </data>
 </root>

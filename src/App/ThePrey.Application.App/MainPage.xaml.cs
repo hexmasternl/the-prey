@@ -61,7 +61,7 @@ public partial class MainPage : ContentPage
     }
 
     private async void OnPlayClicked(object? sender, EventArgs e)
-        => await DisplayAlertAsync(AppLocalizer.PlayButton, "Starting a new hunt is coming soon.", "OK");
+        => await Shell.Current.GoToAsync(AppShell.GameStartRoute);
 
     private async void OnPlayfieldsClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync(AppShell.PlayfieldsRoute);

@@ -62,6 +62,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IPlayfieldService, PlayfieldService>();
         builder.Services.AddSingleton<IGameService, GameService>();
         builder.Services.AddSingleton<GameStateContext>();
+        builder.Services.AddSingleton<GameCreationContext>();
         builder.Services.AddSingleton<IGameEngineService, GameEngineService>();
         builder.Services.AddSingleton<PlayfieldCacheService>();
         builder.Services.AddSingleton<PlayfieldSyncService>();
@@ -69,6 +70,9 @@ public static class MauiProgram
         builder.Services.AddTransient<PlayfieldDetailsPage>();
         builder.Services.AddSingleton<PlayfieldEditingContext>();
         builder.Services.AddTransient<PlayfieldAreaEditorPage>();
+        builder.Services.AddTransient<GameStartPage>();
+        builder.Services.AddTransient<GameLobbyPage>();
+        builder.Services.AddTransient<GameProgressPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
