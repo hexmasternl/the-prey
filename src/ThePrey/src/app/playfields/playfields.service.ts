@@ -66,4 +66,28 @@ export class PlayfieldsService {
     // TODO: add server-side delete (DELETE /playfields/{id}) in a future change
     await this.db.delete(id);
   }
+
+  /**
+   * Create a new playfield locally (isSynced = false).
+   * The next `syncPlayfields()` call will push it to the server.
+   */
+  async createLocal(
+    name: string,
+    isPublic: boolean,
+    points: GpsCoordinateDto[],
+    ownerId: string,
+  ): Promise<PlayFieldRecord> {
+    const record: PlayFieldRecord = {
+      id: crypto.randomUUID(),
+      name,
+      isPublic,
+      points,
+      ownerId,
+      lastUpdatedOn: new Date().toISOString(),
+      centerCoordinates: null,
+      isSynced: false,
+    };
+    await this.db.saveLocal(record);
+    return record;
+  }
 }
