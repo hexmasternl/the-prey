@@ -1,6 +1,7 @@
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Users.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Users.Observability;
+using HexMaster.ThePrey.Users.Services;
 using Microsoft.Extensions.Logging;
 
 namespace HexMaster.ThePrey.Users.Features.UpdateUserSettings;
@@ -8,11 +9,16 @@ namespace HexMaster.ThePrey.Users.Features.UpdateUserSettings;
 public sealed class UpdateUserSettingsCommandHandler : ICommandHandler<UpdateUserSettingsCommand, UserDto>
 {
     private readonly IUserRepository _users;
+    private readonly IUserCacheService _cache;
     private readonly ILogger<UpdateUserSettingsCommandHandler> _logger;
 
-    public UpdateUserSettingsCommandHandler(IUserRepository users, ILogger<UpdateUserSettingsCommandHandler> logger)
+    public UpdateUserSettingsCommandHandler(
+        IUserRepository users,
+        IUserCacheService cache,
+        ILogger<UpdateUserSettingsCommandHandler> logger)
     {
         _users = users;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -33,6 +39,11 @@ public sealed class UpdateUserSettingsCommandHandler : ICommandHandler<UpdateUse
 
             user.UpdateSettings(command.Callsign, command.PreferredLanguage);
             await _users.UpdateAsync(user, ct);
+
+            await _cache.SetAsync(
+                command.SubjectId,
+                new UserCacheEntry(user.Id, user.Callsign, user.PreferredLanguage),
+                ct);
 
             _logger.LogInformation("User {UserId} updated game settings", user.Id);
 

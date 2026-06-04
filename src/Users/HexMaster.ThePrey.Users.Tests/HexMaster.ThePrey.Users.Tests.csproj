@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\HexMaster.ThePrey.Users\HexMaster.ThePrey.Users.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Users.Abstractions\HexMaster.ThePrey.Users.Abstractions.csproj" />
+    <ProjectReference Include="..\HexMaster.ThePrey.Users.Data.AzureTableStorage\HexMaster.ThePrey.Users.Data.AzureTableStorage.csproj" />
     <ProjectReference Include="..\..\Core\HexMaster.ThePrey.Core\HexMaster.ThePrey.Core.csproj" />
   </ItemGroup>
 

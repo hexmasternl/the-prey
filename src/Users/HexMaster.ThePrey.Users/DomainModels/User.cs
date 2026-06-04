@@ -34,6 +34,31 @@ public sealed partial class User
 
     private User() { }
 
+    public static User Rehydrate(
+        Guid id,
+        string subjectId,
+        string? firstName,
+        string? lastName,
+        string displayName,
+        string callsign,
+        string emailAddress,
+        bool isEmailVerified,
+        string preferredLanguage)
+    {
+        return new User
+        {
+            Id = id,
+            SubjectId = subjectId,
+            FirstName = firstName,
+            LastName = lastName,
+            DisplayName = displayName,
+            Callsign = callsign,
+            EmailAddress = emailAddress,
+            IsEmailVerified = isEmailVerified,
+            PreferredLanguage = preferredLanguage
+        };
+    }
+
     public static User Create(
         string subjectId,
         string? firstName,

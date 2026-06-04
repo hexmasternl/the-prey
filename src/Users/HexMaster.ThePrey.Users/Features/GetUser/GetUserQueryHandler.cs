@@ -1,6 +1,7 @@
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Users.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Users.Observability;
+using HexMaster.ThePrey.Users.Services;
 using Microsoft.Extensions.Logging;
 
 namespace HexMaster.ThePrey.Users.Features.GetUser;
@@ -8,11 +9,16 @@ namespace HexMaster.ThePrey.Users.Features.GetUser;
 public sealed class GetUserQueryHandler : IQueryHandler<GetUserQuery, UserDto?>
 {
     private readonly IUserRepository _users;
+    private readonly IUserCacheService _cache;
     private readonly ILogger<GetUserQueryHandler> _logger;
 
-    public GetUserQueryHandler(IUserRepository users, ILogger<GetUserQueryHandler> logger)
+    public GetUserQueryHandler(
+        IUserRepository users,
+        IUserCacheService cache,
+        ILogger<GetUserQueryHandler> logger)
     {
         _users = users;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -32,6 +38,12 @@ public sealed class GetUserQueryHandler : IQueryHandler<GetUserQuery, UserDto?>
         }
 
         activity?.SetTag("user.id", user.Id);
+
+        await _cache.SetAsync(
+            query.SubjectId,
+            new UserCacheEntry(user.Id, user.Callsign, user.PreferredLanguage),
+            ct);
+
         return new UserDto(user.Id, user.DisplayName, user.Callsign, user.EmailAddress, user.PreferredLanguage);
     }
 }

@@ -2,11 +2,19 @@ using ThePrey.Aspire.ServiceDefaults;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+builder.AddDapr();
 
-var usersApi = builder.AddProject<Projects.HexMaster_ThePrey_Users_Api>(AspireConstants.Resources.UsersApi);
+var usersApi = builder.AddProject<Projects.HexMaster_ThePrey_Users_Api>(AspireConstants.Resources.UsersApi)
+    .WithDaprSidecar();
 
 var storage = builder.AddAzureStorage(AspireConstants.Resources.Storage)
     .RunAsEmulator();
+
+var usersTables = storage.AddTables(AspireConstants.Resources.UsersTables);
+
+usersApi
+    .WithReference(usersTables)
+    .WaitFor(usersTables);
 
 var playFieldsTables = storage.AddTables(AspireConstants.Resources.PlayFieldsTables);
 

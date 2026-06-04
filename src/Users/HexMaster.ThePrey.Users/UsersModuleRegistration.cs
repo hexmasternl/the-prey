@@ -5,6 +5,7 @@ using HexMaster.ThePrey.Users.Features.GetUser;
 using HexMaster.ThePrey.Users.Features.UpdateUser;
 using HexMaster.ThePrey.Users.Features.UpdateUserSettings;
 using HexMaster.ThePrey.Users.Observability;
+using HexMaster.ThePrey.Users.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HexMaster.ThePrey.Users;
@@ -19,6 +20,7 @@ public static class UsersModuleRegistration
         services.AddScoped<ICommandHandler<UpdateUserSettingsCommand, UserDto>, UpdateUserSettingsCommandHandler>();
 
         services.AddSingleton<IUserMetrics, UserMetrics>();
+        services.AddScoped<IUserCacheService, UserCacheService>();
 
         return services;
     }

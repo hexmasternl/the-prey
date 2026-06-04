@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapr.AspNetCore" Version="1.15.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
@@ -19,7 +20,7 @@
     <ProjectReference Include="..\..\Aspire\ThePrey.Aspire.ServiceDefaults\ThePrey.Aspire.ServiceDefaults.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Users\HexMaster.ThePrey.Users.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Users.Abstractions\HexMaster.ThePrey.Users.Abstractions.csproj" />
-    <ProjectReference Include="..\HexMaster.ThePrey.Users.Data.InMemory\HexMaster.ThePrey.Users.Data.InMemory.csproj" />
+    <ProjectReference Include="..\HexMaster.ThePrey.Users.Data.AzureTableStorage\HexMaster.ThePrey.Users.Data.AzureTableStorage.csproj" />
     <ProjectReference Include="..\..\Core\HexMaster.ThePrey.Core\HexMaster.ThePrey.Core.csproj" />
   </ItemGroup>
 

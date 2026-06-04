@@ -1,6 +1,6 @@
 using HexMaster.ThePrey.Users;
 using HexMaster.ThePrey.Users.Api.Endpoints;
-using HexMaster.ThePrey.Users.Data.InMemory;
+using HexMaster.ThePrey.Users.Data.AzureTableStorage;
 using HexMaster.ThePrey.Users.Observability;
 using Scalar.AspNetCore;
 using OpenTelemetry.Trace;
@@ -15,7 +15,8 @@ builder.AddDefaultAuthentication();
 builder.AddDefaultCors();
 
 builder.Services.AddUsersModule();
-builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+builder.AddUsersTableStorage();
+builder.Services.AddDaprClient();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
