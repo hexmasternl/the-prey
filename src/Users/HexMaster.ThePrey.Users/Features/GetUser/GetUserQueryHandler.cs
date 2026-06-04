@@ -32,6 +32,6 @@ public sealed class GetUserQueryHandler : IQueryHandler<GetUserQuery, UserDto?>
         }
 
         activity?.SetTag("user.id", user.Id);
-        return new UserDto(user.Id, user.DisplayName, user.EmailAddress, user.Language);
+        return new UserDto(user.Id, user.DisplayName, user.Callsign, user.EmailAddress, user.PreferredLanguage);
     }
 }

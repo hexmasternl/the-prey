@@ -1,20 +1,58 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" [scrollY]="false">
+  <div class="hero">
+    <!-- Corner brackets -->
+    <span class="br tl"></span>
+    <span class="br tr"></span>
+    <span class="br bl"></span>
+    <span class="br brr"></span>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <!-- GPS coordinates -->
+    <div class="coords">
+      @if (lat !== null && lon !== null) {
+        {{ 'HOME.COORDS_SIGNAL_LOCK' | translate: { lat: lat, lon: lon } }}
+      } @else {
+        {{ 'HOME.COORDS_NO_SIGNAL' | translate }}
+      }
+    </div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+    <!-- Title block -->
+    <div class="tag">{{ 'HOME.TAG' | translate }}</div>
+    <h1 [innerHTML]="'HOME.TITLE' | translate"></h1>
+    <p class="lede">{{ 'HOME.LEDE' | translate }}</p>
+
+    <!-- Action buttons -->
+    <div class="buttons">
+      <ion-button expand="block" color="primary" (click)="goToPlay()">
+        {{ 'HOME.PLAY_NOW' | translate }}
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        color="primary"
+        (click)="goToPlayfields()"
+      >
+        {{ 'HOME.PLAYFIELDS' | translate }}
+      </ion-button>
+      <ion-button
+        expand="block"
+        fill="outline"
+        color="primary"
+        (click)="goToSettings()"
+      >
+        {{ 'HOME.SETTINGS' | translate }}
+      </ion-button>
+      <ion-button fill="outline" color="primary" (click)="logout()">{{
+        'HOME.LOGOUT' | translate
+      }}</ion-button>
+      <ion-button
+        expand="block"
+        fill="outline"
+        color="primary"
+        (click)="quit()"
+      >
+        {{ 'HOME.QUIT' | translate }}
+      </ion-button>
+    </div>
   </div>
 </ion-content>

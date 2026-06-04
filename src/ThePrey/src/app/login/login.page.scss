@@ -1,0 +1,45 @@
+ion-content.login-content {
+  --background: var(--tp-bg-void, #0c0e0c);
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.app-title {
+  font-family: var(--tp-head, 'Special Elite', 'Courier New', monospace);
+  font-size: 3.5rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ion-color-primary);
+  text-align: center;
+  margin-bottom: 3rem;
+  text-shadow: 0 0 20px var(--tp-signal-glow, rgba(100, 255, 0, 0.35));
+}
+
+.hunt-button {
+  --background: transparent;
+  --border-width: 2px;
+  --border-style: solid;
+  --border-color: var(--ion-color-primary);
+  --color: var(--ion-color-primary);
+  --border-radius: 0;
+  --box-shadow: 0 0 16px var(--tp-signal-glow, rgba(100, 255, 0, 0.35));
+
+  width: 100%;
+  max-width: 320px;
+  font-family: var(--tp-head, 'Special Elite', 'Courier New', monospace);
+  font-size: 1.25rem;
+  letter-spacing: 0.1em;
+
+  &:hover,
+  &:active {
+    --background: var(--tp-signal-glow, rgba(100, 255, 0, 0.35));
+    --box-shadow: 0 0 32px var(--tp-signal-glow, rgba(100, 255, 0, 0.35));
+  }
+}

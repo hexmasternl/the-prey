@@ -13,7 +13,7 @@ internal static class UserFaker
         string? lastName = null,
         string? email = null,
         bool isEmailVerified = true,
-        string? language = null)
+        string? preferredLanguage = null)
     {
         return User.Create(
             subjectId ?? $"auth0|{_faker.Random.AlphaNumeric(24)}",
@@ -21,6 +21,6 @@ internal static class UserFaker
             lastName ?? _faker.Name.LastName(),
             email ?? _faker.Internet.Email(),
             isEmailVerified,
-            language ?? _faker.Locale);
+            preferredLanguage ?? User.DefaultLanguage);
     }
 }

@@ -30,7 +30,7 @@ public sealed class UpdateUserCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.Equal("Ghost Rider", result.DisplayName);
-        Assert.Equal("nl", result.Language);
+        Assert.Equal("nl", result.PreferredLanguage);
         _mockRepository.Verify(r => r.UpdateAsync(user, It.IsAny<CancellationToken>()), Times.Once);
     }
 

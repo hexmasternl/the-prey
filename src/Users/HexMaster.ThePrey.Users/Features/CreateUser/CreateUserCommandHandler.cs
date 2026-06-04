@@ -49,7 +49,7 @@ public sealed class CreateUserCommandHandler : ICommandHandler<CreateUserCommand
                 command.LastName,
                 command.EmailAddress,
                 command.IsEmailVerified,
-                command.Language);
+                command.PreferredLanguage);
 
             await _users.AddAsync(user, ct);
 
@@ -69,5 +69,5 @@ public sealed class CreateUserCommandHandler : ICommandHandler<CreateUserCommand
     }
 
     private static UserDto ToDto(DomainModels.User user) =>
-        new(user.Id, user.DisplayName, user.EmailAddress, user.Language);
+        new(user.Id, user.DisplayName, user.Callsign, user.EmailAddress, user.PreferredLanguage);
 }

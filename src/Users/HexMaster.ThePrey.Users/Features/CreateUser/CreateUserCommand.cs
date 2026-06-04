@@ -8,6 +8,6 @@ public sealed record CreateUserCommand(
     string? LastName,
     string EmailAddress,
     bool IsEmailVerified,
-    string Language);
+    string? PreferredLanguage);
 
 public sealed record CreateUserResult(bool WasCreated, UserDto User);

@@ -1,0 +1,17 @@
+{
+  "LOGIN": {
+    "START_HUNT": "START DE JACHT"
+  },
+  "HOME": {
+    "TAG": "Operationeel Veldhandboek — v1.0",
+    "TITLE": "BLIJF <em>VERBORGEN.</em><br/>JAAG <em>SLIM.</em>",
+    "LEDE": "Een gps-spel van verstoppertje in de echte wereld. Betreed het speelveld. Laat je niet vangen.",
+    "PLAY_NOW": "SPEEL NU",
+    "PLAYFIELDS": "SPEELVELDEN",
+    "SETTINGS": "INSTELLINGEN",
+    "LOGOUT": "UITLOGGEN",
+    "QUIT": "AFSLUITEN",
+    "COORDS_NO_SIGNAL": "-- ° N // -- ° O // GEEN SIGNAAL",
+    "COORDS_SIGNAL_LOCK": "{{lat}}° N // {{lon}}° O // SIGNAAL VAST"
+  }
+}

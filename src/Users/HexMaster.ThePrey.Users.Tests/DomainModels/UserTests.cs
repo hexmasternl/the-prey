@@ -29,14 +29,96 @@ public sealed class UserTests
     }
 
     [Fact]
-    public void Update_ShouldChangeDisplayNameAndLanguage()
+    public void Create_ShouldDefaultCallsignToDisplayName()
+    {
+        var user = User.Create("auth0|123", "Alice", "Smith", "alice@example.com", true, "en");
+
+        Assert.Equal("Alice", user.Callsign);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Create_ShouldDefaultPreferredLanguageToEnglish_WhenNotProvided(string? preferredLanguage)
+    {
+        var user = User.Create("auth0|123", "Alice", null, "alice@example.com", true, preferredLanguage);
+
+        Assert.Equal(User.DefaultLanguage, user.PreferredLanguage);
+    }
+
+    [Fact]
+    public void Update_ShouldChangeDisplayNameAndPreferredLanguage()
     {
         var user = User.Create("auth0|123", "Alice", null, "alice@example.com", true, "en");
 
         user.Update(null, null, "The Phantom", "nl");
 
         Assert.Equal("The Phantom", user.DisplayName);
-        Assert.Equal("nl", user.Language);
+        Assert.Equal("nl", user.PreferredLanguage);
+    }
+
+    [Fact]
+    public void UpdateSettings_ShouldChangeCallsignAndPreferredLanguage()
+    {
+        var user = User.Create("auth0|123", "Alice", null, "alice@example.com", true, "en");
+
+        user.UpdateSettings("Night-Hawk_7 &$#@", "nl");
+
+        Assert.Equal("Night-Hawk_7 &$#@", user.Callsign);
+        Assert.Equal("nl", user.PreferredLanguage);
+    }
+
+    [Fact]
+    public void UpdateSettings_ShouldNotChangeDisplayName()
+    {
+        var user = User.Create("auth0|123", "Alice", null, "alice@example.com", true, "en");
+
+        user.UpdateSettings("Reaper", "en");
+
+        Assert.Equal("Alice", user.DisplayName);
+    }
+
+    [Theory]
+    [InlineData("ab")]                                  // too short
+    [InlineData("a234567890123456789012345678901")]    // 31 characters — too long
+    [InlineData("Sniper!")]                             // disallowed character
+    [InlineData("Renard%")]                             // disallowed character
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateSettings_ShouldThrow_WhenCallsignIsInvalid(string callsign)
+    {
+        var user = User.Create("auth0|123", "Alice", null, "alice@example.com", true, "en");
+
+        Assert.Throws<ArgumentException>(() => user.UpdateSettings(callsign, "en"));
+        Assert.Equal("Alice", user.Callsign);
+    }
+
+    [Theory]
+    [InlineData("abc")]                                 // exactly 3 characters
+    [InlineData("a23456789012345678901234567890")]      // exactly 30 characters
+    [InlineData("REA  PER")]
+    [InlineData("a-b_c")]
+    public void UpdateSettings_ShouldAccept_WhenCallsignIsValid(string callsign)
+    {
+        var user = User.Create("auth0|123", "Alice", null, "alice@example.com", true, "en");
+
+        user.UpdateSettings(callsign, "en");
+
+        Assert.Equal(callsign, user.Callsign);
+    }
+
+    [Theory]
+    [InlineData("de")]
+    [InlineData("EN")]
+    [InlineData("english")]
+    [InlineData("")]
+    public void UpdateSettings_ShouldThrow_WhenPreferredLanguageIsNotSupported(string preferredLanguage)
+    {
+        var user = User.Create("auth0|123", "Alice", null, "alice@example.com", true, "en");
+
+        Assert.Throws<ArgumentException>(() => user.UpdateSettings("Reaper", preferredLanguage));
+        Assert.Equal("en", user.PreferredLanguage);
     }
 
     [Fact]

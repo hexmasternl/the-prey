@@ -3,6 +3,7 @@ using HexMaster.ThePrey.Users.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Users.Features.CreateUser;
 using HexMaster.ThePrey.Users.Features.GetUser;
 using HexMaster.ThePrey.Users.Features.UpdateUser;
+using HexMaster.ThePrey.Users.Features.UpdateUserSettings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -35,6 +36,12 @@ public static class UserEndpoints
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPut("/settings", UpdateSettings)
+            .WithName("UpdateUserSettings")
+            .Produces<UserDto>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status404NotFound);
+
         return app;
     }
 
@@ -54,19 +61,13 @@ public static class UserEndpoints
                 [nameof(request.EmailAddress)] = ["Email address is required."]
             });
 
-        if (string.IsNullOrWhiteSpace(request.Language))
-            return Results.ValidationProblem(new Dictionary<string, string[]>
-            {
-                [nameof(request.Language)] = ["Language is required."]
-            });
-
         var command = new CreateUserCommand(
             subjectId,
             request.FirstName,
             request.LastName,
             request.EmailAddress,
             request.IsEmailVerified,
-            request.Language);
+            request.PreferredLanguage);
 
         var result = await handler.Handle(command, ct);
 
@@ -105,10 +106,10 @@ public static class UserEndpoints
                 [nameof(request.DisplayName)] = ["Display name is required."]
             });
 
-        if (string.IsNullOrWhiteSpace(request.Language))
+        if (string.IsNullOrWhiteSpace(request.PreferredLanguage))
             return Results.ValidationProblem(new Dictionary<string, string[]>
             {
-                [nameof(request.Language)] = ["Language is required."]
+                [nameof(request.PreferredLanguage)] = ["Preferred language is required."]
             });
 
         try
@@ -118,10 +119,39 @@ public static class UserEndpoints
                 request.FirstName,
                 request.LastName,
                 request.DisplayName,
-                request.Language);
+                request.PreferredLanguage);
 
             var result = await handler.Handle(command, ct);
             return Results.Ok(result);
+        }
+        catch (InvalidOperationException)
+        {
+            return Results.NotFound();
+        }
+    }
+
+    private static async Task<IResult> UpdateSettings(
+        [FromBody] UpdateUserSettingsRequest request,
+        ClaimsPrincipal principal,
+        ICommandHandler<UpdateUserSettingsCommand, UserDto> handler,
+        CancellationToken ct)
+    {
+        var subjectId = GetSubjectId(principal);
+        if (subjectId is null)
+            return Results.Unauthorized();
+
+        try
+        {
+            var command = new UpdateUserSettingsCommand(subjectId, request.Callsign, request.PreferredLanguage);
+            var result = await handler.Handle(command, ct);
+            return Results.Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                [ex.ParamName ?? "request"] = [ex.Message]
+            });
         }
         catch (InvalidOperationException)
         {

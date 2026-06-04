@@ -4,4 +4,4 @@ public sealed record UpdateUserRequest(
     string? FirstName,
     string? LastName,
     string DisplayName,
-    string Language);
+    string PreferredLanguage);

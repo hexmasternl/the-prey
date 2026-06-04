@@ -1,27 +1,101 @@
-#container {
-  text-align: center;
+ion-content {
+  --background: var(--tp-bg-void);
+}
 
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 54px 28px 48px;
+  overflow: hidden;
+  border: 1px solid var(--tp-line);
+  background:
+    linear-gradient(135deg, rgba(100, 255, 0, 0.05), transparent 50%),
+    var(--tp-bg-void);
+}
+
+// Corner brackets
+.br {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--tp-signal);
+
+  &.tl  { top: 12px;    left: 12px;   border-right: 0; border-bottom: 0; }
+  &.tr  { top: 12px;    right: 12px;  border-left: 0;  border-bottom: 0; }
+  &.bl  { bottom: 12px; left: 12px;   border-right: 0; border-top: 0;    }
+  &.brr { bottom: 12px; right: 12px;  border-left: 0;  border-top: 0;    }
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+// GPS coordinates (top-right)
+.coords {
+  position: absolute;
+  top: 18px;
+  right: 36px;
+  font-family: var(--tp-body);
+  font-size: 11px;
+  color: var(--tp-text-ghost);
+  letter-spacing: 1px;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
+// Title block
+.tag {
+  font-family: var(--tp-body);
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--tp-signal-dim);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
 
-  color: #8c8c8c;
-
+h1 {
+  font-family: var(--tp-head);
+  font-size: clamp(42px, 10vw, 76px);
+  line-height: 0.92;
+  color: var(--tp-text);
+  letter-spacing: 1px;
   margin: 0;
+
+  em {
+    font-style: normal;
+    color: var(--tp-signal);
+    text-shadow: 0 0 28px var(--tp-signal-glow);
+  }
 }
 
-#container a {
-  text-decoration: none;
+.lede {
+  font-family: var(--tp-body);
+  font-size: 14px;
+  color: var(--tp-text-soft);
+  max-width: 58ch;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+// Action buttons
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 40px;
+
+  ion-button {
+    --border-radius: 3px;
+    font-family: var(--tp-head);
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  ion-button[color="primary"]:not([disabled]) {
+    &:hover, &:active {
+      --box-shadow: 0 0 24px var(--tp-signal-glow);
+    }
+  }
+
+  ion-button[disabled] {
+    opacity: 0.6;
+  }
 }

@@ -5,4 +5,4 @@ public sealed record CreateUserRequest(
     string? LastName,
     string EmailAddress,
     bool IsEmailVerified,
-    string Language);
+    string? PreferredLanguage);

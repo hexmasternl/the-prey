@@ -3,24 +3,24 @@ using HexMaster.ThePrey.Users.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Users.Observability;
 using Microsoft.Extensions.Logging;
 
-namespace HexMaster.ThePrey.Users.Features.UpdateUser;
+namespace HexMaster.ThePrey.Users.Features.UpdateUserSettings;
 
-public sealed class UpdateUserCommandHandler : ICommandHandler<UpdateUserCommand, UserDto>
+public sealed class UpdateUserSettingsCommandHandler : ICommandHandler<UpdateUserSettingsCommand, UserDto>
 {
     private readonly IUserRepository _users;
-    private readonly ILogger<UpdateUserCommandHandler> _logger;
+    private readonly ILogger<UpdateUserSettingsCommandHandler> _logger;
 
-    public UpdateUserCommandHandler(IUserRepository users, ILogger<UpdateUserCommandHandler> logger)
+    public UpdateUserSettingsCommandHandler(IUserRepository users, ILogger<UpdateUserSettingsCommandHandler> logger)
     {
         _users = users;
         _logger = logger;
     }
 
-    public async Task<UserDto> Handle(UpdateUserCommand command, CancellationToken ct)
+    public async Task<UserDto> Handle(UpdateUserSettingsCommand command, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        using var activity = UserActivitySource.Source.StartActivity("UpdateUser");
+        using var activity = UserActivitySource.Source.StartActivity("UpdateUserSettings");
         activity?.SetTag("user.subject_id", command.SubjectId);
 
         try
@@ -29,11 +29,12 @@ public sealed class UpdateUserCommandHandler : ICommandHandler<UpdateUserCommand
                 ?? throw new InvalidOperationException($"User not found for subject {command.SubjectId}.");
 
             activity?.SetTag("user.id", user.Id);
+            activity?.SetTag("user.preferred_language", command.PreferredLanguage);
 
-            user.Update(command.FirstName, command.LastName, command.DisplayName, command.PreferredLanguage);
+            user.UpdateSettings(command.Callsign, command.PreferredLanguage);
             await _users.UpdateAsync(user, ct);
 
-            _logger.LogInformation("User {UserId} updated display name and preferences", user.Id);
+            _logger.LogInformation("User {UserId} updated game settings", user.Id);
 
             return new UserDto(user.Id, user.DisplayName, user.Callsign, user.EmailAddress, user.PreferredLanguage);
         }

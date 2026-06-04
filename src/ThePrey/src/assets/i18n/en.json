@@ -1,0 +1,17 @@
+{
+  "LOGIN": {
+    "START_HUNT": "START HUNT"
+  },
+  "HOME": {
+    "TAG": "Operations Field Manual — v1.0",
+    "TITLE": "STAY <em>HIDDEN.</em><br/>HUNT <em>SMART.</em>",
+    "LEDE": "A GPS-based, real-world hide-and-seek game. Enter the playfield. Don't get caught.",
+    "PLAY_NOW": "PLAY NOW",
+    "PLAYFIELDS": "PLAYFIELDS",
+    "SETTINGS": "SETTINGS",
+    "LOGOUT": "LOGOUT",
+    "QUIT": "QUIT",
+    "COORDS_NO_SIGNAL": "-- ° N // -- ° E // NO SIGNAL",
+    "COORDS_SIGNAL_LOCK": "{{lat}}° N // {{lon}}° E // SIGNAL LOCK"
+  }
+}

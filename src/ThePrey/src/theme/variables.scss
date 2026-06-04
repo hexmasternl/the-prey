@@ -1,15 +1,68 @@
 // THE PREY — Ionic Theme Variables
 // Palette derived from the Design & Style Manual.
 //
+// --tp-*  Design-system tokens used by custom components
+// --ion-* Ionic-inherited tokens used by Ionic built-in components
+//
 // Light mode  (:root)                      — field-green tactical palette for daylight use
 // Dark mode   (@media prefers-color-scheme: dark) — full phosphor-green tactical dark aesthetic
 
 // ═══════════════════════════════════════════════════════════════
-//  LIGHT MODE
+//  DESIGN TOKENS — dark defaults (the primary visual identity)
 // ═══════════════════════════════════════════════════════════════
 :root {
   // ── Surfaces ────────────────────────────────────────────────
-  --ion-background-color:             #EFF4EC;
+  --tp-bg-void:        #0c0e0c;
+  --tp-bg-base:        #181b17;
+  --tp-bg-surface:     #23271f;
+  --tp-bg-surface-2:   #2d3328;
+  --tp-line:           #39402f;
+  --tp-line-soft:      #2a2f24;
+
+  // ── Signal (hero green) ─────────────────────────────────────
+  --tp-signal:         #64ff00;
+  --tp-signal-dim:     #3f9e00;
+  --tp-signal-deep:    #1f4d00;
+  --tp-signal-glow:    rgba(100, 255, 0, 0.35);
+
+  // ── Role colors ─────────────────────────────────────────────
+  --tp-hunter:         #ff2f1f;
+  --tp-hunter-dim:     #a01408;
+  --tp-prey:           #64ff00;
+  --tp-caution:        #ffb300;
+  --tp-info:           #13e0c8;
+
+  // ── Text ────────────────────────────────────────────────────
+  --tp-text:           #dcf6d2;
+  --tp-text-soft:      #8c9a83;
+  --tp-text-ghost:     #5a6553;
+
+  // ── Typography ──────────────────────────────────────────────
+  --tp-head:           'Special Elite', 'Courier New', monospace;
+  --tp-body:           'PT Mono', 'Courier New', monospace;
+}
+
+// ── Light-mode surface/text overrides ───────────────────────────
+@media (prefers-color-scheme: light) {
+  :root {
+    --tp-bg-void:      #e8ece3;
+    --tp-bg-base:      #f0f4ec;
+    --tp-bg-surface:   #e8ece3;
+    --tp-bg-surface-2: #dce3d6;
+    --tp-line:         #c8d4bc;
+    --tp-line-soft:    #d4dece;
+    --tp-text:         #1a1d16;
+    --tp-text-soft:    #4a5544;
+    --tp-text-ghost:   #6b7a64;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LIGHT MODE — Ionic tokens
+// ═══════════════════════════════════════════════════════════════
+:root {
+  // ── Surfaces ────────────────────────────────────────────────
+  --ion-background-color:             #EFF4EC; // = var(--tp-bg-base) light
   --ion-background-color-rgb:         239, 244, 236;
   --ion-text-color:                   #1A1D16;
   --ion-text-color-rgb:               26, 29, 22;
@@ -122,9 +175,9 @@
 @media (prefers-color-scheme: dark) {
   :root {
     // ── Surfaces ──────────────────────────────────────────────
-    --ion-background-color:             #052104;   // Base — app background
+    --ion-background-color:             #181B17;   // = var(--tp-bg-base) dark
     --ion-background-color-rgb:         24, 27, 23;
-    --ion-text-color:                   #DCF6D2;   // Text primary
+    --ion-text-color:                   #DCF6D2;   // = var(--tp-text) dark
     --ion-text-color-rgb:               220, 246, 210;
     --ion-border-color:                 #39402F;   // Line
     --ion-placeholder-color:            #5A6553;   // Text ghost
