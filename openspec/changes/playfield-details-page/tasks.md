@@ -10,13 +10,13 @@
 
 ## 3. Map Component
 
-- [ ] 3.1 Create standalone `PlayfieldMapComponent` at `src/ThePrey/src/app/playfields/playfield-map/playfield-map.component.ts`
-- [ ] 3.2 Accept `@Input() coordinates: {lat, lon}[]` and `@Input() fallbackCenter: {lat, lon} | null`
-- [ ] 3.3 On init, initialise a Leaflet map with OpenStreetMap tiles
-- [ ] 3.4 When `coordinates` has 3+ points, draw an `L.Polygon` with semi-transparent fill and call `fitBounds`
-- [ ] 3.5 When `coordinates` is empty and `fallbackCenter` is provided, centre the map on that position at zoom 15
-- [ ] 3.6 When `coordinates` is empty and `fallbackCenter` is null, centre the map at `[0, 0]` at zoom 2
-- [ ] 3.7 Mark the map container as non-interactive (`dragging.disable()`, `touchZoom.disable()`, etc.) — this is a preview only
+- [x] 3.1 Create standalone `PlayfieldMapComponent` at `src/ThePrey/src/app/playfields/playfield-map/playfield-map.component.ts`
+- [x] 3.2 Accept `@Input() coordinates: {lat, lon}[]` and `@Input() fallbackCenter: {lat, lon} | null`
+- [x] 3.3 On init, initialise a Leaflet map with OpenStreetMap tiles
+- [x] 3.4 When `coordinates` has 3+ points, draw an `L.Polygon` with semi-transparent fill and call `fitBounds`
+- [x] 3.5 When `coordinates` is empty and `fallbackCenter` is provided, centre the map on that position at zoom 15
+- [x] 3.6 When `coordinates` is empty and `fallbackCenter` is null, centre the map at `[0, 0]` at zoom 2
+- [x] 3.7 Mark the map container as non-interactive (`dragging.disable()`, `touchZoom.disable()`, etc.) — this is a preview only
 
 ## 4. Detail Page
 
