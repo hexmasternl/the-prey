@@ -13,7 +13,7 @@ public partial class GameStartPage : ContentPage
 
     private readonly IGameService _gameService;
     private readonly IAuthService _authService;
-    private readonly PlayfieldCacheService _playfieldCache;
+    private readonly PlayfieldSelectionContext _playfieldSelection;
     private readonly GameCreationContext _creationContext;
 
     private readonly OptionGroup _gameDuration;
@@ -28,13 +28,13 @@ public partial class GameStartPage : ContentPage
     public GameStartPage(
         IGameService gameService,
         IAuthService authService,
-        PlayfieldCacheService playfieldCache,
+        PlayfieldSelectionContext playfieldSelection,
         GameCreationContext creationContext)
     {
         InitializeComponent();
         _gameService = gameService;
         _authService = authService;
-        _playfieldCache = playfieldCache;
+        _playfieldSelection = playfieldSelection;
         _creationContext = creationContext;
 
         Title = AppLocalizer.GameStartTitle;
@@ -61,37 +61,22 @@ public partial class GameStartPage : ContentPage
 
     // ─── Playfield selection ─────────────────────────────────────────────────
 
-    /// <summary>
-    /// Lets the user pick the playfield for the game. Currently a chooser over the locally cached,
-    /// synced playfields; integration point for the dedicated PlayfieldSelectPage when it lands.
-    /// </summary>
-    private async void OnChoosePlayfieldClicked(object? sender, EventArgs e)
+    protected override void OnAppearing()
     {
-        var playfields = (await _playfieldCache.LoadAsync())
-            .Where(p => p.IsSynchronized)
-            .OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
+        base.OnAppearing();
 
-        if (playfields.Count == 0)
+        // Returning from the select view — pick up a confirmed selection.
+        if (_playfieldSelection.SelectionCompleted && _playfieldSelection.SelectedPlayfield is { } picked)
         {
-            await DisplayAlertAsync(AppLocalizer.GameStartTitle, AppLocalizer.NoPlayfieldsAvailable, AppLocalizer.Ok);
-            return;
+            _selectedPlayfield = picked;
+            PlayfieldButton.Text = picked.Name;
+            _playfieldSelection.Reset();
+            UpdateCreateButton();
         }
-
-        var choice = await DisplayActionSheetAsync(
-            AppLocalizer.ChoosePlayfieldButton,
-            AppLocalizer.Cancel,
-            null,
-            playfields.Select(p => p.Name).ToArray());
-
-        var selected = playfields.FirstOrDefault(p => p.Name == choice);
-        if (selected is null)
-            return;
-
-        _selectedPlayfield = selected;
-        PlayfieldButton.Text = selected.Name;
-        UpdateCreateButton();
     }
+
+    private async void OnChoosePlayfieldClicked(object? sender, EventArgs e) =>
+        await Shell.Current.GoToAsync(AppShell.PlayfieldSelectRoute);
 
     // ─── Create ──────────────────────────────────────────────────────────────
 

@@ -204,4 +204,19 @@
   <data name="GameProgressPlaceholder" xml:space="preserve">
     <value>The hunt is on. The game progress view arrives in a future update.</value>
   </data>
+  <data name="PlayfieldSelectTitle" xml:space="preserve">
+    <value>Select playfield</value>
+  </data>
+  <data name="SelectButton" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="NotSyncedHint" xml:space="preserve">
+    <value>NOT SYNCED</value>
+  </data>
+  <data name="PlayfieldNotSyncedMessage" xml:space="preserve">
+    <value>This playfield is not synchronized yet. Sync it before using it in a game.</value>
+  </data>
+  <data name="PlayfieldSelectEmpty" xml:space="preserve">
+    <value>No playfields available yet. Create a playfield first.</value>
+  </data>
 </root>

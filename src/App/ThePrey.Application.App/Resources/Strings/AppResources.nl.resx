@@ -204,4 +204,19 @@
   <data name="GameProgressPlaceholder" xml:space="preserve">
     <value>De jacht is begonnen. Het spelverloopscherm volgt in een latere update.</value>
   </data>
+  <data name="PlayfieldSelectTitle" xml:space="preserve">
+    <value>Speelveld kiezen</value>
+  </data>
+  <data name="SelectButton" xml:space="preserve">
+    <value>Selecteren</value>
+  </data>
+  <data name="NotSyncedHint" xml:space="preserve">
+    <value>NIET GESYNCHRONISEERD</value>
+  </data>
+  <data name="PlayfieldNotSyncedMessage" xml:space="preserve">
+    <value>Dit speelveld is nog niet gesynchroniseerd. Synchroniseer het voordat je het in een spel gebruikt.</value>
+  </data>
+  <data name="PlayfieldSelectEmpty" xml:space="preserve">
+    <value>Nog geen speelvelden beschikbaar. Maak eerst een speelveld aan.</value>
+  </data>
 </root>

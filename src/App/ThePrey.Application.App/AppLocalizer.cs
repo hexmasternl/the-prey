@@ -75,6 +75,11 @@ internal static class AppLocalizer
     public static string StartGameError => Get(nameof(StartGameError));
     public static string GameProgressTitle => Get(nameof(GameProgressTitle));
     public static string GameProgressPlaceholder => Get(nameof(GameProgressPlaceholder));
+    public static string PlayfieldSelectTitle => Get(nameof(PlayfieldSelectTitle));
+    public static string SelectButton => Get(nameof(SelectButton));
+    public static string NotSyncedHint => Get(nameof(NotSyncedHint));
+    public static string PlayfieldNotSyncedMessage => Get(nameof(PlayfieldNotSyncedMessage));
+    public static string PlayfieldSelectEmpty => Get(nameof(PlayfieldSelectEmpty));
 
     private static string Get(string key) =>
         ResourceManager.GetString(key, CultureInfo.CurrentUICulture) ?? key;

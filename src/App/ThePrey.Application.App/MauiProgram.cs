@@ -69,7 +69,9 @@ public static class MauiProgram
         builder.Services.AddTransient<PlayfieldsPage>();
         builder.Services.AddTransient<PlayfieldDetailsPage>();
         builder.Services.AddSingleton<PlayfieldEditingContext>();
+        builder.Services.AddSingleton<PlayfieldSelectionContext>();
         builder.Services.AddTransient<PlayfieldAreaEditorPage>();
+        builder.Services.AddTransient<PlayfieldSelectPage>();
         builder.Services.AddTransient<GameStartPage>();
         builder.Services.AddTransient<GameLobbyPage>();
         builder.Services.AddTransient<GameProgressPage>();
