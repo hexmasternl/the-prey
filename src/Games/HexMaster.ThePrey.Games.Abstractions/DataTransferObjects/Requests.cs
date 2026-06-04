@@ -22,6 +22,9 @@ public sealed record JoinGameRequest(string DisplayName, string? ProfilePictureU
 /// <summary>Start a game, designating the lobby member who becomes the hunter.</summary>
 public sealed record StartGameRequest(Guid HunterUserId);
 
+/// <summary>Reassign the hunter role to an existing prey. Only the current hunter may call this.</summary>
+public sealed record SetHunterRequest(Guid NewHunterUserId);
+
 /// <summary>Report a GPS location. The user id is taken from the authenticated caller.</summary>
 public sealed record RecordLocationRequest(
     double Latitude,

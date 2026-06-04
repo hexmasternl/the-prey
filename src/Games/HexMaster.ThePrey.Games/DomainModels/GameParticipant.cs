@@ -49,6 +49,8 @@ public sealed class GameParticipant
         return participant;
     }
 
+    internal void ChangeRole(ParticipantRole role) => Role = role;
+
     internal void RecordLocation(LocationReading reading)
     {
         ArgumentNullException.ThrowIfNull(reading);

@@ -1,2 +1,231 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+// THE PREY — Ionic Theme Variables
+// Palette derived from the Design & Style Manual.
+//
+// Light mode  (:root)                      — field-green tactical palette for daylight use
+// Dark mode   (@media prefers-color-scheme: dark) — full phosphor-green tactical dark aesthetic
+
+// ═══════════════════════════════════════════════════════════════
+//  LIGHT MODE
+// ═══════════════════════════════════════════════════════════════
+:root {
+  // ── Surfaces ────────────────────────────────────────────────
+  --ion-background-color:             #EFF4EC;
+  --ion-background-color-rgb:         239, 244, 236;
+  --ion-text-color:                   #1A1D16;
+  --ion-text-color-rgb:               26, 29, 22;
+  --ion-border-color:                 #C8D4C3;
+  --ion-placeholder-color:            #6B7A64;
+
+  --ion-toolbar-background:           #E3EBE0;
+  --ion-tab-bar-background:           #E3EBE0;
+  --ion-item-background:              #FFFFFF;
+  --ion-card-background:              #FFFFFF;
+
+  // ── Stepped Colors (bg #EFF4EC → text #1A1D16) ─────────────
+  --ion-color-step-50:    #e5eae2;
+  --ion-color-step-100:   #dbe0d8;
+  --ion-color-step-150:   #d1d6ce;
+  --ion-color-step-200:   #c7cdc4;
+  --ion-color-step-250:   #bdc3ba;
+  --ion-color-step-300:   #b3b9af;
+  --ion-color-step-350:   #a9b0a5;
+  --ion-color-step-400:   #9fa69b;
+  --ion-color-step-450:   #959d91;
+  --ion-color-step-500:   #8b9387;
+  --ion-color-step-550:   #81897d;
+  --ion-color-step-600:   #778073;
+  --ion-color-step-650:   #6d7669;
+  --ion-color-step-700:   #636c5f;
+  --ion-color-step-750:   #596355;
+  --ion-color-step-800:   #4f594b;
+  --ion-color-step-850:   #454f41;
+  --ion-color-step-900:   #3b4637;
+  --ion-color-step-950:   #313c2d;
+
+  // ── Primary: Signal Dim — legible on light backgrounds (5.7:1 on white) ──
+  --ion-color-primary:                #3F9E00;
+  --ion-color-primary-rgb:            63, 158, 0;
+  --ion-color-primary-contrast:       #ffffff;
+  --ion-color-primary-contrast-rgb:   255, 255, 255;
+  --ion-color-primary-shade:          #378b00;
+  --ion-color-primary-tint:           #52a81a;
+
+  // ── Secondary: Signal Deep ──────────────────────────────────
+  --ion-color-secondary:              #1F4D00;
+  --ion-color-secondary-rgb:          31, 77, 0;
+  --ion-color-secondary-contrast:     #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade:        #1b4400;
+  --ion-color-secondary-tint:         #355f1a;
+
+  // ── Tertiary: Info Teal (deepened for light bg legibility) ──
+  --ion-color-tertiary:               #0BA896;
+  --ion-color-tertiary-rgb:           11, 168, 150;
+  --ion-color-tertiary-contrast:      #000000;
+  --ion-color-tertiary-contrast-rgb:  0, 0, 0;
+  --ion-color-tertiary-shade:         #099484;
+  --ion-color-tertiary-tint:          #23b1a1;
+
+  // ── Success: Signal green ───────────────────────────────────
+  --ion-color-success:                #3F9E00;
+  --ion-color-success-rgb:            63, 158, 0;
+  --ion-color-success-contrast:       #ffffff;
+  --ion-color-success-contrast-rgb:   255, 255, 255;
+  --ion-color-success-shade:          #378b00;
+  --ion-color-success-tint:           #52a81a;
+
+  // ── Warning: Caution amber (darkened for AA contrast on light) ──
+  --ion-color-warning:                #CC8F00;
+  --ion-color-warning-rgb:            204, 143, 0;
+  --ion-color-warning-contrast:       #000000;
+  --ion-color-warning-contrast-rgb:   0, 0, 0;
+  --ion-color-warning-shade:          #b47e00;
+  --ion-color-warning-tint:           #d19b1a;
+
+  // ── Danger: Hunter red (darkened for AA contrast on light) ──
+  --ion-color-danger:                 #D42010;
+  --ion-color-danger-rgb:             212, 32, 16;
+  --ion-color-danger-contrast:        #ffffff;
+  --ion-color-danger-contrast-rgb:    255, 255, 255;
+  --ion-color-danger-shade:           #bb1c0e;
+  --ion-color-danger-tint:            #d83629;
+
+  // ── Dark: Near-black ────────────────────────────────────────
+  --ion-color-dark:                   #1A1D16;
+  --ion-color-dark-rgb:               26, 29, 22;
+  --ion-color-dark-contrast:          #EFF4EC;
+  --ion-color-dark-contrast-rgb:      239, 244, 236;
+  --ion-color-dark-shade:             #171a13;
+  --ion-color-dark-tint:              #31342d;
+
+  // ── Medium: Muted tactical text ────────────────────────────
+  --ion-color-medium:                 #6B7A64;
+  --ion-color-medium-rgb:             107, 122, 100;
+  --ion-color-medium-contrast:        #ffffff;
+  --ion-color-medium-contrast-rgb:    255, 255, 255;
+  --ion-color-medium-shade:           #5e6b58;
+  --ion-color-medium-tint:            #7a8874;
+
+  // ── Light: Pale field surface ───────────────────────────────
+  --ion-color-light:                  #EFF4EC;
+  --ion-color-light-rgb:              239, 244, 236;
+  --ion-color-light-contrast:         #1A1D16;
+  --ion-color-light-contrast-rgb:     26, 29, 22;
+  --ion-color-light-shade:            #d3d8d0;
+  --ion-color-light-tint:             #f1f5ef;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+//  DARK MODE  — full tactical phosphor-green aesthetic
+// ═══════════════════════════════════════════════════════════════
+@media (prefers-color-scheme: dark) {
+  :root {
+    // ── Surfaces ──────────────────────────────────────────────
+    --ion-background-color:             #052104;   // Base — app background
+    --ion-background-color-rgb:         24, 27, 23;
+    --ion-text-color:                   #DCF6D2;   // Text primary
+    --ion-text-color-rgb:               220, 246, 210;
+    --ion-border-color:                 #39402F;   // Line
+    --ion-placeholder-color:            #5A6553;   // Text ghost
+
+    --ion-toolbar-background:           #181B17;
+    --ion-tab-bar-background:           #0C0E0C;   // Void — deepest inset
+    --ion-item-background:              #23271F;   // Surface
+    --ion-card-background:              #23271F;   // Surface
+    --ion-overlay-background-color:     #23271F;
+
+    // ── Stepped Colors (bg #181B17 → text #DCF6D2) ────────────
+    --ion-color-step-50:    #222620;
+    --ion-color-step-100:   #2c312a;
+    --ion-color-step-150:   #353c33;
+    --ion-color-step-200:   #3f473c;
+    --ion-color-step-250:   #495246;
+    --ion-color-step-300:   #535d4f;
+    --ion-color-step-350:   #5d6858;
+    --ion-color-step-400:   #667362;
+    --ion-color-step-450:   #707e6b;
+    --ion-color-step-500:   #7a8975;
+    --ion-color-step-550:   #84937e;
+    --ion-color-step-600:   #8e9e87;
+    --ion-color-step-650:   #97a991;
+    --ion-color-step-700:   #a1b49a;
+    --ion-color-step-750:   #abbfa3;
+    --ion-color-step-800:   #b5caad;
+    --ion-color-step-850:   #bfd5b6;
+    --ion-color-step-900:   #c8e0bf;
+    --ion-color-step-950:   #d2ebc9;
+
+    // ── Primary: Full signal green — hero brand/action (13:1 contrast) ──
+    --ion-color-primary:                #64FF00;
+    --ion-color-primary-rgb:            100, 255, 0;
+    --ion-color-primary-contrast:       #000000;
+    --ion-color-primary-contrast-rgb:   0, 0, 0;
+    --ion-color-primary-shade:          #58e000;
+    --ion-color-primary-tint:           #74ff1a;
+
+    // ── Secondary: Signal Dim — secondary accents ──────────────
+    --ion-color-secondary:              #3F9E00;
+    --ion-color-secondary-rgb:          63, 158, 0;
+    --ion-color-secondary-contrast:     #ffffff;
+    --ion-color-secondary-contrast-rgb: 255, 255, 255;
+    --ion-color-secondary-shade:        #378b00;
+    --ion-color-secondary-tint:         #52a81a;
+
+    // ── Tertiary: Info Teal ────────────────────────────────────
+    --ion-color-tertiary:               #13E0C8;
+    --ion-color-tertiary-rgb:           19, 224, 200;
+    --ion-color-tertiary-contrast:      #000000;
+    --ion-color-tertiary-contrast-rgb:  0, 0, 0;
+    --ion-color-tertiary-shade:         #11c5b0;
+    --ion-color-tertiary-tint:          #2be3ce;
+
+    // ── Success: Signal green ──────────────────────────────────
+    --ion-color-success:                #64FF00;
+    --ion-color-success-rgb:            100, 255, 0;
+    --ion-color-success-contrast:       #000000;
+    --ion-color-success-contrast-rgb:   0, 0, 0;
+    --ion-color-success-shade:          #58e000;
+    --ion-color-success-tint:           #74ff1a;
+
+    // ── Warning: Caution amber ─────────────────────────────────
+    --ion-color-warning:                #FFB300;
+    --ion-color-warning-rgb:            255, 179, 0;
+    --ion-color-warning-contrast:       #000000;
+    --ion-color-warning-contrast-rgb:   0, 0, 0;
+    --ion-color-warning-shade:          #e09e00;
+    --ion-color-warning-tint:           #ffbb1a;
+
+    // ── Danger: Hunter red ─────────────────────────────────────
+    --ion-color-danger:                 #FF2F1F;
+    --ion-color-danger-rgb:             255, 47, 31;
+    --ion-color-danger-contrast:        #ffffff;
+    --ion-color-danger-contrast-rgb:    255, 255, 255;
+    --ion-color-danger-shade:           #e0291b;
+    --ion-color-danger-tint:            #ff4435;
+
+    // ── Dark: Void black ──────────────────────────────────────
+    --ion-color-dark:                   #0C0E0C;
+    --ion-color-dark-rgb:               12, 14, 12;
+    --ion-color-dark-contrast:          #DCF6D2;
+    --ion-color-dark-contrast-rgb:      220, 246, 210;
+    --ion-color-dark-shade:             #0b0c0b;
+    --ion-color-dark-tint:              #242624;
+
+    // ── Medium: Text soft ──────────────────────────────────────
+    --ion-color-medium:                 #8C9A83;
+    --ion-color-medium-rgb:             140, 154, 131;
+    --ion-color-medium-contrast:        #000000;
+    --ion-color-medium-contrast-rgb:    0, 0, 0;
+    --ion-color-medium-shade:           #7b8873;
+    --ion-color-medium-tint:            #98a48f;
+
+    // ── Light: Raised surface in dark mode ────────────────────
+    --ion-color-light:                  #2D3328;   // Surface +1
+    --ion-color-light-rgb:              45, 51, 40;
+    --ion-color-light-contrast:         #DCF6D2;
+    --ion-color-light-contrast-rgb:     220, 246, 210;
+    --ion-color-light-shade:            #272d22;
+    --ion-color-light-tint:             #42473e;
+  }
+}

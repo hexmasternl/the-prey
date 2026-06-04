@@ -68,6 +68,15 @@ public sealed class GameTests
     }
 
     [Fact]
+    public void JoinLobby_ShouldThrow_WhenLobbyIsFull()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(Game.MaxLobbySize, out _);
+
+        Assert.Throws<InvalidOperationException>(() => game.JoinLobby(GameFaker.Player()));
+        Assert.Equal(Game.MaxLobbySize, game.Lobby.Count);
+    }
+
+    [Fact]
     public void Start_ShouldDesignateHunterAndPreys()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);

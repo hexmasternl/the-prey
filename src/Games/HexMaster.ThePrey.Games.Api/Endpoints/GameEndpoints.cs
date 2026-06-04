@@ -7,6 +7,7 @@ using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
+using HexMaster.ThePrey.Games.Features.SetHunter;
 using HexMaster.ThePrey.Games.Features.StartGame;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,6 +35,12 @@ public static class GameEndpoints
 
         group.MapPost("/{id:guid}/start", StartGame)
             .WithName("StartGame")
+            .Produces<GameDto>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{id:guid}/hunter", SetHunter)
+            .WithName("SetHunter")
             .Produces<GameDto>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status404NotFound);
@@ -128,6 +135,27 @@ public static class GameEndpoints
         try
         {
             var result = await handler.Handle(new StartGameCommand(id, userId, request.HunterUserId), ct);
+            return result is null ? Results.NotFound() : Results.Ok(result.Game);
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+        {
+            return ValidationProblem(ex);
+        }
+    }
+
+    private static async Task<IResult> SetHunter(
+        Guid id,
+        [FromBody] SetHunterRequest request,
+        ClaimsPrincipal principal,
+        ICommandHandler<SetHunterCommand, SetHunterResult?> handler,
+        CancellationToken ct)
+    {
+        if (GetUserId(principal) is not { } userId)
+            return Results.Unauthorized();
+
+        try
+        {
+            var result = await handler.Handle(new SetHunterCommand(id, userId, request.NewHunterUserId), ct);
             return result is null ? Results.NotFound() : Results.Ok(result.Game);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)

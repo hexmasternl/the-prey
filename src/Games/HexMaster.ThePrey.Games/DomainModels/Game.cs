@@ -10,6 +10,9 @@ public sealed class Game
     /// <summary>Minimum lobby size required to start: one hunter plus at least one prey.</summary>
     public const int MinimumPlayersToStart = 2;
 
+    /// <summary>Maximum number of players a lobby can hold.</summary>
+    public const int MaxLobbySize = 16;
+
     /// <summary>Length of the shareable game code: exactly this many decimal digits.</summary>
     public const int GameCodeLength = 8;
 
@@ -93,7 +96,7 @@ public sealed class Game
         return game;
     }
 
-    /// <summary>Adds a player to the lobby. Only allowed before the game starts; rejects duplicates.</summary>
+    /// <summary>Adds a player to the lobby. Only allowed before the game starts; rejects duplicates and a full lobby.</summary>
     public void JoinLobby(LobbyPlayer player)
     {
         ArgumentNullException.ThrowIfNull(player);
@@ -103,6 +106,9 @@ public sealed class Game
 
         if (_lobby.Any(p => p.UserId == player.UserId))
             throw new InvalidOperationException("This player is already in the lobby.");
+
+        if (_lobby.Count >= MaxLobbySize)
+            throw new InvalidOperationException($"The lobby is full: a game holds at most {MaxLobbySize} players.");
 
         _lobby.Add(player);
     }
@@ -131,6 +137,28 @@ public sealed class Game
 
         StartedAt = startedAt;
         Status = GameStatus.InProgress;
+    }
+
+    /// <summary>
+    /// Reassigns the hunter role to an existing prey of an in-progress game; the former hunter
+    /// becomes a prey. The game stays InProgress.
+    /// </summary>
+    public void SetHunter(Guid newHunterUserId)
+    {
+        if (Status != GameStatus.InProgress)
+            throw new InvalidOperationException("The hunter can only be changed while the game is in progress.");
+
+        var currentHunter = Hunter
+            ?? throw new InvalidOperationException("An in-progress game must have a hunter.");
+
+        if (currentHunter.UserId == newHunterUserId)
+            throw new ArgumentException("This player is already the hunter.", nameof(newHunterUserId));
+
+        var newHunter = _participants.FirstOrDefault(p => p.UserId == newHunterUserId && p.Role == ParticipantRole.Prey)
+            ?? throw new ArgumentException("The new hunter must be an existing prey of the game.", nameof(newHunterUserId));
+
+        currentHunter.ChangeRole(ParticipantRole.Prey);
+        newHunter.ChangeRole(ParticipantRole.Hunter);
     }
 
     /// <summary>Records a GPS location for a participant of an in-progress game.</summary>
