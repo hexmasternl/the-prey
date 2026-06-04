@@ -7,9 +7,7 @@ using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
 using HexMaster.ThePrey.Games.Features.StartGame;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 
 namespace HexMaster.ThePrey.Games.Api.Endpoints;
 
