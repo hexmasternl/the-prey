@@ -37,6 +37,6 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Build the server: `dotnet build src/Games/HexMaster.ThePrey.Games.Api/` and rerun the Games test suite
-- [ ] 6.2 Build the MAUI app: `dotnet build src/App/ThePrey.Application.App/ThePrey.Application.App.csproj -f net10.0-android`
+- [x] 6.1 Build the server: `dotnet build src/Games/HexMaster.ThePrey.Games.Api/` and rerun the Games test suite
+- [x] 6.2 Build the MAUI app: `dotnet build src/App/ThePrey.Application.App/ThePrey.Application.App.csproj -f net10.0-android`
 - [ ] 6.3 Manual flow check via Aspire: Play → configure → Create → lobby shows 8-digit code with creator listed → (second user joins via API) → Start now enabled → start → Game Progress placeholder shows, back goes to main menu
