@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:ThePrey.Application.App"
+             x:Class="ThePrey.Application.App.GameLobbyPage"
+             Style="{StaticResource PreyPage}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="20,16,20,32">
+
+        <!-- Game code -->
+        <Label x:Name="GameCodeCaption"
+               Grid.Row="0"
+               FontFamily="PTMono"
+               FontSize="11"
+               CharacterSpacing="2"
+               TextColor="{StaticResource SignalDim}"
+               HorizontalTextAlignment="Center"
+               Margin="0,0,0,6" />
+
+        <Label x:Name="GameCodeLabel"
+               Grid.Row="1"
+               FontFamily="SpecialElite"
+               FontSize="40"
+               CharacterSpacing="6"
+               TextColor="{StaticResource Signal}"
+               HorizontalTextAlignment="Center"
+               Margin="0,0,0,20" />
+
+        <!-- Players -->
+        <Grid Grid.Row="2" RowDefinitions="Auto,*">
+            <Label x:Name="PlayersCaption"
+                   Grid.Row="0"
+                   FontFamily="PTMono"
+                   FontSize="11"
+                   CharacterSpacing="2"
+                   TextColor="{StaticResource SignalDim}"
+                   Margin="0,0,0,6" />
+
+            <CollectionView x:Name="PlayersView"
+                            Grid.Row="1"
+                            SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="local:GameLobbyItem">
+                        <Grid Padding="14,12" ColumnDefinitions="*,Auto" Margin="0,0,0,8"
+                              BackgroundColor="{StaticResource Surface}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnPlayerTapped" />
+                            </Grid.GestureRecognizers>
+                            <Label Grid.Column="0"
+                                   Text="{Binding DisplayName}"
+                                   FontFamily="PTMono"
+                                   FontSize="15"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding HunterTag}"
+                                   IsVisible="{Binding IsHunter}"
+                                   FontFamily="PTMono"
+                                   FontSize="11"
+                                   CharacterSpacing="2"
+                                   TextColor="{StaticResource Hunter}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+        <!-- Start now -->
+        <Button x:Name="StartButton"
+                Grid.Row="3"
+                Style="{StaticResource BtnPrimary}"
+                IsEnabled="False"
+                Margin="0,12,0,0"
+                Clicked="OnStartClicked" />
+
+    </Grid>
+
+</ContentPage>
