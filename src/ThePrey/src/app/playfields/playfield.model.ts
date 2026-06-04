@@ -24,3 +24,14 @@ export interface UpsertPlayFieldRequest {
   points: GpsCoordinateDto[];
   lastUpdatedOn: string;
 }
+
+/** Full playfield DTO returned by GET /playfields/:id. */
+export interface PlayFieldDetailDto {
+  id: string;
+  name: string;
+  ownerId: string;
+  isPublic: boolean;
+  points: GpsCoordinateDto[];
+  lastUpdatedOn: string;
+  centerCoordinates: GpsCoordinateDto | null;
+}
