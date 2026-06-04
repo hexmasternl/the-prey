@@ -20,6 +20,8 @@ namespace ThePrey.Aspire.ServiceDefaults
             public const string GamesDatabase = "games";
             public const string Gateway = "gateway";
             public const string UsersTables = "users-tables";
+            public const string DaprStateStore = "statestore";
+            public const string Redis = "redis";
         }
 
     }

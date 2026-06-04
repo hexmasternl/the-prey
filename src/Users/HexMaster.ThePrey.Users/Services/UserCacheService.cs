@@ -1,12 +1,11 @@
 using Dapr.Client;
 using Microsoft.Extensions.Logging;
+using ThePrey.Aspire.ServiceDefaults;
 
 namespace HexMaster.ThePrey.Users.Services;
 
 public sealed class UserCacheService : IUserCacheService
 {
-    private const string StateStoreName = "user-cache";
-
     private readonly DaprClient _daprClient;
     private readonly ILogger<UserCacheService> _logger;
 
@@ -24,7 +23,7 @@ public sealed class UserCacheService : IUserCacheService
 
         try
         {
-            return await _daprClient.GetStateAsync<UserCacheEntry>(StateStoreName, key, cancellationToken: ct);
+            return await _daprClient.GetStateAsync<UserCacheEntry>(AspireConstants.Resources.DaprStateStore, key, cancellationToken: ct);
         }
         catch (Exception ex)
         {
@@ -39,7 +38,7 @@ public sealed class UserCacheService : IUserCacheService
         ArgumentNullException.ThrowIfNull(entry);
 
         var key = CacheKey(subjectId);
-        await _daprClient.SaveStateAsync(StateStoreName, key, entry, cancellationToken: ct);
+        await _daprClient.SaveStateAsync(AspireConstants.Resources.DaprStateStore, key, entry, cancellationToken: ct);
     }
 
     private static string CacheKey(string subjectId) => $"theprey:users:by-subject:{subjectId}";
