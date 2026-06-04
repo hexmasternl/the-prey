@@ -31,5 +31,5 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Build the MAUI app for Android (`dotnet build ... -f net10.0-android`) and the PlayFields API; confirm both compile
+- [x] 5.1 Build the MAUI app for Android (`dotnet build ... -f net10.0-android`) and the PlayFields API; confirm both compile
 - [ ] 5.2 Manual check against spec scenarios: offline default list, unsynced row disabled, hybrid search with de-duplication, search cancel on <3 chars, selection hand-back via context, Dutch localization
