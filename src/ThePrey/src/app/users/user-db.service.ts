@@ -1,8 +1,7 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { AppDbService } from '../db/app-db.service';
 import { UserProfile } from './user.model';
 
-const DB_NAME = 'the-prey-db';
-const DB_VERSION = 1;
 const STORE = 'user-profile';
 const RECORD_KEY = 'current';
 
@@ -12,11 +11,11 @@ const RECORD_KEY = 'current';
  */
 @Injectable({ providedIn: 'root' })
 export class UserDbService {
-  private dbPromise: Promise<IDBDatabase> | null = null;
+  private readonly appDb = inject(AppDbService);
 
   async getProfile(): Promise<UserProfile | null> {
     try {
-      const db = await this.open();
+      const db = await this.appDb.getDb();
       return await idbGet<UserProfile>(db, STORE, RECORD_KEY);
     } catch {
       return null;
@@ -25,7 +24,7 @@ export class UserDbService {
 
   async saveProfile(profile: UserProfile): Promise<void> {
     try {
-      const db = await this.open();
+      const db = await this.appDb.getDb();
       await idbPut(db, STORE, { key: RECORD_KEY, ...profile });
     } catch {
       // Persist failure is non-fatal — in-memory state is still fresh
@@ -34,25 +33,11 @@ export class UserDbService {
 
   async clearProfile(): Promise<void> {
     try {
-      const db = await this.open();
+      const db = await this.appDb.getDb();
       await idbDelete(db, STORE, RECORD_KEY);
     } catch {
       // Ignore — the profile will be missing on next load, triggering a server sync
     }
-  }
-
-  private open(): Promise<IDBDatabase> {
-    this.dbPromise ??= new Promise<IDBDatabase>((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = () => {
-        if (!req.result.objectStoreNames.contains(STORE)) {
-          req.result.createObjectStore(STORE, { keyPath: 'key' });
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-    return this.dbPromise;
   }
 }
 

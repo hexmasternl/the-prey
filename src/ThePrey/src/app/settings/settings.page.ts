@@ -15,6 +15,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap 
 import { of } from 'rxjs';
 import { LanguageService, SupportedLanguage } from '../i18n/language.service';
 import { SettingsService } from './settings.service';
+import { UserStateService } from '../users/user-state.service';
 
 @Component({
   selector: 'app-settings',
@@ -36,6 +37,7 @@ export class SettingsPage implements OnInit {
   private readonly router = inject(Router);
   private readonly settingsService = inject(SettingsService);
   private readonly languageService = inject(LanguageService);
+  private readonly userState = inject(UserStateService);
   private readonly destroyRef = inject(DestroyRef);
 
   saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
@@ -74,9 +76,9 @@ export class SettingsPage implements OnInit {
 
   ngOnInit(): void {
     this.settingsService.get().subscribe({
-      next: (settings) => {
+      next: (user) => {
         this.form.patchValue(
-          { callsign: settings.callsign, language: settings.language },
+          { callsign: user.callsign, language: user.preferredLanguage },
           { emitEvent: false },
         );
         this.isLoading = false;
@@ -104,8 +106,11 @@ export class SettingsPage implements OnInit {
         ),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((result) => {
-        if (result !== null) {
+      .subscribe((user) => {
+        if (user !== null) {
+          // Server confirmed the save — propagate the returned user to the
+          // in-memory state store and the IndexedDB cache.
+          void this.userState.applyServerUser(user);
           this.saveStatus = 'saved';
           setTimeout(() => {
             if (this.saveStatus === 'saved') this.saveStatus = 'idle';

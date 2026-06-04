@@ -23,6 +23,7 @@ var gamesApi = builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireCo
     .WaitFor(gamesDatabase);
 
 var gateway = builder.AddYarp(AspireConstants.Resources.Gateway)
+    .WithHttpEndpoint(port: 5000)
     .WithConfiguration(yarp =>
     {
         yarp.AddRoute("/users/{**catch-all}", usersApi);

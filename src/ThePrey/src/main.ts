@@ -2,8 +2,9 @@ import { inject, provideAppInitializer } from '@angular/core';
 import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
-import { provideAuth0, authHttpInterceptorFn } from '@auth0/auth0-angular';
+import { provideAuth0 } from '@auth0/auth0-angular';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authTokenInterceptor } from './app/auth/auth-token.interceptor';
 import { Capacitor } from '@capacitor/core';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -23,7 +24,7 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
-    provideHttpClient(withInterceptors([authHttpInterceptorFn])),
+    provideHttpClient(withInterceptors([authTokenInterceptor])),
     provideTranslateService({
       loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
       fallbackLang: 'en',
@@ -38,16 +39,6 @@ bootstrapApplication(AppComponent, {
       authorizationParams: {
         redirect_uri: redirectUri,
         audience: 'https://api.theprey.eu',
-      },
-      httpInterceptor: {
-        allowedList: [
-          {
-            uri: `${environment.apiUrl}/*`,
-            tokenOptions: {
-              authorizationParams: { audience: 'https://api.theprey.eu' },
-            },
-          },
-        ],
       },
     }),
   ],

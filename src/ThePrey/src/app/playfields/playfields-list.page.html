@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="back()">&#8592;</ion-button>
+    </ion-buttons>
+    <ion-title>Playfields</ion-title>
+    <ion-buttons slot="end">
+      @if (!isSyncing()) {
+        <ion-button fill="clear" (click)="sync()">&#8635;</ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar>
+    <ion-segment [value]="activeTab()" (ionChange)="selectTab($any($event).detail.value)">
+      <ion-segment-button value="private">Private</ion-segment-button>
+      <ion-segment-button value="public">Public</ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @switch (activeTab()) {
+    @case ('private') {
+      @if (isSyncing()) {
+        <div class="sync-state">
+          <ion-spinner name="lines" color="primary"></ion-spinner>
+        </div>
+      } @else if (syncFailed()) {
+        <div class="sync-state sync-state--error">
+          <p>Could not reach server.</p>
+          <ion-button fill="outline" color="danger" (click)="sync()">Retry</ion-button>
+        </div>
+      } @else if (playfields().length === 0) {
+        <div class="sync-state">
+          <p class="empty-label">No playfields yet.</p>
+        </div>
+      } @else {
+        <ion-list>
+          @for (pf of playfields(); track pf.id) {
+            <ion-item-sliding #sliding>
+              <ion-item button detail (click)="openDetail(pf.id)">
+                <ion-label>
+                  <h2>{{ pf.name }}</h2>
+                </ion-label>
+                <ion-badge slot="end" [color]="pf.isPublic ? 'success' : 'medium'">
+                  {{ pf.isPublic ? 'Public' : 'Private' }}
+                </ion-badge>
+              </ion-item>
+
+              <ion-item-options side="end">
+                <ion-item-option color="danger" (click)="deletePlayfield(sliding, pf.id)">
+                  Delete
+                </ion-item-option>
+              </ion-item-options>
+            </ion-item-sliding>
+          }
+        </ion-list>
+      }
+    }
+
+    @case ('public') {
+      <div class="sync-state">
+        <p class="empty-label">Public playfields — coming soon.</p>
+      </div>
+    }
+  }
+</ion-content>

@@ -51,6 +51,17 @@ export class UserStateService {
     await this.db.clearProfile();
   }
 
+  /** Apply a fresh server DTO to both the in-memory signal and the IndexedDB cache. */
+  async applyServerUser(dto: UserDto): Promise<void> {
+    const profile: UserProfile = {
+      userId: dto.userId,
+      callsign: dto.callsign,
+      preferredLanguage: dto.preferredLanguage,
+    };
+    this._profile.set(profile);
+    await this.db.saveProfile(profile);
+  }
+
   private syncWithServer(claims: IdToken): void {
     this.isSyncing.set(true);
 
@@ -65,15 +76,7 @@ export class UserStateService {
     firstValueFrom(
       this.http.post<UserDto>(`${environment.apiUrl}/users`, request),
     )
-      .then(async dto => {
-        const profile: UserProfile = {
-          userId: dto.userId,
-          callsign: dto.callsign,
-          preferredLanguage: dto.preferredLanguage,
-        };
-        this._profile.set(profile);
-        await this.db.saveProfile(profile);
-      })
+      .then(dto => this.applyServerUser(dto))
       .catch(() => {
         // If there is no cached profile to fall back on, surface the error to the UI
         if (!this._profile()) {

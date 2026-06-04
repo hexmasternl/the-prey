@@ -18,7 +18,14 @@ export const routes: Routes = [
   },
   {
     path: 'playfields',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+    loadComponent: () =>
+      import('./playfields/playfields-list.page').then((m) => m.PlayfieldsListPage),
+    canActivate: [authGuardFn],
+  },
+  {
+    path: 'playfields/:id',
+    loadComponent: () =>
+      import('./playfields/playfield-detail.page').then((m) => m.PlayfieldDetailPage),
     canActivate: [authGuardFn],
   },
   {
