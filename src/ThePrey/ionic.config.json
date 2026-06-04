@@ -1,0 +1,7 @@
+{
+  "name": "ThePrey",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

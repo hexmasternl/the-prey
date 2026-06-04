@@ -28,4 +28,4 @@ The Prey is a location-based pursuit game where play happens inside a bounded ge
 - **Modified projects**: `HexMaster.ThePrey.PlayFields.Api` (remove placeholder, wire module + endpoints + Table Storage client); `ThePrey.Aspire.AppHost` (add Azure Storage resource and reference); `ThePrey.Aspire.ServiceDefaults/AspireConstants.cs` (add PlayFields resource/connection names); `src/the-prey.slnx` (add new projects).
 - **New dependencies**: `Aspire.Hosting.Azure.Storage` (AppHost), `Aspire.Azure.Data.Tables` (Data adapter / API).
 - **APIs**: New `/playfields` endpoint group (create, get-by-id, list).
-- **Scope**: Backend only — no MAUI app / frontend changes in this change.
+- **Scope**: Backend only — no frontend changes in this change.

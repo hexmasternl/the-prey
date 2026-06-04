@@ -20,7 +20,7 @@ The shared CQRS interfaces live in `HexMaster.ThePrey.Core` (`ICommandHandler<TC
 **Non-Goals:**
 
 - No update or delete endpoints (only create, get, list are in scope).
-- No MAUI app / frontend work.
+- No frontend work.
 - No editing of a play field's geometry after creation.
 - No spatial indexing or geofencing-at-scale; `IsInPlayfield` is an in-memory per-instance check.
 - No real Azure provisioning in this change beyond the Aspire model (deployment is separate).

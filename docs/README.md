@@ -14,7 +14,6 @@
 | [Player Roles](./game-design/player-roles.md) | Detailed role descriptions for Hunters and Preys |
 | [Playfield](./game-design/playfield.md) | How the playfield is created, saved, and managed |
 | [Architecture Overview](./architecture/overview.md) | High-level system architecture |
-| [Mobile App](./architecture/mobile-app.md) | .NET MAUI app design, permissions, and background service |
 | [Server](./architecture/server.md) | ASP.NET backend, game session management, push notifications |
 | [API Reference](./api/endpoints.md) | REST API endpoint definitions |
 | [Signaling & Real-time](./api/realtime.md) | Real-time communication (SignalR / push notifications) |
@@ -23,8 +22,6 @@
 
 | Layer | Technology |
 |---|---|
-| Mobile Client | .NET MAUI (iOS & Android) |
+| Client | TBD — a client app consumes the REST + real-time APIs |
 | Backend | ASP.NET Core (C#) |
 | Real-time | SignalR / Push Notifications (APNs / FCM) |
-| Maps | Platform-native maps via MAUI Maps |
-| Location | Device GPS via MAUI Essentials |

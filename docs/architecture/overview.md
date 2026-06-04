@@ -7,9 +7,9 @@
 │                        Client Devices                        │
 │                                                             │
 │   ┌───────────────────┐       ┌───────────────────┐        │
-│   │  MAUI App (Prey)  │       │ MAUI App (Hunter) │        │
-│   │  - GPS broadcast  │       │  - Map + pins     │        │
-│   │  - Background svc │       │  - Tag confirm    │        │
+│   │ Client App (Prey) │       │ Client App        │        │
+│   │  - GPS broadcast  │       │ (Hunter)          │        │
+│   │  - Background svc │       │  - Map + pins     │        │
 │   └────────┬──────────┘       └─────────┬─────────┘        │
 └────────────┼──────────────────────────  ┼──────────────────┘
              │ HTTPS / SignalR            │
@@ -35,7 +35,7 @@
 
 ## Component Responsibilities
 
-### MAUI Mobile App
+### Client App
 - Authenticates the player.
 - Collects GPS coordinates and sends them to the server.
 - Renders the map with playfield boundary and prey location pins.

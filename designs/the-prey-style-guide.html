@@ -331,9 +331,6 @@
     <a href="#radar"><span class="idx">08</span>Radar &amp; HUD</a>
     <a href="#motion"><span class="idx">09</span>Motion</a>
     <a href="#voice"><span class="idx">10</span>Voice &amp; Tone</a>
-
-    <div class="navgrp">Build</div>
-    <a href="#maui"><span class="idx">11</span>.NET MAUI Setup</a>
   </nav>
 
   <!-- ============ MAIN ============ -->
@@ -345,7 +342,7 @@
       <div class="coords">52.0705° N // 4.3007° E // SIGNAL LOCK</div>
       <div class="tag">Operations Field Manual — v1.0</div>
       <h1>STAY <em>HIDDEN.</em><br>HUNT <em>SMART.</em></h1>
-      <p class="lede">The visual operating system for <strong>The Prey</strong> — a GPS-based, real-world hide-and-seek built in .NET MAUI. This manual defines every color, glyph, and motion cue used to turn the open world into a playfield.</p>
+      <p class="lede">The visual operating system for <strong>The Prey</strong> — a GPS-based, real-world hide-and-seek game. This manual defines every color, glyph, and motion cue used to turn the open world into a playfield.</p>
       <div class="strip">
         <div><div class="k">Surface</div><div class="v">DARK GREY</div></div>
         <div><div class="k">Signal</div><div class="v">#64FF00</div></div>
@@ -611,103 +608,6 @@
           <p style="color:var(--text-soft);margin:0;line-height:2">"Oops! We couldn't find you 😅"<br>"You might want to consider moving."<br>"Error 403: location unavailable."<br>"Welcome back, valued player!"</p>
         </div>
       </div>
-    </section>
-
-    <!-- 11 MAUI -->
-    <section id="maui">
-      <div class="eyebrow">Section 11 — Build</div>
-      <h2>.NET MAUI <span class="g">Setup</span></h2>
-      <p>Implement the system once as resources, then bind everywhere. The steps below register the fonts, define the color palette, and build reusable styles — drop-in ready for a MAUI project.</p>
-
-      <h3>1 — Add font files</h3>
-      <p>Place the TTFs in <code class="inl">Resources/Fonts/</code>. With the default MAUI globbing they're picked up automatically; otherwise mark each as <code class="inl">MauiFont</code>.</p>
-      <pre><span class="fname">Resources/Fonts/</span><code><span class="c-com">// SpecialElite-Regular.ttf
-// PTMono-Regular.ttf</span></code></pre>
-
-      <h3>2 — Register fonts</h3>
-      <pre><span class="fname">MauiProgram.cs</span><code><span class="c-key">public static</span> MauiApp <span class="c-tag">CreateMauiApp</span>()
-<span class="c-pun">{</span>
-    <span class="c-key">var</span> builder <span class="c-pun">=</span> MauiApp.<span class="c-tag">CreateBuilder</span>();
-    builder
-        .<span class="c-tag">UseMauiApp</span>&lt;App&gt;()
-        .<span class="c-tag">ConfigureFonts</span>(fonts <span class="c-pun">=&gt;</span>
-        <span class="c-pun">{</span>
-            fonts.<span class="c-tag">AddFont</span>(<span class="c-str">"SpecialElite-Regular.ttf"</span>, <span class="c-str">"SpecialElite"</span>);
-            fonts.<span class="c-tag">AddFont</span>(<span class="c-str">"PTMono-Regular.ttf"</span>, <span class="c-str">"PTMono"</span>);
-        <span class="c-pun">}</span>);
-
-    <span class="c-key">return</span> builder.<span class="c-tag">Build</span>();
-<span class="c-pun">}</span></code></pre>
-
-      <h3>3 — Color palette</h3>
-      <pre><span class="fname">Resources/Styles/Colors.xaml</span><code><span class="c-pun">&lt;</span><span class="c-tag">ResourceDictionary</span> <span class="c-attr">xmlns</span>=<span class="c-str">"http://schemas.microsoft.com/dotnet/2021/maui"</span>
-                    <span class="c-attr">xmlns:x</span>=<span class="c-str">"http://schemas.microsoft.com/winfx/2009/xaml"</span><span class="c-pun">&gt;</span>
-
-    <span class="c-com">&lt;!-- Surfaces --&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Void"</span><span class="c-pun">&gt;</span>#0C0E0C<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Base"</span><span class="c-pun">&gt;</span>#181B17<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Surface"</span><span class="c-pun">&gt;</span>#23271F<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Line"</span><span class="c-pun">&gt;</span>#39402F<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-
-    <span class="c-com">&lt;!-- Signal + roles --&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Signal"</span><span class="c-pun">&gt;</span>#64FF00<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"SignalDim"</span><span class="c-pun">&gt;</span>#3F9E00<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Hunter"</span><span class="c-pun">&gt;</span>#FF2F1F<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Caution"</span><span class="c-pun">&gt;</span>#FFB300<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Info"</span><span class="c-pun">&gt;</span>#13E0C8<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-
-    <span class="c-com">&lt;!-- Text --&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"TextPrimary"</span><span class="c-pun">&gt;</span>#DCF6D2<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"TextSoft"</span><span class="c-pun">&gt;</span>#8C9A83<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Color</span> <span class="c-attr">x:Key</span>=<span class="c-str">"TextGhost"</span><span class="c-pun">&gt;</span>#5A6553<span class="c-pun">&lt;/</span><span class="c-tag">Color</span><span class="c-pun">&gt;</span>
-<span class="c-pun">&lt;/</span><span class="c-tag">ResourceDictionary</span><span class="c-pun">&gt;</span></code></pre>
-
-      <h3>4 — Styles</h3>
-      <p>Reusable styles for the page background, headings (Special Elite), body labels (PT Mono), and the primary button. Set <code class="inl">FontFamily</code> to the alias registered in step 2.</p>
-      <pre><span class="fname">Resources/Styles/Styles.xaml</span><code><span class="c-com">&lt;!-- Page background --&gt;</span>
-<span class="c-pun">&lt;</span><span class="c-tag">Style</span> <span class="c-attr">TargetType</span>=<span class="c-str">"ContentPage"</span> <span class="c-attr">ApplyToDerivedTypes</span>=<span class="c-str">"True"</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"BackgroundColor"</span>
-            <span class="c-attr">Value</span>=<span class="c-str">"{StaticResource Base}"</span> <span class="c-pun">/&gt;</span>
-<span class="c-pun">&lt;/</span><span class="c-tag">Style</span><span class="c-pun">&gt;</span>
-
-<span class="c-com">&lt;!-- Heading: Special Elite --&gt;</span>
-<span class="c-pun">&lt;</span><span class="c-tag">Style</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Heading"</span> <span class="c-attr">TargetType</span>=<span class="c-str">"Label"</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"FontFamily"</span> <span class="c-attr">Value</span>=<span class="c-str">"SpecialElite"</span> <span class="c-pun">/&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"FontSize"</span>   <span class="c-attr">Value</span>=<span class="c-str">"28"</span> <span class="c-pun">/&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"TextColor"</span>  <span class="c-attr">Value</span>=<span class="c-str">"{StaticResource TextPrimary}"</span> <span class="c-pun">/&gt;</span>
-<span class="c-pun">&lt;/</span><span class="c-tag">Style</span><span class="c-pun">&gt;</span>
-
-<span class="c-com">&lt;!-- Body / labels: PT Mono --&gt;</span>
-<span class="c-pun">&lt;</span><span class="c-tag">Style</span> <span class="c-attr">x:Key</span>=<span class="c-str">"Body"</span> <span class="c-attr">TargetType</span>=<span class="c-str">"Label"</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"FontFamily"</span> <span class="c-attr">Value</span>=<span class="c-str">"PTMono"</span> <span class="c-pun">/&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"FontSize"</span>   <span class="c-attr">Value</span>=<span class="c-str">"15"</span> <span class="c-pun">/&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"TextColor"</span>  <span class="c-attr">Value</span>=<span class="c-str">"{StaticResource TextSoft}"</span> <span class="c-pun">/&gt;</span>
-<span class="c-pun">&lt;/</span><span class="c-tag">Style</span><span class="c-pun">&gt;</span>
-
-<span class="c-com">&lt;!-- Primary button --&gt;</span>
-<span class="c-pun">&lt;</span><span class="c-tag">Style</span> <span class="c-attr">x:Key</span>=<span class="c-str">"BtnPrimary"</span> <span class="c-attr">TargetType</span>=<span class="c-str">"Button"</span><span class="c-pun">&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"FontFamily"</span>      <span class="c-attr">Value</span>=<span class="c-str">"SpecialElite"</span> <span class="c-pun">/&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"BackgroundColor"</span> <span class="c-attr">Value</span>=<span class="c-str">"{StaticResource Signal}"</span> <span class="c-pun">/&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"TextColor"</span>       <span class="c-attr">Value</span>=<span class="c-str">"{StaticResource Void}"</span> <span class="c-pun">/&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"CornerRadius"</span>     <span class="c-attr">Value</span>=<span class="c-str">"3"</span> <span class="c-pun">/&gt;</span>
-    <span class="c-pun">&lt;</span><span class="c-tag">Setter</span> <span class="c-attr">Property</span>=<span class="c-str">"Padding"</span>          <span class="c-attr">Value</span>=<span class="c-str">"26,12"</span> <span class="c-pun">/&gt;</span>
-<span class="c-pun">&lt;/</span><span class="c-tag">Style</span><span class="c-pun">&gt;</span></code></pre>
-
-      <h3>5 — Use it</h3>
-      <pre><span class="fname">SomePage.xaml</span><code><span class="c-pun">&lt;</span><span class="c-tag">VerticalStackLayout</span> <span class="c-attr">Spacing</span>=<span class="c-str">"16"</span> <span class="c-attr">Padding</span>=<span class="c-str">"24"</span><span class="c-pun">&gt;</span>
-
-    <span class="c-pun">&lt;</span><span class="c-tag">Label</span> <span class="c-attr">Text</span>=<span class="c-str">"NEAREST THREAT"</span>
-           <span class="c-attr">Style</span>=<span class="c-str">"{StaticResource Heading}"</span> <span class="c-pun">/&gt;</span>
-
-    <span class="c-pun">&lt;</span><span class="c-tag">Label</span> <span class="c-attr">Text</span>=<span class="c-str">"REAPER is 48m away. Break line of sight."</span>
-           <span class="c-attr">Style</span>=<span class="c-str">"{StaticResource Body}"</span> <span class="c-pun">/&gt;</span>
-
-    <span class="c-pun">&lt;</span><span class="c-tag">Button</span> <span class="c-attr">Text</span>=<span class="c-str">"HIDE NOW"</span>
-            <span class="c-attr">Style</span>=<span class="c-str">"{StaticResource BtnPrimary}"</span> <span class="c-pun">/&gt;</span>
-
-<span class="c-pun">&lt;/</span><span class="c-tag">VerticalStackLayout</span><span class="c-pun">&gt;</span></code></pre>
-
-      <p class="note">FONT LICENSING // Special Elite &amp; PT Mono are both Google Fonts under the SIL Open Font License — free to embed in the app. Ship the static TTFs; don't rely on a runtime web fetch on mobile.</p>
     </section>
 
     <p class="note" style="text-align:center;margin-top:60px">THE PREY // Design &amp; Style Manual v1.0 — END OF TRANSMISSION</p>

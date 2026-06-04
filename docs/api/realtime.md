@@ -153,7 +153,7 @@ Push notifications are delivered when the player's device is not connected to th
 
 ## Reconnection Strategy
 
-The MAUI app uses SignalR's built-in automatic reconnect with exponential backoff. During a reconnect gap:
+Clients use SignalR's built-in automatic reconnect with exponential backoff. During a reconnect gap:
 - The client timer continues running locally.
 - Location updates are queued and sent via REST as soon as connectivity is restored.
 - On reconnect, the client re-invokes `JoinGame` to re-subscribe to the game group.

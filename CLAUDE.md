@@ -2,14 +2,12 @@
 
 ## Project Overview
 
-**The Prey** is a location-based multiplayer game. Players create and edit playfields (GPS polygon areas) on a MAUI mobile app; game sessions happen inside those playfields. The backend is a modular-monolith ASP.NET Core 10 API hosted on Azure, orchestrated with .NET Aspire.
+**The Prey** is a location-based multiplayer game. Players create and edit playfields (GPS polygon areas); game sessions happen inside those playfields. This repository contains the backend only: a modular-monolith ASP.NET Core 10 API hosted on Azure, orchestrated with .NET Aspire. A client app (to be built separately) consumes the REST and real-time APIs.
 
 ## Repository Layout
 
 ```
 src/
-├── App/
-│   └── ThePrey.Application.App/        # .NET MAUI cross-platform app (iOS, Android)
 ├── Aspire/
 │   ├── ThePrey.Aspire.AppHost/          # Aspire orchestration entry point
 │   └── ThePrey.Aspire.ServiceDefaults/  # Shared OpenTelemetry + health check wiring
@@ -73,8 +71,6 @@ app.MapMyModuleEndpoints();
 
 The caller's identity is available in handlers via the `sub` claim (`principal.FindFirstValue("sub")`). `MapInboundClaims = false` is set in `ServiceDefaults`, so claims keep their JWT names.
 
-**App-side**: HTTP service classes must obtain the access token via `IAuthService.GetAccessTokenAsync()` — never read `IAuthService.AccessToken` directly. `GetAccessTokenAsync` silently refreshes expired tokens and throws `UnauthorizedException` when the session cannot be recovered.
-
 ### CQRS Pattern
 
 All application logic uses a lightweight CQRS pattern via `ICommandHandler<TCommand, TResult>` and `IQueryHandler<TQuery, TResult>` from `HexMaster.ThePrey.Core`. **Never use MediatR.**
@@ -115,64 +111,6 @@ catch (Exception ex)
 
 ---
 
-## MAUI App — Structure & Best Practices
-
-The app lives in `src/App/ThePrey.Application.App/`. It is a single-project MAUI app targeting Android and iOS.
-
-### Directory Layout
-
-```
-ThePrey.Application.App/
-├── Models/                  # Plain C# model classes (Playfield, PlayfieldCoordinate, etc.)
-├── Services/                # Service interfaces and implementations
-│   ├── IPlayfieldService    # HTTP API client
-│   ├── PlayfieldCacheService# Local JSON cache (FileSystem.AppDataDirectory)
-│   ├── PlayfieldSyncService # LWW sync orchestration (push unsynced → pull server)
-│   ├── PlayfieldEditingContext # Singleton state shared between Details and AreaEditor pages
-│   ├── IAuthService / AuthService  # Auth0 OIDC with SecureStorage refresh token
-│   └── StaleWriteException / UnauthorizedException
-├── Resources/
-│   └── Strings/
-│       ├── AppResources.resx    # English strings (neutral language)
-│       └── AppResources.nl.resx # Dutch strings
-├── AppLocalizer.cs          # Static typed wrapper over ResourceManager
-├── AppShell.xaml / .cs      # Shell navigation routes
-├── MauiProgram.cs           # DI registration
-├── PlayfieldsPage.xaml/.cs
-├── PlayfieldDetailsPage.xaml/.cs
-└── PlayfieldAreaEditorPage.xaml/.cs
-```
-
-### Service Layer Conventions
-
-- Services are registered as **singletons** in `MauiProgram.cs` unless stateful per-page (use transient for pages).
-- `IPlayfieldService` abstracts all HTTP calls; pages never call `HttpClient` directly.
-- The cache (`PlayfieldCacheService`) is the source of truth for list display; the sync service reconciles it with the server.
-- Keep business logic in services, not in page code-behind.
-
-### Reusable Controls
-
-When a UI pattern appears in more than one page (e.g., map centering logic, polygon drawing, location permission request), **extract it into a reusable control** in a `Controls/` folder rather than duplicating code. Examples of candidates:
-
-- Map display with polygon overlay → `PlayfieldMiniMapView`
-- Location-aware map initialization → shared helper or attached behavior
-- Tab bar with active/inactive style → `TabbedHeaderControl`
-
-Reusable controls improve testability, reduce duplication, and make the XAML easier to read. Follow MAUI ContentView patterns for controls.
-
-### XAML Conventions
-
-- Design tokens (colors, font families) must be defined in `Resources/Styles/Colors.xaml` / `AppTheme.xaml` — never hard-coded in XAML or code-behind.
-- Use `AppLocalizer.*` for all user-visible strings. Never hard-code English strings in XAML or code-behind.
-- Avoid code-behind logic that belongs in a service — page code-behind should only wire events and update UI state.
-
-### Localization
-
-- All new user-visible strings go in both `AppResources.resx` (English) and `AppResources.nl.resx` (Dutch).
-- Expose new strings as `static string` properties in `AppLocalizer.cs`.
-
----
-
 ## Build & Test Commands
 
 ```powershell
@@ -182,16 +120,16 @@ dotnet build src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/HexMaster.ThePrey
 # Run server unit tests
 dotnet test src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/
 
-# Build MAUI app (Android target)
-dotnet build src/App/ThePrey.Application.App/ThePrey.Application.App.csproj -f net10.0-android
+# Build the full backend solution
+dotnet build src/the-prey.slnx
 ```
 
 ---
 
 ## Key Architectural Decisions
 
+- **Backend only** — this repository contains no client/front-end code.
 - **No MediatR** — uses custom `ICommandHandler` / `IQueryHandler` from `HexMaster.ThePrey.Core`.
 - **No controller-based APIs** — all endpoints use ASP.NET Core Minimal APIs.
 - **Repository interfaces** belong in the module project (not Abstractions); only cross-module service ports go in Abstractions.
-- **Offline-first sync** — the app writes to cache first, uploads on best effort; `IsSynchronized` tracks pending uploads.
-- **Last-write-wins** on `LastUpdatedOn` — server rejects stale writes with 409; app adopts server copy on conflict.
+- **Last-write-wins** on `LastUpdatedOn` — server rejects stale writes with 409 so offline-capable clients can reconcile.

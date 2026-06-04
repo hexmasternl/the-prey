@@ -67,7 +67,7 @@
 ## 8. Aspire wiring
 
 - [x] 8.1 Add `GamesApi`, `Postgres`, and `GamesDatabase` entries to `AspireConstants.Resources`
-- [x] 8.2 Add `Aspire.Hosting.PostgreSQL` to the AppHost; in `AppHost.cs` add the Postgres server + `games` database and add the Games API project `WithReference(gamesDb).WaitFor(gamesDb)` (AppHost full build is blocked by a pre-existing MAUI-workload issue in `ThePrey.Application.App`, unrelated to this change)
+- [x] 8.2 Add `Aspire.Hosting.PostgreSQL` to the AppHost; in `AppHost.cs` add the Postgres server + `games` database and add the Games API project `WithReference(gamesDb).WaitFor(gamesDb)`
 
 ## 9. Tests (`HexMaster.ThePrey.Games.Tests`)
 

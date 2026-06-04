@@ -21,7 +21,7 @@ The domain follows the pragmatic-DDD guidance: a rich aggregate root with privat
 **Non-Goals:**
 - Automatic boundary-penalty *detection*. Deciding that a prey left the play field, or that a hunter moved during the head start, requires the `PlayField` geometry (a cross-module concern) and a real-time evaluation loop. This change models the penalty data, the toggles, and the `apply-penalty` / interval rules, and leaves the triggering orchestration to a later change.
 - Real-time push (SignalR/websockets), matchmaking, scoring, or end-of-game adjudication.
-- Any MAUI app / frontend work.
+- Any frontend work.
 - Reusing or refactoring the PlayFields `GpsCoordinate` into a shared kernel (see Decisions).
 
 ## Decisions

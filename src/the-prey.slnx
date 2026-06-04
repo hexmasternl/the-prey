@@ -1,9 +1,4 @@
 <Solution>
-  <Folder Name="/App/">
-    <Project Path="App/ThePrey.Application.App/ThePrey.Application.App.csproj">
-      <Deploy Solution="Debug|*" />
-    </Project>
-  </Folder>
   <Folder Name="/Aspire/">
     <Project Path="Aspire/ThePrey.Aspire.AppHost/ThePrey.Aspire.AppHost.csproj" Id="d84e51c3-a882-4aff-9929-24f696a8babe" />
     <Project Path="Aspire/ThePrey.Aspire.ServiceDefaults/ThePrey.Aspire.ServiceDefaults.csproj" />

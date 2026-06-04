@@ -66,5 +66,5 @@
 
 ## 10. Verification
 
-- [x] 10.1 `dotnet build` the solution and `dotnet test` the PlayFields tests — all green (all PlayFields projects build; 26/26 tests pass. NOTE: full-solution build is blocked only by a pre-existing MAUI `ThePrey.Application.App` workload/restore issue unrelated to this change; the AppHost's PlayFields + Azure Storage wiring compiles cleanly with `-p:BuildProjectReferences=false`.)
-- [ ] 10.2 Run the app via Aspire (`aspire run`) and confirm the PlayFields API starts with the Azurite emulator and the `/playfields` endpoints respond (create → get → list round-trip) — DEFERRED: requires a runnable Aspire environment with Docker (Azurite) and the MAUI workload restored; left for the user to run locally.
+- [x] 10.1 `dotnet build` the solution and `dotnet test` the PlayFields tests — all green (all PlayFields projects build; 26/26 tests pass.)
+- [ ] 10.2 Run the app via Aspire (`aspire run`) and confirm the PlayFields API starts with the Azurite emulator and the `/playfields` endpoints respond (create → get → list round-trip) — DEFERRED: requires a runnable Aspire environment with Docker (Azurite); left for the user to run locally.
