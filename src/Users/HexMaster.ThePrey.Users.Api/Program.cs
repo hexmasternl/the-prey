@@ -42,5 +42,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapUserEndpoints();
+app.MapInternalUserEndpoints();
 
 app.Run();

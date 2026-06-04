@@ -2,24 +2,31 @@ using ThePrey.Aspire.ServiceDefaults;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddDapr();
+var stateStore = builder
+    .AddDaprStateStore(AspireConstants.Resources.DaprStateStore)
+    .WithMetadata("keyPrefix", "none")
+    .WaitFor(redis);
 
-var usersApi = builder.AddProject<Projects.HexMaster_ThePrey_Users_Api>(AspireConstants.Resources.UsersApi)
-    .WithDaprSidecar();
 
 var storage = builder.AddAzureStorage(AspireConstants.Resources.Storage)
-    .RunAsEmulator();
+    .RunAsEmulator(azurite =>
+    {
+        azurite.WithLifetime(ContainerLifetime.Persistent);
+    });
 
 var usersTables = storage.AddTables(AspireConstants.Resources.UsersTables);
+var playFieldsTables = storage.AddTables(AspireConstants.Resources.PlayFieldsTables);
 
-usersApi
+var usersApi = builder.AddProject<Projects.HexMaster_ThePrey_Users_Api>(AspireConstants.Resources.UsersApi)
+    .WithDaprSidecar(dpr => dpr.WithStateStore(stateStore))
+    .WithEnvironment("DAPR_APP_API_TOKEN", "dev-dapr-token")
     .WithReference(usersTables)
     .WaitFor(usersTables);
 
-var playFieldsTables = storage.AddTables(AspireConstants.Resources.PlayFieldsTables);
 
 var playFieldsApi = builder.AddProject<Projects.HexMaster_ThePrey_PlayFields_Api>(AspireConstants.Resources.PlayFieldsApi)
     .WithReference(playFieldsTables)
+    .WithDaprSidecar(dpr => dpr.WithStateStore(stateStore))
     .WaitFor(playFieldsTables);
 
 var postgres = builder.AddPostgres(AspireConstants.Resources.Postgres);

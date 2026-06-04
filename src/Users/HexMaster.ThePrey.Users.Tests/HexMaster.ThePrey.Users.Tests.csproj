@@ -27,9 +27,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapr.AspNetCore" Version="1.15.0" />
+    <PackageReference Include="Azure.Data.Tables" Version="12.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\HexMaster.ThePrey.Users\HexMaster.ThePrey.Users.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Users.Abstractions\HexMaster.ThePrey.Users.Abstractions.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Users.Data.AzureTableStorage\HexMaster.ThePrey.Users.Data.AzureTableStorage.csproj" />
+    <ProjectReference Include="..\HexMaster.ThePrey.Users.Integration\HexMaster.ThePrey.Users.Integration.csproj" />
     <ProjectReference Include="..\..\Core\HexMaster.ThePrey.Core\HexMaster.ThePrey.Core.csproj" />
   </ItemGroup>
 

@@ -79,6 +79,62 @@ app.MapMyModuleEndpoints();
 - All endpoint groups must call `.RequireAuthorization()`.
 - Retrieve caller identity via `principal.FindFirstValue("sub")` — `MapInboundClaims = false` is set globally.
 
+## User Resolution — JWT Subject → UserId
+
+**All entities in all modules reference `Guid UserId`, never the JWT `sub` string (subjectId).** The `Users.Integration` project provides `IUserResolver` — a Dapr-backed, TTL-cached resolver — as the single, canonical way to translate a subjectId to a `UserDto`.
+
+### Endpoint Pattern
+
+Every protected endpoint that needs the caller's identity must:
+1. Extract the `sub` claim → `subjectId` string
+2. Call `IUserResolver.ResolveUser(subjectId, ct)` → `UserDto?`
+3. Return 401 if either is null
+4. Pass `user.Id` (a `Guid`) to commands/queries
+
+```csharp
+private static async Task<IResult> CreateSomething(
+    [FromBody] CreateSomethingRequest request,
+    ClaimsPrincipal principal,
+    IUserResolver userResolver,
+    ICommandHandler<CreateSomethingCommand, CreateSomethingResult> handler,
+    CancellationToken ct)
+{
+    var subjectId = principal.FindFirstValue("sub");
+    if (subjectId is null)
+        return Results.Unauthorized();
+
+    var user = await userResolver.ResolveUser(subjectId, ct);
+    if (user is null)
+        return Results.Unauthorized();
+
+    var command = new CreateSomethingCommand(user.Id, request.Name);
+    var result = await handler.Handle(command, ct);
+    return Results.Created($"/something/{result.Id}", result.Dto);
+}
+```
+
+### Registration
+
+Every module that needs user resolution must register the resolver in `Program.cs`:
+
+```csharp
+builder.Services.AddUserResolver();   // from HexMaster.ThePrey.Users.Integration
+builder.Services.AddDaprClient();     // required by UserResolver (may already be registered)
+```
+
+And add a project reference to `HexMaster.ThePrey.Users.Integration`.
+
+### Key Types
+
+| Type | Namespace | Purpose |
+|---|---|---|
+| `IUserResolver` | `HexMaster.ThePrey.Users.Integration` | Resolve subjectId → `UserDto` |
+| `UserResolverRegistration.AddUserResolver()` | same | DI extension method |
+| `UserResolverOptions` | same | Config: `StateStoreName`, `CacheTtlSeconds`, `UsersAppId` |
+| `UserDto.Id` | `HexMaster.ThePrey.Users.Abstractions` | The `Guid` to pass to commands/queries |
+
+The resolver checks Dapr state store first (fast, cached). On miss it calls the Users API via Dapr service invocation, then writes back to cache with a configurable TTL (default 5 min).
+
 ## Unit Testing Standards
 
 You are **eager** about tests. Every feature you implement gets comprehensive unit tests.
@@ -142,6 +198,8 @@ Before delivering any implementation, confirm:
 - [ ] OTel activity started and error-tagged in every handler
 - [ ] `.RequireAuthorization()` on endpoint groups
 - [ ] Auth middleware order correct in Program.cs
+- [ ] Endpoints resolve `user.Id` (Guid) via `IUserResolver`, never pass raw `sub` string to commands/queries
+- [ ] `AddUserResolver()` + `AddDaprClient()` registered in `Program.cs` when user resolution is needed
 - [ ] `sealed record` for commands, queries, and DTOs
 - [ ] Handler registered in `{Domain}ModuleRegistration.cs`
 - [ ] Unit tests written with xUnit + Moq + Bogus

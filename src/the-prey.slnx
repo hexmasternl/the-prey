@@ -28,6 +28,7 @@
     <Project Path="Users/HexMaster.ThePrey.Users.Abstractions/HexMaster.ThePrey.Users.Abstractions.csproj" />
     <Project Path="Users/HexMaster.ThePrey.Users.Api/HexMaster.ThePrey.Users.Api.csproj" />
     <Project Path="Users/HexMaster.ThePrey.Users.Data.AzureTableStorage/HexMaster.ThePrey.Users.Data.AzureTableStorage.csproj" />
+    <Project Path="Users/HexMaster.ThePrey.Users.Integration/HexMaster.ThePrey.Users.Integration.csproj" />
     <Project Path="Users/HexMaster.ThePrey.Users.Tests/HexMaster.ThePrey.Users.Tests.csproj" />
     <Project Path="Users/HexMaster.ThePrey.Users/HexMaster.ThePrey.Users.csproj" />
   </Folder>

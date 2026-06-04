@@ -2,6 +2,7 @@ using HexMaster.ThePrey.Users.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Users.DomainModels;
 using HexMaster.ThePrey.Users.Features.CreateUser;
 using HexMaster.ThePrey.Users.Observability;
+using HexMaster.ThePrey.Users.Services;
 using HexMaster.ThePrey.Users.Tests.Factories;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -10,17 +11,19 @@ namespace HexMaster.ThePrey.Users.Tests.CreateUser;
 
 public sealed class CreateUserCommandHandlerTests
 {
-    private readonly Mock<IUserRepository> _mockRepository;
-    private readonly Mock<IUserMetrics> _mockMetrics;
-    private readonly Mock<ILogger<CreateUserCommandHandler>> _mockLogger;
+    private readonly Mock<IUserRepository> _mockRepository = new();
+    private readonly Mock<IUserCacheService> _mockCache = new();
+    private readonly Mock<IUserMetrics> _mockMetrics = new();
+    private readonly Mock<ILogger<CreateUserCommandHandler>> _mockLogger = new();
     private readonly CreateUserCommandHandler _handler;
 
     public CreateUserCommandHandlerTests()
     {
-        _mockRepository = new Mock<IUserRepository>();
-        _mockMetrics = new Mock<IUserMetrics>();
-        _mockLogger = new Mock<ILogger<CreateUserCommandHandler>>();
-        _handler = new CreateUserCommandHandler(_mockRepository.Object, _mockMetrics.Object, _mockLogger.Object);
+        _handler = new CreateUserCommandHandler(
+            _mockRepository.Object,
+            _mockCache.Object,
+            _mockMetrics.Object,
+            _mockLogger.Object);
     }
 
     [Fact]
@@ -76,5 +79,50 @@ public sealed class CreateUserCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.Equal("noname@example.com", result.User.DisplayName);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPopulateCache_AfterUserCreated()
+    {
+        // Arrange
+        var command = new CreateUserCommand("auth0|new", "Bob", "Jones", "bob@example.com", true, "en");
+
+        _mockRepository
+            .Setup(r => r.GetBySubjectIdAsync(command.SubjectId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        _mockCache.Verify(
+            c => c.SetAsync(
+                command.SubjectId,
+                It.Is<UserCacheEntry>(e => e.PreferredLanguage == "en"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPopulateCache_AfterExistingUserSynced()
+    {
+        // Arrange
+        var existing = UserFaker.CreateValid(subjectId: "auth0|existing");
+        var command = new CreateUserCommand("auth0|existing", "Updated", null, "updated@example.com", true, "en");
+
+        _mockRepository
+            .Setup(r => r.GetBySubjectIdAsync(command.SubjectId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        _mockCache.Verify(
+            c => c.SetAsync(
+                command.SubjectId,
+                It.Is<UserCacheEntry>(e => e.UserId == existing.Id),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }

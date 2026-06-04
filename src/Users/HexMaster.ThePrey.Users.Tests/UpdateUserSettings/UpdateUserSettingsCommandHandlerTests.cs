@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Users.DomainModels;
 using HexMaster.ThePrey.Users.Features.UpdateUserSettings;
+using HexMaster.ThePrey.Users.Services;
 using HexMaster.ThePrey.Users.Tests.Factories;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -8,14 +9,15 @@ namespace HexMaster.ThePrey.Users.Tests.UpdateUserSettings;
 
 public sealed class UpdateUserSettingsCommandHandlerTests
 {
-    private readonly Mock<IUserRepository> _mockRepository;
+    private readonly Mock<IUserRepository> _mockRepository = new();
+    private readonly Mock<IUserCacheService> _mockCache = new();
     private readonly UpdateUserSettingsCommandHandler _handler;
 
     public UpdateUserSettingsCommandHandlerTests()
     {
-        _mockRepository = new Mock<IUserRepository>();
         _handler = new UpdateUserSettingsCommandHandler(
             _mockRepository.Object,
+            _mockCache.Object,
             Mock.Of<ILogger<UpdateUserSettingsCommandHandler>>());
     }
 
@@ -87,5 +89,53 @@ public sealed class UpdateUserSettingsCommandHandlerTests
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _handler.Handle(null!, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUpdateCache_AfterSettingsUpdated()
+    {
+        // Arrange
+        const string subjectId = "auth0|cache";
+        var user = UserFaker.CreateValid(subjectId: subjectId);
+
+        _mockRepository
+            .Setup(r => r.GetBySubjectIdAsync(subjectId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        var command = new UpdateUserSettingsCommand(subjectId, "NightOwl", "nl");
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert — cache should be updated with the new callsign
+        _mockCache.Verify(
+            c => c.SetAsync(
+                subjectId,
+                It.Is<UserCacheEntry>(e =>
+                    e.UserId == user.Id &&
+                    e.Callsign == "NightOwl" &&
+                    e.PreferredLanguage == "nl"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotUpdateCache_WhenUserDoesNotExist()
+    {
+        // Arrange
+        _mockRepository
+            .Setup(r => r.GetBySubjectIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+
+        var command = new UpdateUserSettingsCommand("auth0|ghost", "Reaper", "en");
+
+        // Act
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(command, CancellationToken.None));
+
+        // Assert
+        _mockCache.Verify(
+            c => c.SetAsync(It.IsAny<string>(), It.IsAny<UserCacheEntry>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }
