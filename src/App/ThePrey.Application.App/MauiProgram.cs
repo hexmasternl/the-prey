@@ -47,17 +47,18 @@ public static class MauiProgram
                 fonts.AddFont("PTMono-Regular.ttf", "PTMono");
             });
 
+
         // The whole OAuth flow (PKCE login, code exchange, refresh, revoke) is raw HTTP inside
         // AuthService; the Auth0.OidcClient library is no longer used at runtime.
         builder.Services.AddSingleton<IAuthService, AuthService>();
 
         builder.Services.AddHttpClient("playfields", client =>
         {
-            client.BaseAddress = BackendUrl;
+            client.BaseAddress = new Uri("https://localhost:65190");
         });
         builder.Services.AddHttpClient("games", client =>
         {
-            client.BaseAddress = BackendUrl;
+            client.BaseAddress = new Uri("https://localhost:65190");
         });
         builder.Services.AddSingleton<IPlayfieldService, PlayfieldService>();
         builder.Services.AddSingleton<IGameService, GameService>();

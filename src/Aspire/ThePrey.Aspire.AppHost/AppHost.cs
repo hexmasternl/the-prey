@@ -30,8 +30,5 @@ var gateway = builder.AddYarp(AspireConstants.Resources.Gateway)
         yarp.AddRoute("/games/{**catch-all}", gamesApi);
     });
 
-builder.AddProject<Projects.ThePrey_Application_App>(AspireConstants.Resources.MauiApp)
-    .WithEnvironment("BACKEND_URL", gateway.GetEndpoint("https"))
-    .WaitFor(gateway);
 
 builder.Build().Run();
