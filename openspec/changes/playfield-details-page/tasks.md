@@ -6,7 +6,7 @@
 ## 2. Playfield Service
 
 - [x] 2.1 Create `src/ThePrey/src/app/playfields/playfield.model.ts` with the `Playfield` interface (id, name, isPublic, coordinates: `{lat, lon}[]`)
-- [ ] 2.2 Create `src/ThePrey/src/app/playfields/playfield.service.ts` with `getById(id: string)` (`GET /playfields/:id`) and `patchVisibility(id: string, isPublic: boolean)` (`PATCH /playfields/:id`)
+- [x] 2.2 Create `src/ThePrey/src/app/playfields/playfield.service.ts` with `getById(id: string)` (`GET /playfields/:id`) and `patchVisibility(id: string, isPublic: boolean)` (`PATCH /playfields/:id`)
 
 ## 3. Map Component
 
