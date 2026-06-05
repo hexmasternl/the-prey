@@ -1,24 +1,210 @@
-.config-section {
-  margin-bottom: 24px;
+:host {
+  display: block;
+  background: var(--tp-bg-void);
+}
+
+ion-content {
+  --background: transparent;
+  --padding-top: 0;
+}
+
+ion-header ion-toolbar {
+  --background: rgba(12, 14, 12, 0.85);
+  --border-color: rgba(100, 255, 0, 0.18);
+  backdrop-filter: blur(10px);
+}
+
+// Animated tactical background
+.tac-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+
+  &__grid {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(100, 255, 0, 0.06) 1px, transparent 1px);
+    background-size: 36px 36px;
+  }
+
+  &__radar {
+    position: absolute;
+    bottom: -180px;
+    right: -180px;
+    width: 550px;
+    height: 550px;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      rgba(100, 255, 0, 0.14) 45deg,
+      transparent 70deg
+    );
+    animation: radar-spin 5s linear infinite;
+  }
+
+  &__scanline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(100, 255, 0, 0.6) 50%,
+      transparent 100%
+    );
+    animation: scanline-sweep 8s linear infinite;
+  }
+}
+
+// Content wrapper — sits above the background
+.content-wrap {
+  position: relative;
+  z-index: 1;
+  padding: 0 20px 32px;
+}
+
+// Corner brackets
+.br {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--tp-signal);
+  opacity: 0.7;
+
+  &.tl  { top: 0;    left: 0;   border-right: 0; border-bottom: 0; }
+  &.tr  { top: 0;    right: 0;  border-left: 0;  border-bottom: 0; }
+  &.bl  { bottom: 0; left: 0;   border-right: 0; border-top: 0;    }
+  &.brr { bottom: 0; right: 0;  border-left: 0;  border-top: 0;    }
+}
+
+// Operation header block
+.op-header {
+  position: relative;
+  padding: 20px 0 24px;
+  border-bottom: 1px solid var(--tp-line);
+  margin-bottom: 20px;
+}
+
+.op-tag {
+  font-family: var(--tp-body);
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--tp-signal-dim);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.op-title {
+  font-family: var(--tp-head);
+  font-size: clamp(28px, 8vw, 44px);
+  line-height: 1;
+  color: var(--tp-text);
+  letter-spacing: 1px;
+  margin: 0 0 8px;
+}
+
+.op-sub {
+  font-family: var(--tp-body);
+  font-size: 12px;
+  color: var(--tp-text-soft);
+  letter-spacing: 1px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+// Config form
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.config-panel {
+  position: relative;
+  background: rgba(35, 39, 31, 0.7);
+  border: 1px solid rgba(57, 64, 47, 0.8);
+  border-left: 2px solid rgba(100, 255, 0, 0.45);
+  padding: 14px 14px 12px 16px;
 }
 
 .config-label {
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  color: var(--ion-color-medium);
+  font-family: var(--tp-body);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--tp-signal-dim);
+  text-transform: uppercase;
   margin-bottom: 8px;
-  text-transform: uppercase;
 }
 
-.config-unit {
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  color: var(--ion-color-medium);
-  margin-top: 4px;
-  text-transform: uppercase;
-  text-align: right;
+.tac-select {
+  --background: var(--tp-bg-void);
+  --color: var(--tp-text);
+  --border-color: rgba(100, 255, 0, 0.25);
+  --border-radius: 2px;
+  --border-width: 1px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --highlight-color-focused: var(--tp-signal);
+  --placeholder-color: var(--tp-text-soft);
+  font-family: var(--tp-body);
+  font-size: 15px;
+  letter-spacing: 1px;
+  width: 100%;
 }
 
-.create-btn {
-  margin-top: 16px;
+.playfield-btn {
+  --border-color: rgba(100, 255, 0, 0.3);
+  --border-radius: 2px;
+  --color: var(--tp-text);
+  --background: var(--tp-bg-void);
+  --background-activated: var(--tp-bg-surface);
+  font-family: var(--tp-body);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+// Deploy zone
+.deploy-zone {
+  position: relative;
+  margin-top: 24px;
+  padding: 20px 0 8px;
+  border-top: 1px solid var(--tp-line);
+}
+
+.deploy-btn {
+  --border-radius: 2px;
+  font-family: var(--tp-head);
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+
+  &:not([disabled]) {
+    animation: deploy-pulse 2.5s ease-in-out infinite;
+  }
+}
+
+// Keyframes
+@keyframes radar-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes scanline-sweep {
+  0%   { top: -4px;   opacity: 0; }
+  5%   { opacity: 0.8; }
+  95%  { opacity: 0.6; }
+  100% { top: 100vh;  opacity: 0; }
+}
+
+@keyframes deploy-pulse {
+  0%, 100% { --box-shadow: 0 0 12px rgba(100, 255, 0, 0.2); }
+  50%       { --box-shadow: 0 0 28px rgba(100, 255, 0, 0.5); }
 }
