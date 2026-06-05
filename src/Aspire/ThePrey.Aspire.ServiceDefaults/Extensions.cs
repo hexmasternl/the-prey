@@ -51,6 +51,8 @@ public static class Extensions
         //     options.AllowedSchemes = ["https"];
         // });
 
+        builder.Services.AddDaprClient();
+
         return builder;
     }
 
