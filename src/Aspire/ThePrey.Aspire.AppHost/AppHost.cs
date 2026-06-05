@@ -56,6 +56,7 @@ var gateway = builder.AddYarp(AspireConstants.Resources.Gateway)
         yarp.AddRoute("/users/{**catch-all}", usersApi);
         yarp.AddRoute("/playfields/{**catch-all}", playFieldsApi);
         yarp.AddRoute("/games/{**catch-all}", gamesApi);
+        yarp.AddRoute("/game-engine/{**catch-all}", gamesApi);
     });
 
 

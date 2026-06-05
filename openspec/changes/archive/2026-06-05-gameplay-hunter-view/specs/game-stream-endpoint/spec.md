@@ -1,3 +1,8 @@
+## RENAMED Requirements
+
+- FROM: `### Requirement: participant-located event emitted when hunter location is updated`
+- TO: `### Requirement: participant-located event emitted when any participant location is updated`
+
 ## MODIFIED Requirements
 
 ### Requirement: participant-located event emitted when any participant location is updated

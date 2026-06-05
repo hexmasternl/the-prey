@@ -3,9 +3,7 @@
 ## Purpose
 
 The games capability lets an authenticated player create a game on a play field, gather players in a lobby, start the game by designating a hunter (all other lobby members become preys), and track participant GPS locations, penalties, and reporting intervals while the game is in progress. Games are persisted durably in PostgreSQL through a dedicated data adapter.
-
 ## Requirements
-
 ### Requirement: Game creation
 
 The system SHALL allow an authenticated player to create a game by providing the identifier of a play field and a complete game configuration. The creating player SHALL become the owner of the game. A newly created game SHALL be assigned a unique identifier, SHALL start in the **Lobby** state with an empty lobby, no hunter, and no preys, and SHALL be persisted.
@@ -51,12 +49,22 @@ A game's configuration SHALL be valid as a whole. `GameDuration`, `DefaultLocati
 
 ### Requirement: Lobby management
 
-The system SHALL allow authenticated players to join the lobby of a game that is in the Lobby state. The lobby SHALL hold a collection of players, each identified by a unique `UserId` and carrying a `DisplayName` and an optional profile picture. A player MUST NOT appear in the lobby more than once. Players MUST NOT join a game that has already started or completed.
+The system SHALL allow authenticated players to join the lobby of a game that is in the Lobby state by supplying a valid 8-digit numeric join code. The supplied join code MUST match the join code assigned to the game at creation. The lobby SHALL hold a collection of players, each identified by a unique `UserId` and carrying a `DisplayName` and an optional profile picture. A player MUST NOT appear in the lobby more than once. Players MUST NOT join a game that has already started or completed.
 
-#### Scenario: Player joins an open lobby
+#### Scenario: Player joins an open lobby with the correct join code
 
-- **WHEN** an authenticated player joins the lobby of a game that is in the Lobby state and they are not already a member
+- **WHEN** an authenticated player joins the lobby of a game that is in the Lobby state, provides the correct 8-digit join code, and is not already a member
 - **THEN** the system adds the player to the lobby and returns the updated game
+
+#### Scenario: Join is rejected when the join code is wrong
+
+- **WHEN** an authenticated player submits a join request with an incorrect join code
+- **THEN** the system rejects the request with HTTP 400 Bad Request and the lobby is unchanged
+
+#### Scenario: Join is rejected when the join code is missing or malformed
+
+- **WHEN** an authenticated player submits a join request with a missing, empty, or non-8-digit join code
+- **THEN** the system rejects the request with a validation error and the lobby is unchanged
 
 #### Scenario: Joining the same lobby twice is rejected
 
@@ -209,3 +217,40 @@ The system SHALL persist games durably in PostgreSQL through Entity Framework Co
 
 - **WHEN** the game domain model is inspected
 - **THEN** it contains no Entity Framework Core attributes or types, and the data adapter is solely responsible for mapping to and from the relational schema
+
+### Requirement: LobbyPlayerDto exposes IsReady and DesignatedHunter
+The `LobbyPlayerDto` returned in `GameDto.Lobby` SHALL include `IsReady` (whether the player has acknowledged the current settings) and `DesignatedHunter` (whether the game owner has tapped this player to be the hunter when the game starts).
+
+#### Scenario: Retrieve game with lobby shows IsReady and DesignatedHunter
+- **WHEN** an authenticated player retrieves a game in the Lobby state
+- **THEN** each entry in the `Lobby` array includes `IsReady` (boolean) and `DesignatedHunter` (boolean)
+
+### Requirement: Game carries a designated hunter field
+The `Game` aggregate SHALL track at most one `DesignatedHunterUserId` (nullable `Guid`). It is set when `POST /games/{id}/hunter` is called and cleared when the designated player is removed from the lobby.
+
+#### Scenario: Designated hunter reflected in the lobby list
+- **WHEN** the owner designates a player as hunter via `POST /games/{id}/hunter`
+- **THEN** the corresponding `LobbyPlayerDto` in the returned game has `DesignatedHunter = true` and all others have `DesignatedHunter = false`
+
+#### Scenario: Designation cleared when designated player is removed
+- **WHEN** the owner removes the player who is currently the designated hunter
+- **THEN** the returned game has no player with `DesignatedHunter = true`
+
+### Requirement: Expose game status endpoint
+
+The Games module SHALL register the route `GET /games/{id}/status` mapped to a `GetGameStatus` query handler. The route SHALL be inside the authenticated endpoint group (`.RequireAuthorization()`). Full behavior is specified in the `game-status-endpoint` capability spec.
+
+#### Scenario: Route registered and reachable
+
+- **WHEN** the Games API is started and an authenticated participant calls GET /games/{id}/status
+- **THEN** the request is handled by the GetGameStatus query handler and returns HTTP 200 or an appropriate error code
+
+### Requirement: Expose gameplay SSE stream endpoint
+
+The Games module SHALL register the route `GET /games/{id}/stream` mapped to the `StreamGameEvents` SSE handler. The route SHALL be inside the authenticated endpoint group (`.RequireAuthorization()`). Full behavior is specified in the `game-stream-endpoint` capability spec.
+
+#### Scenario: Route registered and reachable
+
+- **WHEN** the Games API is started and an authenticated participant opens a connection to GET /games/{id}/stream
+- **THEN** the connection is accepted and the SSE stream begins
+

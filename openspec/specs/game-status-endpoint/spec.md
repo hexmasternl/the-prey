@@ -1,5 +1,8 @@
-## MODIFIED Requirements
+# game-status-endpoint Specification
 
+## Purpose
+TBD - created by archiving change gameplay-prey-view. Update Purpose after archive.
+## Requirements
 ### Requirement: GET /games/{gameId}/status returns participant-scoped HUD snapshot
 
 The system SHALL expose `GET /games/{id}/status` that returns a `GameStatusDto` scoped to the authenticated calling participant. The response SHALL include: current game status string, time remaining in seconds, number of active preys, the caller's role, whether the caller has an active penalty, the caller's current reporting interval in seconds, the playfield's GPS boundary polygon (list of coordinates), and an array of participant snapshots (`Participants`) each carrying the participant's role and their last known GPS coordinate (null when no location has been recorded). The endpoint SHALL require authentication. The endpoint SHALL return HTTP 404 when the game does not exist. The endpoint SHALL return HTTP 403 when the authenticated user is not a participant of the game. The endpoint SHALL return HTTP 409 when the game is not in the InProgress state.
@@ -71,3 +74,4 @@ The `GameStatusDto` returned by `GET /games/{id}/status` SHALL include a `Partic
 
 - **WHEN** the game was started and some lobby members were not assigned a role
 - **THEN** those unassigned members do not appear in the `Participants` array
+
