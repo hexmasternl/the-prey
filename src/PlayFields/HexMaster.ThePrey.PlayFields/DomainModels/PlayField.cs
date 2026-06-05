@@ -13,7 +13,7 @@ public sealed class PlayField
 
     public Guid Id { get; private set; }
     public string Name { get; private set; } = string.Empty;
-    public string OwnerId { get; private set; } = string.Empty;
+    public Guid OwnerId { get; private set; }
     public bool IsPublic { get; private set; }
     public DateTimeOffset LastModifiedOn { get; private set; }
     public GpsCoordinate? CenterCoordinates { get; private set; }
@@ -32,14 +32,14 @@ public sealed class PlayField
     /// <summary>Creates a new play field, enforcing all domain invariants.</summary>
     public static PlayField Create(
         string name,
-        string ownerId,
+        Guid ownerId,
         IReadOnlyList<GpsCoordinate> points,
         bool isPublic,
         Guid? id = null,
         DateTimeOffset? lastModifiedOn = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(ownerId);
+        if (ownerId == Guid.Empty) throw new ArgumentException("OwnerId must not be empty.", nameof(ownerId));
         ArgumentNullException.ThrowIfNull(points);
 
         if (points.Count < MinimumPoints)
@@ -65,7 +65,7 @@ public sealed class PlayField
     public static PlayField Rehydrate(
         Guid id,
         string name,
-        string ownerId,
+        Guid ownerId,
         bool isPublic,
         IReadOnlyList<GpsCoordinate> points,
         DateTimeOffset lastModifiedOn,

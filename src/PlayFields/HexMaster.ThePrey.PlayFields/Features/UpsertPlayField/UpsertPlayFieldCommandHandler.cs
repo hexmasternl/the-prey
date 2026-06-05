@@ -51,7 +51,7 @@ public sealed class UpsertPlayFieldCommandHandler
                 return new UpsertPlayFieldResult.Created(created.ToDto());
             }
 
-            if (!string.Equals(existing.OwnerId, command.OwnerId, StringComparison.Ordinal))
+            if (existing.OwnerId != command.OwnerId)
                 return new UpsertPlayFieldResult.Forbidden();
 
             if (command.LastUpdatedOn < existing.LastModifiedOn)

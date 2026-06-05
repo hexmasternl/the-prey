@@ -4,7 +4,7 @@ namespace HexMaster.ThePrey.PlayFields.Features.UpsertPlayField;
 
 public sealed record UpsertPlayFieldCommand(
     Guid Id,
-    string OwnerId,
+    Guid OwnerId,
     string Name,
     bool IsPublic,
     IReadOnlyList<GpsCoordinateDto> Points,

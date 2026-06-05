@@ -3,7 +3,7 @@ using HexMaster.ThePrey.PlayFields.Abstractions.DataTransferObjects;
 namespace HexMaster.ThePrey.PlayFields.Features.CreatePlayField;
 
 public sealed record CreatePlayFieldCommand(
-    string OwnerId,
+    Guid OwnerId,
     string Name,
     bool IsPublic,
     IReadOnlyList<GpsCoordinateDto> Points);

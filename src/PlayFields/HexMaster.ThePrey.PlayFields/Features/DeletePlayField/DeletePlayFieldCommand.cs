@@ -1,6 +1,6 @@
 namespace HexMaster.ThePrey.PlayFields.Features.DeletePlayField;
 
-public sealed record DeletePlayFieldCommand(Guid PlayFieldId, string OwnerId);
+public sealed record DeletePlayFieldCommand(Guid PlayFieldId, Guid OwnerId);
 
 public abstract record DeletePlayFieldResult
 {
