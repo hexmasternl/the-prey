@@ -1,30 +1,35 @@
 ## ADDED Requirements
 
-### Requirement: Join-by-code page resolves and joins the game
+### Requirement: Join page accepts game ID and requires manual code entry
 
-The system SHALL provide a client-side page at route `games/join/:code` that accepts an alphanumeric game code as a route parameter. The page SHALL be protected by the authentication guard so unauthenticated users are redirected to login first and return to the join page after authenticating. On load, the page SHALL call the backend to resolve the game code to a `GameDto`. If the game is found, the page SHALL automatically call the join API (`POST /games/{id}/lobby`) using the current user's display name and profile picture. On success (or when the error indicates the player is already a member), the page SHALL navigate the user to `/games/{id}/lobby`. If the game is not found or is no longer in the Lobby state, the page SHALL display an error and provide a link back to the home screen.
+The system SHALL provide a client-side page at route `games/join` that reads the game GUID from the `gameId` query parameter. The page SHALL be protected by the authentication guard so unauthenticated users are redirected to login first. On load, the page SHALL fetch the game by ID (`GET /games/{id}`) and display a text input where the user must enter the 8-digit game code. On submit, the entered code SHALL be compared against the fetched game's `gameCode` (case-insensitive). If the codes do not match, the page SHALL display an "incorrect code" error and allow the user to try again. If the codes match, the page SHALL call the join API (`POST /games/{id}/lobby`). On a successful join (or when the error indicates the player is already a member), the page SHALL navigate the user to `/games/{id}/lobby`. If the game is not found, or is no longer in the Lobby state, the page SHALL display an appropriate error and provide a link back to the home screen.
 
-#### Scenario: User follows a valid deep link and is joined
+#### Scenario: User enters the correct code and joins
 
-- **WHEN** an authenticated user navigates to `/games/join/HUNT42` and the game with code HUNT42 is in the Lobby state
-- **THEN** the page resolves the game, calls the join endpoint, and navigates to `/games/{id}/lobby`
+- **WHEN** an authenticated user navigates to `/games/join?gameId=<id>`, enters the correct 8-digit game code, and the game is in the Lobby state
+- **THEN** the join endpoint is called and the user is navigated to `/games/{id}/lobby`
 
-#### Scenario: User who is already a lobby member follows the link
+#### Scenario: User enters an incorrect code
 
-- **WHEN** an authenticated user navigates to `/games/join/HUNT42` and they are already in the lobby
-- **THEN** the page detects the "already a member" response and navigates to `/games/{id}/lobby` without showing an error
+- **WHEN** an authenticated user navigates to `/games/join?gameId=<id>` and submits a code that does not match the game's code
+- **THEN** an "incorrect code" error is displayed and the user can try again without being joined
 
-#### Scenario: Unknown game code shows error
+#### Scenario: User who is already a lobby member submits the correct code
 
-- **WHEN** an authenticated user navigates to `/games/join/BADCODE` and no game with that code exists
+- **WHEN** an authenticated user navigates to `/games/join?gameId=<id>`, enters the correct code, and they are already in the lobby
+- **THEN** the page detects the "already a member" response from the join endpoint and navigates to `/games/{id}/lobby` without showing an error
+
+#### Scenario: Unknown game ID shows error
+
+- **WHEN** an authenticated user navigates to `/games/join?gameId=<unknown-id>` and no game with that ID exists
 - **THEN** the page displays an error message and a link to the home screen
 
 #### Scenario: Game no longer accepting players shows error
 
-- **WHEN** an authenticated user navigates to `/games/join/HUNT42` and the game is in the InProgress or Completed state
-- **THEN** the page displays an appropriate error (game has already started) and a link to the home screen
+- **WHEN** an authenticated user submits a correct code for a game that is no longer in the Lobby state
+- **THEN** the page displays an error (game has already started) and a link to the home screen
 
 #### Scenario: Unauthenticated user is redirected to login
 
-- **WHEN** an unauthenticated user follows a deep link to `/games/join/HUNT42`
-- **THEN** the authentication guard redirects them to the login page, and after successful login they are returned to the join flow
+- **WHEN** an unauthenticated user follows a deep link to `/games/join?gameId=<id>`
+- **THEN** the authentication guard redirects them to the login page; after successful login they are returned to the join page

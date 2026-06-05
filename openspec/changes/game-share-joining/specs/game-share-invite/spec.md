@@ -2,7 +2,7 @@
 
 ### Requirement: Share button on lobby page
 
-The lobby page SHALL display a share button next to the game code. The button SHALL only be visible when the Web Share API (`navigator.share`) is available on the device. When tapped, the button SHALL invoke the native Web Share API with a pre-composed message. The message SHALL include an invitation text stating the user is invited to join a game on "The Prey", a deep link URL to the join page (`/games/join/<gameCode>`), and SHALL end with the game code. The share action SHALL be available to any player currently viewing the lobby (owner and non-owner alike).
+The lobby page SHALL display a share button next to the game code. The button SHALL only be visible when the Web Share API (`navigator.share`) is available on the device. When tapped, the button SHALL invoke the native Web Share API with a pre-composed message. The message SHALL include an invitation text stating the user is invited to join a game on "The Prey", a deep link URL of the form `/games/join?gameId=<id>` (where `<id>` is the game's GUID), and SHALL end with the 8-digit game code. The share action SHALL be available to any player currently viewing the lobby (owner and non-owner alike).
 
 #### Scenario: Share button appears when Web Share API is available
 
@@ -17,12 +17,12 @@ The lobby page SHALL display a share button next to the game code. The button SH
 #### Scenario: Tapping share invokes the native share sheet
 
 - **WHEN** a player taps the share button
-- **THEN** the native share sheet opens with a message containing an invitation to join "The Prey", the deep link URL to the join page, and the game code at the end
+- **THEN** the native share sheet opens with a message containing an invitation to join "The Prey", the deep link URL with the game's GUID as the `gameId` query parameter, and the 8-digit game code at the end
 
-#### Scenario: Share message contains correct deep link
+#### Scenario: Share message contains the game GUID in the URL
 
-- **WHEN** the share sheet is opened for a game with code "HUNT42"
-- **THEN** the shared URL points to the app's join route for that code and the message ends with "HUNT42"
+- **WHEN** the share sheet is opened for a game with id "abc-123" and code "HUNT4200"
+- **THEN** the shared URL is `/games/join?gameId=abc-123` and the message ends with "HUNT4200"
 
 #### Scenario: Share button is visible to non-owners
 
