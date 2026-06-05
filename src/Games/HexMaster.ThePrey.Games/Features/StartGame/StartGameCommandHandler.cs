@@ -12,6 +12,7 @@ public sealed class StartGameCommandHandler : ICommandHandler<StartGameCommand, 
     private readonly IGameMetrics _metrics;
     private readonly IGameEventBus _eventBus;
     private readonly ILobbyEventBus _lobbyEventBus;
+    private readonly IGameEngineTrigger _engineTrigger;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<StartGameCommandHandler> _logger;
 
@@ -20,6 +21,7 @@ public sealed class StartGameCommandHandler : ICommandHandler<StartGameCommand, 
         IGameMetrics metrics,
         IGameEventBus eventBus,
         ILobbyEventBus lobbyEventBus,
+        IGameEngineTrigger engineTrigger,
         TimeProvider timeProvider,
         ILogger<StartGameCommandHandler> logger)
     {
@@ -27,6 +29,7 @@ public sealed class StartGameCommandHandler : ICommandHandler<StartGameCommand, 
         _metrics = metrics;
         _eventBus = eventBus;
         _lobbyEventBus = lobbyEventBus;
+        _engineTrigger = engineTrigger;
         _timeProvider = timeProvider;
         _logger = logger;
     }
@@ -48,6 +51,8 @@ public sealed class StartGameCommandHandler : ICommandHandler<StartGameCommand, 
         game.Start(command.HunterUserId, _timeProvider.GetUtcNow());
 
         await _games.UpdateAsync(game, ct);
+
+        await _engineTrigger.TriggerAsync(game.Id, ct);
 
         _metrics.RecordGameStarted();
         _logger.LogInformation("Game {GameId} started with hunter {HunterId}", game.Id, command.HunterUserId);

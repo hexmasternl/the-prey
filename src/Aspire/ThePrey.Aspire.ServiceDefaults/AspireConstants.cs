@@ -22,6 +22,8 @@ namespace ThePrey.Aspire.ServiceDefaults
             public const string UsersTables = "users-tables";
             public const string DaprStateStore = "statestore";
             public const string Redis = "redis";
+            public const string GameEngineQueue = "game-engine-queue";
+            public const string GameEngine = "hexmaster-theprey-game-engine";
         }
 
     }

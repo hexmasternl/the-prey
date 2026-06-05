@@ -55,7 +55,16 @@ public sealed class GameParticipant
     {
         ArgumentNullException.ThrowIfNull(reading);
         _locations.Add(reading);
-        Location = reading.Coordinate;
+    }
+
+    /// <summary>
+    /// Updates the broadcasted location. Called exclusively by the game engine broadcast cycle
+    /// after selecting the participant's most recent location from history.
+    /// </summary>
+    public void UpdateBroadcastLocation(GpsCoordinate coordinate)
+    {
+        ArgumentNullException.ThrowIfNull(coordinate);
+        Location = coordinate;
     }
 
     internal void ApplyPenalty(Penalty penalty)

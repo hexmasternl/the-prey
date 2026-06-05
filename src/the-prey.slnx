@@ -20,6 +20,10 @@
     <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Data.TableStorage/HexMaster.ThePrey.PlayFields.Data.TableStorage.csproj" />
     <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Tests/HexMaster.ThePrey.PlayFields.Tests.csproj" />
   </Folder>
+  <Folder Name="/GameEngine/">
+    <Project Path="GameEngine/HexMaster.ThePrey.GameEngine/HexMaster.ThePrey.GameEngine.csproj" />
+    <Project Path="GameEngine/HexMaster.ThePrey.GameEngine.Tests/HexMaster.ThePrey.GameEngine.Tests.csproj" />
+  </Folder>
   <Folder Name="/Shared/">
     <Project Path="Shared/ThePrey.Core.Tests/ThePrey.Core.Tests.csproj" Id="1b7069ce-b7da-4dc0-85f4-5a5591886938" />
     <Project Path="Shared/ThePrey.Core/ThePrey.Core.csproj" Id="e86fd50a-8670-4e66-9fe3-972dcab1dd24" />

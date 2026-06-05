@@ -4,10 +4,6 @@ import { firstValueFrom, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
-export interface ActiveGameDto {
-  gameId: string;
-}
-
 export interface CreateGameRequest {
   playfieldId: string;
   displayName: string;
@@ -90,9 +86,9 @@ export class GamesService {
     return `${environment.apiUrl}/games`;
   }
 
-  getActiveGame(): Promise<ActiveGameDto | null> {
+  getActiveGame(): Promise<GameDto | null> {
     return firstValueFrom(
-      this.http.get<ActiveGameDto>(`${this.apiBase}/active`).pipe(
+      this.http.get<GameDto>(`${this.apiBase}/active`).pipe(
         catchError(() => of(null))
       )
     );

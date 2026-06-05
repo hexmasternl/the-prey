@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\Playfields\HexMaster.ThePrey.PlayFields.Api\HexMaster.ThePrey.PlayFields.Api.csproj" />
     <ProjectReference Include="..\..\Users\HexMaster.ThePrey.Users.Api\HexMaster.ThePrey.Users.Api.csproj" />
     <ProjectReference Include="..\..\Games\HexMaster.ThePrey.Games.Api\HexMaster.ThePrey.Games.Api.csproj" />
+    <ProjectReference Include="..\..\GameEngine\HexMaster.ThePrey.GameEngine\HexMaster.ThePrey.GameEngine.csproj" />
   </ItemGroup>
 
 </Project>

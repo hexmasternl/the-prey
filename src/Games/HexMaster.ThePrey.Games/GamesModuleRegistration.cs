@@ -13,6 +13,7 @@ using HexMaster.ThePrey.Games.Features.SetHunter;
 using HexMaster.ThePrey.Games.Features.SetReady;
 using HexMaster.ThePrey.Games.Features.StartGame;
 using HexMaster.ThePrey.Games.Features.UpdateGameSettings;
+using HexMaster.ThePrey.Games.Features.UpdateLocationBroadcast;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,9 +38,12 @@ public static class GamesModuleRegistration
         services.AddScoped<IQueryHandler<GetActiveGameQuery, GameStatusDto?>, GetActiveGameQueryHandler>();
         services.AddScoped<IQueryHandler<GetGameStatusQuery, GameStatusDto?>, GetGameStatusQueryHandler>();
 
+        services.AddScoped<ICommandHandler<UpdateLocationBroadcastCommand, UpdateLocationBroadcastResult>, UpdateLocationBroadcastCommandHandler>();
+
         services.AddSingleton<IGameMetrics, GameMetrics>();
         services.AddSingleton<ILobbyEventBus, InProcessLobbyEventBus>();
         services.AddSingleton<IGameEventBus, InProcessGameEventBus>();
+        services.AddSingleton<IGameEngineEventBus, InProcessGameEngineEventBus>();
 
         return services;
     }

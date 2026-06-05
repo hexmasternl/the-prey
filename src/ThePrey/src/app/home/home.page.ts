@@ -17,7 +17,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { filter, take } from 'rxjs/operators';
 import { getCallbackUri } from '../auth.utils';
 import { UserStateService } from '../users/user-state.service';
-import { GamesService } from '../games/games.service';
+import { GameDto, GamesService } from '../games/games.service';
 
 @Component({
   selector: 'app-home',
@@ -30,7 +30,8 @@ export class HomePage implements OnInit, OnDestroy {
   lat: string | null = null;
   lon: string | null = null;
 
-  readonly activeGameId = signal<string | null>(null);
+  readonly activeGame = signal<GameDto | null>(null);
+  readonly activeGameId = computed(() => this.activeGame()?.id ?? null);
 
   readonly callsignChars = computed(() =>
     (this.userState.profile()?.callsign ?? '')
@@ -88,11 +89,15 @@ export class HomePage implements OnInit, OnDestroy {
 
   private async checkActiveGame(): Promise<void> {
     const active = await this.gamesService.getActiveGame();
-    this.activeGameId.set(active?.gameId ?? null);
+    this.activeGame.set(active);
   }
 
   goToActiveGame(): void {
-    this.router.navigate(['/games', this.activeGameId(), 'lobby']);
+    const game = this.activeGame();
+    if (!game) return;
+    const userId = this.userState.profile()?.userId;
+    const isHunter = game.hunter?.userId === userId;
+    this.router.navigate(['/games', game.id, isHunter ? 'hunt' : 'play']);
   }
 
   goToPlay(): void {
