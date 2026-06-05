@@ -7,7 +7,7 @@ using OpenTelemetry.Trace;
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddAzureQueueClient("game-engine-queue");
+builder.AddAzureQueueServiceClient("game-engine-queue");
 builder.AddNpgsqlDbContext<GamesDbContext>("games");
 builder.Services.AddDbContextFactory<GamesDbContext>();
 

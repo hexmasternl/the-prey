@@ -40,7 +40,7 @@ builder.Services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.Authenticatio
 
 builder.Services.AddGamesModule();
 builder.AddGamesPostgres();
-builder.AddAzureQueueClient("game-engine-queue");
+builder.AddAzureQueueServiceClient("game-engine-queue");
 builder.Services.AddUserResolver();
 builder.Services.AddScoped<IPlayfieldInfoProvider, PlayfieldInfoProvider>();
 builder.Services.AddScoped<IGameEngineTrigger, AzureQueueGameEngineTrigger>();

@@ -119,7 +119,7 @@ public sealed class GameTests
     }
 
     [Fact]
-    public void RecordLocation_ShouldAppendHistoryAndUpdateCurrentLocation()
+    public void RecordLocation_ShouldAppendHistory_WithoutSettingCurrentLocation()
     {
         var game = GameFaker.StartedGame(out _, out var preyIds, Start);
         var preyId = preyIds[0];
@@ -128,7 +128,8 @@ public sealed class GameTests
         game.RecordLocation(preyId, coordinate, Start.AddSeconds(30));
 
         var prey = game.Preys.Single(p => p.UserId == preyId);
-        Assert.Equal(coordinate, prey.Location);
+        // Location is set exclusively by the game engine broadcast cycle, not by RecordLocation.
+        Assert.Null(prey.Location);
         Assert.Single(prey.Locations);
         Assert.Equal(coordinate, prey.Locations[0].Coordinate);
     }

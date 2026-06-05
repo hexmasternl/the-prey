@@ -33,11 +33,12 @@ internal sealed class GameLocationChecker
     /// <summary>
     /// Computes the next aligned tick relative to <paramref name="startTime"/>.
     /// Ticks are evenly spaced at <paramref name="intervalSeconds"/> from startTime.
+    /// Always advances at least one full interval from the current moment.
     /// </summary>
     internal static DateTimeOffset ComputeNextTick(DateTimeOffset startTime, DateTimeOffset now, int intervalSeconds)
     {
         var elapsed = (now - startTime).TotalSeconds;
-        var tickNumber = Math.Ceiling(elapsed / intervalSeconds);
+        var tickNumber = Math.Floor(elapsed / intervalSeconds) + 1;
         return startTime.AddSeconds(tickNumber * intervalSeconds);
     }
 
