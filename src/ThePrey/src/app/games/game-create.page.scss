@@ -14,12 +14,12 @@ ion-header ion-toolbar {
   backdrop-filter: blur(10px);
 }
 
-// Animated tactical background
+// ── Animated tactical background ────────────────────────────
 .tac-bg {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
   overflow: hidden;
 
   &__grid {
@@ -45,6 +45,7 @@ ion-header ion-toolbar {
     animation: radar-spin 5s linear infinite;
   }
 
+  // Horizontal scanline — sweeps top to bottom
   &__scanline {
     position: absolute;
     left: 0;
@@ -53,21 +54,37 @@ ion-header ion-toolbar {
     background: linear-gradient(
       to right,
       transparent 0%,
-      rgba(100, 255, 0, 0.6) 50%,
+      rgba(100, 255, 0, 0.55) 50%,
       transparent 100%
     );
-    animation: scanline-sweep 8s linear infinite;
+    animation: scanline-h 12s linear infinite;
+  }
+
+  // Vertical scanline — sweeps left to right, offset so they don't coincide
+  &__scanline-v {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(100, 255, 0, 0.45) 50%,
+      transparent 100%
+    );
+    animation: scanline-v 11s linear infinite;
+    animation-delay: 4s;
   }
 }
 
-// Content wrapper — sits above the background
+// ── Content wrapper ──────────────────────────────────────────
 .content-wrap {
   position: relative;
   z-index: 1;
   padding: 0 20px 32px;
 }
 
-// Corner brackets
+// ── Corner brackets (shared) ─────────────────────────────────
 .br {
   position: absolute;
   width: 14px;
@@ -81,12 +98,11 @@ ion-header ion-toolbar {
   &.brr { bottom: 0; right: 0;  border-left: 0;  border-top: 0;    }
 }
 
-// Operation header block
+// ── Operation header ─────────────────────────────────────────
 .op-header {
   position: relative;
-  padding: 20px 0 24px;
-  border-bottom: 1px solid var(--tp-line);
-  margin-bottom: 20px;
+  padding: 20px 0 20px;
+  margin-bottom: 16px;
 }
 
 .op-tag {
@@ -116,67 +132,74 @@ ion-header ion-toolbar {
   line-height: 1.5;
 }
 
-// Config form
-.config-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+// ── Single bracketed config block ────────────────────────────
+.config-block {
+  position: relative  ;
+  border: 1px solid rgba(57, 64, 47, 0.8);
 }
 
-.config-panel {
-  position: relative;
-  background: rgba(35, 39, 31, 0.7);
-  border: 1px solid rgba(57, 64, 47, 0.8);
-  border-left: 2px solid rgba(100, 255, 0, 0.45);
-  padding: 14px 14px 12px 16px;
+// Each row: label left, control right
+.config-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 10px 16px;
+
+  & + .config-field {
+    border-top: 1px solid rgba(57, 64, 47, 0.55);
+  }
 }
 
 .config-label {
+  flex: 1;
   font-family: var(--tp-body);
   font-size: 10px;
-  letter-spacing: 3px;
-  color: var(--tp-signal-dim);
+  letter-spacing: 2px;
+  color: var(--tp-text-soft);
   text-transform: uppercase;
-  margin-bottom: 8px;
+  line-height: 1.3;
 }
 
 .tac-select {
-  --background: var(--tp-bg-void);
+  position: relative;
+  flex: 0 0 148px;
+  width: 148px;
+  --background: rgba(0, 0, 0, 0.7);
   --color: var(--tp-text);
-  --border-color: rgba(100, 255, 0, 0.25);
+  --border-color: rgba(100, 255, 0, 0.3);
   --border-radius: 2px;
   --border-width: 1px;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --padding-top: 10px;
-  --padding-bottom: 10px;
+  --padding-start: 10px;
+  --padding-end: 8px;
+  --padding-top: 6px;
+  --padding-bottom: 6px;
   --highlight-color-focused: var(--tp-signal);
   --placeholder-color: var(--tp-text-soft);
   font-family: var(--tp-body);
-  font-size: 15px;
+  font-size: 13px;
   letter-spacing: 1px;
-  width: 100%;
+  z-index: 2;
 }
 
 .playfield-btn {
+  flex: 0 0 148px;
+  width: 148px;
   --border-color: rgba(100, 255, 0, 0.3);
   --border-radius: 2px;
   --color: var(--tp-text);
-  --background: var(--tp-bg-void);
+  --background: transparent;
   --background-activated: var(--tp-bg-surface);
   font-family: var(--tp-body);
-  font-size: 13px;
-  letter-spacing: 2px;
+  font-size: 11px;
+  letter-spacing: 1px;
   text-transform: uppercase;
+  height: 36px;
   margin: 0;
 }
 
-// Deploy zone
+// ── Deploy zone ──────────────────────────────────────────────
 .deploy-zone {
-  position: relative;
-  margin-top: 24px;
-  padding: 20px 0 8px;
-  border-top: 1px solid var(--tp-line);
+  margin-top: 20px;
 }
 
 .deploy-btn {
@@ -191,17 +214,24 @@ ion-header ion-toolbar {
   }
 }
 
-// Keyframes
+// ── Keyframes ────────────────────────────────────────────────
 @keyframes radar-spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
 
-@keyframes scanline-sweep {
+@keyframes scanline-h {
   0%   { top: -4px;   opacity: 0; }
   5%   { opacity: 0.8; }
   95%  { opacity: 0.6; }
   100% { top: 100vh;  opacity: 0; }
+}
+
+@keyframes scanline-v {
+  0%   { left: -4px;   opacity: 0; }
+  5%   { opacity: 0.7; }
+  95%  { opacity: 0.5; }
+  100% { left: 100vw;  opacity: 0; }
 }
 
 @keyframes deploy-pulse {

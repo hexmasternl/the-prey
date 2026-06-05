@@ -1,35 +1,38 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="back()">{{ 'GAME_CREATE.BACK' | translate }}</ion-button>
+      <ion-button fill="clear" (click)="back()"
+        >{{ 'GAME_CREATE.BACK' | translate }}</ion-button
+      >
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-
+<ion-content>
   <div class="tac-bg" aria-hidden="true">
     <div class="tac-bg__grid"></div>
     <div class="tac-bg__radar"></div>
     <div class="tac-bg__scanline"></div>
+    <div class="tac-bg__scanline-v"></div>
   </div>
 
   <div class="content-wrap">
-
     <div class="op-header">
-      <span class="br tl"></span>
-      <span class="br tr"></span>
       <div class="op-tag">{{ 'GAME_CREATE.TAG' | translate }}</div>
       <h2 class="op-title">{{ 'GAME_CREATE.TITLE' | translate }}</h2>
       <p class="op-sub">{{ 'GAME_CREATE.SUBTITLE' | translate }}</p>
     </div>
 
-    <div class="config-form">
+    <div class="config-block">
+      <span class="br tl"></span>
+      <span class="br tr"></span>
+      <span class="br bl"></span>
+      <span class="br brr"></span>
 
-      <div class="config-panel">
-        <span class="br tr"></span>
-        <span class="br bl"></span>
-        <div class="config-label">{{ 'GAME_CREATE.DURATION_LABEL' | translate }}</div>
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.DURATION_LABEL' | translate }}</span
+        >
         <ion-select
           fill="outline"
           interface="alert"
@@ -37,16 +40,22 @@
           [value]="gameDuration()"
           (ionChange)="gameDuration.set(+$any($event).detail.value)"
         >
-          <ion-select-option [value]="30">30 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="60">60 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="90">90 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
+          <ion-select-option [value]="30"
+            >30 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="60"
+            >60 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="90"
+            >90 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
         </ion-select>
       </div>
 
-      <div class="config-panel">
-        <span class="br tr"></span>
-        <span class="br bl"></span>
-        <div class="config-label">{{ 'GAME_CREATE.HUNTER_DELAY_LABEL' | translate }}</div>
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.HUNTER_DELAY_LABEL' | translate }}</span
+        >
         <ion-select
           fill="outline"
           interface="alert"
@@ -54,16 +63,22 @@
           [value]="hunterDelay()"
           (ionChange)="hunterDelay.set(+$any($event).detail.value)"
         >
-          <ion-select-option [value]="5">5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="10">10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="15">15 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
+          <ion-select-option [value]="5"
+            >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="10"
+            >10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="15"
+            >15 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
         </ion-select>
       </div>
 
-      <div class="config-panel">
-        <span class="br tr"></span>
-        <span class="br bl"></span>
-        <div class="config-label">{{ 'GAME_CREATE.ENDGAME_LABEL' | translate }}</div>
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.ENDGAME_LABEL' | translate }}</span
+        >
         <ion-select
           fill="outline"
           interface="alert"
@@ -71,16 +86,22 @@
           [value]="endgameDuration()"
           (ionChange)="endgameDuration.set(+$any($event).detail.value)"
         >
-          <ion-select-option [value]="5">5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="10">10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="15">15 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
+          <ion-select-option [value]="5"
+            >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="10"
+            >10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="15"
+            >15 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
         </ion-select>
       </div>
 
-      <div class="config-panel">
-        <span class="br tr"></span>
-        <span class="br bl"></span>
-        <div class="config-label">{{ 'GAME_CREATE.LOCATION_INTERVAL_LABEL' | translate }}</div>
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.LOCATION_INTERVAL_LABEL' | translate }}</span
+        >
         <ion-select
           fill="outline"
           interface="alert"
@@ -88,16 +109,22 @@
           [value]="locationInterval()"
           (ionChange)="locationInterval.set(+$any($event).detail.value)"
         >
-          <ion-select-option [value]="3">3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="5">5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="10">10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
+          <ion-select-option [value]="3"
+            >3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="5"
+            >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="10"
+            >10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
         </ion-select>
       </div>
 
-      <div class="config-panel">
-        <span class="br tr"></span>
-        <span class="br bl"></span>
-        <div class="config-label">{{ 'GAME_CREATE.ENDGAME_INTERVAL_LABEL' | translate }}</div>
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.ENDGAME_INTERVAL_LABEL' | translate }}</span
+        >
         <ion-select
           fill="outline"
           interface="alert"
@@ -105,35 +132,34 @@
           [value]="endgameInterval()"
           (ionChange)="endgameInterval.set(+$any($event).detail.value)"
         >
-          <ion-select-option [value]="1">1 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="3">3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-          <ion-select-option [value]="5">5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
+          <ion-select-option [value]="1"
+            >1 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="3"
+            >3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="5"
+            >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
         </ion-select>
       </div>
 
-      <div class="config-panel">
-        <span class="br tr"></span>
-        <span class="br bl"></span>
-        <div class="config-label">{{ 'GAME_CREATE.PLAYFIELD_LABEL' | translate }}</div>
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.PLAYFIELD_LABEL' | translate }}</span
+        >
         <ion-button
-          expand="block"
           fill="outline"
           class="playfield-btn"
           (click)="selectPlayfield()"
         >
-          @if (selectedPlayfield(); as pf) {
-            {{ pf.name }}
-          } @else {
-            {{ 'GAME_CREATE.SELECT_PLAYFIELD' | translate }}
-          }
+          @if (selectedPlayfield(); as pf) { {{ pf.name }} } @else { {{
+          'GAME_CREATE.SELECT_PLAYFIELD' | translate }} }
         </ion-button>
       </div>
-
     </div>
 
     <div class="deploy-zone">
-      <span class="br bl"></span>
-      <span class="br brr"></span>
       <ion-button
         expand="block"
         color="primary"
@@ -142,14 +168,10 @@
         (click)="create()"
       >
         @if (isSubmitting()) {
-          <ion-spinner name="lines" slot="start"></ion-spinner>
-          {{ 'GAME_CREATE.CREATING' | translate }}
-        } @else {
-          {{ 'GAME_CREATE.CREATE' | translate }}
-        }
+        <ion-spinner name="lines" slot="start"></ion-spinner>
+        {{ 'GAME_CREATE.CREATING' | translate }} } @else { {{
+        'GAME_CREATE.CREATE' | translate }} }
       </ion-button>
     </div>
-
   </div>
-
 </ion-content>
