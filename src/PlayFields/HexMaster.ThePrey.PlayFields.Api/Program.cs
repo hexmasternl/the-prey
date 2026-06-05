@@ -2,6 +2,7 @@ using HexMaster.ThePrey.PlayFields;
 using HexMaster.ThePrey.PlayFields.Api.Endpoints;
 using HexMaster.ThePrey.PlayFields.Data.TableStorage;
 using HexMaster.ThePrey.PlayFields.Observability;
+using HexMaster.ThePrey.Users.Integration;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
@@ -17,6 +18,7 @@ builder.AddDefaultCors();
 
 builder.Services.AddPlayFieldsModule();
 builder.AddPlayFieldsTableStorage();
+builder.Services.AddUserResolver();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
