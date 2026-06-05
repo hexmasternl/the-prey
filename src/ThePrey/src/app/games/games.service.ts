@@ -103,6 +103,12 @@ export class GamesService {
     );
   }
 
+  updateConfig(gameId: string, config: GameConfigurationDto): Promise<GameDto> {
+    return firstValueFrom(
+      this.http.put<GameDto>(`${this.apiBase}/${gameId}/config`, config)
+    );
+  }
+
   setReady(gameId: string): Promise<GameDto> {
     return firstValueFrom(
       this.http.post<GameDto>(`${this.apiBase}/${gameId}/lobby/ready`, {})

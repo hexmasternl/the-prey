@@ -6,25 +6,20 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
-  IonItem,
-  IonItemOption,
-  IonItemOptions,
-  IonItemSliding,
-  IonLabel,
-  IonList,
+  IonSelect,
+  IonSelectOption,
   IonSpinner,
-  IonTitle,
   IonToolbar,
   ToastController,
   ViewWillEnter,
   ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkCircle, personRemove, settings } from 'ionicons/icons';
+import { checkmarkCircle, personRemove } from 'ionicons/icons';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
-import { GameDto, GamesService } from './games.service';
+import { GameConfigurationDto, GameDto, GamesService } from './games.service';
 import { UserStateService } from '../users/user-state.service';
 
 @Component({
@@ -37,15 +32,10 @@ import { UserStateService } from '../users/user-state.service';
     IonToolbar,
     IonButtons,
     IonButton,
-    IonTitle,
     IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonItemSliding,
-    IonItemOptions,
-    IonItemOption,
     IonIcon,
+    IonSelect,
+    IonSelectOption,
     IonSpinner,
   ],
 })
@@ -62,6 +52,13 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   readonly isLoading = signal(true);
   private eventSource: EventSource | null = null;
 
+  // Config signals — initialised from game on load, kept in sync via SSE
+  readonly gameDuration = signal(60);
+  readonly hunterDelay = signal(10);
+  readonly endgameDuration = signal(10);
+  readonly locationInterval = signal(5);
+  readonly endgameInterval = signal(3);
+
   readonly gameId = computed(() => this.route.snapshot.paramMap.get('id') ?? '');
 
   readonly isOwner = computed(() => {
@@ -73,7 +70,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
 
   constructor() {
-    addIcons({ checkmarkCircle, personRemove, settings });
+    addIcons({ checkmarkCircle, personRemove });
   }
 
   async ionViewWillEnter(): Promise<void> {
@@ -82,6 +79,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     try {
       const game = await this.gamesService.getGame(id);
       this.game.set(game);
+      this.syncConfigFromGame(game);
     } catch {
       await this.showError('GAME_LOBBY.LOAD_ERROR');
     } finally {
@@ -117,7 +115,10 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   private onLobbyEvent(event: MessageEvent): void {
     try {
       const data = JSON.parse(event.data);
-      if (data?.payload) this.game.set(data.payload);
+      if (data?.payload) {
+        this.game.set(data.payload);
+        this.syncConfigFromGame(data.payload);
+      }
     } catch {
       // ignore parse errors
     }
@@ -127,6 +128,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     try {
       const game = await this.gamesService.getGame(this.gameId());
       this.game.set(game);
+      this.syncConfigFromGame(game);
     } catch {
       // best effort
     }
@@ -135,6 +137,66 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   private closeStream(): void {
     this.eventSource?.close();
     this.eventSource = null;
+  }
+
+  private syncConfigFromGame(g: GameDto): void {
+    this.gameDuration.set(g.configuration.gameDuration);
+    this.hunterDelay.set(g.configuration.hunterDelayTime);
+    this.endgameDuration.set(g.configuration.finalStageDuration);
+    this.locationInterval.set(Math.round(g.configuration.defaultLocationInterval / 60));
+    this.endgameInterval.set(Math.round(g.configuration.finalLocationInterval / 60));
+  }
+
+  private buildConfig(g: GameDto): GameConfigurationDto {
+    return {
+      gameDuration: this.gameDuration(),
+      hunterDelayTime: this.hunterDelay(),
+      finalStageDuration: this.endgameDuration(),
+      defaultLocationInterval: this.locationInterval() * 60,
+      finalLocationInterval: this.endgameInterval() * 60,
+      enablePreyBoundaryPenalties: g.configuration.enablePreyBoundaryPenalties,
+      enableHunterBoundaryPenalty: g.configuration.enableHunterBoundaryPenalty,
+    };
+  }
+
+  private async saveConfig(): Promise<void> {
+    const g = this.game();
+    if (!g || !this.isOwner()) return;
+    try {
+      const updated = await this.gamesService.updateConfig(this.gameId(), this.buildConfig(g));
+      this.game.set(updated);
+      this.syncConfigFromGame(updated);
+    } catch {
+      await this.showError('GAME_LOBBY.ACTION_ERROR');
+      // Revert display to last confirmed server state
+      const current = this.game();
+      if (current) this.syncConfigFromGame(current);
+    }
+  }
+
+  async onDurationChange(e: Event): Promise<void> {
+    this.gameDuration.set(+(e as CustomEvent).detail.value);
+    await this.saveConfig();
+  }
+
+  async onHunterDelayChange(e: Event): Promise<void> {
+    this.hunterDelay.set(+(e as CustomEvent).detail.value);
+    await this.saveConfig();
+  }
+
+  async onEndgameDurationChange(e: Event): Promise<void> {
+    this.endgameDuration.set(+(e as CustomEvent).detail.value);
+    await this.saveConfig();
+  }
+
+  async onLocationIntervalChange(e: Event): Promise<void> {
+    this.locationInterval.set(+(e as CustomEvent).detail.value);
+    await this.saveConfig();
+  }
+
+  async onEndgameIntervalChange(e: Event): Promise<void> {
+    this.endgameInterval.set(+(e as CustomEvent).detail.value);
+    await this.saveConfig();
   }
 
   async designateHunter(userId: string): Promise<void> {
@@ -164,15 +226,6 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
     }
-  }
-
-  async editSettings(): Promise<void> {
-    const toast = await this.toastCtrl.create({
-      message: this.translate.instant('GAME_LOBBY.SETTINGS_COMING_SOON'),
-      duration: 2000,
-      position: 'bottom',
-    });
-    await toast.present();
   }
 
   isCurrentUser(userId: string): boolean {
