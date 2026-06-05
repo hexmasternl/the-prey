@@ -7,7 +7,7 @@ namespace HexMaster.ThePrey.Users.Tests.Services;
 
 public sealed class UserCacheServiceTests
 {
-    private const string StateStoreName = "user-cache";
+    private const string StateStoreName = "statestore";
 
     private readonly Mock<DaprClient> _daprClientMock = new();
     private readonly UserCacheService _sut;
