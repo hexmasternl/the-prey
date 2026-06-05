@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonBadge,
@@ -20,6 +20,7 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
+  ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
@@ -56,7 +57,7 @@ type Tab = 'private' | 'public';
     TranslatePipe,
   ],
 })
-export class PlayfieldsListPage implements OnInit {
+export class PlayfieldsListPage implements ViewWillEnter {
   private readonly router = inject(Router);
   private readonly playfieldsService = inject(PlayfieldsService);
 
@@ -69,7 +70,13 @@ export class PlayfieldsListPage implements OnInit {
   readonly isSyncing = signal(false);
   readonly syncFailed = signal(false);
 
-  async ngOnInit(): Promise<void> {
+  ionViewWillEnter(): void {
+    this.loadLocalThenSync();
+  }
+
+  private async loadLocalThenSync(): Promise<void> {
+    const local = await this.playfieldsService.getLocalPlayfields();
+    this.playfields.set(local);
     await this.sync();
   }
 
