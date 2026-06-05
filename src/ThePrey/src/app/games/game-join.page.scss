@@ -75,6 +75,15 @@ ion-header ion-toolbar {
   }
 }
 
+// ── Loading ──────────────────────────────────────────────────
+.loading-center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  padding-top: 80px;
+}
+
 // ── Content wrapper ──────────────────────────────────────────
 .content-wrap {
   position: relative;
@@ -153,6 +162,27 @@ ion-header ion-toolbar {
     color: rgba(100, 255, 0, 0.2);
     text-shadow: none;
   }
+
+  &--error {
+    border-bottom-color: var(--ion-color-danger);
+    color: var(--ion-color-danger);
+    text-shadow: none;
+  }
+}
+
+.error-msg {
+  font-family: var(--tp-body);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--ion-color-danger);
+  text-transform: uppercase;
+  margin: 4px 0 0;
+}
+
+.error-title {
+  color: var(--ion-color-danger);
+  text-shadow: none;
+  font-size: clamp(20px, 7vw, 32px);
 }
 
 // ── Game ID row ──────────────────────────────────────────────

@@ -15,7 +15,7 @@ import {
   ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkCircle, personRemove } from 'ionicons/icons';
+import { checkmarkCircle, personRemove, shareSocial } from 'ionicons/icons';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
@@ -69,8 +69,10 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
 
+  readonly canShare = computed(() => typeof navigator !== 'undefined' && !!navigator.share);
+
   constructor() {
-    addIcons({ checkmarkCircle, personRemove });
+    addIcons({ checkmarkCircle, personRemove, shareSocial });
   }
 
   async ionViewWillEnter(): Promise<void> {
@@ -234,6 +236,22 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   isReady(userId: string): boolean {
     return this.game()?.lobby.find(p => p.userId === userId)?.isReady ?? false;
+  }
+
+  async shareGame(): Promise<void> {
+    const g = this.game();
+    if (!g || !navigator.share) return;
+    const url = `${window.location.origin}/games/join?gameId=${g.id}`;
+    const message = `${this.translate.instant('GAME_SHARE.MESSAGE')} ${g.gameCode}`;
+    try {
+      await navigator.share({
+        title: this.translate.instant('GAME_SHARE.TITLE'),
+        text: message,
+        url,
+      });
+    } catch {
+      // user cancelled or share failed — no action needed
+    }
   }
 
   back(): void {

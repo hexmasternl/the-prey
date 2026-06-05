@@ -16,6 +16,35 @@
     <div class="tac-bg__scanline-v"></div>
   </div>
 
+  @if (isLoading()) {
+  <div class="loading-center">
+    <ion-spinner name="lines" color="primary"></ion-spinner>
+  </div>
+  } @else if (gameNotFound()) {
+  <div class="content-wrap">
+    <div class="op-header">
+      <div class="op-tag">{{ 'GAME_JOIN.TAG' | translate }}</div>
+      <h2 class="op-title error-title">{{ 'GAME_JOIN.ERROR_NO_GAME' | translate }}</h2>
+    </div>
+    <div class="deploy-zone">
+      <ion-button expand="block" class="join-btn" color="medium" (click)="back()">
+        {{ 'GAME_JOIN.BACK' | translate }}
+      </ion-button>
+    </div>
+  </div>
+  } @else if (gameStarted()) {
+  <div class="content-wrap">
+    <div class="op-header">
+      <div class="op-tag">{{ 'GAME_JOIN.TAG' | translate }}</div>
+      <h2 class="op-title error-title">{{ 'GAME_JOIN.ERROR_STARTED' | translate }}</h2>
+    </div>
+    <div class="deploy-zone">
+      <ion-button expand="block" class="join-btn" color="medium" (click)="back()">
+        {{ 'GAME_JOIN.BACK' | translate }}
+      </ion-button>
+    </div>
+  </div>
+  } @else {
   <div class="content-wrap">
     <!-- Operation header -->
     <div class="op-header">
@@ -41,12 +70,17 @@
         maxlength="8"
         autocomplete="one-time-code"
         class="code-input"
+        [class.code-input--error]="errorWrongCode()"
         [value]="joinCode()"
         (input)="onCodeInput($event)"
         placeholder="00000000"
         aria-label="{{ 'GAME_JOIN.CODE_LABEL' | translate }}"
       />
     </div>
+
+    @if (errorWrongCode()) {
+    <p class="error-msg">{{ 'GAME_JOIN.ERROR_WRONG_CODE' | translate }}</p>
+    }
 
     @if (callsign(); as name) {
     <div class="operative-display">
@@ -73,4 +107,5 @@
       </ion-button>
     </div>
   </div>
+  }
 </ion-content>

@@ -121,6 +121,23 @@ ion-header ion-toolbar {
   margin-bottom: 10px;
 }
 
+// Wrapper aligning the game code and share button on one line
+.op-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-btn {
+  --color: var(--tp-signal-dim);
+  --color-hover: var(--tp-signal);
+  --padding-start: 6px;
+  --padding-end: 6px;
+  height: 40px;
+  flex-shrink: 0;
+  font-size: 22px;
+}
+
 // Game code — hero element, glowing signal green
 .op-title {
   font-family: var(--tp-head);

@@ -25,7 +25,19 @@
     <!-- Operation header — game code as the hero display -->
     <div class="op-header">
       <div class="op-tag">{{ 'GAME_LOBBY.TAG' | translate }}</div>
-      <h2 class="op-title">{{ g.gameCode }}</h2>
+      <div class="op-code-row">
+        <h2 class="op-title">{{ g.gameCode }}</h2>
+        @if (canShare()) {
+        <ion-button
+          fill="clear"
+          class="share-btn"
+          (click)="shareGame()"
+          aria-label="{{ 'GAME_LOBBY.SHARE' | translate }}"
+        >
+          <ion-icon slot="icon-only" name="share-social"></ion-icon>
+        </ion-button>
+        }
+      </div>
       <p class="op-sub">{{ 'GAME_LOBBY.SUBTITLE' | translate }}</p>
     </div>
 

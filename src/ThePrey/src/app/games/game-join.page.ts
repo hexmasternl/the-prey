@@ -7,10 +7,10 @@ import {
   IonHeader,
   IonSpinner,
   IonToolbar,
-  ToastController,
+  ViewWillEnter,
 } from '@ionic/angular/standalone';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { GamesService } from './games.service';
+import { TranslatePipe } from '@ngx-translate/core';
+import { GameDto, GamesService } from './games.service';
 import { UserStateService } from '../users/user-state.service';
 
 @Component({
@@ -27,17 +27,20 @@ import { UserStateService } from '../users/user-state.service';
     IonSpinner,
   ],
 })
-export class GameJoinPage {
+export class GameJoinPage implements ViewWillEnter {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly gamesService = inject(GamesService);
   private readonly userState = inject(UserStateService);
-  private readonly toastCtrl = inject(ToastController);
-  private readonly translate = inject(TranslateService);
 
   readonly gameId = signal<string | null>(this.route.snapshot.queryParamMap.get('gameId'));
   readonly joinCode = signal('');
+  readonly isLoading = signal(false);
   readonly isSubmitting = signal(false);
+  readonly game = signal<GameDto | null>(null);
+  readonly errorWrongCode = signal(false);
+  readonly gameNotFound = signal(false);
+  readonly gameStarted = signal(false);
 
   readonly callsign = computed(() => this.userState.profile()?.callsign ?? null);
 
@@ -46,33 +49,71 @@ export class GameJoinPage {
       this.joinCode().length === 8 &&
       !this.isSubmitting() &&
       this.gameId() != null &&
-      this.callsign() != null,
+      this.callsign() != null &&
+      this.game() != null &&
+      !this.gameNotFound() &&
+      !this.gameStarted(),
   );
+
+  async ionViewWillEnter(): Promise<void> {
+    const id = this.gameId();
+    if (!id) {
+      this.gameNotFound.set(true);
+      return;
+    }
+    this.isLoading.set(true);
+    this.game.set(null);
+    this.gameNotFound.set(false);
+    this.gameStarted.set(false);
+    this.errorWrongCode.set(false);
+    try {
+      const g = await this.gamesService.getGame(id);
+      this.game.set(g);
+      if (g.status !== 'Lobby') {
+        this.gameStarted.set(true);
+      }
+    } catch {
+      this.gameNotFound.set(true);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
 
   onCodeInput(event: Event): void {
     const raw = (event.target as HTMLInputElement).value;
     const digits = raw.replace(/\D/g, '').slice(0, 8);
     this.joinCode.set(digits);
     (event.target as HTMLInputElement).value = digits;
+    this.errorWrongCode.set(false);
   }
 
   async join(): Promise<void> {
     const gameId = this.gameId();
     const callsign = this.callsign();
-    if (!gameId || !callsign || !this.canJoin()) return;
+    const g = this.game();
+    if (!gameId || !callsign || !g || !this.canJoin()) return;
+
+    if (this.joinCode() !== g.gameCode) {
+      this.errorWrongCode.set(true);
+      return;
+    }
 
     this.isSubmitting.set(true);
+    this.errorWrongCode.set(false);
     try {
-      const game = await this.gamesService.joinGame(gameId, this.joinCode(), callsign);
-      await this.router.navigate(['/games', game.id, 'lobby']);
-    } catch {
-      const toast = await this.toastCtrl.create({
-        message: this.translate.instant('GAME_JOIN.ERROR_WRONG_CODE'),
-        duration: 4000,
-        color: 'danger',
-        position: 'bottom',
-      });
-      await toast.present();
+      const joined = await this.gamesService.joinGame(gameId, callsign);
+      await this.router.navigate(['/games', joined.id, 'lobby']);
+    } catch (err: unknown) {
+      const body = this.errorBody(err);
+      if (body?.toLowerCase().includes('already')) {
+        await this.router.navigate(['/games', gameId, 'lobby']);
+        return;
+      }
+      if (body?.toLowerCase().includes('progress') || body?.toLowerCase().includes('started')) {
+        this.gameStarted.set(true);
+        return;
+      }
+      this.errorWrongCode.set(true);
     } finally {
       this.isSubmitting.set(false);
     }
@@ -80,5 +121,12 @@ export class GameJoinPage {
 
   back(): void {
     this.router.navigate(['/home']);
+  }
+
+  private errorBody(err: unknown): string | null {
+    if (err && typeof err === 'object' && 'error' in err) {
+      return JSON.stringify((err as { error: unknown }).error);
+    }
+    return null;
   }
 }
