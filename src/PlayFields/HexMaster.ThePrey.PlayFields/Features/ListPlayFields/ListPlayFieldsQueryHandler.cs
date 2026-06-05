@@ -13,7 +13,7 @@ public sealed class ListPlayFieldsQueryHandler : IQueryHandler<ListPlayFieldsQue
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var playFields = await _playFields.ListVisibleToAsync(query.RequestingOwnerId, ct);
+        var playFields = await _playFields.ListByOwnerAsync(query.RequestingOwnerId, ct);
 
         return playFields.Select(p => p.ToSummaryDto()).ToList();
     }
