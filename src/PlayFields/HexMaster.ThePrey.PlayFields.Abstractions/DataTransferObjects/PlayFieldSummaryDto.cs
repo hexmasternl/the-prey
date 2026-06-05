@@ -3,7 +3,7 @@ namespace HexMaster.ThePrey.PlayFields.Abstractions.DataTransferObjects;
 public sealed record PlayFieldSummaryDto(
     Guid Id,
     string Name,
-    string OwnerId,
+    Guid OwnerId,
     bool IsPublic,
     DateTimeOffset LastUpdatedOn,
     GpsCoordinateDto? CenterCoordinates);
