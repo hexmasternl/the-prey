@@ -21,6 +21,7 @@
     <ProjectReference Include="..\HexMaster.ThePrey.PlayFields.Abstractions\HexMaster.ThePrey.PlayFields.Abstractions.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.PlayFields.Data.TableStorage\HexMaster.ThePrey.PlayFields.Data.TableStorage.csproj" />
     <ProjectReference Include="..\..\Core\HexMaster.ThePrey.Core\HexMaster.ThePrey.Core.csproj" />
+    <ProjectReference Include="..\..\Users\HexMaster.ThePrey.Users.Integration\HexMaster.ThePrey.Users.Integration.csproj" />
   </ItemGroup>
 
 </Project>

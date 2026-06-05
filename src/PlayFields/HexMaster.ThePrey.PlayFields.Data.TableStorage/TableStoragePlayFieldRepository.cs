@@ -43,17 +43,16 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         return null;
     }
 
-    public async Task<IReadOnlyList<PlayField>> ListVisibleToAsync(string ownerId, CancellationToken ct)
+    public async Task<IReadOnlyList<PlayField>> ListVisibleToAsync(Guid ownerId, CancellationToken ct)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(ownerId);
-
+        var ownerKey = ownerId.ToString();
         var table = await GetTableClientAsync(ct);
 
         var results = new List<PlayField>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
 
         // The caller's own play fields (single partition).
-        var owned = table.QueryAsync<PlayFieldTableEntity>(e => e.PartitionKey == ownerId, cancellationToken: ct);
+        var owned = table.QueryAsync<PlayFieldTableEntity>(e => e.PartitionKey == ownerKey, cancellationToken: ct);
         await foreach (var entity in owned)
         {
             if (seen.Add(entity.RowKey))
@@ -62,7 +61,7 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
 
         // Public play fields owned by anyone else (cross-partition scan).
         var publicFields = table.QueryAsync<PlayFieldTableEntity>(
-            e => e.IsPublic && e.PartitionKey != ownerId, cancellationToken: ct);
+            e => e.IsPublic && e.PartitionKey != ownerKey, cancellationToken: ct);
         await foreach (var entity in publicFields)
         {
             if (seen.Add(entity.RowKey))
@@ -72,12 +71,10 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         return results;
     }
 
-    public async Task DeleteAsync(Guid id, string ownerId, CancellationToken ct)
+    public async Task DeleteAsync(Guid id, Guid ownerId, CancellationToken ct)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(ownerId);
-
         var table = await GetTableClientAsync(ct);
-        await table.DeleteEntityAsync(ownerId, id.ToString(), cancellationToken: ct);
+        await table.DeleteEntityAsync(ownerId.ToString(), id.ToString(), cancellationToken: ct);
     }
 
     public async Task<IReadOnlyList<PlayField>> SearchPublicAsync(string searchText, CancellationToken ct)
@@ -111,7 +108,7 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         var points = playField.Points.Select(p => new StoredPoint(p.Latitude, p.Longitude)).ToList();
         return new PlayFieldTableEntity
         {
-            PartitionKey = playField.OwnerId,
+            PartitionKey = playField.OwnerId.ToString(),
             RowKey = playField.Id.ToString(),
             Name = playField.Name,
             IsPublic = playField.IsPublic,
@@ -138,7 +135,7 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         return PlayField.Rehydrate(
             Guid.Parse(entity.RowKey),
             entity.Name,
-            entity.PartitionKey,
+            Guid.Parse(entity.PartitionKey),
             entity.IsPublic,
             points,
             lastModifiedOn,
