@@ -1,4 +1,11 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { IonButton, IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { App } from '@capacitor/app';
@@ -26,12 +33,15 @@ export class HomePage implements OnInit, OnDestroy {
   readonly activeGameId = signal<string | null>(null);
 
   readonly callsignChars = computed(() =>
-    (this.userState.profile()?.callsign ?? '').toUpperCase().split('').map(c => c === ' ' ? ' ' : c)
+    (this.userState.profile()?.callsign ?? '')
+      .toUpperCase()
+      .split('')
+      .map((c) => (c === ' ' ? ' ' : c)),
   );
 
   readonly callsignAnimDuration = computed(() => {
     const n = this.callsignChars().length || 1;
-    return `${n * 120 + 700}ms`;
+    return `${n * 280 + 700}ms`;
   });
 
   private watchId: string | undefined;
@@ -110,12 +120,14 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   retrySync(): void {
-    this.authService.idTokenClaims$.pipe(
-      take(1),
-      filter((claims): claims is IdToken => claims != null),
-    ).subscribe(claims => {
-      this.userState.init(claims);
-    });
+    this.authService.idTokenClaims$
+      .pipe(
+        take(1),
+        filter((claims): claims is IdToken => claims != null),
+      )
+      .subscribe((claims) => {
+        this.userState.init(claims);
+      });
   }
 
   quit(): void {
