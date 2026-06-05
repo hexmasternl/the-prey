@@ -10,8 +10,8 @@ public interface IPlayFieldRepository
 
     Task<PlayField?> GetByIdAsync(Guid id, CancellationToken ct);
 
-    /// <summary>Returns the play fields owned by the given player plus all public play fields owned by others.</summary>
-    Task<IReadOnlyList<PlayField>> ListVisibleToAsync(Guid ownerId, CancellationToken ct);
+    /// <summary>Returns only the play fields owned by the specified player.</summary>
+    Task<IReadOnlyList<PlayField>> ListByOwnerAsync(Guid ownerId, CancellationToken ct);
 
     Task DeleteAsync(Guid id, Guid ownerId, CancellationToken ct);
 

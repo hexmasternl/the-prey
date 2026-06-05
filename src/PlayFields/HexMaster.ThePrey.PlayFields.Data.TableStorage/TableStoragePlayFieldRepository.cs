@@ -43,30 +43,15 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         return null;
     }
 
-    public async Task<IReadOnlyList<PlayField>> ListVisibleToAsync(Guid ownerId, CancellationToken ct)
+    public async Task<IReadOnlyList<PlayField>> ListByOwnerAsync(Guid ownerId, CancellationToken ct)
     {
         var ownerKey = ownerId.ToString();
         var table = await GetTableClientAsync(ct);
 
         var results = new List<PlayField>();
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-
-        // The caller's own play fields (single partition).
         var owned = table.QueryAsync<PlayFieldTableEntity>(e => e.PartitionKey == ownerKey, cancellationToken: ct);
         await foreach (var entity in owned)
-        {
-            if (seen.Add(entity.RowKey))
-                results.Add(ToDomain(entity));
-        }
-
-        // Public play fields owned by anyone else (cross-partition scan).
-        var publicFields = table.QueryAsync<PlayFieldTableEntity>(
-            e => e.IsPublic && e.PartitionKey != ownerKey, cancellationToken: ct);
-        await foreach (var entity in publicFields)
-        {
-            if (seen.Add(entity.RowKey))
-                results.Add(ToDomain(entity));
-        }
+            results.Add(ToDomain(entity));
 
         return results;
     }
