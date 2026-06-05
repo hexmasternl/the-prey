@@ -38,9 +38,6 @@ export class PlayfieldsService {
    * 2. Push local records with isSynced=false to the server via PUT /playfields/{id}.
    */
   async syncPlayfields(): Promise<PlayFieldRecord[]> {
-    const ownerId = this.userState.profile()?.userId;
-    if (!ownerId) return [];
-
     // Phase 1 — download and merge
     const serverList = await this.getMyPlayfields();
     for (const dto of serverList) {
@@ -59,13 +56,11 @@ export class PlayfieldsService {
       }
     }
 
-    return this.db.getAll(ownerId);
+    return this.db.getAll();
   }
 
-  async getLocalPlayfields(): Promise<PlayFieldRecord[]> {
-    const ownerId = this.userState.profile()?.userId;
-    if (!ownerId) return [];
-    return this.db.getAll(ownerId);
+  getLocalPlayfields(): Promise<PlayFieldRecord[]> {
+    return this.db.getAll();
   }
 
   getById(id: string): Promise<PlayFieldDetailDto> {
@@ -90,8 +85,33 @@ export class PlayfieldsService {
     );
   }
 
-  async deleteLocal(id: string): Promise<void> {
-    // TODO: add server-side delete (DELETE /playfields/{id}) in a future change
+  async update(
+    id: string,
+    name: string,
+    isPublic: boolean,
+    points: GpsCoordinateDto[],
+    lastUpdatedOn: string,
+  ): Promise<PlayFieldDetailDto> {
+    const body: UpsertPlayFieldRequest = { name, isPublic, points, lastUpdatedOn };
+    const dto = await firstValueFrom(
+      this.http.put<PlayFieldDetailDto>(`${this.apiBase}/${id}`, body),
+    );
+    const record: PlayFieldRecord = {
+      id: dto.id,
+      name: dto.name,
+      ownerId: dto.ownerId,
+      isPublic: dto.isPublic,
+      points: dto.points,
+      lastUpdatedOn: dto.lastUpdatedOn,
+      centerCoordinates: dto.centerCoordinates,
+      isSynced: true,
+    };
+    await this.db.saveLocal(record);
+    return dto;
+  }
+
+  async delete(id: string): Promise<void> {
+    await firstValueFrom(this.http.delete(`${this.apiBase}/${id}`));
     await this.db.delete(id);
   }
 

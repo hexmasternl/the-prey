@@ -72,6 +72,14 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         return results;
     }
 
+    public async Task DeleteAsync(Guid id, string ownerId, CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ownerId);
+
+        var table = await GetTableClientAsync(ct);
+        await table.DeleteEntityAsync(ownerId, id.ToString(), cancellationToken: ct);
+    }
+
     public async Task<IReadOnlyList<PlayField>> SearchPublicAsync(string searchText, CancellationToken ct)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(searchText);

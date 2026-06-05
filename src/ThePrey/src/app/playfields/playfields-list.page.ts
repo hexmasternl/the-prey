@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
+  AlertController,
   IonBadge,
   IonButton,
   IonButtons,
@@ -24,7 +25,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PlayFieldRecord } from './playfield.model';
 import { PlayfieldsService } from './playfields.service';
 
@@ -60,6 +61,8 @@ type Tab = 'private' | 'public';
 export class PlayfieldsListPage implements ViewWillEnter {
   private readonly router = inject(Router);
   private readonly playfieldsService = inject(PlayfieldsService);
+  private readonly alertCtrl = inject(AlertController);
+  private readonly translate = inject(TranslateService);
 
   constructor() {
     addIcons({ add });
@@ -103,8 +106,30 @@ export class PlayfieldsListPage implements ViewWillEnter {
 
   async deletePlayfield(sliding: IonItemSliding, id: string): Promise<void> {
     await sliding.close();
-    await this.playfieldsService.deleteLocal(id);
-    this.playfields.update((list) => list.filter((p) => p.id !== id));
+
+    const [header, message, cancel, confirm] = await Promise.all([
+      this.translate.get('PLAYFIELD_LIST.DELETE_CONFIRM_HEADER').toPromise(),
+      this.translate.get('PLAYFIELD_LIST.DELETE_CONFIRM_MESSAGE').toPromise(),
+      this.translate.get('PLAYFIELD_LIST.DELETE_CONFIRM_CANCEL').toPromise(),
+      this.translate.get('PLAYFIELD_LIST.DELETE_CONFIRM_OK').toPromise(),
+    ]);
+
+    const alert = await this.alertCtrl.create({
+      header,
+      message,
+      buttons: [
+        { text: cancel, role: 'cancel' },
+        {
+          text: confirm,
+          role: 'destructive',
+          handler: async () => {
+            await this.playfieldsService.delete(id);
+            this.playfields.update((list) => list.filter((p) => p.id !== id));
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 
   createPlayfield(): void {

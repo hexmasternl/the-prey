@@ -8,10 +8,9 @@ const STORE = 'playfields';
 export class PlayfieldsDbService {
   private readonly appDb = inject(AppDbService);
 
-  async getAll(ownerId: string): Promise<PlayFieldRecord[]> {
+  async getAll(): Promise<PlayFieldRecord[]> {
     const db = await this.appDb.getDb();
-    const all = await idbGetAll<PlayFieldRecord>(db, STORE);
-    return all.filter((r) => r.ownerId === ownerId);
+    return idbGetAll<PlayFieldRecord>(db, STORE);
   }
 
   /**

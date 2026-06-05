@@ -20,7 +20,6 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
-  ToastController,
   ViewDidEnter,
 } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -109,6 +108,7 @@ addIcons({ trashOutline });
     IonSpinner,
     TranslatePipe,
   ],
+
 })
 export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef<HTMLDivElement>;
@@ -117,7 +117,6 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
   private readonly location = inject(Location);
   private readonly playfieldsService = inject(PlayfieldsService);
   private readonly draftService = inject(PlayfieldDraftService);
-  private readonly toastController = inject(ToastController);
 
   readonly isLoading = signal(false);
   readonly pointCount = signal(0);
@@ -151,22 +150,22 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
   private async loadInitialState(): Promise<void> {
     this.clearPoints();
 
-    if (this.playFieldId === 'new') {
-      const draft = this.draftService.points();
-      if (draft.length > 0) {
-        for (const pt of draft) {
-          this.addPoint(L.latLng(pt.latitude, pt.longitude));
-        }
-        if (this.polygon) {
-          this.map!.fitBounds(this.polygon.getBounds(), { padding: [16, 16] });
-        }
-      } else {
-        await this.centreOnDeviceLocation();
+    const draft = this.draftService.points();
+
+    if (draft.length > 0) {
+      for (const pt of draft) {
+        this.addPoint(L.latLng(pt.latitude, pt.longitude));
+      }
+      if (this.polygon) {
+        this.map!.fitBounds(this.polygon.getBounds(), { padding: [16, 16] });
       }
       return;
     }
 
-    if (!this.playFieldId) return;
+    if (this.playFieldId === 'new' || !this.playFieldId) {
+      await this.centreOnDeviceLocation();
+      return;
+    }
 
     this.isLoading.set(true);
     try {
@@ -314,28 +313,10 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
     this.clearPoints();
   }
 
-  async onSave(): Promise<void> {
+  onSave(): void {
     if (this.points.length < 3) return;
-
-    if (this.playFieldId === 'new') {
-      this.draftService.set(this.points);
-      this.location.back();
-      return;
-    }
-
-    try {
-      await this.playfieldsService.updateArea(this.playFieldId, this.points);
-      this.location.back();
-    } catch (err: any) {
-      const message = err?.error?.message ?? err?.message ?? 'Failed to save area.';
-      const toast = await this.toastController.create({
-        message,
-        duration: 3000,
-        color: 'danger',
-        position: 'bottom',
-      });
-      await toast.present();
-    }
+    this.draftService.set(this.points);
+    this.location.back();
   }
 
   onCancel(): void {

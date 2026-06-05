@@ -1,0 +1,18 @@
+ion-content {
+  --background: var(--tp-bg-void);
+}
+
+ion-toolbar {
+  --background: var(--tp-bg-void);
+  --color: var(--tp-text);
+}
+
+ion-item {
+  --background: var(--tp-bg-void);
+  --color: var(--tp-text);
+  --border-color: var(--tp-line);
+}
+
+.save-btn {
+  margin-top: 24px;
+}

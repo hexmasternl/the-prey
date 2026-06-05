@@ -4,5 +4,7 @@ public interface IPlayFieldMetrics
 {
     void RecordPlayFieldCreated();
 
+    void RecordPlayFieldDeleted();
+
     void RecordPublicPlayFieldSearch();
 }

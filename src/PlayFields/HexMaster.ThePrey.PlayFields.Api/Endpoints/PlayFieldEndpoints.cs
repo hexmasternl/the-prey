@@ -1,6 +1,7 @@
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.PlayFields.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.PlayFields.Features.CreatePlayField;
+using HexMaster.ThePrey.PlayFields.Features.DeletePlayField;
 using HexMaster.ThePrey.PlayFields.Features.GetPlayField;
 using HexMaster.ThePrey.PlayFields.Features.ListPlayFields;
 using HexMaster.ThePrey.PlayFields.Features.SearchPublicPlayFields;
@@ -48,6 +49,13 @@ public static class PlayFieldEndpoints
             .WithName("SearchPublicPlayFields")
             .Produces<IReadOnlyList<PlayFieldSummaryDto>>()
             .ProducesValidationProblem()
+            .Produces(StatusCodes.Status401Unauthorized);
+
+        group.MapDelete("/{id:guid}", DeletePlayField)
+            .WithName("DeletePlayField")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status401Unauthorized);
 
         return app;
@@ -193,6 +201,28 @@ public static class PlayFieldEndpoints
                 ["q"] = [ex.Message]
             });
         }
+    }
+
+    private static async Task<IResult> DeletePlayField(
+        Guid id,
+        ClaimsPrincipal principal,
+        ICommandHandler<DeletePlayFieldCommand, DeletePlayFieldResult> handler,
+        CancellationToken ct)
+    {
+        var ownerId = GetSubjectId(principal);
+        if (ownerId is null)
+            return Results.Unauthorized();
+
+        var command = new DeletePlayFieldCommand(id, ownerId);
+        var result = await handler.Handle(command, ct);
+
+        return result switch
+        {
+            DeletePlayFieldResult.Success => Results.NoContent(),
+            DeletePlayFieldResult.NotFound => Results.NotFound(),
+            DeletePlayFieldResult.Forbidden => Results.Forbid(),
+            _ => Results.StatusCode(500)
+        };
     }
 
     private static string? GetSubjectId(ClaimsPrincipal principal) =>

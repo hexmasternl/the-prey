@@ -13,6 +13,8 @@ public interface IPlayFieldRepository
     /// <summary>Returns the play fields owned by the given player plus all public play fields owned by others.</summary>
     Task<IReadOnlyList<PlayField>> ListVisibleToAsync(string ownerId, CancellationToken ct);
 
+    Task DeleteAsync(Guid id, string ownerId, CancellationToken ct);
+
     /// <summary>Returns the public play fields whose name contains the search text (case-insensitive).</summary>
     Task<IReadOnlyList<PlayField>> SearchPublicAsync(string searchText, CancellationToken ct);
 }
