@@ -90,8 +90,41 @@ export class PlayfieldsService {
   }
 
   /**
-   * Create a new playfield locally (isSynced = false).
-   * The next `syncPlayfields()` call will push it to the server.
+   * POST a new playfield to the server and persist the authoritative record
+   * (server-assigned ID, isSynced=true). Falls back to a local-only record
+   * (client UUID, isSynced=false) if the server is unreachable.
+   */
+  async create(
+    name: string,
+    isPublic: boolean,
+    points: GpsCoordinateDto[],
+    ownerId: string,
+  ): Promise<PlayFieldRecord> {
+    try {
+      const dto = await firstValueFrom(
+        this.http.post<PlayFieldDetailDto>(this.apiBase, { name, isPublic, points }),
+      );
+      const record: PlayFieldRecord = {
+        id: dto.id,
+        name: dto.name,
+        ownerId: dto.ownerId,
+        isPublic: dto.isPublic,
+        points: dto.points,
+        lastUpdatedOn: dto.lastUpdatedOn,
+        centerCoordinates: dto.centerCoordinates,
+        isSynced: true,
+      };
+      await this.db.saveLocal(record);
+      return record;
+    } catch {
+      return this.createLocal(name, isPublic, points, ownerId);
+    }
+  }
+
+  /**
+   * Create a new playfield locally only (isSynced = false).
+   * Used as a fallback when the server is unreachable.
+   * The next `syncPlayfields()` call will push it via PUT.
    */
   async createLocal(
     name: string,

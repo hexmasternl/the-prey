@@ -52,7 +52,9 @@ export class PlayfieldCreatePage implements ViewWillEnter {
   readonly isSaving = signal(false);
 
   readonly areaPoints = this.draftService.points;
-  readonly canSave = computed(() => this.name().trim().length > 0);
+  readonly canSave = computed(
+    () => this.name().trim().length > 3 && this.draftService.points().length >= 3,
+  );
 
   private navigatedToArea = false;
 
@@ -75,10 +77,10 @@ export class PlayfieldCreatePage implements ViewWillEnter {
 
     this.isSaving.set(true);
     try {
-      const record = await this.playfieldsService.createLocal(
+      const record = await this.playfieldsService.create(
         this.name().trim(),
         this.isPublic(),
-        this.draftService.points() as GpsCoordinateDto[],
+        this.draftService.points(),
         ownerId,
       );
       this.draftService.clear();
