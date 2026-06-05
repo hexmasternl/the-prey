@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-button fill="clear" (click)="back()">&#8592;</ion-button>
     </ion-buttons>
-    <ion-title>Playfields</ion-title>
+    <ion-title>{{ 'PLAYFIELD_LIST.TITLE' | translate }}</ion-title>
     <ion-buttons slot="end">
       @if (!isSyncing()) {
         <ion-button fill="clear" (click)="sync()">&#8635;</ion-button>
@@ -13,8 +13,8 @@
 
   <ion-toolbar>
     <ion-segment [value]="activeTab()" (ionChange)="selectTab($any($event).detail.value)">
-      <ion-segment-button value="private">Private</ion-segment-button>
-      <ion-segment-button value="public">Public</ion-segment-button>
+      <ion-segment-button value="private">{{ 'PLAYFIELD_LIST.TAB_PRIVATE' | translate }}</ion-segment-button>
+      <ion-segment-button value="public">{{ 'PLAYFIELD_LIST.TAB_PUBLIC' | translate }}</ion-segment-button>
     </ion-segment>
   </ion-toolbar>
 </ion-header>
@@ -36,12 +36,12 @@
         </div>
       } @else if (syncFailed()) {
         <div class="sync-state sync-state--error">
-          <p>Could not reach server.</p>
-          <ion-button fill="outline" color="danger" (click)="sync()">Retry</ion-button>
+          <p>{{ 'PLAYFIELD_LIST.SYNC_ERROR' | translate }}</p>
+          <ion-button fill="outline" color="danger" (click)="sync()">{{ 'PLAYFIELD_LIST.SYNC_RETRY' | translate }}</ion-button>
         </div>
       } @else if (playfields().length === 0) {
         <div class="sync-state">
-          <p class="empty-label">No playfields yet.</p>
+          <p class="empty-label">{{ 'PLAYFIELD_LIST.EMPTY' | translate }}</p>
         </div>
       } @else {
         <ion-list>
@@ -52,13 +52,13 @@
                   <h2>{{ pf.name }}</h2>
                 </ion-label>
                 <ion-badge slot="end" [color]="pf.isPublic ? 'success' : 'medium'">
-                  {{ pf.isPublic ? 'Public' : 'Private' }}
+                  {{ (pf.isPublic ? 'PLAYFIELD_LIST.BADGE_PUBLIC' : 'PLAYFIELD_LIST.BADGE_PRIVATE') | translate }}
                 </ion-badge>
               </ion-item>
 
               <ion-item-options side="end">
                 <ion-item-option color="danger" (click)="deletePlayfield(sliding, pf.id)">
-                  Delete
+                  {{ 'PLAYFIELD_LIST.DELETE' | translate }}
                 </ion-item-option>
               </ion-item-options>
             </ion-item-sliding>
@@ -69,7 +69,7 @@
 
     @case ('public') {
       <div class="sync-state">
-        <p class="empty-label">Public playfields — coming soon.</p>
+        <p class="empty-label">{{ 'PLAYFIELD_LIST.PUBLIC_COMING_SOON' | translate }}</p>
       </div>
     }
   }

@@ -1,28 +1,26 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="back()">&#8592; Back</ion-button>
+      <ion-button fill="clear" (click)="back()">&#8592; {{ 'PLAYFIELD_CREATE.BACK' | translate }}</ion-button>
     </ion-buttons>
-    <ion-title>New Playfield</ion-title>
+    <ion-title>{{ 'PLAYFIELD_CREATE.TITLE' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <!-- Name -->
   <ion-item>
     <ion-input
-      label="Name"
+      [label]="'PLAYFIELD_CREATE.NAME_LABEL' | translate"
       labelPlacement="floating"
       [ngModel]="name()"
       (ngModelChange)="name.set($event)"
-      placeholder="e.g. City Park Arena"
+      [placeholder]="'PLAYFIELD_CREATE.NAME_PLACEHOLDER' | translate"
       clearInput
     ></ion-input>
   </ion-item>
 
-  <!-- Public toggle -->
   <ion-item>
-    <ion-label>Public</ion-label>
+    <ion-label>{{ 'PLAYFIELD_CREATE.VISIBILITY_LABEL' | translate }}</ion-label>
     <ion-toggle
       slot="end"
       [checked]="isPublic()"
@@ -33,14 +31,14 @@
   <ion-item lines="none">
     <ion-button expand="block" fill="outline" (click)="goToArea()" style="width:100%;">
       @if (areaPoints().length >= 3) {
-        Set Area ({{ areaPoints().length }} points)
+        {{ 'PLAYFIELD_CREATE.SET_AREA_WITH_COUNT' | translate:{ count: areaPoints().length } }}
       } @else {
-        Set Area
+        {{ 'PLAYFIELD_CREATE.SET_AREA' | translate }}
       }
     </ion-button>
     @if (areaPoints().length > 0 && areaPoints().length < 3) {
       <ion-note color="warning" style="font-size:0.8em;padding-top:4px;">
-        At least 3 points required
+        {{ 'PLAYFIELD_CREATE.SET_AREA_MIN_POINTS' | translate }}
       </ion-note>
     }
   </ion-item>
@@ -53,9 +51,9 @@
     (click)="save()"
   >
     @if (isSaving()) {
-      <ion-spinner name="lines" slot="start"></ion-spinner> Saving...
+      <ion-spinner name="lines" slot="start"></ion-spinner> {{ 'PLAYFIELD_CREATE.SAVING' | translate }}
     } @else {
-      Save Playfield
+      {{ 'PLAYFIELD_CREATE.SAVE' | translate }}
     }
   </ion-button>
 </ion-content>

@@ -23,6 +23,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
+import { TranslatePipe } from '@ngx-translate/core';
 import { PlayFieldRecord } from './playfield.model';
 import { PlayfieldsService } from './playfields.service';
 
@@ -52,6 +53,7 @@ type Tab = 'private' | 'public';
     IonLabel,
     IonBadge,
     IonSpinner,
+    TranslatePipe,
   ],
 })
 export class PlayfieldsListPage implements OnInit {

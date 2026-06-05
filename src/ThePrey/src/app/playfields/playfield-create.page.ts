@@ -14,9 +14,10 @@ import {
   IonTitle,
   IonToggle,
   IonToolbar,
+  ToastController,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
-import { GpsCoordinateDto } from './playfield.model';
+import { TranslatePipe } from '@ngx-translate/core';
 import { PlayfieldsService } from './playfields.service';
 import { PlayfieldDraftService } from './playfield-draft.service';
 import { UserStateService } from '../users/user-state.service';
@@ -27,6 +28,7 @@ import { UserStateService } from '../users/user-state.service';
   styleUrls: ['playfield-create.page.scss'],
   imports: [
     FormsModule,
+    TranslatePipe,
     IonHeader,
     IonToolbar,
     IonButtons,
@@ -46,6 +48,7 @@ export class PlayfieldCreatePage implements ViewWillEnter {
   private readonly playfieldsService = inject(PlayfieldsService);
   private readonly userState = inject(UserStateService);
   private readonly draftService = inject(PlayfieldDraftService);
+  private readonly toastController = inject(ToastController);
 
   readonly name = signal('');
   readonly isPublic = signal(false);
@@ -72,19 +75,25 @@ export class PlayfieldCreatePage implements ViewWillEnter {
 
   async save(): Promise<void> {
     if (!this.canSave()) return;
-    const ownerId = this.userState.profile()?.userId;
-    if (!ownerId) return;
 
     this.isSaving.set(true);
     try {
-      const record = await this.playfieldsService.create(
+      await this.playfieldsService.create(
         this.name().trim(),
         this.isPublic(),
         this.draftService.points(),
-        ownerId,
       );
       this.draftService.clear();
-      await this.router.navigate(['/playfields', record.id]);
+      await this.router.navigate(['/playfields']);
+    } catch (err: any) {
+      const message = err?.error?.message ?? err?.message ?? 'PLAYFIELD_CREATE.ERROR_CREATE';
+      const toast = await this.toastController.create({
+        message,
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
     } finally {
       this.isSaving.set(false);
     }
