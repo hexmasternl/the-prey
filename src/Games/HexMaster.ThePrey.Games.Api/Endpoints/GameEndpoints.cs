@@ -5,6 +5,7 @@ using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
 using HexMaster.ThePrey.Games.Features.GetGameState;
+using HexMaster.ThePrey.Games.Features.GetGameStatus;
 using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
@@ -79,8 +80,16 @@ public static class GameEndpoints
 
         group.MapGet("/active", GetActiveGame)
             .WithName("GetActiveGame")
-            .Produces<ActiveGameDto>()
+            .Produces<GameStatusDto>()
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized);
+
+        group.MapGet("/{id:guid}/status", GetGameStatus)
+            .WithName("GetGameStatus")
+            .Produces<GameStatusDto>()
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status409Conflict)
             .Produces(StatusCodes.Status401Unauthorized);
 
         group.MapDelete("/{id:guid}/lobby/{userId:guid}", RemoveLobbyPlayer)
@@ -106,6 +115,12 @@ public static class GameEndpoints
             .WithName("StreamLobbyEvents")
             .Produces(StatusCodes.Status200OK, contentType: "text/event-stream")
             .AllowAnonymous();
+
+        group.MapGet("/{id:guid}/stream", StreamGameEvents)
+            .WithName("StreamGameEvents")
+            .Produces(StatusCodes.Status200OK, contentType: "text/event-stream")
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status401Unauthorized);
 
         return app;
     }
@@ -293,7 +308,7 @@ public static class GameEndpoints
     private static async Task<IResult> GetActiveGame(
         ClaimsPrincipal principal,
         IUserResolver userResolver,
-        IQueryHandler<GetActiveGameQuery, ActiveGameDto?> handler,
+        IQueryHandler<GetActiveGameQuery, GameStatusDto?> handler,
         CancellationToken ct)
     {
         var subjectId = principal.FindFirstValue("sub");
@@ -303,6 +318,33 @@ public static class GameEndpoints
 
         var active = await handler.Handle(new GetActiveGameQuery(user.UserId), ct);
         return active is not null ? Results.Ok(active) : Results.NotFound();
+    }
+
+    private static async Task<IResult> GetGameStatus(
+        Guid id,
+        ClaimsPrincipal principal,
+        IUserResolver userResolver,
+        IQueryHandler<GetGameStatusQuery, GameStatusDto?> handler,
+        CancellationToken ct)
+    {
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        try
+        {
+            var status = await handler.Handle(new GetGameStatusQuery(id, user.UserId), ct);
+            return status is not null ? Results.Ok(status) : Results.NotFound();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
+        }
+        catch (InvalidOperationException)
+        {
+            return Results.Conflict();
+        }
     }
 
     private static async Task<IResult> RemoveLobbyPlayer(
@@ -432,6 +474,53 @@ public static class GameEndpoints
             var json = System.Text.Json.JsonSerializer.Serialize(evt);
             await httpContext.Response.WriteAsync($"event: {evt.EventType}\ndata: {json}\n\n", ct);
             await httpContext.Response.Body.FlushAsync(ct);
+        }
+    }
+
+    private static async Task StreamGameEvents(
+        Guid id,
+        ClaimsPrincipal principal,
+        IUserResolver userResolver,
+        IGameRepository gameRepository,
+        IGameEventBus eventBus,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null)
+        {
+            httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null)
+        {
+            httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
+        var game = await gameRepository.GetByIdAsync(id, ct);
+        if (game is null || !game.IsParticipant(user.UserId))
+        {
+            httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+        }
+
+        httpContext.Response.ContentType = "text/event-stream";
+        httpContext.Response.Headers.CacheControl = "no-cache";
+        httpContext.Response.Headers.Append("X-Accel-Buffering", "no");
+
+        await foreach (var evt in eventBus.Subscribe(id).WithCancellation(ct))
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(evt, evt.GetType());
+            await httpContext.Response.WriteAsync($"event: {evt.EventType}\ndata: {json}\n\n", ct);
+            await httpContext.Response.Body.FlushAsync(ct);
+
+            if (evt is GameEndedEvent)
+            {
+                eventBus.Complete(id);
+                break;
+            }
         }
     }
 

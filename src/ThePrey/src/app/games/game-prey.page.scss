@@ -1,0 +1,107 @@
+:host {
+  --signal: #64ff00;
+  --hunter: #ff2f1f;
+  --caution: #ffb300;
+  --bg-void: #0c0e0c;
+  --bg-base: #181b17;
+  --bg-surface: #23271f;
+  --text: #dcf6d2;
+  --text-soft: #8c9a83;
+  --line: #39402f;
+}
+
+.prey-view {
+  --background: var(--bg-void);
+}
+
+.map-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+// Override Leaflet tile layer to be dark-tinted
+:global(.leaflet-tile) {
+  filter: brightness(0.7) saturate(0.4);
+}
+
+.alert-banner {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg-surface);
+  border-left: 3px solid var(--caution);
+  font-family: 'PT Mono', 'Courier New', monospace;
+
+  .alert-icon {
+    color: var(--caution);
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .alert-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--caution);
+    text-transform: uppercase;
+  }
+
+  .alert-msg {
+    font-size: 13px;
+    color: var(--text-soft);
+    margin-top: 2px;
+  }
+}
+
+.hud-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  background: rgba(12, 14, 12, 0.88);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.hud-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px 10px;
+  border-right: 1px solid var(--line);
+  font-family: 'PT Mono', 'Courier New', monospace;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  .hud-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .hud-value {
+    font-size: 20px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  &.hud-penalty .hud-value {
+    color: var(--caution);
+    text-shadow: 0 0 10px rgba(255, 179, 0, 0.4);
+  }
+}

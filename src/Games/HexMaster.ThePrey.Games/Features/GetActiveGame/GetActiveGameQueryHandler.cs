@@ -6,13 +6,18 @@ using HexMaster.ThePrey.Games.Observability;
 
 namespace HexMaster.ThePrey.Games.Features.GetActiveGame;
 
-public sealed class GetActiveGameQueryHandler : IQueryHandler<GetActiveGameQuery, ActiveGameDto?>
+public sealed class GetActiveGameQueryHandler : IQueryHandler<GetActiveGameQuery, GameStatusDto?>
 {
     private readonly IGameRepository _games;
+    private readonly IPlayfieldInfoProvider _playfields;
 
-    public GetActiveGameQueryHandler(IGameRepository games) => _games = games;
+    public GetActiveGameQueryHandler(IGameRepository games, IPlayfieldInfoProvider playfields)
+    {
+        _games = games;
+        _playfields = playfields;
+    }
 
-    public async Task<ActiveGameDto?> Handle(GetActiveGameQuery query, CancellationToken ct)
+    public async Task<GameStatusDto?> Handle(GetActiveGameQuery query, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(query);
 
@@ -25,7 +30,11 @@ public sealed class GetActiveGameQueryHandler : IQueryHandler<GetActiveGameQuery
 
             activity?.SetTag("game.active", active is not null);
 
-            return active is not null ? new ActiveGameDto(active.Id) : null;
+            if (active is null)
+                return null;
+
+            var playfieldInfo = await _playfields.GetAsync(active.PlayfieldId, ct);
+            return active.ToStatusDto(playfieldInfo, query.UserId, DateTimeOffset.UtcNow);
         }
         catch (Exception ex)
         {

@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.StartGame;
+using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Games.Tests.Factories;
 using Microsoft.Extensions.Logging;
@@ -13,13 +14,21 @@ public sealed class StartGameCommandHandlerTests
 
     private readonly Mock<IGameRepository> _repository = new();
     private readonly Mock<IGameMetrics> _metrics = new();
+    private readonly Mock<IGameEventBus> _eventBus = new();
+    private readonly Mock<ILobbyEventBus> _lobbyEventBus = new();
     private readonly StartGameCommandHandler _handler;
 
     public StartGameCommandHandlerTests()
     {
+        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
+            .Returns(ValueTask.CompletedTask);
+        _lobbyEventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()))
+            .Returns(ValueTask.CompletedTask);
         _handler = new StartGameCommandHandler(
             _repository.Object,
             _metrics.Object,
+            _eventBus.Object,
+            _lobbyEventBus.Object,
             new FixedTimeProvider(Now),
             Mock.Of<ILogger<StartGameCommandHandler>>());
     }

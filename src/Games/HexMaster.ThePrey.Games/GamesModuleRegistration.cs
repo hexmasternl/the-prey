@@ -4,6 +4,7 @@ using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
 using HexMaster.ThePrey.Games.Features.GetGameState;
+using HexMaster.ThePrey.Games.Features.GetGameStatus;
 using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
@@ -33,10 +34,12 @@ public static class GamesModuleRegistration
         services.AddScoped<IQueryHandler<GetGameQuery, GameDto?>, GetGameQueryHandler>();
         services.AddScoped<IQueryHandler<GetGameStateQuery, GameStateDto?>, GetGameStateQueryHandler>();
         services.AddScoped<IQueryHandler<ListGamesQuery, IReadOnlyList<GameSummaryDto>>, ListGamesQueryHandler>();
-        services.AddScoped<IQueryHandler<GetActiveGameQuery, ActiveGameDto?>, GetActiveGameQueryHandler>();
+        services.AddScoped<IQueryHandler<GetActiveGameQuery, GameStatusDto?>, GetActiveGameQueryHandler>();
+        services.AddScoped<IQueryHandler<GetGameStatusQuery, GameStatusDto?>, GetGameStatusQueryHandler>();
 
         services.AddSingleton<IGameMetrics, GameMetrics>();
         services.AddSingleton<ILobbyEventBus, InProcessLobbyEventBus>();
+        services.AddSingleton<IGameEventBus, InProcessGameEventBus>();
 
         return services;
     }

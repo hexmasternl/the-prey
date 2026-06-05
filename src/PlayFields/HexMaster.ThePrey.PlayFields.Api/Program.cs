@@ -44,5 +44,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapPlayFieldEndpoints();
+app.MapInternalPlayFieldEndpoints();
 
 app.Run();

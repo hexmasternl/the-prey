@@ -1,0 +1,19 @@
+namespace HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
+
+/// <summary>Rich status of an in-progress game as seen by the requesting user.</summary>
+public sealed record GameStatusDto(
+    Guid GameId,
+    string PlayfieldName,
+    IReadOnlyList<GpsCoordinateDto> PlayfieldCoordinates,
+    GameParticipantStatusDto? Hunter,
+    IReadOnlyList<GameParticipantStatusDto> Preys,
+    int GameDurationLeft,
+    int NextPingDuration,
+    bool IsEndgame);
+
+/// <summary>The status and last known location of a single game participant.</summary>
+public sealed record GameParticipantStatusDto(
+    Guid UserId,
+    string Callsign,
+    GpsCoordinateDto? LastKnownLocation,
+    bool HasActivePenalty);

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
+using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 
 namespace HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
@@ -10,15 +11,18 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
 {
     private readonly IGameRepository _games;
     private readonly IGameMetrics _metrics;
+    private readonly IGameEventBus _eventBus;
     private readonly TimeProvider _timeProvider;
 
     public RecordPlayerLocationCommandHandler(
         IGameRepository games,
         IGameMetrics metrics,
+        IGameEventBus eventBus,
         TimeProvider timeProvider)
     {
         _games = games;
         _metrics = metrics;
+        _eventBus = eventBus;
         _timeProvider = timeProvider;
     }
 
@@ -32,7 +36,6 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
 
         using var activity = GameActivitySource.Source.StartActivity("RecordPlayerLocation");
         activity?.SetTag("game.id", game.Id);
-        activity?.SetTag("game.user_id", command.UserId);
         activity?.SetTag("game.location_accuracy_meters", command.Accuracy);
 
         var now = _timeProvider.GetUtcNow();
@@ -44,6 +47,12 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
         await _games.UpdateAsync(game, ct);
 
         _metrics.RecordLocationRecorded();
+
+        if (game.Hunter?.UserId == command.UserId)
+        {
+            await _eventBus.PublishAsync(game.Id,
+                new ParticipantLocatedEvent(game.Id, "Hunter", command.Latitude, command.Longitude), ct);
+        }
 
         var nextInterval = game.RegularReportingIntervalAt(now);
         var penaltyEndsAt = game.ActivePenaltyEndsAtFor(command.UserId, now);

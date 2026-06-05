@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Games;
 using HexMaster.ThePrey.Games.Api.Endpoints;
+using HexMaster.ThePrey.Games.Api.Integration;
 using HexMaster.ThePrey.Games.Data.Postgres;
 using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Users.Integration;
@@ -39,6 +40,7 @@ builder.Services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.Authenticatio
 builder.Services.AddGamesModule();
 builder.AddGamesPostgres();
 builder.Services.AddUserResolver();
+builder.Services.AddScoped<IPlayfieldInfoProvider, PlayfieldInfoProvider>();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing

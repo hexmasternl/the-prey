@@ -16,11 +16,13 @@
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
+    <PackageReference Include="Dapr.AspNetCore" Version="1.17.9" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.14.14" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Aspire\ThePrey.Aspire.ServiceDefaults\ThePrey.Aspire.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\PlayFields\HexMaster.ThePrey.PlayFields.Abstractions\HexMaster.ThePrey.PlayFields.Abstractions.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Games\HexMaster.ThePrey.Games.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Games.Abstractions\HexMaster.ThePrey.Games.Abstractions.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Games.Data.Postgres\HexMaster.ThePrey.Games.Data.Postgres.csproj" />

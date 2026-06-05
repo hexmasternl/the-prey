@@ -1,0 +1,31 @@
+<ion-content [fullscreen]="true" class="prey-view">
+  <!-- Full-screen map -->
+  <div id="map" class="map-container"></div>
+
+  <!-- GPS alert banner -->
+  @if (gpsAlert()) {
+  <div class="alert-banner alert-warn">
+    <span class="alert-icon">▲</span>
+    <div>
+      <div class="alert-title">SIGNAL LOST</div>
+      <div class="alert-msg">{{ gpsAlert() }}</div>
+    </div>
+  </div>
+  }
+
+  <!-- HUD bar -->
+  <div class="hud-bar">
+    <div class="hud-cell">
+      <div class="hud-label">TIME</div>
+      <div class="hud-value">{{ timeRemaining() }}</div>
+    </div>
+    <div class="hud-cell">
+      <div class="hud-label">PREY</div>
+      <div class="hud-value">{{ preysLeft() }}</div>
+    </div>
+    <div class="hud-cell" [class.hud-penalty]="hasActivePenalty()">
+      <div class="hud-label">PENALTY</div>
+      <div class="hud-value">{{ hasActivePenalty() ? 'ACTIVE' : '—' }}</div>
+    </div>
+  </div>
+</ion-content>

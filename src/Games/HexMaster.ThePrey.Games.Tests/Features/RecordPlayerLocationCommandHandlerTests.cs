@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
+using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Games.Tests.Factories;
 using Moq;
@@ -14,11 +15,14 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
     private readonly Mock<IGameRepository> _repository = new();
     private readonly Mock<IGameMetrics> _metrics = new();
+    private readonly Mock<IGameEventBus> _eventBus = new();
     private readonly RecordPlayerLocationCommandHandler _handler;
 
     public RecordPlayerLocationCommandHandlerTests()
     {
-        _handler = new RecordPlayerLocationCommandHandler(_repository.Object, _metrics.Object, new FixedTimeProvider(Now));
+        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
+            .Returns(ValueTask.CompletedTask);
+        _handler = new RecordPlayerLocationCommandHandler(_repository.Object, _metrics.Object, _eventBus.Object, new FixedTimeProvider(Now));
     }
 
     [Fact]

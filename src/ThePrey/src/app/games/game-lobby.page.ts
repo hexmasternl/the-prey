@@ -108,6 +108,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       es.addEventListener('ready-updated', (e: MessageEvent) => this.onLobbyEvent(e));
       es.addEventListener('hunter-designated', (e: MessageEvent) => this.onLobbyEvent(e));
       es.addEventListener('hunter-changed', (e: MessageEvent) => this.onLobbyEvent(e));
+      es.addEventListener('game-started', (e: MessageEvent) => this.onGameStarted(e));
       es.onerror = () => this.refreshGame();
     } catch {
       // SSE is best-effort; polling fallback via onerror
@@ -120,6 +121,24 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       if (data?.payload) {
         this.game.set(data.payload);
         this.syncConfigFromGame(data.payload);
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }
+
+  private onGameStarted(event: MessageEvent): void {
+    try {
+      const data = JSON.parse(event.data);
+      const game: GameDto | null = data?.payload ?? null;
+      if (!game) return;
+      const uid = this.currentUserId();
+      this.closeStream();
+      if (game.hunter?.userId === uid) {
+        // hunter view — future change
+        this.router.navigate(['/home'], { replaceUrl: true });
+      } else if (game.preys.some(p => p.userId === uid)) {
+        this.router.navigate(['/games', game.id, 'play'], { replaceUrl: true });
       }
     } catch {
       // ignore parse errors
