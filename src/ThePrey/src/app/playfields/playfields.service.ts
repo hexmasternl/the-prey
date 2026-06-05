@@ -62,6 +62,12 @@ export class PlayfieldsService {
     return this.db.getAll(ownerId);
   }
 
+  async getLocalPlayfields(): Promise<PlayFieldRecord[]> {
+    const ownerId = this.userState.profile()?.userId;
+    if (!ownerId) return [];
+    return this.db.getAll(ownerId);
+  }
+
   getById(id: string): Promise<PlayFieldDetailDto> {
     return firstValueFrom(this.http.get<PlayFieldDetailDto>(`${this.apiBase}/${id}`));
   }
