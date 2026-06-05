@@ -20,28 +20,42 @@ public sealed class ListPlayFieldsQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSummariesForVisibleFields()
+    public async Task Handle_ShouldReturnSummaries_WhenOwnerHasPlayFields()
     {
-        var owned = PlayFieldFaker.CreateValid(ownerId: OwnerGuid, isPublic: false);
-        var othersPublic = PlayFieldFaker.CreateValid(ownerId: OtherGuid, isPublic: true);
+        var owned1 = PlayFieldFaker.CreateValid(ownerId: OwnerGuid, isPublic: false);
+        var owned2 = PlayFieldFaker.CreateValid(ownerId: OwnerGuid, isPublic: true);
 
-        // The repository is responsible for the visibility filter; the handler maps what it returns.
         _mockRepository
-            .Setup(r => r.ListVisibleToAsync(OwnerGuid, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([owned, othersPublic]);
+            .Setup(r => r.ListByOwnerAsync(OwnerGuid, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([owned1, owned2]);
 
         var result = await _handler.Handle(new ListPlayFieldsQuery(OwnerGuid), CancellationToken.None);
 
         Assert.Equal(2, result.Count);
-        Assert.Contains(result, s => s.Id == owned.Id);
-        Assert.Contains(result, s => s.Id == othersPublic.Id);
+        Assert.Contains(result, s => s.Id == owned1.Id);
+        Assert.Contains(result, s => s.Id == owned2.Id);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnEmpty_WhenNoVisibleFields()
+    public async Task Handle_ShouldNotReturnOtherOwnersPlayFields()
+    {
+        var owned = PlayFieldFaker.CreateValid(ownerId: OwnerGuid, isPublic: false);
+
+        _mockRepository
+            .Setup(r => r.ListByOwnerAsync(OwnerGuid, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([owned]);
+
+        var result = await _handler.Handle(new ListPlayFieldsQuery(OwnerGuid), CancellationToken.None);
+
+        Assert.Single(result);
+        Assert.All(result, s => Assert.Equal(OwnerGuid, s.OwnerId));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnEmpty_WhenOwnerHasNoPlayFields()
     {
         _mockRepository
-            .Setup(r => r.ListVisibleToAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.ListByOwnerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<PlayField>());
 
         var result = await _handler.Handle(new ListPlayFieldsQuery(OwnerGuid), CancellationToken.None);
