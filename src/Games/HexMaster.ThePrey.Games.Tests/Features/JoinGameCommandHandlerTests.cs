@@ -13,12 +13,12 @@ public sealed class JoinGameCommandHandlerTests
     public JoinGameCommandHandlerTests() => _handler = new JoinGameCommandHandler(_repository.Object);
 
     [Fact]
-    public async Task Handle_ShouldAddPlayerAndPersist_WhenGameExists()
+    public async Task Handle_ShouldAddPlayerAndPersist_WhenCodeIsCorrect()
     {
         var game = GameFaker.LobbyGame();
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
-        var result = await _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), "Alice", null), CancellationToken.None);
+        var result = await _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), game.GameCode, "Alice", null), CancellationToken.None);
 
         Assert.NotNull(result);
         Assert.Single(result!.Game.Lobby);
@@ -30,9 +30,47 @@ public sealed class JoinGameCommandHandlerTests
     {
         _repository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Game?)null);
 
-        var result = await _handler.Handle(new JoinGameCommand(Guid.NewGuid(), Guid.NewGuid(), "Alice", null), CancellationToken.None);
+        var result = await _handler.Handle(new JoinGameCommand(Guid.NewGuid(), Guid.NewGuid(), "12345678", "Alice", null), CancellationToken.None);
 
         Assert.Null(result);
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrow_WhenJoinCodeIsWrong()
+    {
+        var game = GameFaker.LobbyGame(gameCode: "11111111");
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), "99999999", "Bob", null), CancellationToken.None));
+
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrow_WhenPlayerAlreadyInLobby()
+    {
+        var game = GameFaker.LobbyGame();
+        var existingPlayer = GameFaker.Player();
+        game.JoinLobby(existingPlayer);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new JoinGameCommand(game.Id, existingPlayer.UserId, game.GameCode, existingPlayer.DisplayName, null), CancellationToken.None));
+
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrow_WhenGameIsNotInLobbyState()
+    {
+        var started = GameFaker.StartedGame(out _, out _, DateTimeOffset.UtcNow);
+        _repository.Setup(r => r.GetByIdAsync(started.Id, It.IsAny<CancellationToken>())).ReturnsAsync(started);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new JoinGameCommand(started.Id, Guid.NewGuid(), started.GameCode, "Carol", null), CancellationToken.None));
+
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

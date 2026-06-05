@@ -5,6 +5,7 @@ namespace HexMaster.ThePrey.Games.Features.JoinGame;
 public sealed record JoinGameCommand(
     Guid GameId,
     Guid UserId,
+    string JoinCode,
     string DisplayName,
     string? ProfilePictureUrl);
 

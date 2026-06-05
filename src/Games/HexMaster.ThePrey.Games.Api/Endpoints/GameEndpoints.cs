@@ -39,6 +39,12 @@ public static class GameEndpoints
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status404NotFound);
 
+        group.MapPost("/{id:guid}/join", JoinGame)
+            .WithName("JoinGameByCode")
+            .Produces<GameDto>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapPost("/{id:guid}/start", StartGame)
             .WithName("StartGame")
             .Produces<GameDto>()
@@ -83,8 +89,8 @@ public static class GameEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPut("/{id:guid}/settings", UpdateGameSettings)
-            .WithName("UpdateGameSettings")
+        group.MapPut("/{id:guid}/config", UpdateGameConfig)
+            .WithName("UpdateGameConfig")
             .Produces<GameDto>()
             .ProducesValidationProblem()
             .Produces(StatusCodes.Status403Forbidden)
@@ -155,7 +161,7 @@ public static class GameEndpoints
 
         try
         {
-            var result = await handler.Handle(new JoinGameCommand(id, user.UserId, request.DisplayName, request.ProfilePictureUrl), ct);
+            var result = await handler.Handle(new JoinGameCommand(id, user.UserId, request.JoinCode, request.DisplayName, request.ProfilePictureUrl), ct);
             return result is null ? Results.NotFound() : Results.Ok(result.Game);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -328,7 +334,7 @@ public static class GameEndpoints
         }
     }
 
-    private static async Task<IResult> UpdateGameSettings(
+    private static async Task<IResult> UpdateGameConfig(
         Guid id,
         [FromBody] UpdateGameSettingsRequest request,
         ClaimsPrincipal principal,

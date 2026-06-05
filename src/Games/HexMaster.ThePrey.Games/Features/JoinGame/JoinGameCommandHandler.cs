@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.DomainModels;
+using HexMaster.ThePrey.Games.Observability;
 
 namespace HexMaster.ThePrey.Games.Features.JoinGame;
 
@@ -13,14 +15,29 @@ public sealed class JoinGameCommandHandler : ICommandHandler<JoinGameCommand, Jo
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        var game = await _games.GetByIdAsync(command.GameId, ct);
-        if (game is null)
-            return null;
+        using var activity = GameActivitySource.Source.StartActivity("JoinGame");
+        activity?.SetTag("game.id", command.GameId);
 
-        game.JoinLobby(LobbyPlayer.Create(command.UserId, command.DisplayName, command.ProfilePictureUrl));
+        try
+        {
+            var game = await _games.GetByIdAsync(command.GameId, ct);
+            if (game is null)
+                return null;
 
-        await _games.UpdateAsync(game, ct);
+            if (!string.Equals(command.JoinCode, game.GameCode, StringComparison.Ordinal))
+                throw new InvalidOperationException("The join code is incorrect.");
 
-        return new JoinGameResult(game.ToDto());
+            game.JoinLobby(LobbyPlayer.Create(command.UserId, command.DisplayName, command.ProfilePictureUrl));
+
+            await _games.UpdateAsync(game, ct);
+
+            return new JoinGameResult(game.ToDto());
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.AddException(ex);
+            throw;
+        }
     }
 }
