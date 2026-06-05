@@ -54,10 +54,10 @@ public sealed class UpsertPlayFieldCommandHandler
             if (!string.Equals(existing.OwnerId, command.OwnerId, StringComparison.Ordinal))
                 return new UpsertPlayFieldResult.Forbidden();
 
-            if (command.LastUpdatedOn <= existing.LastModifiedOn)
+            if (command.LastUpdatedOn < existing.LastModifiedOn)
                 return new UpsertPlayFieldResult.Conflict(existing.ToDto());
 
-            existing.Update(command.Name, command.IsPublic, points, command.LastUpdatedOn);
+            existing.Update(command.Name, command.IsPublic, points, DateTimeOffset.UtcNow);
             await _playFields.UpsertAsync(existing, ct);
             _logger.LogInformation("Play field {PlayFieldId} updated via upsert", existing.Id);
 
