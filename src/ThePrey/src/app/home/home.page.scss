@@ -154,14 +154,28 @@ h1 {
 }
 
 .buttons {
-  // Callsign badge shown below buttons once profile loads
+  // Callsign badge — running-light animation sweeps each character
   .callsign {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
     font-family: var(--tp-body);
     font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--tp-text-ghost);
     text-transform: uppercase;
-    text-align: center;
     margin-top: 8px;
+
+    .char {
+      display: inline-block;
+      color: var(--tp-text-ghost);
+      animation: char-light var(--callsign-dur, 1500ms) calc(var(--i, 0) * 120ms) infinite;
+      white-space: pre;
+    }
   }
+}
+
+@keyframes char-light {
+  0%   { color: var(--tp-signal); text-shadow: 0 0 8px var(--tp-signal-glow), 0 0 18px var(--tp-signal-glow); }
+  6%   { color: var(--tp-signal); text-shadow: 0 0 8px var(--tp-signal-glow); }
+  18%  { color: var(--tp-text-ghost); text-shadow: none; }
+  100% { color: var(--tp-text-ghost); text-shadow: none; }
 }

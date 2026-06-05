@@ -71,7 +71,11 @@
           {{ 'HOME.QUIT' | translate }}
         </ion-button>
 
-        <div class="callsign">{{ profile.callsign }}</div>
+        <div class="callsign" [style.--callsign-dur]="callsignAnimDuration()">
+          @for (char of callsignChars(); track $index) {
+            <span class="char" [style.--i]="$index">{{ char }}</span>
+          }
+        </div>
       </div>
     } @else if (userState.syncFailed()) {
       <!-- Server unreachable and no cached profile to fall back on -->

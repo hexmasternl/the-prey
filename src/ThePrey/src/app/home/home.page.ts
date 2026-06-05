@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonButton, IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { App } from '@capacitor/app';
@@ -24,6 +24,15 @@ export class HomePage implements OnInit, OnDestroy {
   lon: string | null = null;
 
   readonly activeGameId = signal<string | null>(null);
+
+  readonly callsignChars = computed(() =>
+    (this.userState.profile()?.callsign ?? '').toUpperCase().split('').map(c => c === ' ' ? ' ' : c)
+  );
+
+  readonly callsignAnimDuration = computed(() => {
+    const n = this.callsignChars().length || 1;
+    return `${n * 120 + 700}ms`;
+  });
 
   private watchId: string | undefined;
   private readonly gamesService = inject(GamesService);

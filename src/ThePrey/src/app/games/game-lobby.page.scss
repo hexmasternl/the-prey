@@ -108,7 +108,7 @@ ion-header ion-toolbar {
 // ── Operation header ─────────────────────────────────────────
 .op-header {
   position: relative;
-  padding: 20px 0 20px;
+  padding: 0px 0 20px;
   margin-bottom: 4px;
 }
 
@@ -155,7 +155,6 @@ ion-header ion-toolbar {
 .config-block {
   position: relative;
   border: 1px solid rgba(57, 64, 47, 0.8);
-  border-left: 2px solid rgba(100, 255, 0, 0.5);
 }
 
 .config-field {
@@ -212,8 +211,8 @@ ion-header ion-toolbar {
 // ── Operatives block ─────────────────────────────────────────
 .operatives-block {
   position: relative;
+  background: rgba(12, 14, 12, 0.85);
   border: 1px solid rgba(57, 64, 47, 0.8);
-  border-left: 2px solid rgba(100, 255, 0, 0.5);
 }
 
 .operative-row {

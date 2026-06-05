@@ -1,7 +1,9 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="back()">{{ 'GAME_LOBBY.BACK' | translate }}</ion-button>
+      <ion-button fill="clear" (click)="back()"
+        >{{ 'GAME_LOBBY.BACK' | translate }}</ion-button
+      >
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -15,169 +17,241 @@
   </div>
 
   @if (isLoading()) {
-    <div class="loading-center">
-      <ion-spinner name="lines" color="primary"></ion-spinner>
-    </div>
+  <div class="loading-center">
+    <ion-spinner name="lines" color="primary"></ion-spinner>
+  </div>
   } @else if (game(); as g) {
-    <div class="content-wrap">
+  <div class="content-wrap">
+    <!-- Operation header — game code as the hero display -->
+    <div class="op-header">
+      <div class="op-tag">{{ 'GAME_LOBBY.TAG' | translate }}</div>
+      <h2 class="op-title">{{ g.gameCode }}</h2>
+      <p class="op-sub">{{ 'GAME_LOBBY.SUBTITLE' | translate }}</p>
+    </div>
 
-      <!-- Operation header — game code as the hero display -->
-      <div class="op-header">
-        <span class="br tl"></span>
-        <span class="br tr"></span>
-        <div class="op-tag">{{ 'GAME_LOBBY.TAG' | translate }}</div>
-        <h2 class="op-title">{{ g.gameCode }}</h2>
-        <p class="op-sub">{{ 'GAME_LOBBY.SUBTITLE' | translate }}</p>
-      </div>
+    <!-- Mission parameters -->
+    <div class="section-header">{{ 'GAME_LOBBY.SETTINGS' | translate }}</div>
 
-      <!-- Mission parameters -->
-      <div class="section-header">{{ 'GAME_LOBBY.SETTINGS' | translate }}</div>
+    <div class="config-block">
+      <span class="br tl"></span>
+      <span class="br tr"></span>
+      <span class="br bl"></span>
+      <span class="br brr"></span>
 
-      <div class="config-block">
-        <span class="br tl"></span>
-        <span class="br tr"></span>
-        <span class="br bl"></span>
-        <span class="br brr"></span>
-
-        <div class="config-field">
-          <span class="config-label">{{ 'GAME_CREATE.DURATION_LABEL' | translate }}</span>
-          @if (isOwner()) {
-            <ion-select fill="outline" interface="alert" class="tac-select"
-              [value]="gameDuration()" (ionChange)="onDurationChange($event)">
-              <ion-select-option [value]="30">30 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="60">60 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="90">90 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-            </ion-select>
-          } @else {
-            <span class="config-value">{{ gameDuration() }} {{ 'GAME_CREATE.UNIT_MIN' | translate }}</span>
-          }
-        </div>
-
-        <div class="config-field">
-          <span class="config-label">{{ 'GAME_CREATE.HUNTER_DELAY_LABEL' | translate }}</span>
-          @if (isOwner()) {
-            <ion-select fill="outline" interface="alert" class="tac-select"
-              [value]="hunterDelay()" (ionChange)="onHunterDelayChange($event)">
-              <ion-select-option [value]="5">5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="10">10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="15">15 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-            </ion-select>
-          } @else {
-            <span class="config-value">{{ hunterDelay() }} {{ 'GAME_CREATE.UNIT_MIN' | translate }}</span>
-          }
-        </div>
-
-        <div class="config-field">
-          <span class="config-label">{{ 'GAME_CREATE.ENDGAME_LABEL' | translate }}</span>
-          @if (isOwner()) {
-            <ion-select fill="outline" interface="alert" class="tac-select"
-              [value]="endgameDuration()" (ionChange)="onEndgameDurationChange($event)">
-              <ion-select-option [value]="5">5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="10">10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="15">15 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-            </ion-select>
-          } @else {
-            <span class="config-value">{{ endgameDuration() }} {{ 'GAME_CREATE.UNIT_MIN' | translate }}</span>
-          }
-        </div>
-
-        <div class="config-field">
-          <span class="config-label">{{ 'GAME_CREATE.LOCATION_INTERVAL_LABEL' | translate }}</span>
-          @if (isOwner()) {
-            <ion-select fill="outline" interface="alert" class="tac-select"
-              [value]="locationInterval()" (ionChange)="onLocationIntervalChange($event)">
-              <ion-select-option [value]="3">3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="5">5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="10">10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-            </ion-select>
-          } @else {
-            <span class="config-value">{{ locationInterval() }} {{ 'GAME_CREATE.UNIT_MIN' | translate }}</span>
-          }
-        </div>
-
-        <div class="config-field">
-          <span class="config-label">{{ 'GAME_CREATE.ENDGAME_INTERVAL_LABEL' | translate }}</span>
-          @if (isOwner()) {
-            <ion-select fill="outline" interface="alert" class="tac-select"
-              [value]="endgameInterval()" (ionChange)="onEndgameIntervalChange($event)">
-              <ion-select-option [value]="1">1 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="3">3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-              <ion-select-option [value]="5">5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option>
-            </ion-select>
-          } @else {
-            <span class="config-value">{{ endgameInterval() }} {{ 'GAME_CREATE.UNIT_MIN' | translate }}</span>
-          }
-        </div>
-
-      </div>
-
-      <!-- Operatives -->
-      <div class="section-header">{{ 'GAME_LOBBY.PLAYERS' | translate }} ({{ g.lobby.length }})</div>
-
-      <div class="operatives-block">
-        <span class="br tl"></span>
-        <span class="br tr"></span>
-        <span class="br bl"></span>
-        <span class="br brr"></span>
-
-        @for (player of g.lobby; track player.userId) {
-          <div class="operative-row"
-            [class.operative-row--clickable]="isOwner() && !isCurrentUser(player.userId)"
-            (click)="isOwner() && !isCurrentUser(player.userId) && designateHunter(player.userId)">
-
-            <div class="operative-info">
-              <div class="operative-name">
-                {{ player.displayName }}
-                @if (isCurrentUser(player.userId)) {
-                  <span class="you-tag">{{ 'GAME_LOBBY.YOU' | translate }}</span>
-                }
-              </div>
-              @if (player.designatedHunter || player.isReady) {
-                <div class="operative-meta">
-                  @if (player.designatedHunter) {
-                    <span class="badge badge--hunter">{{ 'GAME_LOBBY.ROLE_HUNTER' | translate }}</span>
-                  }
-                  @if (player.isReady) {
-                    <span class="badge badge--ready">{{ 'GAME_LOBBY.READY_DONE' | translate }}</span>
-                  }
-                </div>
-              }
-            </div>
-
-            <div class="operative-end">
-              @if (player.designatedHunter) {
-                <ion-icon name="checkmark-circle" class="hunter-icon"></ion-icon>
-              }
-              @if (isOwner() && !isCurrentUser(player.userId)) {
-                <ion-button fill="clear" class="remove-btn" size="small"
-                  (click)="$event.stopPropagation(); removePlayer(player.userId)">
-                  <ion-icon slot="icon-only" name="person-remove"></ion-icon>
-                </ion-button>
-              }
-            </div>
-
-          </div>
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.DURATION_LABEL' | translate }}</span
+        >
+        @if (isOwner()) {
+        <ion-select
+          fill="outline"
+          interface="alert"
+          class="tac-select"
+          [value]="gameDuration()"
+          (ionChange)="onDurationChange($event)"
+        >
+          <ion-select-option [value]="30"
+            >30 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="60"
+            >60 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="90"
+            >90 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+        </ion-select>
+        } @else {
+        <span class="config-value"
+          >{{ gameDuration() }} {{ 'GAME_CREATE.UNIT_MIN' | translate }}</span
+        >
         }
       </div>
 
-      @if (!isOwner()) {
-        <div class="deploy-zone">
-          <ion-button
-            expand="block"
-            class="ready-btn"
-            [color]="isReady(currentUserId()) ? 'medium' : 'primary'"
-            [disabled]="isReady(currentUserId())"
-            (click)="markReady()"
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.HUNTER_DELAY_LABEL' | translate }}</span
+        >
+        @if (isOwner()) {
+        <ion-select
+          fill="outline"
+          interface="alert"
+          class="tac-select"
+          [value]="hunterDelay()"
+          (ionChange)="onHunterDelayChange($event)"
+        >
+          <ion-select-option [value]="5"
+            >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
           >
-            @if (isReady(currentUserId())) {
-              {{ 'GAME_LOBBY.READY_DONE' | translate }}
-            } @else {
-              {{ 'GAME_LOBBY.READY' | translate }}
-            }
-          </ion-button>
-        </div>
-      }
+          <ion-select-option [value]="10"
+            >10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="15"
+            >15 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+        </ion-select>
+        } @else {
+        <span class="config-value"
+          >{{ hunterDelay() }} {{ 'GAME_CREATE.UNIT_MIN' | translate }}</span
+        >
+        }
+      </div>
 
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.ENDGAME_LABEL' | translate }}</span
+        >
+        @if (isOwner()) {
+        <ion-select
+          fill="outline"
+          interface="alert"
+          class="tac-select"
+          [value]="endgameDuration()"
+          (ionChange)="onEndgameDurationChange($event)"
+        >
+          <ion-select-option [value]="5"
+            >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="10"
+            >10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="15"
+            >15 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+        </ion-select>
+        } @else {
+        <span class="config-value"
+          >{{ endgameDuration() }} {{ 'GAME_CREATE.UNIT_MIN' | translate
+          }}</span
+        >
+        }
+      </div>
+
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.LOCATION_INTERVAL_LABEL' | translate }}</span
+        >
+        @if (isOwner()) {
+        <ion-select
+          fill="outline"
+          interface="alert"
+          class="tac-select"
+          [value]="locationInterval()"
+          (ionChange)="onLocationIntervalChange($event)"
+        >
+          <ion-select-option [value]="3"
+            >3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="5"
+            >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="10"
+            >10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+        </ion-select>
+        } @else {
+        <span class="config-value"
+          >{{ locationInterval() }} {{ 'GAME_CREATE.UNIT_MIN' | translate
+          }}</span
+        >
+        }
+      </div>
+
+      <div class="config-field">
+        <span class="config-label"
+          >{{ 'GAME_CREATE.ENDGAME_INTERVAL_LABEL' | translate }}</span
+        >
+        @if (isOwner()) {
+        <ion-select
+          fill="outline"
+          interface="alert"
+          class="tac-select"
+          [value]="endgameInterval()"
+          (ionChange)="onEndgameIntervalChange($event)"
+        >
+          <ion-select-option [value]="1"
+            >1 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="3"
+            >3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+          <ion-select-option [value]="5"
+            >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
+        </ion-select>
+        } @else {
+        <span class="config-value"
+          >{{ endgameInterval() }} {{ 'GAME_CREATE.UNIT_MIN' | translate
+          }}</span
+        >
+        }
+      </div>
     </div>
+
+    <!-- Operatives -->
+    <div class="section-header">
+      {{ 'GAME_LOBBY.PLAYERS' | translate }} ({{ g.lobby.length }})
+    </div>
+
+    <div class="operatives-block">
+      @for (player of g.lobby; track player.userId) {
+      <div
+        class="operative-row"
+        [class.operative-row--clickable]="isOwner() && !isCurrentUser(player.userId)"
+        (click)="isOwner() && !isCurrentUser(player.userId) && designateHunter(player.userId)"
+      >
+        <div class="operative-info">
+          <div class="operative-name">
+            {{ player.displayName }} @if (isCurrentUser(player.userId)) {
+            <span class="you-tag">{{ 'GAME_LOBBY.YOU' | translate }}</span>
+            }
+          </div>
+          @if (player.designatedHunter || player.isReady) {
+          <div class="operative-meta">
+            @if (player.designatedHunter) {
+            <span class="badge badge--hunter"
+              >{{ 'GAME_LOBBY.ROLE_HUNTER' | translate }}</span
+            >
+            } @if (player.isReady) {
+            <span class="badge badge--ready"
+              >{{ 'GAME_LOBBY.READY_DONE' | translate }}</span
+            >
+            }
+          </div>
+          }
+        </div>
+
+        <div class="operative-end">
+          @if (player.designatedHunter) {
+          <ion-icon name="checkmark-circle" class="hunter-icon"></ion-icon>
+          } @if (isOwner() && !isCurrentUser(player.userId)) {
+          <ion-button
+            fill="clear"
+            class="remove-btn"
+            size="small"
+            (click)="$event.stopPropagation(); removePlayer(player.userId)"
+          >
+            <ion-icon slot="icon-only" name="person-remove"></ion-icon>
+          </ion-button>
+          }
+        </div>
+      </div>
+      }
+    </div>
+
+    @if (!isOwner()) {
+    <div class="deploy-zone">
+      <ion-button
+        expand="block"
+        class="ready-btn"
+        [color]="isReady(currentUserId()) ? 'medium' : 'primary'"
+        [disabled]="isReady(currentUserId())"
+        (click)="markReady()"
+      >
+        @if (isReady(currentUserId())) { {{ 'GAME_LOBBY.READY_DONE' | translate
+        }} } @else { {{ 'GAME_LOBBY.READY' | translate }} }
+      </ion-button>
+    </div>
+    }
+  </div>
   }
 </ion-content>
