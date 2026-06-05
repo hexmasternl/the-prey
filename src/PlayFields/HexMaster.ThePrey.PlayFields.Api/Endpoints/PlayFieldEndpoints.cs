@@ -6,6 +6,7 @@ using HexMaster.ThePrey.PlayFields.Features.GetPlayField;
 using HexMaster.ThePrey.PlayFields.Features.ListPlayFields;
 using HexMaster.ThePrey.PlayFields.Features.SearchPublicPlayFields;
 using HexMaster.ThePrey.PlayFields.Features.UpsertPlayField;
+using HexMaster.ThePrey.Users.Integration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -64,12 +65,15 @@ public static class PlayFieldEndpoints
     private static async Task<IResult> CreatePlayField(
         [FromBody] CreatePlayFieldRequest request,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<CreatePlayFieldCommand, CreatePlayFieldResult> handler,
         CancellationToken ct)
     {
-        var ownerId = GetSubjectId(principal);
-        if (ownerId is null)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         if (string.IsNullOrWhiteSpace(request.Name))
             return Results.ValidationProblem(new Dictionary<string, string[]>
@@ -85,7 +89,7 @@ public static class PlayFieldEndpoints
 
         try
         {
-            var command = new CreatePlayFieldCommand(ownerId, request.Name, request.IsPublic, request.Points);
+            var command = new CreatePlayFieldCommand(user.UserId, request.Name, request.IsPublic, request.Points);
             var result = await handler.Handle(command, ct);
             return Results.Created($"/playfields/{result.PlayField.Id}", result.PlayField);
         }
@@ -101,28 +105,34 @@ public static class PlayFieldEndpoints
     private static async Task<IResult> GetPlayField(
         Guid id,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         IQueryHandler<GetPlayFieldQuery, PlayFieldDto?> handler,
         CancellationToken ct)
     {
-        var ownerId = GetSubjectId(principal);
-        if (ownerId is null)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
 
-        var playField = await handler.Handle(new GetPlayFieldQuery(id, ownerId), ct);
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        var playField = await handler.Handle(new GetPlayFieldQuery(id, user.UserId), ct);
 
         return playField is not null ? Results.Ok(playField) : Results.NotFound();
     }
 
     private static async Task<IResult> ListPlayFields(
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         IQueryHandler<ListPlayFieldsQuery, IReadOnlyList<PlayFieldSummaryDto>> handler,
         CancellationToken ct)
     {
-        var ownerId = GetSubjectId(principal);
-        if (ownerId is null)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
 
-        var playFields = await handler.Handle(new ListPlayFieldsQuery(ownerId), ct);
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        var playFields = await handler.Handle(new ListPlayFieldsQuery(user.UserId), ct);
 
         return Results.Ok(playFields);
     }
@@ -131,12 +141,15 @@ public static class PlayFieldEndpoints
         Guid id,
         [FromBody] UpsertPlayFieldRequest request,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<UpsertPlayFieldCommand, UpsertPlayFieldResult> handler,
         CancellationToken ct)
     {
-        var ownerId = GetSubjectId(principal);
-        if (ownerId is null)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         if (string.IsNullOrWhiteSpace(request.Name))
             return Results.ValidationProblem(new Dictionary<string, string[]>
@@ -152,7 +165,7 @@ public static class PlayFieldEndpoints
 
         try
         {
-            var command = new UpsertPlayFieldCommand(id, ownerId, request.Name, request.IsPublic, request.Points, request.LastUpdatedOn);
+            var command = new UpsertPlayFieldCommand(id, user.UserId, request.Name, request.IsPublic, request.Points, request.LastUpdatedOn);
             var result = await handler.Handle(command, ct);
 
             return result switch
@@ -175,14 +188,9 @@ public static class PlayFieldEndpoints
 
     private static async Task<IResult> SearchPublicPlayFields(
         [FromQuery(Name = "q")] string? query,
-        ClaimsPrincipal principal,
         IQueryHandler<SearchPublicPlayFieldsQuery, IReadOnlyList<PlayFieldSummaryDto>> handler,
         CancellationToken ct)
     {
-        var ownerId = GetSubjectId(principal);
-        if (ownerId is null)
-            return Results.Unauthorized();
-
         if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < SearchPublicPlayFieldsQuery.MinimumSearchLength)
             return Results.ValidationProblem(new Dictionary<string, string[]>
             {
@@ -206,14 +214,17 @@ public static class PlayFieldEndpoints
     private static async Task<IResult> DeletePlayField(
         Guid id,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<DeletePlayFieldCommand, DeletePlayFieldResult> handler,
         CancellationToken ct)
     {
-        var ownerId = GetSubjectId(principal);
-        if (ownerId is null)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
 
-        var command = new DeletePlayFieldCommand(id, ownerId);
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        var command = new DeletePlayFieldCommand(id, user.UserId);
         var result = await handler.Handle(command, ct);
 
         return result switch
@@ -224,7 +235,4 @@ public static class PlayFieldEndpoints
             _ => Results.StatusCode(500)
         };
     }
-
-    private static string? GetSubjectId(ClaimsPrincipal principal) =>
-        principal.FindFirstValue("sub");
 }

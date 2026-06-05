@@ -9,6 +9,9 @@ namespace HexMaster.ThePrey.PlayFields.Tests.DeletePlayField;
 
 public sealed class DeletePlayFieldCommandHandlerTests
 {
+    private static readonly Guid ActualOwnerGuid = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static readonly Guid DifferentUserGuid = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+
     private readonly Mock<IPlayFieldRepository> _repositoryMock = new();
     private readonly Mock<IPlayFieldMetrics> _metricsMock = new();
     private readonly Mock<ILogger<DeletePlayFieldCommandHandler>> _loggerMock = new();
@@ -26,7 +29,7 @@ public sealed class DeletePlayFieldCommandHandlerTests
     public async Task Handle_ShouldReturnSuccess_WhenPlayFieldExistsAndCallerIsOwner()
     {
         // Arrange
-        var playField = PlayFieldFaker.CreateValid();
+        var playField = PlayFieldFaker.CreateValid(ownerId: ActualOwnerGuid);
         var command = new DeletePlayFieldCommand(playField.Id, playField.OwnerId);
 
         _repositoryMock
@@ -51,7 +54,7 @@ public sealed class DeletePlayFieldCommandHandlerTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var command = new DeletePlayFieldCommand(id, "auth0|someowner");
+        var command = new DeletePlayFieldCommand(id, ActualOwnerGuid);
 
         _repositoryMock
             .Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
@@ -62,7 +65,7 @@ public sealed class DeletePlayFieldCommandHandlerTests
 
         // Assert
         Assert.IsType<DeletePlayFieldResult.NotFound>(result);
-        _repositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
         _metricsMock.Verify(m => m.RecordPlayFieldDeleted(), Times.Never);
     }
 
@@ -70,8 +73,8 @@ public sealed class DeletePlayFieldCommandHandlerTests
     public async Task Handle_ShouldReturnForbidden_WhenCallerIsNotTheOwner()
     {
         // Arrange
-        var playField = PlayFieldFaker.CreateValid(ownerId: "auth0|actualowner");
-        var command = new DeletePlayFieldCommand(playField.Id, "auth0|differentuser");
+        var playField = PlayFieldFaker.CreateValid(ownerId: ActualOwnerGuid);
+        var command = new DeletePlayFieldCommand(playField.Id, DifferentUserGuid);
 
         _repositoryMock
             .Setup(r => r.GetByIdAsync(playField.Id, It.IsAny<CancellationToken>()))
@@ -82,7 +85,7 @@ public sealed class DeletePlayFieldCommandHandlerTests
 
         // Assert
         Assert.IsType<DeletePlayFieldResult.Forbidden>(result);
-        _repositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
         _metricsMock.Verify(m => m.RecordPlayFieldDeleted(), Times.Never);
     }
 
@@ -96,7 +99,7 @@ public sealed class DeletePlayFieldCommandHandlerTests
     public async Task Handle_ShouldPropagateException_WhenRepositoryGetThrows()
     {
         // Arrange
-        var command = new DeletePlayFieldCommand(Guid.NewGuid(), "auth0|owner");
+        var command = new DeletePlayFieldCommand(Guid.NewGuid(), ActualOwnerGuid);
 
         _repositoryMock
             .Setup(r => r.GetByIdAsync(command.PlayFieldId, It.IsAny<CancellationToken>()))
@@ -104,7 +107,7 @@ public sealed class DeletePlayFieldCommandHandlerTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.Handle(command, CancellationToken.None));
-        _repositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
         _metricsMock.Verify(m => m.RecordPlayFieldDeleted(), Times.Never);
     }
 
@@ -112,7 +115,7 @@ public sealed class DeletePlayFieldCommandHandlerTests
     public async Task Handle_ShouldPropagateException_WhenRepositoryDeleteThrows()
     {
         // Arrange
-        var playField = PlayFieldFaker.CreateValid();
+        var playField = PlayFieldFaker.CreateValid(ownerId: ActualOwnerGuid);
         var command = new DeletePlayFieldCommand(playField.Id, playField.OwnerId);
 
         _repositoryMock

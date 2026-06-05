@@ -21,13 +21,13 @@ internal static class PlayFieldFaker
 
     internal static PlayField CreateValid(
         string? name = null,
-        string? ownerId = null,
+        Guid? ownerId = null,
         bool isPublic = false,
         IReadOnlyList<GpsCoordinate>? points = null)
     {
         return PlayField.Create(
             name ?? _faker.Address.City(),
-            ownerId ?? $"auth0|{_faker.Random.AlphaNumeric(24)}",
+            ownerId ?? _faker.Random.Guid(),
             points ?? SquarePoints(),
             isPublic);
     }

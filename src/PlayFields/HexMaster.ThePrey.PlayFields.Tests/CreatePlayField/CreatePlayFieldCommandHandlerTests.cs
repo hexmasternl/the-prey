@@ -14,6 +14,8 @@ public sealed class CreatePlayFieldCommandHandlerTests
     private readonly Mock<ILogger<CreatePlayFieldCommandHandler>> _mockLogger;
     private readonly CreatePlayFieldCommandHandler _handler;
 
+    private static readonly Guid OwnerId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+
     public CreatePlayFieldCommandHandlerTests()
     {
         _mockRepository = new Mock<IPlayFieldRepository>();
@@ -33,13 +35,13 @@ public sealed class CreatePlayFieldCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldCreateAndPersist_WhenCommandIsValid()
     {
-        var command = new CreatePlayFieldCommand("auth0|owner", "Vondelpark", true, ValidSquare());
+        var command = new CreatePlayFieldCommand(OwnerId, "Vondelpark", true, ValidSquare());
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result.PlayField.Id);
         Assert.Equal("Vondelpark", result.PlayField.Name);
-        Assert.Equal("auth0|owner", result.PlayField.OwnerId);
+        Assert.Equal(OwnerId, result.PlayField.OwnerId);
         Assert.True(result.PlayField.IsPublic);
         Assert.Equal(4, result.PlayField.Points.Count);
         _mockRepository.Verify(r => r.AddAsync(It.IsAny<PlayField>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -56,7 +58,7 @@ public sealed class CreatePlayFieldCommandHandlerTests
     public async Task Handle_ShouldThrow_WhenTooFewPoints()
     {
         var command = new CreatePlayFieldCommand(
-            "auth0|owner",
+            OwnerId,
             "Field",
             false,
             [new GpsCoordinateDto(52.0, 5.0), new GpsCoordinateDto(52.0, 5.01)]);
@@ -69,7 +71,7 @@ public sealed class CreatePlayFieldCommandHandlerTests
     public async Task Handle_ShouldThrow_WhenCoordinateOutOfRange()
     {
         var command = new CreatePlayFieldCommand(
-            "auth0|owner",
+            OwnerId,
             "Field",
             false,
             [new GpsCoordinateDto(200.0, 5.0), new GpsCoordinateDto(52.0, 5.01), new GpsCoordinateDto(52.01, 5.01)]);

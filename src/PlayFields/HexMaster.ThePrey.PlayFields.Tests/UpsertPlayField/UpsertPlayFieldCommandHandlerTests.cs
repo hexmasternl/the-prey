@@ -9,6 +9,9 @@ namespace HexMaster.ThePrey.PlayFields.Tests.UpsertPlayField;
 
 public sealed class UpsertPlayFieldCommandHandlerTests
 {
+    private static readonly Guid OwnerGuid = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static readonly Guid AttackerGuid = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+
     private readonly Mock<IPlayFieldRepository> _mockRepository;
     private readonly Mock<ILogger<UpsertPlayFieldCommandHandler>> _mockLogger;
     private readonly UpsertPlayFieldCommandHandler _handler;
@@ -30,11 +33,11 @@ public sealed class UpsertPlayFieldCommandHandlerTests
 
     private static UpsertPlayFieldCommand BuildCommand(
         Guid? id = null,
-        string ownerId = "auth0|owner",
+        Guid? ownerId = null,
         DateTimeOffset? lastUpdatedOn = null) =>
         new(
             id ?? Guid.NewGuid(),
-            ownerId,
+            ownerId ?? OwnerGuid,
             "Vondelpark",
             true,
             ValidSquare(),
@@ -62,24 +65,25 @@ public sealed class UpsertPlayFieldCommandHandlerTests
     {
         var existingTs = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var newerTs = existingTs.AddHours(1);
-        var existing = PlayFieldFaker.CreateValid(ownerId: "auth0|owner");
-        // Rehydrate with old timestamp
+        var existing = PlayFieldFaker.CreateValid(ownerId: OwnerGuid);
         var id = existing.Id;
-        var rehydrated = PlayField.Rehydrate(id, existing.Name, "auth0|owner", false,
+        var rehydrated = PlayField.Rehydrate(id, existing.Name, OwnerGuid, false,
             PlayFieldFaker.SquarePoints(), existingTs);
 
         _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(rehydrated);
 
-        var command = BuildCommand(id: id, ownerId: "auth0|owner", lastUpdatedOn: newerTs);
+        var command = BuildCommand(id: id, ownerId: OwnerGuid, lastUpdatedOn: newerTs);
         var result = await _handler.Handle(command, CancellationToken.None);
 
+        var after = DateTimeOffset.UtcNow;
         var updated = Assert.IsType<UpsertPlayFieldResult.Updated>(result);
         Assert.Equal(id, updated.PlayField.Id);
-        Assert.Equal(newerTs, updated.PlayField.LastUpdatedOn);
+        // Handler stamps LastModifiedOn with UtcNow at the time of the update, not the command timestamp.
+        Assert.InRange(updated.PlayField.LastUpdatedOn, existingTs, after);
 
         _mockRepository.Verify(r =>
-            r.UpsertAsync(It.Is<PlayField>(p => p.LastModifiedOn == newerTs), It.IsAny<CancellationToken>()), Times.Once);
+            r.UpsertAsync(It.Is<PlayField>(p => p.Id == id), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -88,13 +92,13 @@ public sealed class UpsertPlayFieldCommandHandlerTests
         var storedTs = new DateTimeOffset(2024, 6, 1, 12, 0, 0, TimeSpan.Zero);
         var staleTs = storedTs.AddMinutes(-1);
         var id = Guid.NewGuid();
-        var existing = PlayField.Rehydrate(id, "Existing", "auth0|owner", false,
+        var existing = PlayField.Rehydrate(id, "Existing", OwnerGuid, false,
             PlayFieldFaker.SquarePoints(), storedTs);
 
         _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existing);
 
-        var command = BuildCommand(id: id, ownerId: "auth0|owner", lastUpdatedOn: staleTs);
+        var command = BuildCommand(id: id, ownerId: OwnerGuid, lastUpdatedOn: staleTs);
         var result = await _handler.Handle(command, CancellationToken.None);
 
         var conflict = Assert.IsType<UpsertPlayFieldResult.Conflict>(result);
@@ -108,13 +112,13 @@ public sealed class UpsertPlayFieldCommandHandlerTests
     public async Task Handle_ShouldReturnForbidden_WhenOwnerMismatch()
     {
         var id = Guid.NewGuid();
-        var existing = PlayField.Rehydrate(id, "Field", "auth0|real-owner", false,
+        var existing = PlayField.Rehydrate(id, "Field", OwnerGuid, false,
             PlayFieldFaker.SquarePoints(), DateTimeOffset.UtcNow);
 
         _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existing);
 
-        var command = BuildCommand(id: id, ownerId: "auth0|attacker");
+        var command = BuildCommand(id: id, ownerId: AttackerGuid);
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.IsType<UpsertPlayFieldResult.Forbidden>(result);

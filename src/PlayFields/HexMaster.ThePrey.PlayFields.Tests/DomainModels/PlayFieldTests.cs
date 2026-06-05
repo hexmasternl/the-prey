@@ -5,14 +5,16 @@ namespace HexMaster.ThePrey.PlayFields.Tests.DomainModels;
 
 public sealed class PlayFieldTests
 {
+    private static readonly Guid OwnerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
     [Fact]
     public void Create_ShouldSucceed_WhenInputIsValid()
     {
-        var playField = PlayField.Create("Vondelpark", "auth0|owner", PlayFieldFaker.SquarePoints(), isPublic: true);
+        var playField = PlayField.Create("Vondelpark", OwnerId, PlayFieldFaker.SquarePoints(), isPublic: true);
 
         Assert.NotEqual(Guid.Empty, playField.Id);
         Assert.Equal("Vondelpark", playField.Name);
-        Assert.Equal("auth0|owner", playField.OwnerId);
+        Assert.Equal(OwnerId, playField.OwnerId);
         Assert.True(playField.IsPublic);
         Assert.Equal(4, playField.Points.Count);
     }
@@ -23,14 +25,14 @@ public sealed class PlayFieldTests
     public void Create_ShouldThrow_WhenNameIsBlank(string name)
     {
         Assert.Throws<ArgumentException>(() =>
-            PlayField.Create(name, "auth0|owner", PlayFieldFaker.SquarePoints(), false));
+            PlayField.Create(name, OwnerId, PlayFieldFaker.SquarePoints(), false));
     }
 
     [Fact]
-    public void Create_ShouldThrow_WhenOwnerIsBlank()
+    public void Create_ShouldThrow_WhenOwnerIsEmpty()
     {
         Assert.Throws<ArgumentException>(() =>
-            PlayField.Create("Field", "", PlayFieldFaker.SquarePoints(), false));
+            PlayField.Create("Field", Guid.Empty, PlayFieldFaker.SquarePoints(), false));
     }
 
     [Fact]
@@ -42,13 +44,13 @@ public sealed class PlayFieldTests
             GpsCoordinate.Create(52.0, 5.1)
         };
 
-        Assert.Throws<ArgumentException>(() => PlayField.Create("Field", "auth0|owner", points, false));
+        Assert.Throws<ArgumentException>(() => PlayField.Create("Field", OwnerId, points, false));
     }
 
     [Fact]
     public void IsInPlayfield_ShouldReturnTrue_WhenCoordinateInside()
     {
-        var playField = PlayField.Create("Field", "auth0|owner", PlayFieldFaker.SquarePoints(52.0, 5.0, 0.01), false);
+        var playField = PlayField.Create("Field", OwnerId, PlayFieldFaker.SquarePoints(52.0, 5.0, 0.01), false);
 
         var inside = GpsCoordinate.Create(52.005, 5.005);
 
@@ -58,7 +60,7 @@ public sealed class PlayFieldTests
     [Fact]
     public void IsInPlayfield_ShouldReturnFalse_WhenCoordinateOutside()
     {
-        var playField = PlayField.Create("Field", "auth0|owner", PlayFieldFaker.SquarePoints(52.0, 5.0, 0.01), false);
+        var playField = PlayField.Create("Field", OwnerId, PlayFieldFaker.SquarePoints(52.0, 5.0, 0.01), false);
 
         var outside = GpsCoordinate.Create(52.5, 5.5);
 
@@ -80,7 +82,7 @@ public sealed class PlayFieldTests
             GpsCoordinate.Create(2, 1),
             GpsCoordinate.Create(2, 0)
         };
-        var playField = PlayField.Create("Concave", "auth0|owner", points, false);
+        var playField = PlayField.Create("Concave", OwnerId, points, false);
 
         // Point in the notch -> outside the polygon.
         Assert.False(playField.IsInPlayfield(GpsCoordinate.Create(1.5, 1.5)));
@@ -104,7 +106,7 @@ public sealed class PlayFieldTests
             GpsCoordinate.Create(2, 0)
         };
 
-        var playField = PlayField.Create("Park", "auth0|owner", points, false);
+        var playField = PlayField.Create("Park", OwnerId, points, false);
 
         Assert.NotNull(playField.CenterCoordinates);
         Assert.Equal(1.0, playField.CenterCoordinates!.Latitude, precision: 10);
@@ -127,7 +129,7 @@ public sealed class PlayFieldTests
         var id = Guid.NewGuid();
         var ts = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-        var playField = PlayField.Create("Park", "auth0|owner", PlayFieldFaker.SquarePoints(), false, id, ts);
+        var playField = PlayField.Create("Park", OwnerId, PlayFieldFaker.SquarePoints(), false, id, ts);
 
         Assert.Equal(id, playField.Id);
         Assert.Equal(ts, playField.LastModifiedOn);
