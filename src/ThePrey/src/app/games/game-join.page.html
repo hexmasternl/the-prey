@@ -1,0 +1,76 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="back()"
+        >{{ 'GAME_JOIN.BACK' | translate }}</ion-button
+      >
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="tac-bg" aria-hidden="true">
+    <div class="tac-bg__grid"></div>
+    <div class="tac-bg__radar"></div>
+    <div class="tac-bg__scanline"></div>
+    <div class="tac-bg__scanline-v"></div>
+  </div>
+
+  <div class="content-wrap">
+    <!-- Operation header -->
+    <div class="op-header">
+      <div class="op-tag">{{ 'GAME_JOIN.TAG' | translate }}</div>
+      <h2 class="op-title">{{ 'GAME_JOIN.TITLE' | translate }}</h2>
+      <p class="op-sub">{{ 'GAME_JOIN.SUBTITLE' | translate }}</p>
+    </div>
+
+    @if (gameId(); as id) {
+    <div class="game-id-row">
+      <span class="game-id-label">{{ 'GAME_JOIN.OPERATION_ID' | translate }}</span>
+      <span class="game-id-value">{{ id }}</span>
+    </div>
+    }
+
+    <!-- Access code input -->
+    <div class="section-header">{{ 'GAME_JOIN.CODE_LABEL' | translate }}</div>
+
+    <div class="code-entry">
+      <input
+        type="tel"
+        inputmode="numeric"
+        maxlength="8"
+        autocomplete="one-time-code"
+        class="code-input"
+        [value]="joinCode()"
+        (input)="onCodeInput($event)"
+        placeholder="00000000"
+        aria-label="{{ 'GAME_JOIN.CODE_LABEL' | translate }}"
+      />
+    </div>
+
+    @if (callsign(); as name) {
+    <div class="operative-display">
+      <span class="operative-label">{{ 'GAME_JOIN.OPERATIVE' | translate }}</span>
+      <span class="operative-value">{{ name }}</span>
+    </div>
+    }
+
+    <!-- Join button -->
+    <div class="deploy-zone">
+      <ion-button
+        expand="block"
+        class="join-btn"
+        color="primary"
+        [disabled]="!canJoin()"
+        (click)="join()"
+      >
+        @if (isSubmitting()) {
+        <ion-spinner name="lines" slot="start"></ion-spinner>
+        {{ 'GAME_JOIN.JOINING' | translate }}
+        } @else {
+        {{ 'GAME_JOIN.JOIN' | translate }}
+        }
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

@@ -47,6 +47,12 @@ export const routes: Routes = [
     canActivate: [authGuardFn],
   },
   {
+    path: 'games/join',
+    loadComponent: () =>
+      import('./games/game-join.page').then((m) => m.GameJoinPage),
+    canActivate: [authGuardFn],
+  },
+  {
     path: 'games/:id/lobby',
     loadComponent: () =>
       import('./games/game-lobby.page').then((m) => m.GameLobbyPage),

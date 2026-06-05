@@ -1,5 +1,6 @@
 import { Component, NgZone, OnInit, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { IonApp, IonRouterOutlet, IonSpinner } from '@ionic/angular/standalone';
 import { AuthService, IdToken } from '@auth0/auth0-angular';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
@@ -18,6 +19,7 @@ import { UserStateService } from './users/user-state.service';
 export class AppComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly ngZone = inject(NgZone);
+  private readonly router = inject(Router);
   private readonly userState = inject(UserStateService);
 
   private readonly authLoading = toSignal(this.authService.isLoading$, { initialValue: true });
@@ -50,12 +52,22 @@ export class AppComponent implements OnInit {
 
     // Handle cold-start deep link (Android: app not in memory when tapped)
     App.getLaunchUrl().then((result) => {
-      if (result?.url?.startsWith(nativeCallbackUri)) {
+      if (!result?.url) return;
+      const url = result.url;
+      if (url.startsWith(nativeCallbackUri)) {
         this.ngZone.run(() => {
-          this.authService.handleRedirectCallback(result.url).pipe(
+          this.authService.handleRedirectCallback(url).pipe(
             mergeMap(() => Browser.close()),
           ).subscribe();
         });
+      } else {
+        // Game join deep link: nl.hexmaster.theprey://join?gameId=<id>
+        const gameIdMatch = url.match(/[?&]gameId=([^&]+)/);
+        if (gameIdMatch?.[1]) {
+          this.ngZone.run(() => {
+            this.router.navigate(['/games/join'], { queryParams: { gameId: gameIdMatch[1] } });
+          });
+        }
       }
     });
 
@@ -66,6 +78,12 @@ export class AppComponent implements OnInit {
           this.authService.handleRedirectCallback(url).pipe(
             mergeMap(() => Browser.close()),
           ).subscribe();
+        } else {
+          // Game join deep link: nl.hexmaster.theprey://join?gameId=<id>
+          const gameIdMatch = url.match(/[?&]gameId=([^&]+)/);
+          if (gameIdMatch?.[1]) {
+            this.router.navigate(['/games/join'], { queryParams: { gameId: gameIdMatch[1] } });
+          }
         }
       });
     });

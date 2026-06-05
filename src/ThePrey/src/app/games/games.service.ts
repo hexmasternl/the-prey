@@ -85,6 +85,12 @@ export class GamesService {
     return firstValueFrom(this.http.get<GameDto>(`${this.apiBase}/${id}`));
   }
 
+  joinGame(gameId: string, joinCode: string, displayName: string): Promise<GameDto> {
+    return firstValueFrom(
+      this.http.post<GameDto>(`${this.apiBase}/${gameId}/join`, { joinCode, displayName })
+    );
+  }
+
   setHunter(gameId: string, userId: string): Promise<GameDto> {
     return firstValueFrom(
       this.http.post<GameDto>(`${this.apiBase}/${gameId}/hunter`, { newHunterUserId: userId })
