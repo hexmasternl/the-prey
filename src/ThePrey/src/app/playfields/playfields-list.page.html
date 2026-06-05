@@ -5,7 +5,9 @@
     </ion-buttons>
     <ion-title>{{ 'PLAYFIELD_LIST.TITLE' | translate }}</ion-title>
     <ion-buttons slot="end">
-      @if (!isSyncing()) {
+      @if (isSyncing()) {
+        <ion-spinner name="lines-small" style="width:20px;height:20px;margin-right:12px;"></ion-spinner>
+      } @else {
         <ion-button fill="clear" (click)="sync()">&#8635;</ion-button>
       }
     </ion-buttons>
@@ -30,14 +32,16 @@
 
   @switch (activeTab()) {
     @case ('private') {
-      @if (isSyncing()) {
-        <div class="sync-state">
-          <ion-spinner name="lines" color="primary"></ion-spinner>
-        </div>
-      } @else if (syncFailed()) {
+      @if (syncFailed()) {
         <div class="sync-state sync-state--error">
           <p>{{ 'PLAYFIELD_LIST.SYNC_ERROR' | translate }}</p>
           <ion-button fill="outline" color="danger" (click)="sync()">{{ 'PLAYFIELD_LIST.SYNC_RETRY' | translate }}</ion-button>
+        </div>
+      }
+
+      @if (isSyncing() && playfields().length === 0) {
+        <div class="sync-state">
+          <ion-spinner name="lines" color="primary"></ion-spinner>
         </div>
       } @else if (playfields().length === 0) {
         <div class="sync-state">
