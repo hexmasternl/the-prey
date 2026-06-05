@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE PREY // Hunter Gameplay View</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-void:        #0c0e0c;
+    --bg-base:        #181b17;
+    --bg-surface:     #23271f;
+    --bg-surface-2:   #2d3328;
+    --line:           #39402f;
+    --line-soft:      #2a2f24;
+
+    --signal:         #64ff00;
+    --signal-dim:     #3f9e00;
+    --signal-deep:    #1f4d00;
+    --signal-glow:    rgba(100,255,0,.35);
+
+    --hunter:         #ff2f1f;
+    --hunter-dim:     #a01408;
+    --hunter-glow:    rgba(255,47,31,.4);
+    --caution:        #ffb300;
+    --caution-glow:   rgba(255,179,0,.35);
+    --info:           #13e0c8;
+
+    --text:           #dcf6d2;
+    --text-soft:      #8c9a83;
+    --text-ghost:     #5a6553;
+
+    --head: 'Special Elite', 'Courier New', monospace;
+    --body: 'PT Mono', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-void);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* scanline atmosphere */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    background: repeating-linear-gradient(to bottom,
+      rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px,
+      rgba(0,0,0,.14) 3px, rgba(0,0,0,0) 4px);
+    opacity: .5;
+  }
+
+  /* ============================================================
+     PAGE LAYOUT
+  ============================================================ */
+  .page {
+    max-width: 1340px;
+    margin: 0 auto;
+    padding: 56px 44px 100px;
+  }
+
+  .page-eyebrow {
+    font-size: 11px; letter-spacing: 3px; color: var(--hunter-dim);
+    text-transform: uppercase; display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px;
+  }
+  .page-eyebrow::before { content: ""; width: 26px; height: 1px; background: var(--hunter-dim); }
+
+  .page-title {
+    font-family: var(--head); font-size: 34px; color: var(--text); margin-bottom: 8px;
+  }
+  .page-title em { font-style: normal; color: var(--hunter); text-shadow: 0 0 16px var(--hunter-glow); }
+
+  .page-lede {
+    font-size: 14px; color: var(--text-soft); max-width: 72ch; margin-bottom: 56px;
+  }
+
+  h3 {
+    font-family: var(--head); font-size: 16px; color: var(--hunter);
+    letter-spacing: .5px; margin: 44px 0 16px;
+  }
+
+  p { color: var(--text-soft); font-size: 13px; max-width: 72ch; margin-bottom: 10px; }
+  p strong { color: var(--text); font-weight: normal; }
+
+  /* ============================================================
+     SCREEN MOCKUP SHELL
+  ============================================================ */
+  .screens-row {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .screen-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .screen-label {
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--text-ghost);
+  }
+
+  .screen-note {
+    font-size: 11px; color: var(--text-soft); max-width: 220px; text-align: center;
+    line-height: 1.5;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 320px;
+    height: 620px;
+    border: 1.5px solid var(--line);
+    border-radius: 36px;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-void);
+    box-shadow: 0 0 0 1px var(--line-soft), 0 20px 60px rgba(0,0,0,.6);
+  }
+
+  /* ============================================================
+     MAP AREA — red-tinged for the hunter role
+  ============================================================ */
+  .map {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(46,36,31,.4) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(46,36,31,.4) 1px, transparent 1px),
+      radial-gradient(ellipse 60% 60% at 50% 50%, rgba(255,47,31,.05), transparent 70%),
+      #100a09;
+    background-size: 40px 40px, 40px 40px, 100% 100%, 100%;
+  }
+
+  .map::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(rgba(60,42,40,.7) 2px, transparent 2px),
+      linear-gradient(90deg, rgba(60,42,40,.7) 2px, transparent 2px);
+    background-size: 120px 120px;
+  }
+
+  /* ============================================================
+     PLAYFIELD POLYGON
+  ============================================================ */
+  .polygon-layer {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* ============================================================
+     HUNTER DOT — you, always green, always centered
+  ============================================================ */
+  .hunter-self-dot {
+    position: absolute;
+    width: 14px; height: 14px;
+    transform: translate(-50%, -50%);
+  }
+  .hunter-self-dot .core {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--signal);
+    box-shadow: 0 0 10px var(--signal-glow), 0 0 20px var(--signal-glow);
+    position: relative; z-index: 2;
+  }
+  .hunter-self-dot .ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1.5px solid var(--signal);
+    opacity: 0;
+    animation: hunter-self-ping 2s ease-out infinite;
+  }
+  @keyframes hunter-self-ping {
+    0%   { inset: -4px; opacity: .7; }
+    100% { inset: -20px; opacity: 0; }
+  }
+
+  /* ============================================================
+     PREY DOTS — red flashing blips, one per prey
+  ============================================================ */
+  .prey-dot {
+    position: absolute;
+    width: 12px; height: 12px;
+    transform: translate(-50%, -50%);
+  }
+  .prey-dot .core {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--hunter);
+    box-shadow: 0 0 8px var(--hunter-glow), 0 0 18px var(--hunter-glow);
+    position: relative; z-index: 2;
+    animation: prey-flash 1.1s ease-in-out infinite;
+  }
+  .prey-dot .ring {
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1.5px solid var(--hunter);
+    opacity: 0;
+    animation: prey-ping 1.1s ease-out infinite;
+  }
+  @keyframes prey-flash {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--hunter-glow), 0 0 18px var(--hunter-glow); }
+    50%       { opacity: .4; box-shadow: 0 0 4px var(--hunter-glow); }
+  }
+  @keyframes prey-ping {
+    0%   { inset: -3px; opacity: .8; }
+    100% { inset: -16px; opacity: 0; }
+  }
+
+  /* ============================================================
+     RE-CENTER FAB
+  ============================================================ */
+  .recenter-fab {
+    position: absolute;
+    right: 14px;
+    bottom: 148px; /* sits above hud-panel */
+    z-index: 12;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--hunter-dim);
+    background: rgba(12,9,9,.88);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--hunter-dim);
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* ============================================================
+     STATUS BAR — top strip
+  ============================================================ */
+  .status-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 12px 16px 10px;
+    background: linear-gradient(to bottom, rgba(12,9,9,.9), transparent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+  }
+
+  /* corner brackets — hunter red by default */
+  .cb { position: absolute; width: 14px; height: 14px; border: 1.5px solid var(--hunter); }
+  .cb.tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
+  .cb.tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
+
+  .status-pill {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px; border: 1px solid;
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--hunter); border-color: var(--hunter);
+    animation: pill-pulse 1.5s ease-in-out infinite;
+  }
+  .status-pill::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; box-shadow: 0 0 6px currentColor;
+  }
+  @keyframes pill-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .7; }
+  }
+
+  .role-tag {
+    font-family: var(--head); font-size: 11px;
+    color: var(--hunter); letter-spacing: 1.5px;
+    text-shadow: 0 0 8px var(--hunter-glow);
+  }
+
+  /* ============================================================
+     HUD — bottom panel
+  ============================================================ */
+  .hud-panel {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(12,9,9,.97) 85%, transparent);
+    padding: 20px 16px 28px;
+    z-index: 10;
+  }
+
+  .cb.bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
+  .cb.br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
+
+  .hud-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .hud-cell {
+    background: rgba(12,9,9,.7);
+    padding: 12px 14px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .hud-cell:nth-child(even)  { border-right: none; }
+  .hud-cell:nth-last-child(-n+2) { border-bottom: none; }
+
+  .hud-label {
+    font-size: 9px; letter-spacing: 2px; color: var(--text-ghost);
+    text-transform: uppercase; margin-bottom: 5px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .hud-value {
+    font-family: var(--head); font-size: 26px; line-height: 1;
+    color: var(--signal);
+    text-shadow: 0 0 12px var(--signal-glow);
+  }
+
+  .hud-value.caution {
+    color: var(--caution);
+    text-shadow: 0 0 12px var(--caution-glow);
+  }
+
+  .hud-value.danger {
+    color: var(--hunter);
+    text-shadow: 0 0 12px var(--hunter-glow);
+  }
+
+  .hud-value.dim {
+    color: var(--text-ghost);
+    text-shadow: none;
+  }
+
+  .hud-value.flash {
+    animation: value-flash 500ms ease-in-out infinite;
+  }
+
+  @keyframes value-flash {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .2; }
+  }
+
+  .hud-sub {
+    font-size: 10px; color: var(--text-ghost); margin-top: 3px;
+    letter-spacing: .5px;
+  }
+  .hud-sub.caution   { color: var(--caution); }
+  .hud-sub.on-target { color: var(--signal); }
+
+  /* update countdown row */
+  .hud-ping-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: rgba(12,9,9,.7);
+    padding: 9px 14px;
+  }
+
+  .hud-ping-label {
+    font-size: 9px; letter-spacing: 2px; color: var(--text-ghost);
+    text-transform: uppercase; flex: 1;
+  }
+
+  .hud-ping-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .hud-ping-bar {
+    height: 100%;
+    background: var(--hunter);
+    box-shadow: 0 0 6px var(--hunter-glow);
+    border-radius: 2px;
+    transition: width .5s linear;
+  }
+
+  .hud-ping-value {
+    font-family: var(--head); font-size: 18px; color: var(--hunter);
+    text-shadow: 0 0 8px var(--hunter-glow);
+    min-width: 44px; text-align: right;
+  }
+
+  /* ============================================================
+     ANNOTATION CALLOUTS
+  ============================================================ */
+  .annotation-row {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 48px;
+  }
+
+  .ann-block {
+    flex: 1;
+    min-width: 240px;
+    border-left: 2px solid var(--hunter-dim);
+    padding: 10px 16px;
+  }
+
+  .ann-block.signal  { border-left-color: var(--signal-deep); }
+  .ann-block.caution { border-left-color: var(--caution); }
+
+  .ann-title {
+    font-family: var(--head); font-size: 13px;
+    color: var(--text); margin-bottom: 6px;
+  }
+
+  .ann-title .sig { color: var(--signal); }
+  .ann-title .cau { color: var(--caution); }
+  .ann-title .dan { color: var(--hunter); }
+
+  .ann-body {
+    font-size: 12px; color: var(--text-soft); line-height: 1.6;
+  }
+  .ann-body code {
+    font-family: var(--body); background: var(--bg-void);
+    border: 1px solid var(--line); padding: 1px 6px;
+    border-radius: 2px; font-size: 11px; color: var(--hunter);
+  }
+
+  /* ============================================================
+     DISTANCE COLOR SPEC TABLE
+  ============================================================ */
+  .color-spec {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    width: 100%; max-width: 600px;
+    margin: 20px 0 8px;
+  }
+
+  .color-spec-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 1fr;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    gap: 12px;
+  }
+  .color-spec-row:last-child { border-bottom: none; }
+  .color-spec-row.header { background: var(--bg-surface); }
+
+  .color-spec-row .col-label {
+    font-size: 9px; letter-spacing: 2px; color: var(--text-ghost);
+    text-transform: uppercase;
+  }
+
+  .color-swatch {
+    width: 10px; height: 10px; border-radius: 50%;
+    display: inline-block; vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  .color-spec-row .dist-val {
+    font-family: var(--head); font-size: 20px;
+  }
+
+  .dist-close  { color: var(--signal);     text-shadow: 0 0 10px var(--signal-glow); }
+  .dist-medium { color: var(--caution);    text-shadow: 0 0 10px var(--caution-glow); }
+  .dist-far    { color: var(--text-ghost); }
+
+  /* ============================================================
+     TIMER STATE SPEC TABLE
+  ============================================================ */
+  .timer-spec {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    max-width: 640px;
+    margin: 20px 0 8px;
+  }
+  .timer-spec-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 1fr;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-soft);
+    gap: 16px;
+  }
+  .timer-spec-row:last-child { border-bottom: none; }
+
+  .timer-val {
+    font-family: var(--head); font-size: 28px;
+  }
+
+  .ts-label {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-ghost);
+  }
+  .ts-rule { font-size: 12px; color: var(--text-soft); }
+
+  .sep { height: 1px; background: var(--line); margin: 52px 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- page header -->
+  <div class="page-eyebrow">Screen Design — Hunter Gameplay</div>
+  <h1 class="page-title">HUNTER <em>VIEW</em></h1>
+  <p class="page-lede">
+    The map is command. The hunter scans the playfield at a glance — green dot is you,
+    red dots are them. Three numbers in the HUD: how long is left, how far the closest prey,
+    and when their positions next update. Pan and zoom freely; tap re-center to snap back.
+    Eyes on the field. Move fast.
+  </p>
+
+  <!-- ============================================================
+       SCREEN MOCKUPS
+  ============================================================ -->
+  <h3>Screen States</h3>
+  <p>Three representative states a hunter encounters during a game. Map pan, prey count, and HUD values change; the core layout never does.</p>
+
+  <div class="screens-row">
+
+    <!-- ── STATE 1 · HUNTING ─────────────────────────────────────── -->
+    <div class="screen-wrap">
+      <div class="screen-label">01 · Hunting</div>
+      <div class="phone">
+
+        <!-- MAP -->
+        <div class="map"></div>
+
+        <!-- PLAYFIELD POLYGON (red-tinged for hunter role) -->
+        <div class="polygon-layer">
+          <svg width="100%" height="100%" viewBox="0 0 320 620" preserveAspectRatio="none">
+            <defs>
+              <filter id="poly-glow-h1">
+                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+            <polygon
+              points="60,100 260,80 290,240 240,440 80,460 40,300"
+              fill="rgba(255,47,31,.04)"
+              stroke="#a01408"
+              stroke-width="1.5"
+              stroke-dasharray="6 3"
+              filter="url(#poly-glow-h1)"
+            />
+          </svg>
+        </div>
+
+        <!-- HUNTER (you) — always centered, always green -->
+        <div class="hunter-self-dot" style="top:50%;left:50%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <!-- PREY A — far, upper-left -->
+        <div class="prey-dot" style="top:24%;left:30%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <!-- PREY B — far, lower-right -->
+        <div class="prey-dot" style="top:70%;left:68%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <!-- RE-CENTER FAB (shown after user has panned) -->
+        <div class="recenter-fab">⊕</div>
+
+        <!-- STATUS BAR -->
+        <div class="status-bar">
+          <span class="cb tl"></span>
+          <span class="cb tr"></span>
+          <span class="status-pill">Hunting</span>
+          <span class="role-tag">HUNTER</span>
+        </div>
+
+        <!-- HUD PANEL -->
+        <div class="hud-panel">
+          <span class="cb bl"></span>
+          <span class="cb br"></span>
+
+          <div class="hud-grid">
+            <!-- Game timer — normal, green -->
+            <div class="hud-cell">
+              <div class="hud-label">Game Time</div>
+              <div class="hud-value">14:12</div>
+              <div class="hud-sub">remaining</div>
+            </div>
+            <!-- Closest prey — far, ghost/dim -->
+            <div class="hud-cell">
+              <div class="hud-label">
+                <span>Closest Prey</span>
+                <span style="color:var(--text-ghost);font-size:9px">23s ago</span>
+              </div>
+              <div class="hud-value dim">187<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
+              <div class="hud-sub">tracking</div>
+            </div>
+          </div>
+
+          <!-- Next prey update countdown -->
+          <div class="hud-ping-row">
+            <div class="hud-ping-label">Next Update</div>
+            <div class="hud-ping-bar-wrap">
+              <div class="hud-ping-bar" style="width:22%"></div>
+            </div>
+            <div class="hud-ping-value">00:23</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="screen-note">Two preys on map, closest 187 m away. 14 min left. Next prey broadcast in 23 s. All values calm.</div>
+    </div>
+
+    <!-- ── STATE 2 · FINAL STAGE ─────────────────────────────────── -->
+    <div class="screen-wrap">
+      <div class="screen-label">02 · Final Stage</div>
+      <div class="phone">
+
+        <div class="map"></div>
+
+        <div class="polygon-layer">
+          <svg width="100%" height="100%" viewBox="0 0 320 620" preserveAspectRatio="none">
+            <defs>
+              <filter id="poly-glow-h2">
+                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+            <polygon
+              points="60,100 260,80 290,240 240,440 80,460 40,300"
+              fill="rgba(255,47,31,.04)"
+              stroke="#a01408"
+              stroke-width="1.5"
+              stroke-dasharray="6 3"
+              filter="url(#poly-glow-h2)"
+            />
+          </svg>
+        </div>
+
+        <div class="hunter-self-dot" style="top:50%;left:50%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <!-- PREY A — closer, upper area -->
+        <div class="prey-dot" style="top:30%;left:37%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <!-- PREY B — medium distance, lower right -->
+        <div class="prey-dot" style="top:64%;left:65%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <div class="status-bar">
+          <span class="cb tl" style="border-color:var(--caution)"></span>
+          <span class="cb tr" style="border-color:var(--caution)"></span>
+          <span class="status-pill" style="color:var(--caution);border-color:var(--caution)">Endgame</span>
+          <span class="role-tag">HUNTER</span>
+        </div>
+
+        <div class="hud-panel">
+          <span class="cb bl" style="border-color:var(--caution)"></span>
+          <span class="cb br" style="border-color:var(--caution)"></span>
+
+          <div class="hud-grid" style="border-color:rgba(255,179,0,.3)">
+            <!-- Game timer — final stage, yellow -->
+            <div class="hud-cell">
+              <div class="hud-label" style="color:var(--caution)">
+                <span>Game Time</span>
+                <span style="font-size:8px;letter-spacing:1.5px;color:var(--caution);opacity:.8">FINAL STAGE</span>
+              </div>
+              <div class="hud-value caution">04:22</div>
+              <div class="hud-sub caution">remaining</div>
+            </div>
+            <!-- Closest prey — medium range, yellow -->
+            <div class="hud-cell">
+              <div class="hud-label">
+                <span>Closest Prey</span>
+                <span style="color:var(--caution);font-size:9px">11s ago</span>
+              </div>
+              <div class="hud-value caution">72<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
+              <div class="hud-sub caution">approaching</div>
+            </div>
+          </div>
+
+          <!-- Update countdown — caution color -->
+          <div class="hud-ping-row" style="border-color:rgba(255,179,0,.3)">
+            <div class="hud-ping-label">Next Update</div>
+            <div class="hud-ping-bar-wrap">
+              <div class="hud-ping-bar" style="width:55%; background:var(--caution); box-shadow:0 0 6px var(--caution-glow)"></div>
+            </div>
+            <div class="hud-ping-value" style="color:var(--caution); text-shadow:0 0 8px var(--caution-glow)">00:13</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="screen-note">Final stage entered. Timer and corner brackets turn yellow. Closest prey at 72 m — approaching.</div>
+    </div>
+
+    <!-- ── STATE 3 · ON TARGET ──────────────────────────────────── -->
+    <div class="screen-wrap">
+      <div class="screen-label">03 · On Target</div>
+      <div class="phone">
+
+        <div class="map"></div>
+
+        <div class="polygon-layer">
+          <svg width="100%" height="100%" viewBox="0 0 320 620" preserveAspectRatio="none">
+            <defs>
+              <filter id="poly-glow-h3">
+                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+            <polygon
+              points="60,100 260,80 290,240 240,440 80,460 40,300"
+              fill="rgba(255,47,31,.04)"
+              stroke="#a01408"
+              stroke-width="1.5"
+              stroke-dasharray="6 3"
+              filter="url(#poly-glow-h3)"
+            />
+          </svg>
+        </div>
+
+        <div class="hunter-self-dot" style="top:50%;left:50%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <!-- PREY A — very close, almost overlapping hunter -->
+        <div class="prey-dot" style="top:46%;left:57%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <!-- PREY B — far, upper-right -->
+        <div class="prey-dot" style="top:22%;left:72%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <div class="status-bar">
+          <span class="cb tl" style="border-color:var(--signal)"></span>
+          <span class="cb tr" style="border-color:var(--signal)"></span>
+          <!-- pill flips to green when prey is in range -->
+          <span class="status-pill" style="color:var(--signal);border-color:var(--signal)">On Target</span>
+          <span class="role-tag">HUNTER</span>
+        </div>
+
+        <!-- Prey in range alert banner -->
+        <div style="
+          position:absolute; top:52px; left:12px; right:12px; z-index:11;
+          border-left:3px solid var(--signal); padding:10px 14px;
+          background:rgba(12,9,9,.93); border-radius:0 3px 3px 0;
+          display:flex; gap:10px; align-items:flex-start;
+        ">
+          <span style="font-family:var(--head);font-size:15px;color:var(--signal);line-height:1.3">◎</span>
+          <div>
+            <div style="font-family:var(--head);font-size:12px;color:var(--signal);letter-spacing:.5px">PREY IN RANGE</div>
+            <div style="font-size:11px;color:var(--text-soft);margin-top:2px">Move to intercept. Tag on contact.</div>
+          </div>
+        </div>
+
+        <div class="hud-panel">
+          <span class="cb bl" style="border-color:var(--signal)"></span>
+          <span class="cb br" style="border-color:var(--signal)"></span>
+
+          <div class="hud-grid" style="border-color:rgba(100,255,0,.3)">
+            <!-- Game timer — normal, green (not in final stage) -->
+            <div class="hud-cell">
+              <div class="hud-label">Game Time</div>
+              <div class="hud-value">09:37</div>
+              <div class="hud-sub">remaining</div>
+            </div>
+            <!-- Closest prey — very close, signal green (you're winning) -->
+            <div class="hud-cell">
+              <div class="hud-label">
+                <span>Closest Prey</span>
+                <span style="color:var(--signal);font-size:9px">4s ago</span>
+              </div>
+              <div class="hud-value">22<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
+              <div class="hud-sub on-target">in range!</div>
+            </div>
+          </div>
+
+          <!-- Update countdown — signal green when prey is close -->
+          <div class="hud-ping-row" style="border-color:rgba(100,255,0,.3)">
+            <div class="hud-ping-label" style="color:var(--signal)">Next Update</div>
+            <div class="hud-ping-bar-wrap">
+              <div class="hud-ping-bar" style="width:88%; background:var(--signal); box-shadow:0 0 6px var(--signal-glow)"></div>
+            </div>
+            <div class="hud-ping-value" style="color:var(--signal); text-shadow:0 0 8px var(--signal-glow)">00:03</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="screen-note">Prey 22 m away — fresh data (4 s ago). Everything turns green. "PREY IN RANGE" banner slides in. Corner brackets follow.</div>
+    </div>
+
+  </div><!-- /screens-row -->
+
+  <!-- ============================================================
+       ANNOTATIONS
+  ============================================================ -->
+  <div class="sep"></div>
+
+  <h3>Component Annotations</h3>
+
+  <div class="annotation-row">
+    <div class="ann-block">
+      <div class="ann-title">Map &amp; Polygon Layer</div>
+      <div class="ann-body">
+        Map tiles fill the full screen bleed. The playfield polygon is an SVG overlay
+        with a dashed <code>stroke: --hunter-dim</code> border and
+        <code>fill: rgba(255,47,31,.04)</code> — a faint red wash instead of the prey
+        view's green. The hunter's own position is always a green filled circle with a
+        slow-expanding ring (you are always green). Each prey's last known position is a
+        red filled circle that flashes at 1.1 s intervals — signalling "stale data, not
+        live location." All prey dots share the same animation rate; there is no visual
+        distinction between fresher and more stale data at the dot level.
+        The map scrolls with the tile layer; the SVG polygon is re-projected whenever the
+        map view changes.
+      </div>
+    </div>
+    <div class="ann-block">
+      <div class="ann-title">Status Bar</div>
+      <div class="ann-body">
+        Floats over the map — gradient fade so it does not hard-crop the background.
+        Corner brackets default to <code>--hunter</code> red — the hunter's identity color.
+        The role pill cycles through three states:
+        <code>HUNTING</code> (red, normal play),
+        <code>ENDGAME</code> (caution yellow, final stage),
+        <code>ON TARGET</code> (signal green, prey within close range).
+        All four corner brackets (top + bottom) follow the pill color — the entire frame
+        shifts at once to signal state change. Right side: role tag in
+        <code>Special Elite</code>, always hunter red.
+      </div>
+    </div>
+    <div class="ann-block">
+      <div class="ann-title">HUD Panel</div>
+      <div class="ann-body">
+        Two cells: <strong>Game Time</strong> (left) and <strong>Closest Prey</strong> (right).
+        The Closest Prey cell mirrors the prey view's Hunter cell in structure — distance
+        in metres plus a staleness indicator in the label row. The sub-label changes with
+        proximity: "tracking" → "approaching" → "in range!".
+        Below the grid, a full-width <strong>Next Update</strong> strip counts down to the
+        next game engine broadcast: the moment prey red dots may move. The bar and
+        countdown adopt the same color as the Closest Prey cell, tying urgency to proximity.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PREY DISTANCE COLOR TABLE
+  ============================================================ -->
+  <div class="sep"></div>
+
+  <h3>Closest Prey Distance — Color Thresholds</h3>
+  <p>
+    The hunter's distance color scale is the <strong>inverse</strong> of the prey's distance scale.
+    Where prey see green as safe (hunter far away), the hunter sees green as <em>winning</em> (prey close).
+    Three discrete states; no interpolation — the abrupt switch reads faster in motion.
+  </p>
+
+  <div class="color-spec">
+    <div class="color-spec-row header">
+      <div class="col-label">Distance</div>
+      <div class="col-label">Color</div>
+      <div class="col-label">Token</div>
+      <div class="col-label">Example</div>
+    </div>
+    <div class="color-spec-row">
+      <div style="font-size:12px;color:var(--text-soft)">&lt; 50 m</div>
+      <div>
+        <span class="color-swatch" style="background:var(--signal);box-shadow:0 0 6px var(--signal-glow)"></span>
+        <span style="font-size:12px;color:var(--text-soft)">In Range</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-ghost)"><code>--signal</code> #64FF00</div>
+      <div class="dist-val dist-close">22 M</div>
+    </div>
+    <div class="color-spec-row">
+      <div style="font-size:12px;color:var(--text-soft)">50 – 100 m</div>
+      <div>
+        <span class="color-swatch" style="background:var(--caution);box-shadow:0 0 6px var(--caution-glow)"></span>
+        <span style="font-size:12px;color:var(--text-soft)">Approaching</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-ghost)"><code>--caution</code> #FFB300</div>
+      <div class="dist-val dist-medium">72 M</div>
+    </div>
+    <div class="color-spec-row">
+      <div style="font-size:12px;color:var(--text-soft)">&gt; 100 m</div>
+      <div>
+        <span class="color-swatch" style="background:var(--text-ghost)"></span>
+        <span style="font-size:12px;color:var(--text-soft)">Tracking</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-ghost)"><code>--text-ghost</code> dim</div>
+      <div class="dist-val dist-far">187 M</div>
+    </div>
+  </div>
+
+  <p style="margin-top:8px">
+    The sub-label below the distance value changes in step: "tracking" → "approaching" → "in range!".
+    The staleness indicator beside the "Closest Prey" label adopts the current threshold color
+    when the reading is fresh (&lt; 15 s old) — confirming the data is trustworthy at that range.
+  </p>
+
+  <!-- ============================================================
+       TIMER STATE TABLE
+  ============================================================ -->
+  <h3>Game Timer — Color &amp; Animation States</h3>
+  <p>
+    Identical treatment to the prey view. The timer is role-agnostic — only the Closest Prey cell
+    and the frame color differ between hunter and prey.
+  </p>
+
+  <div class="timer-spec">
+    <div class="timer-spec-row" style="background:var(--bg-surface)">
+      <div class="ts-label">Phase</div>
+      <div class="ts-label">Value example</div>
+      <div class="ts-label">Treatment</div>
+    </div>
+    <div class="timer-spec-row">
+      <div style="font-size:12px;color:var(--text-soft)">Normal play</div>
+      <div class="timer-val" style="color:var(--signal);text-shadow:0 0 10px var(--signal-glow)">14:12</div>
+      <div class="ts-rule"><code>--signal</code> green with standard glow. Static.</div>
+    </div>
+    <div class="timer-spec-row">
+      <div style="font-size:12px;color:var(--text-soft)">Final stage (&gt; 5 min left)</div>
+      <div class="timer-val" style="color:var(--caution);text-shadow:0 0 10px var(--caution-glow)">04:22</div>
+      <div class="ts-rule"><code>--caution</code> yellow. "FINAL STAGE" micro-label appears above. Static value.</div>
+    </div>
+    <div class="timer-spec-row">
+      <div style="font-size:12px;color:var(--text-soft)">Final stage (≤ 5 min left)</div>
+      <div class="timer-val" style="color:var(--hunter);text-shadow:0 0 10px var(--hunter-glow);animation:value-flash 500ms ease-in-out infinite">02:51</div>
+      <div class="ts-rule"><code>--hunter</code> red + 500 ms flash loop. All four corner brackets also switch to red.</div>
+    </div>
+  </div>
+
+  <p>
+    When both conditions are true simultaneously — final stage ≤ 5 min AND prey is in range —
+    the timer flashes red while the Closest Prey cell and frame remain green. The two signals
+    coexist without conflict and together read "time is almost up, but you are close."
+    Honor <code>prefers-reduced-motion</code>: freeze to a static red value when the OS requests it.
+  </p>
+
+  <!-- ============================================================
+       NEXT UPDATE STRIP SPEC
+  ============================================================ -->
+  <h3>Next Prey Update Strip</h3>
+  <p>
+    A full-width strip below the 2-cell grid, counterpart to the prey view's Location Ping strip.
+    It counts down to the next game engine broadcast — the moment prey positions are
+    refreshed and the red dots on the map may move. The bar fills left-to-right as the
+    next broadcast approaches; the countdown resets each cycle (30 s default,
+    shorter in the final stage).
+  </p>
+  <p>
+    The bar and countdown adopt the current Closest Prey distance color: dim red when prey
+    is far, caution yellow when approaching, signal green when in range.
+    When a prey has an active penalty and is being tracked every cycle, the label
+    changes to <span style="font-family:var(--body);color:var(--signal);font-size:12px">PENALTY — TRACKED</span>
+    and the bar animates in green at the accelerated 30 s rate.
+  </p>
+
+  <!-- ============================================================
+       HUNTER HEAD-START
+  ============================================================ -->
+  <div class="sep"></div>
+
+  <h3>Hunter Head-Start — Standby State</h3>
+  <p>
+    When the owner starts the game, preys get a head-start period during which the hunter
+    may not move. This produces a distinct pre-hunt screen state not shown in the three
+    main mockups above:
+  </p>
+  <div class="annotation-row">
+    <div class="ann-block">
+      <div class="ann-title">Standby HUD</div>
+      <div class="ann-body">
+        The Closest Prey cell is replaced by a single large countdown — time until the
+        hunter is released. The label reads "Move In" and the value counts down in seconds.
+        The status pill shows <code>STANDBY</code> in ghost dim text. The Next Update strip
+        is hidden (there are no prey positions to broadcast yet).
+      </div>
+    </div>
+    <div class="ann-block">
+      <div class="ann-title">Map During Standby</div>
+      <div class="ann-body">
+        The playfield polygon is visible. The hunter's green dot is centered on the map.
+        No prey dots are shown — prey positions are not broadcast during the head-start period.
+        The map is fully pannable and zoomable so the hunter can study the playfield
+        before the hunt begins.
+      </div>
+    </div>
+    <div class="ann-block">
+      <div class="ann-title">Release Transition</div>
+      <div class="ann-body">
+        When the standby countdown hits zero, the pill snaps from <code>STANDBY</code> to
+        <code>HUNTING</code> (red). Corner brackets switch from ghost to hunter red.
+        The Closest Prey cell replaces the countdown. The Next Update strip
+        appears. No full-screen modal interrupts the transition — the HUD
+        simply repopulates in place.
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       LAYOUT RULES
+  ============================================================ -->
+  <div class="sep"></div>
+
+  <h3>Layout Rules</h3>
+  <div class="annotation-row">
+    <div class="ann-block signal">
+      <div class="ann-title">Map Centering &amp; Re-center FAB</div>
+      <div class="ann-body">
+        On load the map is centered on the hunter's GPS position — the green dot is at the
+        viewport center. The hunter can freely pan and pinch-zoom to survey the playfield.
+        When the user pans away from their position, a re-center FAB (⊕, 36 × 36 px, hunter
+        red border) appears in the lower-right corner of the visible map area, above the
+        HUD gradient. Tapping it snaps the map back to the hunter's current GPS position
+        with a short ease animation and dismisses the FAB. The green dot always
+        reflects the true GPS position regardless of map pan state.
+      </div>
+    </div>
+    <div class="ann-block">
+      <div class="ann-title">Multiple Prey Dots</div>
+      <div class="ann-body">
+        Every prey's last known position is rendered as a red flashing dot. All dots share
+        the same 1.1 s flash rate. The HUD's "Closest Prey" cell always reflects the
+        nearest prey at the time of the last broadcast; if a closer prey updates and
+        becomes the new nearest, the cell switches without animation.
+        A future iteration may add a subtle distance ring or label near the closest
+        prey dot to identify it at a glance.
+      </div>
+    </div>
+    <div class="ann-block">
+      <div class="ann-title">Touch Targets</div>
+      <div class="ann-body">
+        The HUD panel is a pure readout — no tap targets within it. Map gestures
+        (pan, pinch-zoom) are the primary interactions. The re-center FAB is the only
+        button in the active hunt view; it is at least 48 × 48 px and separated from
+        the HUD top edge by at least 8 px to prevent accidental activation. A future
+        "Tag Prey" confirmation action will surface only when the game logic signals
+        a tag is possible — not as a persistent on-screen element.
+      </div>
+    </div>
+  </div>
+
+  <p class="note" style="margin-top:64px; border-top:1px dashed var(--line); padding-top:16px; font-size:11px; color:var(--text-ghost); letter-spacing:.5px">
+    THE PREY // Hunter Gameplay View — Design Specification v1.0 — END OF TRANSMISSION
+  </p>
+
+</div>
+</body>
+</html>
