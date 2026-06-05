@@ -135,8 +135,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       const uid = this.currentUserId();
       this.closeStream();
       if (game.hunter?.userId === uid) {
-        // hunter view — future change
-        this.router.navigate(['/home'], { replaceUrl: true });
+        this.router.navigate(['/games', game.id, 'hunt'], { replaceUrl: true });
       } else if (game.preys.some(p => p.userId === uid)) {
         this.router.navigate(['/games', game.id, 'play'], { replaceUrl: true });
       }

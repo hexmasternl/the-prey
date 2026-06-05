@@ -51,7 +51,12 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
         if (game.Hunter?.UserId == command.UserId)
         {
             await _eventBus.PublishAsync(game.Id,
-                new ParticipantLocatedEvent(game.Id, "Hunter", command.Latitude, command.Longitude), ct);
+                new ParticipantLocatedEvent(game.Id, command.UserId, "Hunter", command.Latitude, command.Longitude), ct);
+        }
+        else if (game.Preys.Any(p => p.UserId == command.UserId))
+        {
+            await _eventBus.PublishAsync(game.Id,
+                new ParticipantLocatedEvent(game.Id, command.UserId, "Prey", command.Latitude, command.Longitude), ct);
         }
 
         var nextInterval = game.RegularReportingIntervalAt(now);

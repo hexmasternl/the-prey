@@ -65,6 +65,12 @@ export const routes: Routes = [
     canActivate: [authGuardFn],
   },
   {
+    path: 'games/:id/hunt',
+    loadComponent: () =>
+      import('./games/game-hunter.page').then((m) => m.GameHunterPage),
+    canActivate: [authGuardFn],
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./settings/settings.page').then((m) => m.SettingsPage),
     canActivate: [authGuardFn],

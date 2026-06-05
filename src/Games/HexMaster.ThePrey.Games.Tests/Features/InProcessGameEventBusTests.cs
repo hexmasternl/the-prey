@@ -65,7 +65,7 @@ public sealed class InProcessGameEventBusTests
         var subscription = _bus.Subscribe(gameId);
 
         await _bus.PublishAsync(gameId, new StateChangedEvent(gameId, "InProgress"));
-        await _bus.PublishAsync(gameId, new ParticipantLocatedEvent(gameId, "Hunter", 52.0, 5.0));
+        await _bus.PublishAsync(gameId, new ParticipantLocatedEvent(gameId, Guid.NewGuid(), "Hunter", 52.0, 5.0));
         await _bus.PublishAsync(gameId, new GameEndedEvent(gameId));
         _bus.Complete(gameId);
 

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ThePrey</string>
+    <string name="title_activity_main">ThePrey</string>
+    <string name="package_name">nl.hexmaster.theprey</string>
+    <string name="custom_url_scheme">nl.hexmaster.theprey</string>
+</resources>

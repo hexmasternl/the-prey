@@ -4,7 +4,7 @@ import { environment } from '../../environments/environment';
 export type GameEventType = 'state-changed' | 'participant-located' | 'game-ended';
 
 export interface StateChangedPayload { gameId: string; newState: string; }
-export interface ParticipantLocatedPayload { gameId: string; participantRole: string; latitude: number; longitude: number; }
+export interface ParticipantLocatedPayload { gameId: string; userId: string; participantRole: string; latitude: number; longitude: number; }
 export interface GameEndedPayload { gameId: string; }
 
 type EventPayloadMap = {

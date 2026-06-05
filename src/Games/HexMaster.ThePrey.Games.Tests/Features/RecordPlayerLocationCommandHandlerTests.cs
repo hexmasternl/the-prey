@@ -96,4 +96,49 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task Handle_ShouldPublishHunterLocatedEvent_WhenHunterRecordsLocation()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: GameFaker.ValidConfiguration());
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, hunterId, 52.1, 5.1, null), CancellationToken.None);
+
+        _eventBus.Verify(b => b.PublishAsync(
+            game.Id,
+            It.Is<ParticipantLocatedEvent>(e => e.UserId == hunterId && e.ParticipantRole == "Hunter" && e.Latitude == 52.1 && e.Longitude == 5.1),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPublishPreyLocatedEvent_WhenPreyRecordsLocation()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, preyIds[0], 52.2, 5.2, null), CancellationToken.None);
+
+        _eventBus.Verify(b => b.PublishAsync(
+            game.Id,
+            It.Is<ParticipantLocatedEvent>(e => e.UserId == preyIds[0] && e.ParticipantRole == "Prey" && e.Latitude == 52.2 && e.Longitude == 5.2),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotPublishHunterEvent_WhenPreyRecordsLocation()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, preyIds[0], 52.2, 5.2, null), CancellationToken.None);
+
+        _eventBus.Verify(b => b.PublishAsync(
+            It.IsAny<Guid>(),
+            It.Is<ParticipantLocatedEvent>(e => e.ParticipantRole == "Hunter"),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

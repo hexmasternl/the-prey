@@ -1,0 +1,59 @@
+<ion-content [fullscreen]="true" class="hunter-view">
+  <!-- Full-screen map -->
+  <div id="map" class="map-container"></div>
+
+  <!-- Corner brackets -->
+  <div class="cb tl"></div>
+  <div class="cb tr"></div>
+  <div class="cb bl"></div>
+  <div class="cb br"></div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-pill">LIVE</span>
+    <span class="role-tag">HUNTER</span>
+  </div>
+
+  <!-- GPS alert banner -->
+  @if (gpsAlert()) {
+  <div class="alert-banner">
+    <span class="alert-icon">▲</span>
+    <div>
+      <div class="alert-title">SIGNAL LOST</div>
+      <div class="alert-msg">{{ gpsAlert() }}</div>
+    </div>
+  </div>
+  }
+
+  <!-- Re-center FAB -->
+  <button class="recenter-fab" (click)="recenter()" aria-label="Re-center map">⊕</button>
+
+  <!-- HUD panel -->
+  <div class="hud-panel">
+    <div class="hud-grid">
+      <div class="hud-cell">
+        <div class="hud-label">TIME</div>
+        <div class="hud-value">{{ timeRemaining() }}</div>
+      </div>
+      <div class="hud-cell">
+        <div class="hud-label">PREY</div>
+        <div class="hud-value">{{ preysLeft() }}</div>
+      </div>
+      <div class="hud-cell">
+        <div class="hud-label">DISTANCE</div>
+        <div class="hud-value">{{ nearestDistance() }}</div>
+      </div>
+      <div class="hud-cell" [class.hud-penalty]="hasActivePenalty()">
+        <div class="hud-label">PENALTY</div>
+        <div class="hud-value">{{ hasActivePenalty() ? 'ACTIVE' : '—' }}</div>
+      </div>
+    </div>
+    <div class="hud-ping-row">
+      <span class="hud-ping-label">NEXT UPDATE</span>
+      <div class="hud-ping-bar-wrap">
+        <div class="hud-ping-bar" [style.width.%]="(pingCountdown() / (pollIntervalSeconds || 30)) * 100"></div>
+      </div>
+      <span class="hud-ping-value">{{ pingCountdown() }}s</span>
+    </div>
+  </div>
+</ion-content>

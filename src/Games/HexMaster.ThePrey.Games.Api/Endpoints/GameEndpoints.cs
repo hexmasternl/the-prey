@@ -506,12 +506,18 @@ public static class GameEndpoints
             return;
         }
 
+        var isHunter = game.Hunter?.UserId == user.UserId;
+
         httpContext.Response.ContentType = "text/event-stream";
         httpContext.Response.Headers.CacheControl = "no-cache";
         httpContext.Response.Headers.Append("X-Accel-Buffering", "no");
 
         await foreach (var evt in eventBus.Subscribe(id).WithCancellation(ct))
         {
+            // Prey location events go only to the hunter; skip for prey subscribers.
+            if (evt is ParticipantLocatedEvent { ParticipantRole: "Prey" } && !isHunter)
+                continue;
+
             var json = System.Text.Json.JsonSerializer.Serialize(evt, evt.GetType());
             await httpContext.Response.WriteAsync($"event: {evt.EventType}\ndata: {json}\n\n", ct);
             await httpContext.Response.Body.FlushAsync(ct);
