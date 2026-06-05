@@ -16,6 +16,7 @@ import {
   IonItemSliding,
   IonLabel,
   IonList,
+  IonSearchbar,
   IonSegment,
   IonSegmentButton,
   IonSpinner,
@@ -23,10 +24,13 @@ import {
   IonToolbar,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
+import { from, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { PlayFieldRecord } from './playfield.model';
+import { PlayFieldRecord, PlayFieldSummaryDto } from './playfield.model';
 import { PlayfieldsService } from './playfields.service';
 
 type Tab = 'private' | 'public';
@@ -54,6 +58,7 @@ type Tab = 'private' | 'public';
     IonItemOption,
     IonLabel,
     IonBadge,
+    IonSearchbar,
     IonSpinner,
     TranslatePipe,
   ],
@@ -64,14 +69,41 @@ export class PlayfieldsListPage implements ViewWillEnter {
   private readonly alertCtrl = inject(AlertController);
   private readonly translate = inject(TranslateService);
 
-  constructor() {
-    addIcons({ add });
-  }
-
   readonly activeTab = signal<Tab>('private');
   readonly playfields = signal<PlayFieldRecord[]>([]);
   readonly isSyncing = signal(false);
   readonly syncFailed = signal(false);
+
+  readonly searchQuery$ = new Subject<string>();
+  readonly publicResults = signal<PlayFieldSummaryDto[]>([]);
+  readonly isSearchingPublic = signal(false);
+  readonly currentPublicQuery = signal('');
+
+  constructor() {
+    addIcons({ add });
+
+    this.searchQuery$.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      filter(v => v.length >= 3),
+      tap(() => this.isSearchingPublic.set(true)),
+      switchMap(q => from(this.playfieldsService.searchPublicPlayfields(q))),
+      takeUntilDestroyed(),
+    ).subscribe({
+      next: results => {
+        this.publicResults.set(results);
+        this.isSearchingPublic.set(false);
+      },
+      error: () => {
+        this.isSearchingPublic.set(false);
+      },
+    });
+  }
+
+  onPublicSearch(value: string): void {
+    this.currentPublicQuery.set(value);
+    this.searchQuery$.next(value);
+  }
 
   ionViewWillEnter(): void {
     this.loadLocalThenSync();

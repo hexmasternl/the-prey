@@ -67,6 +67,12 @@ export class PlayfieldsService {
     return firstValueFrom(this.http.get<PlayFieldDetailDto>(`${this.apiBase}/${id}`));
   }
 
+  searchPublicPlayfields(query: string): Promise<PlayFieldSummaryDto[]> {
+    return firstValueFrom(
+      this.http.get<PlayFieldSummaryDto[]>(`${this.apiBase}/public`, { params: { q: query } }),
+    );
+  }
+
   updateArea(id: string, coordinates: GpsCoordinateDto[]): Promise<PlayFieldDetailDto> {
     return firstValueFrom(
       this.http.patch<PlayFieldDetailDto>(`${this.apiBase}/${id}`, { points: coordinates }),

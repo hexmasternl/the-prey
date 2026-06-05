@@ -72,9 +72,34 @@
     }
 
     @case ('public') {
-      <div class="sync-state">
-        <p class="empty-label">{{ 'PLAYFIELD_LIST.PUBLIC_COMING_SOON' | translate }}</p>
-      </div>
+      <ion-searchbar
+        [placeholder]="'PLAYFIELD_LIST.PUBLIC_SEARCH_PLACEHOLDER' | translate"
+        (ionInput)="onPublicSearch($any($event).detail.value ?? '')"
+      ></ion-searchbar>
+
+      @if (currentPublicQuery().length < 3) {
+        <div class="sync-state">
+          <p class="empty-label">{{ 'PLAYFIELD_LIST.PUBLIC_SEARCH_HINT' | translate }}</p>
+        </div>
+      } @else if (isSearchingPublic()) {
+        <div class="sync-state">
+          <ion-spinner name="lines" color="primary"></ion-spinner>
+        </div>
+      } @else if (publicResults().length === 0) {
+        <div class="sync-state">
+          <p class="empty-label">{{ 'PLAYFIELD_LIST.PUBLIC_NO_RESULTS' | translate }}</p>
+        </div>
+      } @else {
+        <ion-list>
+          @for (pf of publicResults(); track pf.id) {
+            <ion-item button detail (click)="openDetail(pf.id)">
+              <ion-label>
+                <h2>{{ pf.name }}</h2>
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      }
     }
   }
 </ion-content>

@@ -22,6 +22,7 @@ import { PlayFieldDetailDto } from './playfield.model';
 import { PlayfieldsService } from './playfields.service';
 import { PlayfieldDraftService } from './playfield-draft.service';
 import { PlayfieldMapComponent } from './playfield-map/playfield-map.component';
+import { UserStateService } from '../users/user-state.service';
 
 @Component({
   selector: 'app-playfield-detail',
@@ -51,6 +52,7 @@ export class PlayfieldDetailPage implements ViewWillEnter {
   private readonly playfieldsService = inject(PlayfieldsService);
   private readonly draftService = inject(PlayfieldDraftService);
   private readonly toastController = inject(ToastController);
+  private readonly userState = inject(UserStateService);
 
   readonly isLoading = signal(false);
   readonly isSaving = signal(false);
@@ -61,6 +63,9 @@ export class PlayfieldDetailPage implements ViewWillEnter {
 
   readonly areaPoints = this.draftService.points;
   readonly canSave = computed(() => this.name().trim().length > 2 && this.areaPoints().length >= 3);
+  readonly isOwner = computed(
+    () => !!this.playfield() && this.playfield()!.ownerId === this.userState.profile()?.userId,
+  );
 
   private navigatedToArea = false;
 

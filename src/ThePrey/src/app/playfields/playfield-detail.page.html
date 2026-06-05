@@ -27,33 +27,37 @@
       ></ion-input>
     </ion-item>
 
-    <ion-item>
-      <ion-label>{{ 'PLAYFIELD_DETAIL.VISIBILITY_LABEL' | translate }}</ion-label>
-      <ion-toggle
-        slot="end"
-        [checked]="isPublic()"
-        (ionChange)="isPublic.set($any($event).detail.checked)"
-      ></ion-toggle>
-    </ion-item>
+    @if (isOwner()) {
+      <ion-item>
+        <ion-label>{{ 'PLAYFIELD_DETAIL.VISIBILITY_LABEL' | translate }}</ion-label>
+        <ion-toggle
+          slot="end"
+          [checked]="isPublic()"
+          (ionChange)="isPublic.set($any($event).detail.checked)"
+        ></ion-toggle>
+      </ion-item>
+    }
 
     @if (areaPoints().length >= 3) {
       <app-playfield-map [coordinates]="areaPoints()" />
     }
 
-    <ion-item lines="none">
-      <ion-button expand="block" fill="outline" (click)="goToArea()" style="width:100%;">
-        @if (areaPoints().length >= 3) {
-          {{ 'PLAYFIELD_DETAIL.SET_AREA_WITH_COUNT' | translate:{ count: areaPoints().length } }}
-        } @else {
-          {{ 'PLAYFIELD_DETAIL.SET_AREA' | translate }}
+    @if (isOwner()) {
+      <ion-item lines="none">
+        <ion-button expand="block" fill="outline" (click)="goToArea()" style="width:100%;">
+          @if (areaPoints().length >= 3) {
+            {{ 'PLAYFIELD_DETAIL.SET_AREA_WITH_COUNT' | translate:{ count: areaPoints().length } }}
+          } @else {
+            {{ 'PLAYFIELD_DETAIL.SET_AREA' | translate }}
+          }
+        </ion-button>
+        @if (areaPoints().length > 0 && areaPoints().length < 3) {
+          <ion-note color="warning" style="font-size:0.8em;padding-top:4px;">
+            {{ 'PLAYFIELD_DETAIL.SET_AREA_MIN_POINTS' | translate }}
+          </ion-note>
         }
-      </ion-button>
-      @if (areaPoints().length > 0 && areaPoints().length < 3) {
-        <ion-note color="warning" style="font-size:0.8em;padding-top:4px;">
-          {{ 'PLAYFIELD_DETAIL.SET_AREA_MIN_POINTS' | translate }}
-        </ion-note>
-      }
-    </ion-item>
+      </ion-item>
+    }
 
     <ion-button
       expand="block"
