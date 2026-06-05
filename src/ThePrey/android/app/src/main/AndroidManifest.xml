@@ -33,9 +33,33 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!--
+            LocationForegroundService: keeps GPS tracking alive when the screen is locked.
+            foregroundServiceType="location" is required on API 29+ and enables the system to
+            grant location access while the service is running in the foreground.
+        -->
+        <service
+            android:name=".LocationForegroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
     </application>
 
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- GPS / location -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Required to track location while the app is backgrounded / screen-locked -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- Foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Android 14+ (API 34): must declare the service type explicitly -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
 </manifest>

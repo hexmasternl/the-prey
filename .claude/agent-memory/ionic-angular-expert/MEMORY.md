@@ -1,1 +1,2 @@
 - [Game Lobby Page](project-game-lobby.md) — SSE lobby, owner/player branching, route at games/:id/lobby
+- [Game Location Service](project-game-location.md) — native Android foreground service for prey GPS broadcasting, Capacitor plugin + Angular service fallback

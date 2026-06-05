@@ -1,13 +1,13 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-  IonContent,
-} from '@ionic/angular/standalone';
+import { IonContent } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
 import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
+import { Geolocation } from '@capacitor/geolocation';
 import { GameStatusDto, GamesService } from './games.service';
 import { GameStreamService } from './game-stream.service';
+import { GameLocationService } from './game-location.service';
 
 @Component({
   selector: 'app-game-prey',
@@ -16,48 +16,67 @@ import { GameStreamService } from './game-stream.service';
   imports: [IonContent],
 })
 export class GamePreyPage implements OnInit, OnDestroy {
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly gamesService = inject(GamesService);
-  private readonly streamService = inject(GameStreamService);
-  private readonly auth = inject(AuthService);
+  private readonly route          = inject(ActivatedRoute);
+  private readonly router         = inject(Router);
+  private readonly gamesService   = inject(GamesService);
+  private readonly streamService  = inject(GameStreamService);
+  private readonly locationService = inject(GameLocationService);
+  private readonly auth           = inject(AuthService);
 
-  readonly timeRemaining = signal('--:--');
-  readonly preysLeft = signal(0);
+  readonly timeRemaining   = signal('--:--');
+  readonly preysLeft       = signal(0);
   readonly hasActivePenalty = signal(false);
-  readonly gpsAlert = signal<string | null>(null);
+  readonly gpsAlert        = signal<string | null>(null);
 
   private gameId!: string;
+  private token!: string;
   private map!: L.Map;
   private playerMarker: L.CircleMarker | null = null;
   private playfieldPolygon: L.Polygon | null = null;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
-  private watchId: number | null = null;
+
+  /** Capacitor Geolocation watch — used only for the on-screen map marker. */
+  private mapWatchId: string | null = null;
   private currentUserId: string | null = null;
+
+  // -------------------------------------------------------------------------
+  // Lifecycle
+  // -------------------------------------------------------------------------
 
   async ngOnInit(): Promise<void> {
     this.gameId = this.route.snapshot.paramMap.get('id') ?? '';
-    const token = await firstValueFrom(this.auth.getAccessTokenSilently());
+    this.token  = await firstValueFrom(this.auth.getAccessTokenSilently());
+
     const user = await firstValueFrom(this.auth.user$);
     this.currentUserId = user?.sub ?? null;
 
     this.initMap();
-    this.startGps();
-    await this.pollStatus(token);
-    this.connectStream(token);
+
+    // Start background location broadcasting (native foreground service on Android,
+    // interval + HttpClient fallback on web). On Android the service autonomously
+    // polls game status, updates its own interval, and self-terminates when the game ends.
+    await this.locationService.startTracking(this.gameId, this.currentUserId ?? '', 30_000);
+
+    // Separate watch purely for updating the on-screen map marker
+    this.startMapWatch();
+
+    await this.pollStatus();
+    this.connectStream();
   }
 
   ngOnDestroy(): void {
     this.clearPoll();
     this.streamService.disconnect();
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
-      this.watchId = null;
-    }
+    this.locationService.stopTracking();
+    this.stopMapWatch();
     if (this.map) {
       this.map.remove();
     }
   }
+
+  // -------------------------------------------------------------------------
+  // Map initialisation
+  // -------------------------------------------------------------------------
 
   private initMap(): void {
     this.map = L.map('map', { zoomControl: false, attributionControl: false });
@@ -65,15 +84,21 @@ export class GamePreyPage implements OnInit, OnDestroy {
     this.map.setView([52.0, 5.0], 15);
   }
 
-  private startGps(): void {
-    if (!navigator.geolocation) {
-      this.gpsAlert.set('Signal lost. Find open sky.');
-      return;
-    }
-    this.watchId = navigator.geolocation.watchPosition(
-      (pos) => {
+  /**
+   * Start a Capacitor Geolocation watch to update the on-screen player marker.
+   * This is intentionally separate from the background broadcasting so the map
+   * updates at a higher frequency (continuous) than the server POST cadence.
+   */
+  private startMapWatch(): void {
+    Geolocation.watchPosition(
+      { enableHighAccuracy: true, maximumAge: 5_000 },
+      (position, err) => {
+        if (err || !position) {
+          this.gpsAlert.set('Signal lost. Find open sky.');
+          return;
+        }
         this.gpsAlert.set(null);
-        const { latitude, longitude } = pos.coords;
+        const { latitude, longitude } = position.coords;
         const latlng: L.LatLngExpression = [latitude, longitude];
         if (this.playerMarker) {
           this.playerMarker.setLatLng(latlng);
@@ -87,20 +112,37 @@ export class GamePreyPage implements OnInit, OnDestroy {
           }).addTo(this.map);
         }
         this.map.setView(latlng);
-      },
-      () => { this.gpsAlert.set('Signal lost. Find open sky.'); },
-      { enableHighAccuracy: true, maximumAge: 5000 }
-    );
+      }
+    ).then((watchId) => {
+      this.mapWatchId = watchId;
+    }).catch(() => {
+      this.gpsAlert.set('Signal lost. Find open sky.');
+    });
   }
 
-  private async pollStatus(token: string): Promise<void> {
+  private stopMapWatch(): void {
+    if (this.mapWatchId !== null) {
+      Geolocation.clearWatch({ id: this.mapWatchId });
+      this.mapWatchId = null;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Status polling
+  // -------------------------------------------------------------------------
+
+  private async pollStatus(): Promise<void> {
     try {
       const status = await this.gamesService.getGameStatus(this.gameId);
       this.applyStatus(status);
-      const interval = (status.nextPingDuration || 30) * 1000;
-      this.pollTimer = setTimeout(() => this.pollStatus(token), interval);
+
+      // The native Android service manages its own interval autonomously —
+      // we only use nextPingDuration here to pace the Angular-side UI poll.
+      const intervalMs = (status.nextPingDuration || 30) * 1_000;
+      this.pollTimer = setTimeout(() => this.pollStatus(), intervalMs);
     } catch {
-      this.pollTimer = setTimeout(() => this.pollStatus(token), 30_000);
+      // Retry with a safe default on network error
+      this.pollTimer = setTimeout(() => this.pollStatus(), 30_000);
     }
   }
 
@@ -131,25 +173,34 @@ export class GamePreyPage implements OnInit, OnDestroy {
     this.map.fitBounds(this.playfieldPolygon.getBounds());
   }
 
-  private connectStream(token: string): void {
-    this.streamService.connect(this.gameId, token);
+  // -------------------------------------------------------------------------
+  // SSE stream
+  // -------------------------------------------------------------------------
+
+  private connectStream(): void {
+    this.streamService.connect(this.gameId, this.token);
 
     this.streamService.on('participant-located', (payload) => {
       if (payload.participantRole === 'Hunter') {
-        // hunter location is for contextual awareness; no map marker shown to prey
+        // Hunter location is for contextual awareness; no map marker shown to prey
       }
     });
 
     this.streamService.on('state-changed', () => {
-      // status poll will pick up the new state
+      // Status poll will pick up the new state on the next tick
     });
 
     this.streamService.on('game-ended', () => {
       this.clearPoll();
       this.streamService.disconnect();
+      this.locationService.stopTracking();
       this.router.navigate(['/home'], { replaceUrl: true });
     });
   }
+
+  // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
 
   private clearPoll(): void {
     if (this.pollTimer !== null) {

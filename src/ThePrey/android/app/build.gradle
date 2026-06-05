@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 def keystorePropertiesFile = rootProject.file("key.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
@@ -54,6 +55,13 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+
+    // Fused Location Provider — required by LocationForegroundService
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+
+    // OkHttp — used by LocationForegroundService to POST coordinates.
+    // It is already a transitive dep via Capacitor, but declared here to pin the version.
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 }
 
 apply from: 'capacitor.build.gradle'
