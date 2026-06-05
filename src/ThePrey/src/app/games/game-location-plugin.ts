@@ -6,7 +6,7 @@ import { registerPlugin } from '@capacitor/core';
 export interface StartTrackingOptions {
   /** UUID of the active game session. */
   gameId: string;
-  /** API base URL, no trailing slash (e.g. "https://api.theprey.eu"). */
+  /** API base URL, no trailing slash (e.g. "https://api.theprey.nl"). */
   apiUrl: string;
   /** Auth0 machine-to-machine client ID for the client credentials grant. */
   clientId: string;

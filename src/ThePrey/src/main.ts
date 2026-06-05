@@ -38,7 +38,7 @@ bootstrapApplication(AppComponent, {
       cacheLocation: 'localstorage',
       authorizationParams: {
         redirect_uri: redirectUri,
-        audience: 'https://api.theprey.eu',
+        audience: 'https://api.theprey.nl',
       },
     }),
   ],

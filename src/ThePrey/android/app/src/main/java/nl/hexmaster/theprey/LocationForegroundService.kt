@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit
  *
  * Intent extras (all required on ACTION_START):
  *   gameId       – UUID string of the active game
- *   apiUrl       – base URL (no trailing slash), e.g. "https://api.theprey.eu"
+ *   apiUrl       – base URL (no trailing slash), e.g. "https://api.theprey.nl"
  *   clientId     – Auth0 machine-to-machine client ID
  *   clientSecret – Auth0 machine-to-machine client secret
  *   userId       – the player's own user ID (used to detect elimination)
@@ -61,7 +61,7 @@ class LocationForegroundService : Service() {
         const val EXTRA_INTERVAL_MS   = "intervalMs"
 
         private const val TOKEN_URL  = "https://theprey.eu.auth0.com/oauth/token"
-        private const val AUDIENCE   = "https://api.theprey.eu"
+        private const val AUDIENCE   = "https://api.theprey.nl"
 
         private const val NOTIFICATION_ID      = 1001
         private const val CHANNEL_ID           = "location_tracking"

@@ -26,7 +26,7 @@ public static class Extensions
     // Auth0 tenant authority and API identifier (audience) shared by every backend service.
     // Override per environment via configuration keys "Auth0:Domain" and "Auth0:Audience".
     private const string DefaultAuthority = "https://theprey.eu.auth0.com/";
-    private const string DefaultAudience = "https://api.theprey.eu";
+    private const string DefaultAudience = "https://api.theprey.nl";
 
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
