@@ -7,8 +7,12 @@ using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
+using HexMaster.ThePrey.Games.Features.RemoveLobbyPlayer;
 using HexMaster.ThePrey.Games.Features.SetHunter;
+using HexMaster.ThePrey.Games.Features.SetReady;
 using HexMaster.ThePrey.Games.Features.StartGame;
+using HexMaster.ThePrey.Games.Features.UpdateGameSettings;
+using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,12 +27,16 @@ public static class GamesModuleRegistration
         services.AddScoped<ICommandHandler<StartGameCommand, StartGameResult?>, StartGameCommandHandler>();
         services.AddScoped<ICommandHandler<SetHunterCommand, SetHunterResult?>, SetHunterCommandHandler>();
         services.AddScoped<ICommandHandler<RecordPlayerLocationCommand, RecordPlayerLocationResult?>, RecordPlayerLocationCommandHandler>();
+        services.AddScoped<ICommandHandler<RemoveLobbyPlayerCommand, RemoveLobbyPlayerResult?>, RemoveLobbyPlayerCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateGameSettingsCommand, UpdateGameSettingsResult?>, UpdateGameSettingsCommandHandler>();
+        services.AddScoped<ICommandHandler<SetReadyCommand, SetReadyResult?>, SetReadyCommandHandler>();
         services.AddScoped<IQueryHandler<GetGameQuery, GameDto?>, GetGameQueryHandler>();
         services.AddScoped<IQueryHandler<GetGameStateQuery, GameStateDto?>, GetGameStateQueryHandler>();
         services.AddScoped<IQueryHandler<ListGamesQuery, IReadOnlyList<GameSummaryDto>>, ListGamesQueryHandler>();
         services.AddScoped<IQueryHandler<GetActiveGameQuery, ActiveGameDto?>, GetActiveGameQueryHandler>();
 
         services.AddSingleton<IGameMetrics, GameMetrics>();
+        services.AddSingleton<ILobbyEventBus, InProcessLobbyEventBus>();
 
         return services;
     }

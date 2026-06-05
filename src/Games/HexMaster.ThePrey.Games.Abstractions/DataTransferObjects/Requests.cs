@@ -31,3 +31,13 @@ public sealed record RecordLocationRequest(
     double Longitude,
     DateTimeOffset? RecordedAt = null,
     double? Accuracy = null);
+
+/// <summary>Update game configuration settings. Only the game owner may call this.</summary>
+public sealed record UpdateGameSettingsRequest(
+    int GameDuration,
+    int HunterDelayTime,
+    int FinalStageDuration,
+    int DefaultLocationInterval,
+    int FinalLocationInterval,
+    bool EnablePreyBoundaryPenalties = false,
+    bool EnableHunterBoundaryPenalty = false);

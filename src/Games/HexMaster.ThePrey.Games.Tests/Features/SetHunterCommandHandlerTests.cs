@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.SetHunter;
+using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Tests.Factories;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -11,12 +12,14 @@ public sealed class SetHunterCommandHandlerTests
     private static readonly DateTimeOffset Now = new(2026, 6, 4, 12, 0, 0, TimeSpan.Zero);
 
     private readonly Mock<IGameRepository> _repository = new();
+    private readonly Mock<ILobbyEventBus> _eventBus = new();
     private readonly SetHunterCommandHandler _handler;
 
     public SetHunterCommandHandlerTests()
     {
         _handler = new SetHunterCommandHandler(
             _repository.Object,
+            _eventBus.Object,
             Mock.Of<ILogger<SetHunterCommandHandler>>());
     }
 

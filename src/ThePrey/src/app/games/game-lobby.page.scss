@@ -1,0 +1,39 @@
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding-top: 48px;
+}
+
+.game-code {
+  text-align: center;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid var(--ion-color-primary);
+
+  &__label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--ion-color-medium);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  &__value {
+    font-size: 2rem;
+    letter-spacing: 0.3em;
+    color: var(--ion-color-primary);
+    font-weight: 700;
+  }
+}
+
+.section-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ion-color-medium);
+  margin-bottom: 8px;
+}
+
+.ready-btn {
+  margin-top: 24px;
+}

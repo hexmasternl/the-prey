@@ -83,7 +83,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   goToActiveGame(): void {
-    this.router.navigate(['/games', this.activeGameId()]);
+    this.router.navigate(['/games', this.activeGameId(), 'lobby']);
   }
 
   goToPlay(): void {

@@ -13,6 +13,9 @@ var storage = builder.AddAzureStorage(AspireConstants.Resources.Storage)
 var usersTables = storage.AddTables(AspireConstants.Resources.UsersTables);
 var playFieldsTables = storage.AddTables(AspireConstants.Resources.PlayFieldsTables);
 
+var postgres = builder.AddPostgres(AspireConstants.Resources.Postgres);
+var gamesDatabase = postgres.AddDatabase(AspireConstants.Resources.GamesDatabase);
+
 
 
 var usersApi = builder.AddProject<Projects.HexMaster_ThePrey_Users_Api>(AspireConstants.Resources.UsersApi)
@@ -31,12 +34,12 @@ var playFieldsApi = builder.AddProject<Projects.HexMaster_ThePrey_PlayFields_Api
     })
     .WaitFor(playFieldsTables);
 
-var postgres = builder.AddPostgres(AspireConstants.Resources.Postgres);
-
-var gamesDatabase = postgres.AddDatabase(AspireConstants.Resources.GamesDatabase);
-
 var gamesApi = builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireConstants.Resources.GamesApi)
     .WithReference(gamesDatabase)
+    .WithDaprSidecar(opts =>
+    {
+        opts.WithReference(stateStore);
+    })
     .WaitFor(gamesDatabase);
 
 var gateway = builder.AddYarp(AspireConstants.Resources.Gateway)

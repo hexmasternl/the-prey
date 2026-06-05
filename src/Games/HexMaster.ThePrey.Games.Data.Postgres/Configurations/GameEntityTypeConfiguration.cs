@@ -24,6 +24,7 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
         builder.Property(g => g.OwnerUserId);
         builder.Property(g => g.Status).HasConversion<string>().HasMaxLength(32);
         builder.Property(g => g.StartedAt);
+        builder.Property(g => g.DesignatedHunterUserId);
 
         // Computed, behaviour-only members must not be mapped.
         builder.Ignore(g => g.Hunter);
@@ -51,6 +52,7 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
             lobby.Property(p => p.UserId);
             lobby.Property(p => p.DisplayName).HasMaxLength(256);
             lobby.Property(p => p.ProfilePictureUrl);
+            lobby.Property(p => p.IsReady).HasColumnName("IsReady").HasDefaultValue(false);
         });
         builder.Navigation(g => g.Lobby).UsePropertyAccessMode(PropertyAccessMode.Field);
 

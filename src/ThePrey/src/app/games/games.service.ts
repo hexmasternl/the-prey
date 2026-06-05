@@ -21,22 +21,36 @@ export interface CreateGameRequest {
   profilePictureUrl?: string;
 }
 
+export interface GameConfigurationDto {
+  gameDuration: number;
+  hunterDelayTime: number;
+  finalStageDuration: number;
+  defaultLocationInterval: number;
+  finalLocationInterval: number;
+  enablePreyBoundaryPenalties: boolean;
+  enableHunterBoundaryPenalty: boolean;
+}
+
 export interface GameDto {
   id: string;
   gameCode: string;
   playfieldId: string;
   ownerUserId: string;
   status: string;
+  configuration: GameConfigurationDto;
   lobby: LobbyPlayerDto[];
   hunter: ParticipantDto | null;
   preys: ParticipantDto[];
   startedAt: string | null;
+  designatedHunterUserId: string | null;
 }
 
 export interface LobbyPlayerDto {
   userId: string;
   displayName: string;
   profilePictureUrl: string | null;
+  isReady: boolean;
+  designatedHunter: boolean;
 }
 
 export interface ParticipantDto {
@@ -65,5 +79,37 @@ export class GamesService {
     return firstValueFrom(
       this.http.post<GameDto>(this.apiBase, request)
     );
+  }
+
+  getGame(id: string): Promise<GameDto> {
+    return firstValueFrom(this.http.get<GameDto>(`${this.apiBase}/${id}`));
+  }
+
+  setHunter(gameId: string, userId: string): Promise<GameDto> {
+    return firstValueFrom(
+      this.http.post<GameDto>(`${this.apiBase}/${gameId}/hunter`, { newHunterUserId: userId })
+    );
+  }
+
+  removePlayer(gameId: string, userId: string): Promise<GameDto> {
+    return firstValueFrom(
+      this.http.delete<GameDto>(`${this.apiBase}/${gameId}/lobby/${userId}`)
+    );
+  }
+
+  updateSettings(gameId: string, config: GameConfigurationDto): Promise<GameDto> {
+    return firstValueFrom(
+      this.http.put<GameDto>(`${this.apiBase}/${gameId}/settings`, config)
+    );
+  }
+
+  setReady(gameId: string): Promise<GameDto> {
+    return firstValueFrom(
+      this.http.post<GameDto>(`${this.apiBase}/${gameId}/lobby/ready`, {})
+    );
+  }
+
+  connectLobbyStream(gameId: string, token: string): EventSource {
+    return new EventSource(`${this.apiBase}/${gameId}/lobby/stream?token=${encodeURIComponent(token)}`);
   }
 }

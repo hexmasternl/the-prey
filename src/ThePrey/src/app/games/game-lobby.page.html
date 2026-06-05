@@ -1,0 +1,98 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="back()">{{ 'GAME_LOBBY.BACK' | translate }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'GAME_LOBBY.TITLE' | translate }}</ion-title>
+    @if (isOwner()) {
+      <ion-buttons slot="end">
+        <ion-button fill="clear" (click)="editSettings()">
+          <ion-icon slot="icon-only" name="settings"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (isLoading()) {
+    <div class="loading-center">
+      <ion-spinner name="lines" color="primary"></ion-spinner>
+    </div>
+  } @else if (game(); as g) {
+    <div class="game-code">
+      <div class="game-code__label">{{ 'GAME_LOBBY.GAME_CODE' | translate }}</div>
+      <div class="game-code__value">{{ g.gameCode }}</div>
+    </div>
+
+    <div class="section-label">{{ 'GAME_LOBBY.PLAYERS' | translate }} ({{ g.lobby.length }})</div>
+
+    <ion-list>
+      @for (player of g.lobby; track player.userId) {
+        @if (isOwner() && !isCurrentUser(player.userId)) {
+          <ion-item-sliding>
+            <ion-item [button]="true" (click)="designateHunter(player.userId)">
+              <ion-label>
+                <h2>{{ player.displayName }}</h2>
+                <p>
+                  @if (player.designatedHunter) {
+                    {{ 'GAME_LOBBY.ROLE_HUNTER' | translate }}
+                  }
+                  @if (player.isReady) {
+                    &middot; {{ 'GAME_LOBBY.READY' | translate }}
+                  }
+                </p>
+              </ion-label>
+              @if (player.designatedHunter) {
+                <ion-icon slot="end" name="checkmark-circle" color="warning"></ion-icon>
+              }
+            </ion-item>
+            <ion-item-options side="end">
+              <ion-item-option color="danger" (click)="removePlayer(player.userId)">
+                <ion-icon slot="icon-only" name="person-remove"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        } @else {
+          <ion-item>
+            <ion-label>
+              <h2>
+                {{ player.displayName }}
+                @if (isCurrentUser(player.userId)) {
+                  ({{ 'GAME_LOBBY.YOU' | translate }})
+                }
+              </h2>
+              <p>
+                @if (player.designatedHunter) {
+                  {{ 'GAME_LOBBY.ROLE_HUNTER' | translate }}
+                }
+                @if (player.isReady) {
+                  &middot; {{ 'GAME_LOBBY.READY' | translate }}
+                }
+              </p>
+            </ion-label>
+            @if (player.designatedHunter) {
+              <ion-icon slot="end" name="checkmark-circle" color="warning"></ion-icon>
+            }
+          </ion-item>
+        }
+      }
+    </ion-list>
+
+    @if (!isOwner()) {
+      <ion-button
+        expand="block"
+        color="success"
+        class="ready-btn"
+        [disabled]="isReady(currentUserId())"
+        (click)="markReady()"
+      >
+        @if (isReady(currentUserId())) {
+          {{ 'GAME_LOBBY.READY_DONE' | translate }}
+        } @else {
+          {{ 'GAME_LOBBY.READY' | translate }}
+        }
+      </ion-button>
+    }
+  }
+</ion-content>

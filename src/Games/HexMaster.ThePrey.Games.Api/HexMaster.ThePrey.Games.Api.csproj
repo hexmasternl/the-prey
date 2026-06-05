@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
@@ -21,6 +25,7 @@
     <ProjectReference Include="..\HexMaster.ThePrey.Games.Abstractions\HexMaster.ThePrey.Games.Abstractions.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Games.Data.Postgres\HexMaster.ThePrey.Games.Data.Postgres.csproj" />
     <ProjectReference Include="..\..\Core\HexMaster.ThePrey.Core\HexMaster.ThePrey.Core.csproj" />
+    <ProjectReference Include="..\..\Users\HexMaster.ThePrey.Users.Integration\HexMaster.ThePrey.Users.Integration.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,1 @@
+- [Game Lobby Page](project-game-lobby.md) — SSE lobby, owner/player branching, route at games/:id/lobby

@@ -33,6 +33,9 @@ public sealed class Game
     public GameConfiguration Configuration { get; private set; } = default!;
     public DateTimeOffset? StartedAt { get; private set; }
 
+    /// <summary>The lobby player pre-designated as the hunter before the game starts; null until designated.</summary>
+    public Guid? DesignatedHunterUserId { get; private set; }
+
     public IReadOnlyList<LobbyPlayer> Lobby => _lobby.AsReadOnly();
 
     /// <summary>The single hunter, or null before the game has started.</summary>
@@ -77,7 +80,8 @@ public sealed class Game
         GameConfiguration configuration,
         DateTimeOffset? startedAt,
         IEnumerable<LobbyPlayer> lobby,
-        IEnumerable<GameParticipant> participants)
+        IEnumerable<GameParticipant> participants,
+        Guid? designatedHunterUserId = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
@@ -89,7 +93,8 @@ public sealed class Game
             PlayfieldId = playfieldId,
             Status = status,
             Configuration = configuration,
-            StartedAt = startedAt
+            StartedAt = startedAt,
+            DesignatedHunterUserId = designatedHunterUserId
         };
         game._lobby.AddRange(lobby);
         game._participants.AddRange(participants);
@@ -111,6 +116,61 @@ public sealed class Game
             throw new InvalidOperationException($"The lobby is full: a game holds at most {MaxLobbySize} players.");
 
         _lobby.Add(player);
+    }
+
+    /// <summary>
+    /// Pre-designates a lobby member as the hunter before the game starts.
+    /// Only allowed while in Lobby state; the user must already be in the lobby.
+    /// </summary>
+    public void DesignateHunter(Guid userId)
+    {
+        if (Status != GameStatus.Lobby)
+            throw new InvalidOperationException("Hunter can only be designated while the game is in the lobby.");
+        if (_lobby.All(p => p.UserId != userId))
+            throw new ArgumentException("The designated hunter must be a member of the lobby.", nameof(userId));
+        DesignatedHunterUserId = userId;
+    }
+
+    /// <summary>
+    /// Removes a player from the lobby. Only allowed while in Lobby state.
+    /// Clears the designated hunter if the removed player was designated.
+    /// </summary>
+    public void RemoveLobbyPlayer(Guid userId)
+    {
+        if (Status != GameStatus.Lobby)
+            throw new InvalidOperationException("Players can only be removed while the game is in the lobby.");
+        var player = _lobby.FirstOrDefault(p => p.UserId == userId)
+            ?? throw new ArgumentException("This player is not in the lobby.", nameof(userId));
+        _lobby.Remove(player);
+        if (DesignatedHunterUserId == userId)
+            DesignatedHunterUserId = null;
+    }
+
+    /// <summary>
+    /// Updates game settings and resets the ready flag for all non-owner lobby members.
+    /// Only allowed while in Lobby state.
+    /// </summary>
+    public void UpdateSettings(GameConfiguration config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        if (Status != GameStatus.Lobby)
+            throw new InvalidOperationException("Settings can only be updated while the game is in the lobby.");
+        Configuration = config;
+        for (var i = 0; i < _lobby.Count; i++)
+            if (_lobby[i].UserId != OwnerUserId)
+                _lobby[i] = _lobby[i].WithReady(false);
+    }
+
+    /// <summary>
+    /// Marks a lobby player as ready. No-op for the owner. Throws if the user is not in the lobby.
+    /// </summary>
+    public void SetReady(Guid userId)
+    {
+        if (userId == OwnerUserId) return;
+        var idx = _lobby.FindIndex(p => p.UserId == userId);
+        if (idx == -1)
+            throw new ArgumentException("This player is not in the lobby.", nameof(userId));
+        _lobby[idx] = _lobby[idx].WithReady(true);
     }
 
     /// <summary>

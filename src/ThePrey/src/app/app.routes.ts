@@ -47,6 +47,12 @@ export const routes: Routes = [
     canActivate: [authGuardFn],
   },
   {
+    path: 'games/:id/lobby',
+    loadComponent: () =>
+      import('./games/game-lobby.page').then((m) => m.GameLobbyPage),
+    canActivate: [authGuardFn],
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./settings/settings.page').then((m) => m.SettingsPage),
     canActivate: [authGuardFn],

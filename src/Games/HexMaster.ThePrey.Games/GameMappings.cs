@@ -13,10 +13,16 @@ internal static class GameMappings
             game.OwnerUserId,
             game.Status.ToString(),
             game.Configuration.ToDto(),
-            game.Lobby.Select(p => p.ToDto()).ToList(),
+            game.Lobby.Select(p => new LobbyPlayerDto(
+                p.UserId,
+                p.DisplayName,
+                p.ProfilePictureUrl,
+                p.IsReady,
+                game.DesignatedHunterUserId == p.UserId)).ToList(),
             game.Hunter?.ToDto(),
             game.Preys.Select(p => p.ToDto()).ToList(),
-            game.StartedAt);
+            game.StartedAt,
+            game.DesignatedHunterUserId);
 
     internal static GameSummaryDto ToSummaryDto(this Game game) =>
         new(game.Id, game.GameCode, game.PlayfieldId, game.OwnerUserId, game.Status.ToString(), game.Lobby.Count);
@@ -30,9 +36,6 @@ internal static class GameMappings
             configuration.FinalLocationInterval,
             configuration.EnablePreyBoundaryPenalties,
             configuration.EnableHunterBoundaryPenalty);
-
-    internal static LobbyPlayerDto ToDto(this LobbyPlayer player) =>
-        new(player.UserId, player.DisplayName, player.ProfilePictureUrl);
 
     internal static ParticipantDto ToDto(this GameParticipant participant) =>
         new(

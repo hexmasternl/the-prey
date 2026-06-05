@@ -8,8 +8,12 @@ using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
+using HexMaster.ThePrey.Games.Features.RemoveLobbyPlayer;
 using HexMaster.ThePrey.Games.Features.SetHunter;
+using HexMaster.ThePrey.Games.Features.SetReady;
 using HexMaster.ThePrey.Games.Features.StartGame;
+using HexMaster.ThePrey.Games.Features.UpdateGameSettings;
+using HexMaster.ThePrey.Games.Notifications;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HexMaster.ThePrey.Games.Api.Endpoints;
@@ -71,6 +75,30 @@ public static class GameEndpoints
             .Produces<ActiveGameDto>()
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status401Unauthorized);
+
+        group.MapDelete("/{id:guid}/lobby/{userId:guid}", RemoveLobbyPlayer)
+            .WithName("RemoveLobbyPlayer")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPut("/{id:guid}/settings", UpdateGameSettings)
+            .WithName("UpdateGameSettings")
+            .Produces<GameDto>()
+            .ProducesValidationProblem()
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{id:guid}/lobby/ready", SetReady)
+            .WithName("SetReady")
+            .Produces<GameDto>()
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id:guid}/lobby/stream", StreamLobbyEvents)
+            .WithName("StreamLobbyEvents")
+            .Produces(StatusCodes.Status200OK, contentType: "text/event-stream")
+            .AllowAnonymous();
 
         return app;
     }
@@ -241,6 +269,119 @@ public static class GameEndpoints
 
         var active = await handler.Handle(new GetActiveGameQuery(userId), ct);
         return active is not null ? Results.Ok(active) : Results.NotFound();
+    }
+
+    private static async Task<IResult> RemoveLobbyPlayer(
+        Guid id,
+        Guid userId,
+        ClaimsPrincipal principal,
+        ICommandHandler<RemoveLobbyPlayerCommand, RemoveLobbyPlayerResult?> handler,
+        CancellationToken ct)
+    {
+        if (GetUserId(principal) is not { } ownerId)
+            return Results.Unauthorized();
+
+        try
+        {
+            var result = await handler.Handle(new RemoveLobbyPlayerCommand(id, ownerId, userId), ct);
+            if (result is null) return Results.NotFound();
+            return Results.NoContent();
+        }
+        catch (InvalidOperationException)
+        {
+            return Results.Forbid();
+        }
+        catch (Exception ex) when (ex is ArgumentException)
+        {
+            return ValidationProblem(ex);
+        }
+    }
+
+    private static async Task<IResult> UpdateGameSettings(
+        Guid id,
+        [FromBody] UpdateGameSettingsRequest request,
+        ClaimsPrincipal principal,
+        ICommandHandler<UpdateGameSettingsCommand, UpdateGameSettingsResult?> handler,
+        CancellationToken ct)
+    {
+        if (GetUserId(principal) is not { } ownerId)
+            return Results.Unauthorized();
+
+        try
+        {
+            var command = new UpdateGameSettingsCommand(
+                id,
+                ownerId,
+                request.GameDuration,
+                request.HunterDelayTime,
+                request.FinalStageDuration,
+                request.DefaultLocationInterval,
+                request.FinalLocationInterval,
+                request.EnablePreyBoundaryPenalties,
+                request.EnableHunterBoundaryPenalty);
+
+            var result = await handler.Handle(command, ct);
+            if (result is null) return Results.NotFound();
+            return Results.Ok(result.Game);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("owner"))
+        {
+            return Results.Forbid();
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+        {
+            return ValidationProblem(ex);
+        }
+    }
+
+    private static async Task<IResult> SetReady(
+        Guid id,
+        ClaimsPrincipal principal,
+        ICommandHandler<SetReadyCommand, SetReadyResult?> handler,
+        CancellationToken ct)
+    {
+        if (GetUserId(principal) is not { } userId)
+            return Results.Unauthorized();
+
+        try
+        {
+            var result = await handler.Handle(new SetReadyCommand(id, userId), ct);
+            if (result is null) return Results.NotFound();
+            return Results.Ok(result.Game);
+        }
+        catch (InvalidOperationException)
+        {
+            return Results.Forbid();
+        }
+        catch (Exception ex) when (ex is ArgumentException)
+        {
+            return ValidationProblem(ex);
+        }
+    }
+
+    private static async Task StreamLobbyEvents(
+        Guid id,
+        ClaimsPrincipal principal,
+        ILobbyEventBus eventBus,
+        HttpContext httpContext,
+        CancellationToken ct)
+    {
+        if (GetUserId(principal) is null)
+        {
+            httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
+        httpContext.Response.ContentType = "text/event-stream";
+        httpContext.Response.Headers.CacheControl = "no-cache";
+        httpContext.Response.Headers.Append("X-Accel-Buffering", "no");
+
+        await foreach (var evt in eventBus.Subscribe(id).WithCancellation(ct))
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(evt);
+            await httpContext.Response.WriteAsync($"event: {evt.EventType}\ndata: {json}\n\n", ct);
+            await httpContext.Response.Body.FlushAsync(ct);
+        }
     }
 
     private static Guid? GetUserId(ClaimsPrincipal principal) =>
