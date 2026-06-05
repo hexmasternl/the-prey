@@ -1,0 +1,88 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="back()">&#8592; {{ 'GAME_CREATE.BACK' | translate }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'GAME_CREATE.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="config-section">
+    <div class="config-label">{{ 'GAME_CREATE.DURATION_LABEL' | translate }}</div>
+    <ion-segment [value]="gameDuration().toString()" (ionChange)="gameDuration.set(+$any($event).detail.value)">
+      <ion-segment-button value="30"><ion-label>30</ion-label></ion-segment-button>
+      <ion-segment-button value="60"><ion-label>60</ion-label></ion-segment-button>
+      <ion-segment-button value="90"><ion-label>90</ion-label></ion-segment-button>
+    </ion-segment>
+    <div class="config-unit">{{ 'GAME_CREATE.UNIT_MIN' | translate }}</div>
+  </div>
+
+  <div class="config-section">
+    <div class="config-label">{{ 'GAME_CREATE.HUNTER_DELAY_LABEL' | translate }}</div>
+    <ion-segment [value]="hunterDelay().toString()" (ionChange)="hunterDelay.set(+$any($event).detail.value)">
+      <ion-segment-button value="5"><ion-label>5</ion-label></ion-segment-button>
+      <ion-segment-button value="10"><ion-label>10</ion-label></ion-segment-button>
+      <ion-segment-button value="15"><ion-label>15</ion-label></ion-segment-button>
+    </ion-segment>
+    <div class="config-unit">{{ 'GAME_CREATE.UNIT_MIN' | translate }}</div>
+  </div>
+
+  <div class="config-section">
+    <div class="config-label">{{ 'GAME_CREATE.ENDGAME_LABEL' | translate }}</div>
+    <ion-segment [value]="endgameDuration().toString()" (ionChange)="endgameDuration.set(+$any($event).detail.value)">
+      <ion-segment-button value="5"><ion-label>5</ion-label></ion-segment-button>
+      <ion-segment-button value="10"><ion-label>10</ion-label></ion-segment-button>
+      <ion-segment-button value="15"><ion-label>15</ion-label></ion-segment-button>
+    </ion-segment>
+    <div class="config-unit">{{ 'GAME_CREATE.UNIT_MIN' | translate }}</div>
+  </div>
+
+  <div class="config-section">
+    <div class="config-label">{{ 'GAME_CREATE.LOCATION_INTERVAL_LABEL' | translate }}</div>
+    <ion-segment [value]="locationInterval().toString()" (ionChange)="locationInterval.set(+$any($event).detail.value)">
+      <ion-segment-button value="3"><ion-label>3</ion-label></ion-segment-button>
+      <ion-segment-button value="5"><ion-label>5</ion-label></ion-segment-button>
+      <ion-segment-button value="10"><ion-label>10</ion-label></ion-segment-button>
+    </ion-segment>
+    <div class="config-unit">{{ 'GAME_CREATE.UNIT_MIN' | translate }}</div>
+  </div>
+
+  <div class="config-section">
+    <div class="config-label">{{ 'GAME_CREATE.ENDGAME_INTERVAL_LABEL' | translate }}</div>
+    <ion-segment [value]="endgameInterval().toString()" (ionChange)="endgameInterval.set(+$any($event).detail.value)">
+      <ion-segment-button value="1"><ion-label>1</ion-label></ion-segment-button>
+      <ion-segment-button value="3"><ion-label>3</ion-label></ion-segment-button>
+      <ion-segment-button value="5"><ion-label>5</ion-label></ion-segment-button>
+    </ion-segment>
+    <div class="config-unit">{{ 'GAME_CREATE.UNIT_MIN' | translate }}</div>
+  </div>
+
+  <div class="config-section">
+    <div class="config-label">{{ 'GAME_CREATE.PLAYFIELD_LABEL' | translate }}</div>
+    <ion-button expand="block" fill="outline" color="primary" (click)="selectPlayfield()">
+      @if (selectedPlayfield(); as pf) {
+        {{ pf.name }}
+      } @else {
+        {{ 'GAME_CREATE.SELECT_PLAYFIELD' | translate }}
+      }
+    </ion-button>
+  </div>
+
+  <ion-button
+    expand="block"
+    color="primary"
+    class="create-btn"
+    [disabled]="!canCreate()"
+    (click)="create()"
+  >
+    @if (isSubmitting()) {
+      <ion-spinner name="lines" slot="start"></ion-spinner>
+      {{ 'GAME_CREATE.CREATING' | translate }}
+    } @else {
+      {{ 'GAME_CREATE.CREATE' | translate }}
+    }
+  </ion-button>
+
+</ion-content>

@@ -33,3 +33,6 @@ public sealed record RecordLocationResponse(
     int NextLocationIntervalSeconds,
     int? PenaltyIntervalSeconds = null,
     DateTimeOffset? PenaltyEndsAt = null);
+
+/// <summary>Minimal payload returned when the current user has an ongoing game.</summary>
+public sealed record ActiveGameDto(Guid GameId);

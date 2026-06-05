@@ -2,6 +2,7 @@ using System.Security.Claims;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.Features.CreateGame;
+using HexMaster.ThePrey.Games.Features.GetActiveGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
 using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.JoinGame;
@@ -64,6 +65,12 @@ public static class GameEndpoints
         group.MapGet("/", ListGames)
             .WithName("ListGames")
             .Produces<IReadOnlyList<GameSummaryDto>>();
+
+        group.MapGet("/active", GetActiveGame)
+            .WithName("GetActiveGame")
+            .Produces<ActiveGameDto>()
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized);
 
         return app;
     }
@@ -222,6 +229,18 @@ public static class GameEndpoints
 
         var games = await handler.Handle(new ListGamesQuery(userId), ct);
         return Results.Ok(games);
+    }
+
+    private static async Task<IResult> GetActiveGame(
+        ClaimsPrincipal principal,
+        IQueryHandler<GetActiveGameQuery, ActiveGameDto?> handler,
+        CancellationToken ct)
+    {
+        if (GetUserId(principal) is not { } userId)
+            return Results.Unauthorized();
+
+        var active = await handler.Handle(new GetActiveGameQuery(userId), ct);
+        return active is not null ? Results.Ok(active) : Results.NotFound();
     }
 
     private static Guid? GetUserId(ClaimsPrincipal principal) =>

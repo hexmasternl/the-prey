@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonButton, IonContent, IonSpinner } from '@ionic/angular/standalone';
 import { App } from '@capacitor/app';
@@ -10,6 +10,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { filter, switchMap, take } from 'rxjs/operators';
 import { getCallbackUri } from '../auth.utils';
 import { UserStateService } from '../users/user-state.service';
+import { GamesService } from '../games/games.service';
 
 @Component({
   selector: 'app-home',
@@ -22,7 +23,10 @@ export class HomePage implements OnInit, OnDestroy {
   lat: string | null = null;
   lon: string | null = null;
 
+  readonly activeGameId = signal<string | null>(null);
+
   private watchId: string | undefined;
+  private readonly gamesService = inject(GamesService);
 
   constructor(
     readonly authService: AuthService,
@@ -41,6 +45,7 @@ export class HomePage implements OnInit, OnDestroy {
       filter((claims): claims is IdToken => claims != null),
     ).subscribe(claims => {
       this.userState.init(claims);
+      this.checkActiveGame();
     });
 
     this.startLocationWatch();
@@ -72,8 +77,17 @@ export class HomePage implements OnInit, OnDestroy {
     this.lon = position.coords.longitude.toFixed(4);
   };
 
+  private async checkActiveGame(): Promise<void> {
+    const active = await this.gamesService.getActiveGame();
+    this.activeGameId.set(active?.gameId ?? null);
+  }
+
+  goToActiveGame(): void {
+    this.router.navigate(['/games', this.activeGameId()]);
+  }
+
   goToPlay(): void {
-    this.router.navigate(['/play']);
+    this.router.navigate(['/games/create']);
   }
 
   goToPlayfields(): void {

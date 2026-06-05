@@ -26,7 +26,12 @@
     <!-- Action buttons — only rendered once the user profile is available -->
     @if (userState.profile(); as profile) {
       <div class="buttons">
-        <ion-button expand="block" color="primary" (click)="goToPlay()">
+        @if (activeGameId()) {
+          <ion-button expand="block" color="danger" (click)="goToActiveGame()">
+            {{ 'HOME.PLAYING' | translate }}
+          </ion-button>
+        }
+        <ion-button expand="block" color="primary" [disabled]="activeGameId() !== null" (click)="goToPlay()">
           {{ 'HOME.PLAY_NOW' | translate }}
         </ion-button>
 
