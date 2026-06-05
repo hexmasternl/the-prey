@@ -1,0 +1,18 @@
+.selected-row {
+  --background: var(--ion-color-primary-tint);
+}
+
+.state-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.empty-label {
+  color: var(--ion-color-medium);
+  text-align: center;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+}
