@@ -14,6 +14,7 @@ using HexMaster.ThePrey.Games.Features.SetReady;
 using HexMaster.ThePrey.Games.Features.StartGame;
 using HexMaster.ThePrey.Games.Features.UpdateGameSettings;
 using HexMaster.ThePrey.Games.Notifications;
+using HexMaster.ThePrey.Users.Integration;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HexMaster.ThePrey.Games.Api.Endpoints;
@@ -106,14 +107,17 @@ public static class GameEndpoints
     private static async Task<IResult> CreateGame(
         [FromBody] CreateGameRequest request,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<CreateGameCommand, CreateGameResult> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } ownerId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         var command = new CreateGameCommand(
-            ownerId,
+            user.UserId,
             request.PlayfieldId,
             request.DisplayName,
             request.ProfilePictureUrl,
@@ -140,15 +144,18 @@ public static class GameEndpoints
         Guid id,
         [FromBody] JoinGameRequest request,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<JoinGameCommand, JoinGameResult?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } userId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         try
         {
-            var result = await handler.Handle(new JoinGameCommand(id, userId, request.DisplayName, request.ProfilePictureUrl), ct);
+            var result = await handler.Handle(new JoinGameCommand(id, user.UserId, request.DisplayName, request.ProfilePictureUrl), ct);
             return result is null ? Results.NotFound() : Results.Ok(result.Game);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -161,15 +168,18 @@ public static class GameEndpoints
         Guid id,
         [FromBody] StartGameRequest request,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<StartGameCommand, StartGameResult?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } userId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         try
         {
-            var result = await handler.Handle(new StartGameCommand(id, userId, request.HunterUserId), ct);
+            var result = await handler.Handle(new StartGameCommand(id, user.UserId, request.HunterUserId), ct);
             return result is null ? Results.NotFound() : Results.Ok(result.Game);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -182,15 +192,18 @@ public static class GameEndpoints
         Guid id,
         [FromBody] SetHunterRequest request,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<SetHunterCommand, SetHunterResult?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } userId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         try
         {
-            var result = await handler.Handle(new SetHunterCommand(id, userId, request.NewHunterUserId), ct);
+            var result = await handler.Handle(new SetHunterCommand(id, user.UserId, request.NewHunterUserId), ct);
             return result is null ? Results.NotFound() : Results.Ok(result.Game);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -203,16 +216,19 @@ public static class GameEndpoints
         Guid id,
         [FromBody] RecordLocationRequest request,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<RecordPlayerLocationCommand, RecordPlayerLocationResult?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } userId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         try
         {
             var result = await handler.Handle(
-                new RecordPlayerLocationCommand(id, userId, request.Latitude, request.Longitude, request.RecordedAt, request.Accuracy), ct);
+                new RecordPlayerLocationCommand(id, user.UserId, request.Latitude, request.Longitude, request.RecordedAt, request.Accuracy), ct);
             return result is null ? Results.NotFound() : Results.Ok(result.Response);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -224,11 +240,14 @@ public static class GameEndpoints
     private static async Task<IResult> GetGame(
         Guid id,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         IQueryHandler<GetGameQuery, GameDto?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is null)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         var game = await handler.Handle(new GetGameQuery(id), ct);
         return game is not null ? Results.Ok(game) : Results.NotFound();
@@ -237,37 +256,46 @@ public static class GameEndpoints
     private static async Task<IResult> GetGameState(
         Guid id,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         IQueryHandler<GetGameStateQuery, GameStateDto?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } userId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
-        var state = await handler.Handle(new GetGameStateQuery(id, userId), ct);
+        var state = await handler.Handle(new GetGameStateQuery(id, user.UserId), ct);
         return state is not null ? Results.Ok(state) : Results.NotFound();
     }
 
     private static async Task<IResult> ListGames(
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         IQueryHandler<ListGamesQuery, IReadOnlyList<GameSummaryDto>> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } userId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
-        var games = await handler.Handle(new ListGamesQuery(userId), ct);
+        var games = await handler.Handle(new ListGamesQuery(user.UserId), ct);
         return Results.Ok(games);
     }
 
     private static async Task<IResult> GetActiveGame(
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         IQueryHandler<GetActiveGameQuery, ActiveGameDto?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } userId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
-        var active = await handler.Handle(new GetActiveGameQuery(userId), ct);
+        var active = await handler.Handle(new GetActiveGameQuery(user.UserId), ct);
         return active is not null ? Results.Ok(active) : Results.NotFound();
     }
 
@@ -275,15 +303,18 @@ public static class GameEndpoints
         Guid id,
         Guid userId,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<RemoveLobbyPlayerCommand, RemoveLobbyPlayerResult?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } ownerId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         try
         {
-            var result = await handler.Handle(new RemoveLobbyPlayerCommand(id, ownerId, userId), ct);
+            var result = await handler.Handle(new RemoveLobbyPlayerCommand(id, user.UserId, userId), ct);
             if (result is null) return Results.NotFound();
             return Results.NoContent();
         }
@@ -301,17 +332,20 @@ public static class GameEndpoints
         Guid id,
         [FromBody] UpdateGameSettingsRequest request,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<UpdateGameSettingsCommand, UpdateGameSettingsResult?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } ownerId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         try
         {
             var command = new UpdateGameSettingsCommand(
                 id,
-                ownerId,
+                user.UserId,
                 request.GameDuration,
                 request.HunterDelayTime,
                 request.FinalStageDuration,
@@ -337,15 +371,18 @@ public static class GameEndpoints
     private static async Task<IResult> SetReady(
         Guid id,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ICommandHandler<SetReadyCommand, SetReadyResult?> handler,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is not { } userId)
-            return Results.Unauthorized();
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
 
         try
         {
-            var result = await handler.Handle(new SetReadyCommand(id, userId), ct);
+            var result = await handler.Handle(new SetReadyCommand(id, user.UserId), ct);
             if (result is null) return Results.NotFound();
             return Results.Ok(result.Game);
         }
@@ -362,11 +399,19 @@ public static class GameEndpoints
     private static async Task StreamLobbyEvents(
         Guid id,
         ClaimsPrincipal principal,
+        IUserResolver userResolver,
         ILobbyEventBus eventBus,
         HttpContext httpContext,
         CancellationToken ct)
     {
-        if (GetUserId(principal) is null)
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null)
+        {
+            httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null)
         {
             httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return;
@@ -383,9 +428,6 @@ public static class GameEndpoints
             await httpContext.Response.Body.FlushAsync(ct);
         }
     }
-
-    private static Guid? GetUserId(ClaimsPrincipal principal) =>
-        Guid.TryParse(principal.FindFirstValue("sub"), out var userId) ? userId : null;
 
     private static IResult ValidationProblem(Exception ex)
     {
