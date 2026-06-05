@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="cancel()">{{ 'PLAYFIELD_SELECT.CANCEL' | translate }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'PLAYFIELD_SELECT.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      [placeholder]="'PLAYFIELD_SELECT.SEARCH_PLACEHOLDER' | translate"
+      (ionInput)="onSearch($any($event).detail.value ?? '')"
+    ></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (isSearching()) {
+    <div class="state-center">
+      <ion-spinner name="lines" color="primary"></ion-spinner>
+    </div>
+  } @else if (displayList().length === 0) {
+    <div class="state-center">
+      <p class="empty-label">{{ 'PLAYFIELD_SELECT.EMPTY' | translate }}</p>
+    </div>
+  } @else {
+    <ion-list>
+      @for (pf of displayList(); track pf.id) {
+        <ion-item button [class.selected-row]="isSelected(pf)" (click)="toggleSelect(pf)">
+          <ion-label>
+            <h2>{{ pf.name }}</h2>
+          </ion-label>
+          <ion-badge slot="end" [color]="pf.isPublic ? 'success' : 'medium'">
+            {{ (pf.isPublic ? 'PLAYFIELD_SELECT.BADGE_PUBLIC' : 'PLAYFIELD_SELECT.BADGE_PRIVATE') | translate }}
+          </ion-badge>
+          <ion-badge slot="end" [color]="isOwned(pf) ? 'primary' : 'warning'">
+            {{ (isOwned(pf) ? 'PLAYFIELD_SELECT.BADGE_MINE' : 'PLAYFIELD_SELECT.BADGE_EXTERNAL') | translate }}
+          </ion-badge>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-button expand="block" [disabled]="!selectedPlayfield()" (click)="confirm()">
+      {{ 'PLAYFIELD_SELECT.SELECT' | translate }}
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>
