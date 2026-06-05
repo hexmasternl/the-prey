@@ -7,7 +7,7 @@ import { Capacitor } from '@capacitor/core';
 import { Geolocation, WatchPositionCallback } from '@capacitor/geolocation';
 import { AuthService, IdToken } from '@auth0/auth0-angular';
 import { TranslatePipe } from '@ngx-translate/core';
-import { filter, switchMap, take } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
 import { getCallbackUri } from '../auth.utils';
 import { UserStateService } from '../users/user-state.service';
 import { GamesService } from '../games/games.service';
@@ -44,19 +44,9 @@ export class HomePage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Wait for the Auth0 SDK to finish its silent-token check, then fetch the
-    // ID token claims and kick off the user-profile init (cache restore + server sync).
-    this.authService.isLoading$.pipe(
-      filter(loading => !loading),
-      take(1),
-      switchMap(() => this.authService.idTokenClaims$),
-      take(1),
-      filter((claims): claims is IdToken => claims != null),
-    ).subscribe(claims => {
-      this.userState.init(claims);
-      this.checkActiveGame();
-    });
-
+    // User sync is handled globally in AppComponent; by the time this page
+    // renders the profile is already available.
+    this.checkActiveGame();
     this.startLocationWatch();
   }
 

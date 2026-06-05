@@ -1,3 +1,9 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  @if (showContent()) {
+    <ion-router-outlet></ion-router-outlet>
+  } @else {
+    <div class="boot-screen">
+      <ion-spinner name="lines-sharp"></ion-spinner>
+    </div>
+  }
 </ion-app>

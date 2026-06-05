@@ -34,14 +34,16 @@ export class UserStateService {
    * Safe to call multiple times — subsequent calls re-trigger a server sync.
    */
   async init(claims: IdToken): Promise<void> {
-    // Immediately surface the cached profile so the menu can render
+    // Mark as syncing immediately (before any await) so the app boot screen
+    // stays visible until the server round-trip completes.
+    this.isSyncing.set(true);
+    this.syncFailed.set(false);
+
     const cached = await this.db.getProfile();
     if (cached && !this._profile()) {
       this._profile.set(cached);
     }
 
-    // Always sync to create or update the server-side record
-    this.syncFailed.set(false);
     this.syncWithServer(claims);
   }
 
@@ -63,8 +65,6 @@ export class UserStateService {
   }
 
   private syncWithServer(claims: IdToken): void {
-    this.isSyncing.set(true);
-
     const request: CreateUserRequest = {
       firstName: claims['given_name'] as string | undefined,
       lastName: claims['family_name'] as string | undefined,
