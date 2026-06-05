@@ -20,17 +20,19 @@ import {
   ToastController,
   ViewDidEnter,
 } from '@ionic/angular/standalone';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Geolocation } from '@capacitor/geolocation';
 import * as L from 'leaflet';
 import { GpsCoordinateDto } from '../playfield.model';
 import { PlayfieldsService } from '../playfields.service';
+import { PlayfieldDraftService } from '../playfield-draft.service';
 
 @Component({
   selector: 'app-playfield-area',
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-title>Set Area</ion-title>
+        <ion-title>{{ 'PLAYFIELD_AREA.TITLE' | translate }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -47,10 +49,13 @@ import { PlayfieldsService } from '../playfields.service';
     <ion-footer>
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-button (click)="onCancel()">Cancel</ion-button>
+          <ion-button (click)="onReset()">{{ 'PLAYFIELD_AREA.RESET' | translate }}</ion-button>
+          <ion-button (click)="onCancel()">{{ 'PLAYFIELD_AREA.CANCEL' | translate }}</ion-button>
         </ion-buttons>
         <ion-buttons slot="end">
-          <ion-button [disabled]="pointCount() < 3" (click)="onSave()">Save</ion-button>
+          <ion-button [disabled]="pointCount() < 3" (click)="onSave()">
+            {{ 'PLAYFIELD_AREA.SAVE' | translate }}
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-footer>
@@ -84,6 +89,7 @@ import { PlayfieldsService } from '../playfields.service';
     IonButton,
     IonButtons,
     IonSpinner,
+    TranslatePipe,
   ],
 })
 export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
@@ -92,12 +98,14 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
   private readonly playfieldsService = inject(PlayfieldsService);
+  private readonly draftService = inject(PlayfieldDraftService);
   private readonly toastController = inject(ToastController);
 
   readonly isLoading = signal(false);
   readonly pointCount = signal(0);
 
   private readonly points: GpsCoordinateDto[] = [];
+  private readonly markers: L.CircleMarker[] = [];
   private map: L.Map | undefined;
   private polygon: L.Polygon | undefined;
   private playFieldId = '';
@@ -121,6 +129,23 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
   }
 
   private async loadInitialState(): Promise<void> {
+    this.clearPoints();
+
+    if (this.playFieldId === 'new') {
+      const draft = this.draftService.points();
+      if (draft.length > 0) {
+        for (const pt of draft) {
+          this.addPoint(L.latLng(pt.latitude, pt.longitude));
+        }
+        if (this.polygon) {
+          this.map!.fitBounds(this.polygon.getBounds(), { padding: [16, 16] });
+        }
+      } else {
+        await this.centreOnDeviceLocation();
+      }
+      return;
+    }
+
     if (!this.playFieldId) return;
 
     this.isLoading.set(true);
@@ -129,16 +154,8 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
 
       if (playfield.points.length > 0) {
         for (const pt of playfield.points) {
-          this.points.push(pt);
-          L.circleMarker(L.latLng(pt.latitude, pt.longitude), {
-            radius: 6,
-            color: '#22c55e',
-            fillColor: '#22c55e',
-            fillOpacity: 1,
-          }).addTo(this.map!);
+          this.addPoint(L.latLng(pt.latitude, pt.longitude));
         }
-        this.pointCount.set(this.points.length);
-        this.rebuildPolygon();
         if (this.polygon) {
           this.map!.fitBounds(this.polygon.getBounds(), { padding: [16, 16] });
         } else {
@@ -169,18 +186,47 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
   }
 
   private onMapClick(e: L.LeafletMouseEvent): void {
-    const { lat, lng } = e.latlng;
-    this.points.push({ latitude: lat, longitude: lng });
-    this.pointCount.set(this.points.length);
+    this.addPoint(e.latlng);
+  }
 
-    L.circleMarker(e.latlng, {
-      radius: 6,
+  private addPoint(latlng: L.LatLng): void {
+    const point: GpsCoordinateDto = { latitude: latlng.lat, longitude: latlng.lng };
+    this.points.push(point);
+
+    const marker = L.circleMarker(latlng, {
+      radius: 8,
       color: '#22c55e',
       fillColor: '#22c55e',
       fillOpacity: 1,
     }).addTo(this.map!);
 
+    this.markers.push(marker);
+
+    marker.on('click', (e: L.LeafletMouseEvent) => {
+      L.DomEvent.stopPropagation(e);
+      const idx = this.markers.indexOf(marker);
+      if (idx !== -1) {
+        marker.remove();
+        this.markers.splice(idx, 1);
+        this.points.splice(idx, 1);
+        this.pointCount.set(this.points.length);
+        this.rebuildPolygon();
+      }
+    });
+
+    this.pointCount.set(this.points.length);
     this.rebuildPolygon();
+  }
+
+  private clearPoints(): void {
+    for (const m of this.markers) m.remove();
+    this.markers.length = 0;
+    this.points.length = 0;
+    this.pointCount.set(0);
+    if (this.polygon) {
+      this.polygon.remove();
+      this.polygon = undefined;
+    }
   }
 
   private rebuildPolygon(): void {
@@ -202,8 +248,19 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
     return [lat, lng];
   }
 
+  onReset(): void {
+    this.clearPoints();
+  }
+
   async onSave(): Promise<void> {
     if (this.points.length < 3) return;
+
+    if (this.playFieldId === 'new') {
+      this.draftService.set(this.points);
+      this.location.back();
+      return;
+    }
+
     try {
       await this.playfieldsService.updateArea(this.playFieldId, this.points);
       this.location.back();

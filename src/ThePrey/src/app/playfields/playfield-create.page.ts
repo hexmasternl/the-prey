@@ -1,7 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Geolocation } from '@capacitor/geolocation';
 import {
   IonButton,
   IonButtons,
@@ -10,15 +9,16 @@ import {
   IonInput,
   IonItem,
   IonLabel,
-  IonList,
+  IonNote,
   IonSpinner,
   IonTitle,
   IonToggle,
   IonToolbar,
+  ViewWillEnter,
 } from '@ionic/angular/standalone';
-import { DecimalPipe } from '@angular/common';
 import { GpsCoordinateDto } from './playfield.model';
 import { PlayfieldsService } from './playfields.service';
+import { PlayfieldDraftService } from './playfield-draft.service';
 import { UserStateService } from '../users/user-state.service';
 
 @Component({
@@ -27,7 +27,6 @@ import { UserStateService } from '../users/user-state.service';
   styleUrls: ['playfield-create.page.scss'],
   imports: [
     FormsModule,
-    DecimalPipe,
     IonHeader,
     IonToolbar,
     IonButtons,
@@ -37,44 +36,36 @@ import { UserStateService } from '../users/user-state.service';
     IonItem,
     IonInput,
     IonLabel,
+    IonNote,
     IonToggle,
-    IonList,
     IonSpinner,
   ],
 })
-export class PlayfieldCreatePage {
+export class PlayfieldCreatePage implements ViewWillEnter {
   private readonly router = inject(Router);
   private readonly playfieldsService = inject(PlayfieldsService);
   private readonly userState = inject(UserStateService);
+  private readonly draftService = inject(PlayfieldDraftService);
 
   readonly name = signal('');
   readonly isPublic = signal(false);
-  readonly points = signal<GpsCoordinateDto[]>([]);
-  readonly isCapturing = signal(false);
   readonly isSaving = signal(false);
 
-  readonly canSave = computed(
-    () => this.name().trim().length > 0 && this.points().length >= 3,
-  );
+  readonly areaPoints = this.draftService.points;
+  readonly canSave = computed(() => this.name().trim().length > 0);
 
-  async addCurrentLocation(): Promise<void> {
-    this.isCapturing.set(true);
-    try {
-      const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
-      this.points.update((list) => [
-        ...list,
-        {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        },
-      ]);
-    } finally {
-      this.isCapturing.set(false);
+  private navigatedToArea = false;
+
+  ionViewWillEnter(): void {
+    if (!this.navigatedToArea) {
+      this.draftService.clear();
     }
+    this.navigatedToArea = false;
   }
 
-  removePoint(index: number): void {
-    this.points.update((list) => list.filter((_, i) => i !== index));
+  goToArea(): void {
+    this.navigatedToArea = true;
+    this.router.navigate(['/playfields', 'new', 'area']);
   }
 
   async save(): Promise<void> {
@@ -84,19 +75,21 @@ export class PlayfieldCreatePage {
 
     this.isSaving.set(true);
     try {
-      await this.playfieldsService.createLocal(
+      const record = await this.playfieldsService.createLocal(
         this.name().trim(),
         this.isPublic(),
-        this.points(),
+        this.draftService.points() as GpsCoordinateDto[],
         ownerId,
       );
-      await this.router.navigate(['/playfields']);
+      this.draftService.clear();
+      await this.router.navigate(['/playfields', record.id]);
     } finally {
       this.isSaving.set(false);
     }
   }
 
   back(): void {
+    this.draftService.clear();
     this.router.navigate(['/playfields']);
   }
 }

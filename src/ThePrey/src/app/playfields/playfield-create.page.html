@@ -30,38 +30,20 @@
     ></ion-toggle>
   </ion-item>
 
-  <!-- GPS Points -->
-  <div class="section-header">
-    <span>GPS Points ({{ points().length }}/3 minimum)</span>
-  </div>
-
-  <ion-list>
-    @for (pt of points(); track $index) {
-      <ion-item>
-        <ion-label>
-          <p>{{ pt.latitude | number: '1.5-5' }}, {{ pt.longitude | number: '1.5-5' }}</p>
-        </ion-label>
-        <ion-button slot="end" fill="clear" color="danger" (click)="removePoint($index)">&#x2715;</ion-button>
-      </ion-item>
-    } @empty {
-      <ion-item>
-        <ion-label><p class="empty-hint">Walk to a corner and tap "Add Point"</p></ion-label>
-      </ion-item>
+  <ion-item lines="none">
+    <ion-button expand="block" fill="outline" (click)="goToArea()" style="width:100%;">
+      @if (areaPoints().length >= 3) {
+        Set Area ({{ areaPoints().length }} points)
+      } @else {
+        Set Area
+      }
+    </ion-button>
+    @if (areaPoints().length > 0 && areaPoints().length < 3) {
+      <ion-note color="warning" style="font-size:0.8em;padding-top:4px;">
+        At least 3 points required
+      </ion-note>
     }
-  </ion-list>
-
-  <ion-button
-    expand="block"
-    fill="outline"
-    [disabled]="isCapturing()"
-    (click)="addCurrentLocation()"
-  >
-    @if (isCapturing()) {
-      <ion-spinner name="lines" slot="start"></ion-spinner> Capturing...
-    } @else {
-      Add Current Location
-    }
-  </ion-button>
+  </ion-item>
 
   <ion-button
     expand="block"

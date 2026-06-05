@@ -15,7 +15,6 @@ import {
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Geolocation } from '@capacitor/geolocation';
 import { PlayFieldDetailDto } from './playfield.model';
 import { PlayfieldsService } from './playfields.service';
 import { PlayfieldMapComponent } from './playfield-map/playfield-map.component';
@@ -52,10 +51,9 @@ import { PlayfieldMapComponent } from './playfield-map/playfield-map.component';
           />
         </ion-item>
 
-        <app-playfield-map
-          [coordinates]="playfield()!.points"
-          [fallbackCenter]="fallbackCenter()"
-        />
+        @if (playfield()!.points.length >= 3) {
+          <app-playfield-map [coordinates]="playfield()!.points" />
+        }
 
         <ion-button expand="block" (click)="goToArea()" style="margin-top:16px;">
           {{ 'PLAYFIELD_DETAIL.SET_AREA' | translate }}
@@ -87,7 +85,6 @@ export class PlayfieldDetailPage implements ViewWillEnter {
   readonly isLoading = signal(false);
   readonly notFound = signal(false);
   readonly playfield = signal<PlayFieldDetailDto | null>(null);
-  readonly fallbackCenter = signal<{ lat: number; lon: number } | null>(null);
 
   async ionViewWillEnter(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
@@ -103,10 +100,6 @@ export class PlayfieldDetailPage implements ViewWillEnter {
     try {
       const data = await this.playfieldsService.getById(id);
       this.playfield.set(data);
-
-      if (!data.points.length) {
-        await this.resolveDeviceLocation();
-      }
     } catch (err: any) {
       if (err?.status === 404) {
         this.notFound.set(true);
@@ -149,20 +142,5 @@ export class PlayfieldDetailPage implements ViewWillEnter {
 
   back(): void {
     this.router.navigate(['/playfields']);
-  }
-
-  private async resolveDeviceLocation(): Promise<void> {
-    try {
-      const permission = await Geolocation.requestPermissions();
-      if (permission.location !== 'granted') return;
-
-      const pos = await Geolocation.getCurrentPosition({ timeout: 8000 });
-      this.fallbackCenter.set({
-        lat: pos.coords.latitude,
-        lon: pos.coords.longitude,
-      });
-    } catch {
-      // Permission denied or timeout — map renders at world zoom
-    }
   }
 }
