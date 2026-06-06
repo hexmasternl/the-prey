@@ -28,8 +28,9 @@ param landingZoneRg string = 'rg-theprey-landing-prod'
 @description('Container Apps environment name in the landing zone')
 param acaEnvironmentName string
 
-@description('App Insights name in the landing zone')
-param appInsightsName string
+@description('Application Insights connection string')
+@secure()
+param appInsightsConnectionString string
 
 @description('App Configuration store endpoint')
 param appConfigEndpoint string
@@ -56,11 +57,6 @@ resource landingRg 'Microsoft.Resources/resourceGroups@2024-07-01' existing = {
 
 resource acaEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
   name: acaEnvironmentName
-  scope: landingRg
-}
-
-resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
-  name: appInsightsName
   scope: landingRg
 }
 
@@ -109,7 +105,7 @@ module gamesApi '../modules/container-app.bicep' = {
     registryServer: registryServer
     acrPullIdentityId: acrPullIdentityId
     image: gamesImage
-    appInsightsConnectionString: appInsights.properties.ConnectionString
+    appInsightsConnectionString: appInsightsConnectionString
     appConfigEndpoint: appConfigEndpoint
     additionalSecrets: [
       {
@@ -160,7 +156,7 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
         }
         {
           name: 'appinsights-connection-string'
-          value: appInsights.properties.ConnectionString
+          value: appInsightsConnectionString
         }
       ]
     }

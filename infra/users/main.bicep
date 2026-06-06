@@ -24,8 +24,9 @@ param landingZoneRg string = 'rg-theprey-landing-prod'
 @description('Container Apps environment name in the landing zone')
 param acaEnvironmentName string
 
-@description('App Insights name in the landing zone')
-param appInsightsName string
+@description('Application Insights connection string')
+@secure()
+param appInsightsConnectionString string
 
 @description('App Configuration store endpoint')
 param appConfigEndpoint string
@@ -47,11 +48,6 @@ resource acaEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
   scope: landingRg
 }
 
-resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
-  name: appInsightsName
-  scope: landingRg
-}
-
 // Users API container app (principalId needed for storage role assignment)
 module usersApi '../modules/container-app.bicep' = {
   name: 'usersApi'
@@ -63,7 +59,7 @@ module usersApi '../modules/container-app.bicep' = {
     registryServer: registryServer
     acrPullIdentityId: acrPullIdentityId
     image: usersImage
-    appInsightsConnectionString: appInsights.properties.ConnectionString
+    appInsightsConnectionString: appInsightsConnectionString
     appConfigEndpoint: appConfigEndpoint
   }
 }

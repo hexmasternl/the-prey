@@ -104,3 +104,5 @@ output appConfigEndpoint string = appConfig.outputs.endpoint
 output storageQueueAccountName string = storageQueues.outputs.name
 output acrPullIdentityId string = acrPullIdentity.outputs.id
 output acrPullIdentityClientId string = acrPullIdentity.outputs.clientId
+#disable-next-line outputs-should-not-contain-secrets
+output appInsightsConnectionString string = appInsights.outputs.connectionString

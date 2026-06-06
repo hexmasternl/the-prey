@@ -137,10 +137,12 @@ jobs:
         run: |
           LZ=$(az deployment sub show --name theprey-lz-prod --query properties.outputs -o json)
           echo "acaEnvName=$(echo $LZ | jq -r '.containerAppsEnvironmentName.value')" >> "$GITHUB_OUTPUT"
-          echo "appInsightsName=$(echo $LZ | jq -r '.appInsightsName.value')" >> "$GITHUB_OUTPUT"
           echo "appConfigEndpoint=$(echo $LZ | jq -r '.appConfigEndpoint.value')" >> "$GITHUB_OUTPUT"
           echo "keyVaultName=$(echo $LZ | jq -r '.keyVaultName.value')" >> "$GITHUB_OUTPUT"
           echo "acrPullIdentityId=$(echo $LZ | jq -r '.acrPullIdentityId.value')" >> "$GITHUB_OUTPUT"
+          AI_CONN=$(echo $LZ | jq -r '.appInsightsConnectionString.value')
+          echo "::add-mask::$AI_CONN"
+          echo "appInsightsConnectionString=$AI_CONN" >> "$GITHUB_OUTPUT"
 
       - name: Get or create Postgres admin password
         id: pg_creds
@@ -170,6 +172,6 @@ jobs:
               acrPullIdentityId="${{ steps.lz.outputs.acrPullIdentityId }}" \
               pgAdminPassword="${{ steps.pg_creds.outputs.pgAdminPassword }}" \
               acaEnvironmentName="${{ steps.lz.outputs.acaEnvName }}" \
-              appInsightsName="${{ steps.lz.outputs.appInsightsName }}" \
+              appInsightsConnectionString="${{ steps.lz.outputs.appInsightsConnectionString }}" \
               appConfigEndpoint="${{ steps.lz.outputs.appConfigEndpoint }}" \
               keyVaultName="${{ steps.lz.outputs.keyVaultName }}"
