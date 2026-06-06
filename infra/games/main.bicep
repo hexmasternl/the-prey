@@ -12,8 +12,12 @@ param imageTag string
 @description('ACR server hostname')
 param registryServer string
 
-@description('Resource ID of the user-assigned managed identity used to pull images from ACR')
-param acrPullIdentityId string
+@description('Landing zone resource coordinates')
+param landingZone {
+  resourceGroup: string
+  acaEnvironment: string
+  acrPullIdentity: string
+}
 
 @description('PostgreSQL administrator login')
 param pgAdminLogin string = 'thepreyadmin'
@@ -22,11 +26,6 @@ param pgAdminLogin string = 'thepreyadmin'
 @secure()
 param pgAdminPassword string
 
-@description('Landing zone resource group name')
-param landingZoneRg string = 'rg-theprey-landing-prod'
-
-@description('Container Apps environment name in the landing zone')
-param acaEnvironmentName string
 
 @description('Application Insights connection string')
 @secure()
@@ -50,13 +49,14 @@ resource rg 'Microsoft.Resources/resourceGroups@2024-07-01' = {
   location: location
 }
 
-resource landingRg 'Microsoft.Resources/resourceGroups@2024-07-01' existing = {
-  name: landingZoneRg
+resource acaEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
+  name: landingZone.acaEnvironment
+  scope: resourceGroup(landingZone.resourceGroup)
 }
 
-resource acaEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
-  name: acaEnvironmentName
-  scope: landingRg
+resource acrPullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = {
+  name: landingZone.acrPullIdentity
+  scope: resourceGroup(landingZone.resourceGroup)
 }
 
 // PostgreSQL Flexible Server
@@ -102,7 +102,7 @@ module gamesApi '../modules/container-app.bicep' = {
     location: location
     containerAppsEnvironmentId: acaEnv.id
     registryServer: registryServer
-    acrPullIdentityId: acrPullIdentityId
+    acrPullIdentityId: acrPullIdentity.id
     image: gamesImage
     appInsightsConnectionString: appInsightsConnectionString
     appConfigEndpoint: appConfigEndpoint
@@ -129,7 +129,7 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
   identity: {
     type: 'SystemAssigned, UserAssigned'
     userAssignedIdentities: {
-      '${acrPullIdentityId}': {}
+      '${acrPullIdentity.id}': {}
     }
   }
   properties: {
@@ -145,7 +145,7 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
       registries: [
         {
           server: registryServer
-          identity: acrPullIdentityId
+          identity: acrPullIdentity.id
         }
       ]
       secrets: [
@@ -192,7 +192,7 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
 // Store Postgres admin password in Key Vault for lifecycle management
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
   name: keyVaultName
-  scope: landingRg
+  scope: resourceGroup(landingZone.resourceGroup)
 }
 
 resource pgPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {

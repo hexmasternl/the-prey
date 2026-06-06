@@ -136,9 +136,7 @@ jobs:
         id: lz
         run: |
           LZ=$(az deployment sub show --name theprey-lz-prod --query properties.outputs -o json)
-          echo "acaEnvName=$(echo $LZ | jq -r '.containerAppsEnvironmentName.value')" >> "$GITHUB_OUTPUT"
           echo "appConfigEndpoint=$(echo $LZ | jq -r '.appConfigEndpoint.value')" >> "$GITHUB_OUTPUT"
-          echo "acrPullIdentityId=$(echo $LZ | jq -r '.acrPullIdentityId.value')" >> "$GITHUB_OUTPUT"
           AI_CONN=$(echo $LZ | jq -r '.appInsightsConnectionString.value')
           echo "::add-mask::$AI_CONN"
           echo "appInsightsConnectionString=$AI_CONN" >> "$GITHUB_OUTPUT"
@@ -152,10 +150,9 @@ jobs:
             --name theprey-playfields-prod \
             --location westeurope \
             --template-file infra/playfields/main.bicep \
+            --parameters @infra/playfields/prod.bicepparam \
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
               registryServer="${{ secrets.ACR_HOSTNAME }}" \
-              acrPullIdentityId="${{ steps.lz.outputs.acrPullIdentityId }}" \
-              acaEnvironmentName="${{ steps.lz.outputs.acaEnvName }}" \
               appInsightsConnectionString="${{ steps.lz.outputs.appInsightsConnectionString }}" \
               appConfigEndpoint="${{ steps.lz.outputs.appConfigEndpoint }}"
