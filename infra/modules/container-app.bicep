@@ -10,12 +10,8 @@ param containerAppsEnvironmentId string
 @description('ACR server hostname')
 param registryServer string
 
-@description('ACR username')
-param registryUsername string
-
-@description('ACR password')
-@secure()
-param registryPassword string
+@description('Resource ID of the user-assigned managed identity used to pull images from ACR')
+param acrPullIdentityId string
 
 @description('Container image reference including tag')
 param image string
@@ -41,10 +37,6 @@ param maxReplicas int = 2
 
 var baseSecrets = [
   {
-    name: 'registry-password'
-    value: registryPassword
-  }
-  {
     name: 'appinsights-connection-string'
     value: appInsightsConnectionString
   }
@@ -65,7 +57,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: name
   location: location
   identity: {
-    type: 'SystemAssigned'
+    type: 'SystemAssigned, UserAssigned'
+    userAssignedIdentities: {
+      '${acrPullIdentityId}': {}
+    }
   }
   properties: {
     environmentId: containerAppsEnvironmentId
@@ -79,8 +74,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       registries: [
         {
           server: registryServer
-          username: registryUsername
-          passwordSecretRef: 'registry-password'
+          identity: acrPullIdentityId
         }
       ]
       secrets: concat(baseSecrets, additionalSecrets)

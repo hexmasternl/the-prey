@@ -11,6 +11,7 @@ param uniqueSuffix string = take(uniqueString(subscription().id), 8)
 
 var rgName = 'rg-theprey-landing-${environmentName}'
 var prefix = 'theprey-${environmentName}'
+var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
 
 resource rg 'Microsoft.Resources/resourceGroups@2024-07-01' = {
   name: rgName
@@ -74,6 +75,24 @@ module storageQueues 'modules/storage-queues.bicep' = {
   }
 }
 
+module acrPullIdentity 'modules/acr-pull-identity.bicep' = {
+  name: 'acrPullIdentity'
+  scope: rg
+  params: {
+    name: '${prefix}-acr-pull-id'
+    location: location
+  }
+}
+
+resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(subscription().id, acrPullIdentity.outputs.principalId, acrPullRoleId)
+  properties: {
+    principalId: acrPullIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleId)
+  }
+}
+
 // Outputs consumed by service Bicep templates and GitHub Actions workflows
 output resourceGroupName string = rg.name
 output containerAppsEnvironmentId string = acaEnv.outputs.id
@@ -83,3 +102,5 @@ output keyVaultName string = keyVault.outputs.name
 output keyVaultUri string = keyVault.outputs.uri
 output appConfigEndpoint string = appConfig.outputs.endpoint
 output storageQueueAccountName string = storageQueues.outputs.name
+output acrPullIdentityId string = acrPullIdentity.outputs.id
+output acrPullIdentityClientId string = acrPullIdentity.outputs.clientId

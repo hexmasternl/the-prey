@@ -139,6 +139,7 @@ jobs:
           echo "acaEnvName=$(echo $LZ | jq -r '.containerAppsEnvironmentName.value')" >> "$GITHUB_OUTPUT"
           echo "appInsightsName=$(echo $LZ | jq -r '.appInsightsName.value')" >> "$GITHUB_OUTPUT"
           echo "appConfigEndpoint=$(echo $LZ | jq -r '.appConfigEndpoint.value')" >> "$GITHUB_OUTPUT"
+          echo "acrPullIdentityId=$(echo $LZ | jq -r '.acrPullIdentityId.value')" >> "$GITHUB_OUTPUT"
 
       - name: Bicep build (lint)
         run: az bicep build --file infra/users/main.bicep
@@ -150,10 +151,9 @@ jobs:
             --location westeurope \
             --template-file infra/users/main.bicep \
             --parameters \
-              imageTag="${{ needs.docker.outputs.imageTag }}" \
+              imageTag="${{ needs.publish.outputs.imageTag }}" \
               registryServer="${{ secrets.ACR_HOSTNAME }}" \
-              registryUsername="${{ secrets.ACR_USERNAME }}" \
-              registryPassword="${{ secrets.ACR_PASSWORD }}" \
+              acrPullIdentityId="${{ steps.lz.outputs.acrPullIdentityId }}" \
               acaEnvironmentName="${{ steps.lz.outputs.acaEnvName }}" \
               appInsightsName="${{ steps.lz.outputs.appInsightsName }}" \
               appConfigEndpoint="${{ steps.lz.outputs.appConfigEndpoint }}"

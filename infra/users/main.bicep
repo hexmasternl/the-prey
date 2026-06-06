@@ -15,12 +15,8 @@ param imageTag string
 @description('ACR server hostname')
 param registryServer string
 
-@description('ACR username')
-param registryUsername string
-
-@description('ACR password')
-@secure()
-param registryPassword string
+@description('Resource ID of the user-assigned managed identity used to pull images from ACR')
+param acrPullIdentityId string
 
 @description('Landing zone resource group name')
 param landingZoneRg string = 'rg-theprey-landing-prod'
@@ -65,8 +61,7 @@ module usersApi '../modules/container-app.bicep' = {
     location: location
     containerAppsEnvironmentId: acaEnv.id
     registryServer: registryServer
-    registryUsername: registryUsername
-    registryPassword: registryPassword
+    acrPullIdentityId: acrPullIdentityId
     image: usersImage
     appInsightsConnectionString: appInsights.properties.ConnectionString
     appConfigEndpoint: appConfigEndpoint

@@ -12,12 +12,8 @@ param imageTag string
 @description('ACR server hostname')
 param registryServer string
 
-@description('ACR username')
-param registryUsername string
-
-@description('ACR password')
-@secure()
-param registryPassword string
+@description('Resource ID of the user-assigned managed identity used to pull images from ACR')
+param acrPullIdentityId string
 
 @description('PostgreSQL administrator login')
 param pgAdminLogin string = 'thepreyadmin'
@@ -111,8 +107,7 @@ module gamesApi '../modules/container-app.bicep' = {
     location: location
     containerAppsEnvironmentId: acaEnv.id
     registryServer: registryServer
-    registryUsername: registryUsername
-    registryPassword: registryPassword
+    acrPullIdentityId: acrPullIdentityId
     image: gamesImage
     appInsightsConnectionString: appInsights.properties.ConnectionString
     appConfigEndpoint: appConfigEndpoint
@@ -137,7 +132,10 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
   location: location
   scope: rg
   identity: {
-    type: 'SystemAssigned'
+    type: 'SystemAssigned, UserAssigned'
+    userAssignedIdentities: {
+      '${acrPullIdentityId}': {}
+    }
   }
   properties: {
     environmentId: acaEnv.id
@@ -152,15 +150,10 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
       registries: [
         {
           server: registryServer
-          username: registryUsername
-          passwordSecretRef: 'registry-password'
+          identity: acrPullIdentityId
         }
       ]
       secrets: [
-        {
-          name: 'registry-password'
-          value: registryPassword
-        }
         {
           name: 'pg-connection-string'
           value: pgConnectionString

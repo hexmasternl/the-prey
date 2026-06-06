@@ -140,6 +140,7 @@ jobs:
           echo "appInsightsName=$(echo $LZ | jq -r '.appInsightsName.value')" >> "$GITHUB_OUTPUT"
           echo "appConfigEndpoint=$(echo $LZ | jq -r '.appConfigEndpoint.value')" >> "$GITHUB_OUTPUT"
           echo "keyVaultName=$(echo $LZ | jq -r '.keyVaultName.value')" >> "$GITHUB_OUTPUT"
+          echo "acrPullIdentityId=$(echo $LZ | jq -r '.acrPullIdentityId.value')" >> "$GITHUB_OUTPUT"
 
       - name: Get or create Postgres admin password
         id: pg_creds
@@ -166,8 +167,7 @@ jobs:
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
               registryServer="${{ secrets.ACR_HOSTNAME }}" \
-              registryUsername="${{ secrets.ACR_USERNAME }}" \
-              registryPassword="${{ secrets.ACR_PASSWORD }}" \
+              acrPullIdentityId="${{ steps.lz.outputs.acrPullIdentityId }}" \
               pgAdminPassword="${{ steps.pg_creds.outputs.pgAdminPassword }}" \
               acaEnvironmentName="${{ steps.lz.outputs.acaEnvName }}" \
               appInsightsName="${{ steps.lz.outputs.appInsightsName }}" \
