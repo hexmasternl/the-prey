@@ -85,7 +85,7 @@ module acrPullIdentity 'modules/acr-pull-identity.bicep' = {
 }
 
 resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(subscription().id, acrPullIdentity.outputs.principalId, acrPullRoleId)
+  name: guid(subscription().id, rgName, '${prefix}-acr-pull-id', acrPullRoleId)
   properties: {
     principalId: acrPullIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
