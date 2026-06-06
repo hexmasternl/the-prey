@@ -1,0 +1,26 @@
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="{{ "/" | relLangURL }}" class="nav-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#64ff00" stroke-width="1.5">
+        <circle cx="12" cy="12" r="8"/>
+        <path d="M12 1v5M12 18v5M1 12h5M18 12h5"/>
+        <circle cx="12" cy="12" r="1.5" fill="#64ff00"/>
+      </svg>
+      <span>THE PREY</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="{{ "/rules/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/rules" .Lang) }} class="active"{{ end }}>{{ i18n "nav_rules" }}</a></li>
+      <li><a href="{{ "/roles/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/roles" .Lang) }} class="active"{{ end }}>{{ i18n "nav_roles" }}</a></li>
+      <li><a href="{{ "/playfield/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/playfield" .Lang) }} class="active"{{ end }}>{{ i18n "nav_playfield" }}</a></li>
+      <li><a href="{{ "/faq/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/faq" .Lang) }} class="active"{{ end }}>{{ i18n "nav_faq" }}</a></li>
+      <li><a href="{{ "/how-to/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/how-to" .Lang) }} class="active"{{ end }}>{{ i18n "nav_howto" }}</a></li>
+    </ul>
+
+    <div class="nav-lang">
+      {{ range .Translations }}
+        <a href="{{ .Permalink }}" class="pill lang">{{ .Language.Params.languageCode }}</a>
+      {{ end }}
+    </div>
+  </div>
+</nav>
