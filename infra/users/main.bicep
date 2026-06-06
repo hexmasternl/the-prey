@@ -57,7 +57,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
 }
 
 // Users API container app (principalId needed for storage role assignment)
-module usersApi '../../modules/container-app.bicep' = {
+module usersApi '../modules/container-app.bicep' = {
   name: 'usersApi'
   scope: rg
   params: {
@@ -74,7 +74,7 @@ module usersApi '../../modules/container-app.bicep' = {
 }
 
 // Table storage with Storage Table Data Contributor for the API's managed identity
-module usersStorage '../../modules/storage-tables.bicep' = {
+module usersStorage '../modules/storage-tables.bicep' = {
   name: 'usersStorage'
   scope: rg
   params: {

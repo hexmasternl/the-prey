@@ -103,7 +103,7 @@ resource gamesDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024
 }
 
 // Games API container app
-module gamesApi '../../modules/container-app.bicep' = {
+module gamesApi '../modules/container-app.bicep' = {
   name: 'gamesApi'
   scope: rg
   params: {
