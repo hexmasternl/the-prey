@@ -1,0 +1,15 @@
+site_tagline: "GPS Hide-and-Seek"
+
+nav_home: "Home"
+nav_rules: "Rules"
+nav_roles: "Roles"
+nav_playfield: "Playfield"
+nav_faq: "FAQ"
+nav_howto: "How-To"
+
+lang_switch_label: "Switch language"
+
+translation_pending_title: "Translation Pending"
+translation_pending_msg: "This page is only available in English. A Dutch translation is coming soon."
+
+footer_copy: "END OF TRANSMISSION"
