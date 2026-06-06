@@ -33,19 +33,11 @@ param appConfigEndpoint string
 
 var rgName = 'rg-theprey-users-${environmentName}'
 var usersImage = '${registryServer}/theprey/users-api:${imageTag}'
+var acaEnvId = resourceId(landingZoneRg, 'Microsoft.App/managedEnvironments', acaEnvironmentName)
 
 resource rg 'Microsoft.Resources/resourceGroups@2024-07-01' = {
   name: rgName
   location: location
-}
-
-resource landingRg 'Microsoft.Resources/resourceGroups@2024-07-01' existing = {
-  name: landingZoneRg
-}
-
-resource acaEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
-  name: acaEnvironmentName
-  scope: landingRg
 }
 
 // Users API container app (principalId needed for storage role assignment)
@@ -55,7 +47,7 @@ module usersApi '../modules/container-app.bicep' = {
   params: {
     name: 'theprey-users-api-${environmentName}'
     location: location
-    containerAppsEnvironmentId: acaEnv.id
+    containerAppsEnvironmentId: acaEnvId
     registryServer: registryServer
     acrPullIdentityId: acrPullIdentityId
     image: usersImage
