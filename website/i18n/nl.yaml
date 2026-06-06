@@ -1,0 +1,15 @@
+site_tagline: "GPS Verstoppertje"
+
+nav_home: "Home"
+nav_rules: "Regels"
+nav_roles: "Rollen"
+nav_playfield: "Speelveld"
+nav_faq: "FAQ"
+nav_howto: "Handleiding"
+
+lang_switch_label: "Wissel taal"
+
+translation_pending_title: "Vertaling Lopend"
+translation_pending_msg: "Deze pagina is alleen beschikbaar in het Engels. Een Nederlandse vertaling volgt binnenkort."
+
+footer_copy: "EINDE TRANSMISSIE"
