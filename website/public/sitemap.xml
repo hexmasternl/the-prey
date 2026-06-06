@@ -2,12 +2,12 @@
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 	
 		<sitemap>
-			<loc>https://theprey.nl/en/sitemap.xml</loc>
+			<loc>http://localhost:1313/en/sitemap.xml</loc>
 			
 		</sitemap>
 	
 		<sitemap>
-			<loc>https://theprey.nl/nl/sitemap.xml</loc>
+			<loc>http://localhost:1313/nl/sitemap.xml</loc>
 			
 		</sitemap>
 	

@@ -1,0 +1,157 @@
+name: Games
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Games/**'
+      - 'src/Core/**'
+      - 'src/Shared/**'
+      - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
+      - 'infra/games/**'
+      - 'infra/modules/**'
+      - '.github/workflows/games.yml'
+  workflow_dispatch:
+    inputs:
+      imageTag:
+        description: 'Image tag override (leave blank to use GitVersion semVer)'
+        required: false
+        default: ''
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/Games/**'
+      - 'src/Core/**'
+      - 'src/Shared/**'
+      - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
+      - 'infra/games/**'
+      - 'infra/modules/**'
+      - '.github/workflows/games.yml'
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: games-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Version
+    runs-on: ubuntu-latest
+    outputs:
+      semVer: ${{ steps.gitversion.outputs.semVer }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup GitVersion
+        uses: gittools/actions/gitversion/setup@v3
+        with:
+          versionSpec: '6.x'
+
+      - name: Execute GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v3
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Run Games tests
+        run: dotnet test src/Games/HexMaster.ThePrey.Games.Tests/HexMaster.ThePrey.Games.Tests.csproj --configuration Release --no-restore
+
+  docker:
+    name: Build & Push
+    runs-on: ubuntu-latest
+    needs: [version, test]
+    if: github.event_name != 'pull_request'
+    outputs:
+      imageTag: ${{ steps.resolve-tag.outputs.imageTag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: resolve-tag
+        run: |
+          TAG="${{ inputs.imageTag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ needs.version.outputs.semVer }}"
+          fi
+          echo "imageTag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to ACR
+        run: echo "${{ secrets.ACR_PASSWORD }}" | docker login "${{ secrets.ACR_HOSTNAME }}" -u "${{ secrets.ACR_USERNAME }}" --password-stdin
+
+      - name: Build and push
+        run: |
+          IMAGE="${{ secrets.ACR_HOSTNAME }}/theprey/games-api:${{ steps.resolve-tag.outputs.imageTag }}"
+          docker build -f src/Games/HexMaster.ThePrey.Games.Api/Dockerfile -t "$IMAGE" -t "${{ secrets.ACR_HOSTNAME }}/theprey/games-api:latest" .
+          docker push "$IMAGE"
+          docker push "${{ secrets.ACR_HOSTNAME }}/theprey/games-api:latest"
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_PROD_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_PROD_TENANTID }}
+          subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
+
+      - name: Read landing zone outputs
+        id: lz
+        run: |
+          LZ=$(az deployment sub show --name theprey-lz-prod --query properties.outputs -o json)
+          echo "acaEnvName=$(echo $LZ | jq -r '.containerAppsEnvironmentName.value')" >> "$GITHUB_OUTPUT"
+          echo "appInsightsName=$(echo $LZ | jq -r '.appInsightsName.value')" >> "$GITHUB_OUTPUT"
+          echo "appConfigEndpoint=$(echo $LZ | jq -r '.appConfigEndpoint.value')" >> "$GITHUB_OUTPUT"
+          echo "keyVaultName=$(echo $LZ | jq -r '.keyVaultName.value')" >> "$GITHUB_OUTPUT"
+
+      - name: Get or create Postgres admin password
+        id: pg_creds
+        run: |
+          KV="${{ steps.lz.outputs.keyVaultName }}"
+          if az keyvault secret show --vault-name "$KV" --name "games-pg-admin-password" &>/dev/null 2>&1; then
+            PG_PASS=$(az keyvault secret show --vault-name "$KV" --name "games-pg-admin-password" --query value -o tsv)
+          else
+            PG_PASS=$(openssl rand -base64 32 | tr -d '/+=')
+            az keyvault secret set --vault-name "$KV" --name "games-pg-admin-password" --value "$PG_PASS"
+          fi
+          echo "::add-mask::$PG_PASS"
+          echo "pgAdminPassword=$PG_PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Bicep build (lint)
+        run: az bicep build --file infra/games/main.bicep
+
+      - name: Deploy Games
+        run: |
+          az deployment sub create \
+            --name theprey-games-prod \
+            --location westeurope \
+            --template-file infra/games/main.bicep \
+            --parameters \
+              imageTag="${{ needs.docker.outputs.imageTag }}" \
+              registryServer="${{ secrets.ACR_HOSTNAME }}" \
+              registryUsername="${{ secrets.ACR_USERNAME }}" \
+              registryPassword="${{ secrets.ACR_PASSWORD }}" \
+              pgAdminPassword="${{ steps.pg_creds.outputs.pgAdminPassword }}" \
+              acaEnvironmentName="${{ steps.lz.outputs.acaEnvName }}" \
+              appInsightsName="${{ steps.lz.outputs.appInsightsName }}" \
+              appConfigEndpoint="${{ steps.lz.outputs.appConfigEndpoint }}" \
+              keyVaultName="${{ steps.lz.outputs.keyVaultName }}"
