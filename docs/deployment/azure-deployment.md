@@ -35,12 +35,13 @@ infra/
 
 | Secret | Description |
 |--------|-------------|
-| `AZURE_PROD_CLIENTID` | Entra app registration client ID (federated credential for OIDC) |
+| `AZURE_PROD_CLIENTID` | Entra app registration client ID — federated credential for Bicep deployments |
 | `AZURE_PROD_TENANTID` | Azure AD tenant ID |
 | `AZURE_PROD_SUBSCRIPTION` | Azure subscription ID |
 | `ACR_HOSTNAME` | Azure Container Registry hostname (e.g. `myregistry.azurecr.io`) |
-| `ACR_USERNAME` | ACR username |
-| `ACR_PASSWORD` | ACR password |
+| `ACR_CLIENT_ID` | Entra app registration client ID — federated credential for ACR push |
+| `ACR_TENANT_ID` | Azure AD tenant ID for the ACR federated credential |
+| `ACR_SUBSCRIPTION_ID` | Azure subscription ID containing the ACR |
 
 The Entra app registration must have **Contributor** (or scoped) permissions on the subscription to create resource groups and deploy resources.
 
