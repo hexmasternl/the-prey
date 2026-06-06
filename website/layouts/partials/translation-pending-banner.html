@@ -1,0 +1,9 @@
+{{ if .Params.translationPending }}
+<div class="alert warn" style="margin-bottom:32px">
+  <div class="ic">!</div>
+  <div>
+    <div class="ttl">{{ i18n "translation_pending_title" }}</div>
+    <div class="msg">{{ i18n "translation_pending_msg" }}</div>
+  </div>
+</div>
+{{ end }}
