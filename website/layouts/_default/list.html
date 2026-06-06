@@ -1,0 +1,18 @@
+{{ define "main" }}
+<div class="content-body">
+  <div class="eyebrow">{{ .Section | upper }}</div>
+  <h1>{{ .Title }}</h1>
+  {{ with .Description }}<p class="lede" style="font-size:17px;margin-bottom:32px">{{ . }}</p>{{ end }}
+  {{ .Content }}
+  {{ if .Pages }}
+  <ul class="page-list" style="margin-top:32px;list-style:none;padding:0">
+    {{ range .Pages }}
+    <li style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line-soft)">
+      <a href="{{ .RelPermalink }}" style="font-family:var(--head);font-size:16px">{{ .Title }}</a>
+      {{ with .Description }}<p style="margin:4px 0 0">{{ . }}</p>{{ end }}
+    </li>
+    {{ end }}
+  </ul>
+  {{ end }}
+</div>
+{{ end }}
