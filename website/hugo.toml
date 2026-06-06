@@ -1,0 +1,27 @@
+baseURL = "https://theprey.nl/"
+title = "The Prey"
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = true
+
+[languages]
+  [languages.en]
+    contentDir = "content/en"
+    languageName = "English"
+    weight = 1
+    [languages.en.params]
+      languageCode = "EN"
+
+  [languages.nl]
+    contentDir = "content/nl"
+    languageName = "Nederlands"
+    weight = 2
+    [languages.nl.params]
+      languageCode = "NL"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[params]
+  description = "A GPS-based hide-and-seek game. Hunt or be hunted."
