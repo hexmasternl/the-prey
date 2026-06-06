@@ -6,14 +6,14 @@ defaultContentLanguageInSubdir = true
 [languages]
   [languages.en]
     contentDir = "content/en"
-    languageName = "English"
+    label = "English"
     weight = 1
     [languages.en.params]
       languageCode = "EN"
 
   [languages.nl]
     contentDir = "content/nl"
-    languageName = "Nederlands"
+    label = "Nederlands"
     weight = 2
     [languages.nl.params]
       languageCode = "NL"
