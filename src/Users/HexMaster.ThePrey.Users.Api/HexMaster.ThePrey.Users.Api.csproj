@@ -6,6 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ContainerRepository>theprey/users-api</ContainerRepository>
+    <ContainerUser>app</ContainerUser>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Dapr.AspNetCore" Version="1.17.9" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />

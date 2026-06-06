@@ -68,10 +68,10 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Run Users tests
-        run: dotnet test src/Users/HexMaster.ThePrey.Users.Tests/HexMaster.ThePrey.Users.Tests.csproj --configuration Release --no-restore
+        run: dotnet test src/Users/HexMaster.ThePrey.Users.Tests/HexMaster.ThePrey.Users.Tests.csproj --configuration Release
 
-  docker:
-    name: Build & Push
+  publish:
+    name: Publish Container
     runs-on: ubuntu-latest
     needs: [version, test]
     if: github.event_name != 'pull_request'
@@ -79,6 +79,11 @@ jobs:
       imageTag: ${{ steps.resolve-tag.outputs.imageTag }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
       - name: Resolve image tag
         id: resolve-tag
@@ -99,17 +104,23 @@ jobs:
       - name: Log in to ACR
         run: az acr login --name "${{ secrets.ACR_HOSTNAME }}"
 
-      - name: Build and push
+      - name: Publish container
         run: |
-          IMAGE="${{ secrets.ACR_HOSTNAME }}/theprey/users-api:${{ steps.resolve-tag.outputs.imageTag }}"
-          docker build -f src/Users/HexMaster.ThePrey.Users.Api/Dockerfile -t "$IMAGE" -t "${{ secrets.ACR_HOSTNAME }}/theprey/users-api:latest" .
-          docker push "$IMAGE"
-          docker push "${{ secrets.ACR_HOSTNAME }}/theprey/users-api:latest"
+          dotnet publish src/Users/HexMaster.ThePrey.Users.Api/HexMaster.ThePrey.Users.Api.csproj \
+            --configuration Release \
+            --os linux \
+            --arch x64 \
+            /t:PublishContainer \
+            /p:ContainerRegistry=${{ secrets.ACR_HOSTNAME }} \
+            /p:ContainerImageTag=${{ steps.resolve-tag.outputs.imageTag }} \
+            /p:Version=${{ needs.version.outputs.semVer }} \
+            /p:AssemblyVersion=${{ needs.version.outputs.semVer }} \
+            /p:InformationalVersion=${{ needs.version.outputs.semVer }}
 
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: docker
+    needs: publish
     if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
