@@ -45,8 +45,6 @@ var rgName = 'rg-theprey-games-${environmentName}'
 var gamesImage = '${registryServer}/theprey/games-api:${imageTag}'
 var pgServerName = 'theprey-games-pg-${environmentName}'
 var pgConnectionString = 'Host=${pgServerName}.postgres.database.azure.com;Database=games;Username=${pgAdminLogin};Password=${pgAdminPassword};SslMode=Require'
-var acaEnvId = resourceId(landingZoneRg, 'Microsoft.App/managedEnvironments', acaEnvironmentName)
-
 resource rg 'Microsoft.Resources/resourceGroups@2024-07-01' = {
   name: rgName
   location: location
@@ -54,6 +52,11 @@ resource rg 'Microsoft.Resources/resourceGroups@2024-07-01' = {
 
 resource landingRg 'Microsoft.Resources/resourceGroups@2024-07-01' existing = {
   name: landingZoneRg
+}
+
+resource acaEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
+  name: acaEnvironmentName
+  scope: landingRg
 }
 
 // PostgreSQL Flexible Server
@@ -97,7 +100,7 @@ module gamesApi '../modules/container-app.bicep' = {
   params: {
     name: 'theprey-games-api-${environmentName}'
     location: location
-    containerAppsEnvironmentId: acaEnvId
+    containerAppsEnvironmentId: acaEnv.id
     registryServer: registryServer
     acrPullIdentityId: acrPullIdentityId
     image: gamesImage
@@ -130,7 +133,7 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
     }
   }
   properties: {
-    environmentId: acaEnvId
+    environmentId: acaEnv.id
     configuration: {
       triggerType: 'Manual'
       replicaTimeout: 300
