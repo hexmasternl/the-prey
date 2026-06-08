@@ -1,6 +1,7 @@
 ---
 title: "Prooi"
-description: "Verstop je. Beweeg. Overleef. Word niet getagd."
+description: "Spelen als Prooi in The Prey: gebruik de voorsprong om je te verspreiden en te verstoppen, blijf bewegen, beheer GPS op de achtergrond en overleef tot de tijd om is."
+keywords: ["Prooi", "verstoppen", "overleven", "GPS op achtergrond", "voorsprong", "jagers ontwijken", "The Prey prooi"]
 ---
 
 ## Je Doel

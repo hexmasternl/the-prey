@@ -1,6 +1,7 @@
 ---
 title: "Jager"
-description: "Traceer. Nader. Tag. Laat ze niet ontsnappen."
+description: "Spelen als Jager in The Prey: wacht de voorsprong af, volg Prooien via GPS-pins, dicht het gat, tag ze en werk samen met andere Jagers."
+keywords: ["Jager", "GPS-tracking", "prooi taggen", "jagen", "achtervolgen", "jagers samenwerken", "The Prey jager"]
 ---
 
 ## Je Doel

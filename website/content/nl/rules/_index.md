@@ -1,6 +1,7 @@
 ---
 title: "Regels"
-description: "Alles wat je moet weten voordat de jacht begint."
+description: "De volledige spelregels van The Prey: tijdsfases, de voorsprong van 10 minuten, GPS-updates, taggen en eliminatie, en hoe Jagers en Prooien winnen."
+keywords: ["The Prey regels", "spelregels", "voorsprong", "GPS-tracking", "taggen", "eliminatie", "winvoorwaarden", "verstoppertje regels"]
 ---
 
 ## Spelconcept
