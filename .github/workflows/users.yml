@@ -150,7 +150,7 @@ jobs:
             --name theprey-users-prod \
             --location westeurope \
             --template-file infra/users/main.bicep \
-            --parameters @infra/users/prod.bicepparam \
+            --parameters infra/users/prod.bicepparam \
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
               registryServer="${{ secrets.ACR_HOSTNAME }}"
