@@ -1,0 +1,5 @@
+{{- /* FAQ accordion entry. Usage: {{< qa q="Question?" >}}Markdown answer{{< /qa >}} */ -}}
+<details>
+  <summary>{{ .Get "q" }}</summary>
+  <div class="faq-answer">{{ .Inner | markdownify }}</div>
+</details>
