@@ -17,6 +17,9 @@ param landingZone {
   resourceGroup: string
   acaEnvironment: string
   acrPullIdentity: string
+  applicationInsights: string
+  appConfig: string
+  keyVault: string
 }
 
 
