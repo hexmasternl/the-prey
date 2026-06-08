@@ -132,15 +132,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_PROD_TENANTID }}
           subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
 
-      - name: Read landing zone outputs
-        id: lz
-        run: |
-          LZ=$(az deployment sub show --name theprey-lz-prod --query properties.outputs -o json)
-          echo "appConfigEndpoint=$(echo $LZ | jq -r '.appConfigEndpoint.value')" >> "$GITHUB_OUTPUT"
-          AI_CONN=$(echo $LZ | jq -r '.appInsightsConnectionString.value')
-          echo "::add-mask::$AI_CONN"
-          echo "appInsightsConnectionString=$AI_CONN" >> "$GITHUB_OUTPUT"
-
       - name: Bicep build (lint)
         run: az bicep build --file infra/users/main.bicep
 
