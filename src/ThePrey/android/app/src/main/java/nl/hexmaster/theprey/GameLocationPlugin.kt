@@ -68,7 +68,7 @@ class GameLocationPlugin : Plugin() {
 
         if (!hasLocationPermission()) {
             pendingCall = call
-            requestPermissionForAlias(PERM_ALIAS_LOCATION)
+            requestPermissionForAlias(PERM_ALIAS_LOCATION, call, "locationPermissionCallback")
             return
         }
 
@@ -110,7 +110,7 @@ class GameLocationPlugin : Plugin() {
         // On Android 10+, foreground permission was just granted.
         // Request background location separately — Android requires it in two steps.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundLocationPermission()) {
-            requestPermissionForAlias(PERM_ALIAS_BACKGROUND_LOCATION)
+            requestPermissionForAlias(PERM_ALIAS_BACKGROUND_LOCATION, call, "backgroundLocationPermissionCallback")
             return
         }
 
