@@ -462,8 +462,12 @@ summary:hover { background: rgba(100, 255, 0, 0.04); }
 .faq-answer { padding: 16px 18px 18px 22px; color: var(--text-soft); font-size: 14px; border-top: 1px solid var(--line-soft); }
 
 /* ---- HOW-TO STEPS ---- */
-.steps { list-style: none; margin: 24px 0; padding: 0; counter-reset: step; }
-.steps li {
+/* `.steps` is the explicit class; `.howto-content ol` lets how-to guides be
+   authored as plain markdown numbered lists and still render as styled steps. */
+.steps,
+.howto-content ol { list-style: none; margin: 24px 0; padding: 0; counter-reset: step; }
+.steps li,
+.howto-content ol > li {
   counter-increment: step;
   display: grid;
   grid-template-columns: 44px 1fr;
@@ -472,8 +476,10 @@ summary:hover { background: rgba(100, 255, 0, 0.04); }
   border-bottom: 1px solid var(--line-soft);
   margin: 0;
 }
-.steps li:last-child { border-bottom: none; }
-.steps li::before {
+.steps li:last-child,
+.howto-content ol > li:last-child { border-bottom: none; }
+.steps li::before,
+.howto-content ol > li::before {
   content: counter(step, decimal-leading-zero);
   font-family: var(--head);
   font-size: 22px;
@@ -481,8 +487,11 @@ summary:hover { background: rgba(100, 255, 0, 0.04); }
   text-shadow: 0 0 12px var(--signal-glow);
   line-height: 1.3;
 }
-.steps li > * { color: var(--text-soft); }
-.steps li > strong { color: var(--text); }
+.steps li > *,
+.howto-content ol > li { color: var(--text-soft); }
+.steps li > strong,
+.howto-content ol > li strong { color: var(--text); }
+.howto-content ol > li::marker { content: none; }
 
 /* ---- CONTENT SECTIONS ---- */
 section { margin-bottom: 64px; scroll-margin-top: 30px; }
