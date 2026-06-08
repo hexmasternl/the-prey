@@ -5,36 +5,61 @@
   <div class="br bl"></div>
   <div class="br brr"></div>
   <div class="coords">52.3676°N / 4.9041°E</div>
-  <div class="tag">{{ i18n "home_hero_tag" }}</div>
-  <h1>THE <em>PREY</em></h1>
-  <p class="lede">{{ .Description }}</p>
-  <p class="lede" style="margin-top:8px">{{ i18n "home_hero_sub" }}</p>
-  <div class="hero-actions">
-    <a href="{{ "/rules/" | relLangURL }}" class="btn primary">{{ i18n "home_cta_rules" }}</a>
-    <a href="{{ "/how-to/" | relLangURL }}" class="btn ghost">{{ i18n "home_cta_howto" }}</a>
+
+  <div class="hero-grid">
+    <div class="hero-content">
+      <div class="tag">{{ i18n "home_hero_tag" }}</div>
+      <h1>THE <em>PREY</em></h1>
+      <p class="lede">{{ .Description }}</p>
+      <p class="lede" style="margin-top:8px">{{ i18n "home_hero_sub" }}</p>
+      <div class="hero-actions">
+        <a href="{{ "/rules/" | relLangURL }}" class="btn primary">{{ i18n "home_cta_rules" }}</a>
+        <a href="{{ "/how-to/" | relLangURL }}" class="btn ghost">{{ i18n "home_cta_howto" }}</a>
+      </div>
+    </div>
+    <div class="hero-aside">
+      {{ partial "radar.html" . }}
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      {{ range seq 2 }}
+      <span class="live">● Live</span>
+      <span>SAT-Lock 09</span>
+      <span>52.3676°N 4.9041°E</span>
+      <span>Ping 30s</span>
+      <span>T-60:00</span>
+      <span>Head Start 10:00</span>
+      <span>Grid Locked</span>
+      <span>Signal Strong</span>
+      {{ end }}
+    </div>
   </div>
 </div>
 
-<section>
+<section class="reveal">
   <div class="eyebrow">{{ i18n "home_game_eyebrow" }}</div>
   <h2>{{ i18n "home_game_title" }}</h2>
   <p>{{ i18n "home_game_p1" }}</p>
   <p>{{ i18n "home_game_p2" }}</p>
-  <div class="phase-grid">
+  <div class="phase-grid reveal-stagger">
     {{ range hugo.Data.home.phases }}
     <div class="panel">
       <div class="ptitle">{{ i18n (printf "home_phase_%s_title" .key) }}</div>
-      <div class="phase-figure {{ .accent }}">{{ .value }}<span class="unit"> {{ .unit }}</span></div>
+      <div class="phase-figure {{ .accent }}"><span class="phase-num" data-count="{{ .value }}">{{ .value }}</span><span class="unit"> {{ .unit }}</span></div>
       <p class="phase-desc">{{ i18n (printf "home_phase_%s_desc" .key) }}</p>
     </div>
     {{ end }}
   </div>
 </section>
 
-<section>
+<div class="signal-divider" aria-hidden="true"></div>
+
+<section class="reveal">
   <div class="eyebrow">{{ i18n "home_roles_eyebrow" }}</div>
   <h2>{{ i18n "home_roles_title" }}</h2>
-  <div class="roles-grid" style="margin-top:24px">
+  <div class="roles-grid reveal-stagger" style="margin-top:24px">
     {{ range hugo.Data.home.roles }}
     {{ partial "role-card.html" (dict
       "url"     (.url | relLangURL)
@@ -47,7 +72,9 @@
   </div>
 </section>
 
-<section>
+<div class="signal-divider" aria-hidden="true"></div>
+
+<section class="reveal">
   <div style="display:flex;gap:14px;flex-wrap:wrap">
     <a href="{{ "/rules/" | relLangURL }}" class="btn ghost">{{ i18n "nav_rules" }}</a>
     <a href="{{ "/playfield/" | relLangURL }}" class="btn ghost">{{ i18n "nav_playfield" }}</a>

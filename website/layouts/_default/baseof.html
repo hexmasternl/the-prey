@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="{{ $css.RelPermalink }}">
 </head>
 <body>
+<div class="crt-beam" aria-hidden="true"></div>
 <div class="site-shell">
 
   {{ partial "nav.html" . }}
@@ -41,5 +42,7 @@
   {{ partial "footer.html" . }}
 
 </div>
+{{ $js := resources.Get "js/main.js" | minify | fingerprint }}
+<script src="{{ $js.RelPermalink }}" defer></script>
 </body>
 </html>

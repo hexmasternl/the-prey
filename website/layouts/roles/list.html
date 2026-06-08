@@ -6,7 +6,7 @@
 
   {{ .Content }}
 
-  <div class="roles-grid">
+  <div class="roles-grid reveal-stagger">
     {{ range .Pages }}
     {{ $base := .File.BaseFileName }}
     {{ $isHunter := eq $base "hunter" }}
