@@ -17,6 +17,9 @@ param landingZone {
   resourceGroup: string
   acaEnvironment: string
   acrPullIdentity: string
+  applicationInsights: string
+  appConfig: string
+  keyVault: string
 }
 
 @description('PostgreSQL administrator login')
@@ -26,17 +29,6 @@ param pgAdminLogin string = 'thepreyadmin'
 @secure()
 param pgAdminPassword string
 
-
-@description('Application Insights connection string')
-@secure()
-param appInsightsConnectionString string
-
-@description('App Configuration store endpoint')
-param appConfigEndpoint string
-
-@description('Key Vault name in the landing zone (for storing credentials)')
-param keyVaultName string
-
 @description('Container Apps Job command override (default: the API entrypoint)')
 param jobCommand array = []
 
@@ -44,6 +36,7 @@ var rgName = 'rg-theprey-games-${environmentName}'
 var gamesImage = '${registryServer}/theprey/games-api:${imageTag}'
 var pgServerName = 'theprey-games-pg-${environmentName}'
 var pgConnectionString = 'Host=${pgServerName}.postgres.database.azure.com;Database=games;Username=${pgAdminLogin};Password=${pgAdminPassword};SslMode=Require'
+
 resource rg 'Microsoft.Resources/resourceGroups@2024-07-01' = {
   name: rgName
   location: location
@@ -59,38 +52,14 @@ resource acrPullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
   scope: resourceGroup(landingZone.resourceGroup)
 }
 
-// PostgreSQL Flexible Server
-resource pgServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
-  name: pgServerName
-  location: location
-  sku: {
-    name: 'Standard_B1ms'
-    tier: 'Burstable'
-  }
-  properties: {
-    administratorLogin: pgAdminLogin
-    administratorLoginPassword: pgAdminPassword
-    storage: {
-      storageSizeGB: 32
-    }
-    backup: {
-      backupRetentionDays: 7
-      geoRedundantBackup: 'Disabled'
-    }
-    highAvailability: {
-      mode: 'Disabled'
-    }
-    version: '16'
-  }
+resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: landingZone.applicationInsights
+  scope: resourceGroup(landingZone.resourceGroup)
 }
 
-resource gamesDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
-  parent: pgServer
-  name: 'games'
-  properties: {
-    charset: 'UTF8'
-    collation: 'en_US.utf8'
-  }
+resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' existing = {
+  name: landingZone.appConfig
+  scope: resourceGroup(landingZone.resourceGroup)
 }
 
 // Games API container app
@@ -104,8 +73,7 @@ module gamesApi '../modules/container-app.bicep' = {
     registryServer: registryServer
     acrPullIdentityId: acrPullIdentity.id
     image: gamesImage
-    appInsightsConnectionString: appInsightsConnectionString
-    appConfigEndpoint: appConfigEndpoint
+    landingZone: landingZone
     additionalSecrets: [
       {
         name: 'pg-connection-string'
@@ -121,88 +89,26 @@ module gamesApi '../modules/container-app.bicep' = {
   }
 }
 
-// Container Apps Job — reuses the Games API image with a configurable command
-resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
-  name: 'theprey-games-job-${environmentName}'
-  location: location
+// PostgreSQL Flexible Server, database, and the Container Apps Job (all RG-scoped)
+module gamesData 'modules/games-data.bicep' = {
+  name: 'gamesData'
   scope: rg
-  identity: {
-    type: 'SystemAssigned, UserAssigned'
-    userAssignedIdentities: {
-      '${acrPullIdentity.id}': {}
-    }
-  }
-  properties: {
-    environmentId: acaEnv.id
-    configuration: {
-      triggerType: 'Manual'
-      replicaTimeout: 300
-      replicaRetryLimit: 0
-      manualTriggerConfig: {
-        parallelism: 1
-        replicaCompletionCount: 1
-      }
-      registries: [
-        {
-          server: registryServer
-          identity: acrPullIdentity.id
-        }
-      ]
-      secrets: [
-        {
-          name: 'pg-connection-string'
-          value: pgConnectionString
-        }
-        {
-          name: 'appinsights-connection-string'
-          value: appInsightsConnectionString
-        }
-      ]
-    }
-    template: {
-      containers: [
-        {
-          name: 'games-job'
-          image: gamesImage
-          command: empty(jobCommand) ? null : jobCommand
-          resources: {
-            cpu: json('0.25')
-            memory: '0.5Gi'
-          }
-          env: [
-            {
-              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-              secretRef: 'appinsights-connection-string'
-            }
-            {
-              name: 'AZURE_APP_CONFIGURATION_ENDPOINT'
-              value: appConfigEndpoint
-            }
-            {
-              name: 'ConnectionStrings__Games'
-              secretRef: 'pg-connection-string'
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
-
-// Store Postgres admin password in Key Vault for lifecycle management
-resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
-  name: keyVaultName
-  scope: resourceGroup(landingZone.resourceGroup)
-}
-
-resource pgPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
-  parent: keyVault
-  name: 'games-pg-admin-password'
-  properties: {
-    value: pgAdminPassword
+  params: {
+    location: location
+    environmentName: environmentName
+    gamesImage: gamesImage
+    registryServer: registryServer
+    containerAppsEnvironmentId: acaEnv.id
+    acrPullIdentityId: acrPullIdentity.id
+    pgAdminLogin: pgAdminLogin
+    pgAdminPassword: pgAdminPassword
+    pgConnectionString: pgConnectionString
+    appInsightsConnectionString: appInsights.properties.ConnectionString
+    appConfigEndpoint: appConfig.properties.endpoint
+    jobCommand: jobCommand
   }
 }
 
 output gamesApiFqdn string = gamesApi.outputs.fqdn
 output gamesApiPrincipalId string = gamesApi.outputs.principalId
-output postgresServerFqdn string = pgServer.properties.fullyQualifiedDomainName
+output postgresServerFqdn string = gamesData.outputs.postgresServerFqdn

@@ -6,9 +6,6 @@ param location string = 'westeurope'
 @description('Environment discriminator')
 param environmentName string = 'prod'
 
-@description('Short unique suffix for globally-unique storage account names')
-param uniqueSuffix string = take(uniqueString(subscription().id), 8)
-
 @description('Container image tag (semVer from GitVersion)')
 param imageTag string
 
@@ -20,14 +17,11 @@ param landingZone {
   resourceGroup: string
   acaEnvironment: string
   acrPullIdentity: string
+  applicationInsights: string
+  appConfig: string
+  keyVault: string
 }
 
-@description('Application Insights connection string')
-@secure()
-param appInsightsConnectionString string
-
-@description('App Configuration store endpoint')
-param appConfigEndpoint string
 
 var rgName = 'rg-theprey-playfields-${environmentName}'
 var playfieldsImage = '${registryServer}/theprey/playfields-api:${imageTag}'
@@ -58,8 +52,7 @@ module playfieldsApi '../modules/container-app.bicep' = {
     registryServer: registryServer
     acrPullIdentityId: acrPullIdentity.id
     image: playfieldsImage
-    appInsightsConnectionString: appInsightsConnectionString
-    appConfigEndpoint: appConfigEndpoint
+    landingZone: landingZone
   }
 }
 
@@ -68,7 +61,7 @@ module playfieldsStorage '../modules/storage-tables.bicep' = {
   name: 'playfieldsStorage'
   scope: rg
   params: {
-    name: 'thepreypf${uniqueSuffix}st'
+    name: uniqueString(rgName)
     location: location
     principalId: playfieldsApi.outputs.principalId
   }
