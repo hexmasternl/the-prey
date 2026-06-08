@@ -28,25 +28,35 @@ resource acaEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
 var bindCustomDomain = enableCustomDomain && !empty(customDomain)
 var useManagedCertificate = bindCustomDomain && empty(customDomainCertificateId)
 
-// Free, auto-renewing managed certificate for the custom domain. Issuance requires the asuid TXT
-// record to already resolve, so this is only created once enableCustomDomain is set.
+// Custom domain binding on the gateway route.
+//  - Managed certificate path: bind with 'Auto' and NO certificate. Azure requires the hostname to
+//    be registered on a route BEFORE a managed certificate can be issued (RequireCustomHostnameIn-
+//    Environment), so the cert below depends on this route and auto-attaches once issued.
+//  - Bring-your-own path: the certificate already exists, so bind directly with 'SniEnabled'.
+var managedDomainEntry = {
+  name: customDomain
+  bindingType: 'Auto'
+}
+var byoDomainEntry = {
+  name: customDomain
+  bindingType: 'SniEnabled'
+  certificateId: customDomainCertificateId
+}
+var customDomains = !bindCustomDomain ? [] : [useManagedCertificate ? managedDomainEntry : byoDomainEntry]
+
+// Free, auto-renewing managed certificate for the custom domain. Issuance requires both the asuid
+// TXT record to resolve AND the hostname to already be on the route (hence dependsOn: gateway).
+// With 'Auto' binding the certificate auto-attaches to the route once issued.
 resource managedCertificate 'Microsoft.App/managedEnvironments/managedCertificates@2024-03-01' = if (useManagedCertificate) {
   parent: acaEnv
   name: replace(customDomain, '.', '-')
   location: location
+  dependsOn: [gateway]
   properties: {
     subjectName: customDomain
     domainControlValidation: 'TXT'
   }
 }
-
-var customDomains = !bindCustomDomain ? [] : [
-  {
-    name: customDomain
-    bindingType: 'SniEnabled'
-    certificateId: useManagedCertificate ? managedCertificate.id : customDomainCertificateId
-  }
-]
 
 // Backend container app names — must match the names used by the service deployments
 // (infra/users, infra/playfields, infra/games -> '../modules/container-app.bicep').
