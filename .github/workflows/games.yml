@@ -132,25 +132,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_PROD_TENANTID }}
           subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
 
-      - name: Read landing zone outputs
-        id: lz
-        run: |
-          LZ=$(az deployment sub show --name theprey-lz-prod --query properties.outputs -o json)
-          echo "keyVaultName=$(echo $LZ | jq -r '.keyVaultName.value')" >> "$GITHUB_OUTPUT"
-
-      - name: Get or create Postgres admin password
-        id: pg_creds
-        run: |
-          KV="${{ steps.lz.outputs.keyVaultName }}"
-          if az keyvault secret show --vault-name "$KV" --name "games-pg-admin-password" &>/dev/null 2>&1; then
-            PG_PASS=$(az keyvault secret show --vault-name "$KV" --name "games-pg-admin-password" --query value -o tsv)
-          else
-            PG_PASS=$(openssl rand -base64 32 | tr -d '/+=')
-            az keyvault secret set --vault-name "$KV" --name "games-pg-admin-password" --value "$PG_PASS"
-          fi
-          echo "::add-mask::$PG_PASS"
-          echo "pgAdminPassword=$PG_PASS" >> "$GITHUB_OUTPUT"
-
       - name: Bicep build (lint)
         run: az bicep build --file infra/games/main.bicep
 
@@ -164,4 +145,4 @@ jobs:
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
               registryServer="${{ secrets.ACR_HOSTNAME }}" \
-              pgAdminPassword="${{ steps.pg_creds.outputs.pgAdminPassword }}"
+              pgAdminPassword="${{ secrets.POSTGRES_ADMIN_PASSWORD }}"
