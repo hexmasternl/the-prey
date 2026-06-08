@@ -40,7 +40,12 @@ resource managedCertificate 'Microsoft.App/managedEnvironments/managedCertificat
   }
 }
 
-var customDomains = !bindCustomDomain ? [] : [
+var customDomains = !bindCustomDomain ? [  
+  {
+    name: customDomain
+    bindingType: 'None'
+  }
+] : [
   {
     name: customDomain
     bindingType: 'SniEnabled'
