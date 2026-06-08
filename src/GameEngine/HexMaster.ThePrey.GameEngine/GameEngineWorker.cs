@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using Azure.Storage.Queues;
 using HexMaster.ThePrey.GameEngine.Observability;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ThePrey.Aspire.ServiceDefaults;
 
 namespace HexMaster.ThePrey.GameEngine;
 
@@ -10,15 +12,18 @@ internal sealed class GameEngineWorker : BackgroundService
 {
     private readonly QueueServiceClient _queueServiceClient;
     private readonly GameLocationChecker _locationChecker;
+    private readonly string _queueName;
     private readonly ILogger<GameEngineWorker> _logger;
 
     public GameEngineWorker(
         QueueServiceClient queueServiceClient,
         GameLocationChecker locationChecker,
+        IConfiguration configuration,
         ILogger<GameEngineWorker> logger)
     {
         _queueServiceClient = queueServiceClient;
         _locationChecker = locationChecker;
+        _queueName = configuration["GameEngine:QueueName"] ?? AspireConstants.Queues.GameStart;
         _logger = logger;
     }
 
@@ -28,7 +33,7 @@ internal sealed class GameEngineWorker : BackgroundService
 
         try
         {
-            var queueClient = _queueServiceClient.GetQueueClient("game-engine-queue");
+            var queueClient = _queueServiceClient.GetQueueClient(_queueName);
             await queueClient.CreateIfNotExistsAsync(cancellationToken: stoppingToken);
 
             var message = await ReceiveMessageAsync(queueClient, stoppingToken);

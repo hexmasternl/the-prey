@@ -1,3 +1,4 @@
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -142,12 +143,24 @@ public static class Extensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-        //{
-        //    builder.Services.AddOpenTelemetry()
-        //       .UseAzureMonitor();
-        //}
+        // In Azure (Container Apps / jobs) telemetry flows to Application Insights via the
+        // Azure Monitor exporter. The connection string is injected as APPLICATIONINSIGHTS_CONNECTION_STRING.
+        // We attach the exporter to the existing OTel pipeline (traces, metrics, logs) rather than using
+        // the AspNetCore distro, so we don't double-register instrumentation already configured above and
+        // so the worker/job (a non-ASP.NET host) is covered too.
+        var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+        if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+        {
+            builder.Services.AddOpenTelemetry()
+                .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter(options =>
+                    options.ConnectionString = appInsightsConnectionString))
+                .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter(options =>
+                    options.ConnectionString = appInsightsConnectionString));
+
+            builder.Logging.AddOpenTelemetry(logging =>
+                logging.AddAzureMonitorLogExporter(options =>
+                    options.ConnectionString = appInsightsConnectionString));
+        }
 
         return builder;
     }

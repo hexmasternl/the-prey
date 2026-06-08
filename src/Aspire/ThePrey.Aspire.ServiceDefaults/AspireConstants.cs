@@ -26,5 +26,15 @@ namespace ThePrey.Aspire.ServiceDefaults
             public const string GameEngine = "hexmaster-theprey-game-engine";
         }
 
+        public static class Queues
+        {
+            /// <summary>
+            /// Name of the storage queue the Games API writes to when a game starts and the
+            /// game engine job reads from / is KEDA-triggered by. Must match the queue provisioned
+            /// in the landing zone and the job's azure-queue scale rule.
+            /// </summary>
+            public const string GameStart = "gamestart";
+        }
+
     }
 }

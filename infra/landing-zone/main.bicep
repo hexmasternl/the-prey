@@ -83,6 +83,9 @@ module storageQueues 'modules/storage-queues.bicep' = {
   params: {
     name: 'thepreylz${uniqueSuffix}sq'
     location: location
+    queueNames: [
+      'gamestart'
+    ]
   }
 }
 

@@ -23,7 +23,11 @@ param landingZone {
   applicationInsights: string
   appConfig: string
   keyVault: string
+  storageQueueAccount: string
 }
+
+@description('Name of the storage queue that triggers the Games job when a game starts')
+param gameStartQueueName string = 'gamestart'
 
 @description('PostgreSQL administrator login')
 param pgAdminLogin string = 'thepreyadmin'
@@ -65,6 +69,11 @@ resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' e
   scope: resourceGroup(landingZone.resourceGroup)
 }
 
+resource storageQueueAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
+  name: landingZone.storageQueueAccount
+  scope: resourceGroup(landingZone.resourceGroup)
+}
+
 // Games API container app
 module gamesApi '../modules/container-app.bicep' = {
   name: 'gamesApi'
@@ -88,6 +97,18 @@ module gamesApi '../modules/container-app.bicep' = {
         name: 'ConnectionStrings__Games'
         secretRef: 'pg-connection-string'
       }
+      {
+        name: 'AZURE_CLIENT_ID'
+        value: acrPullIdentity.properties.clientId
+      }
+      {
+        name: 'ConnectionStrings__game-engine-queue'
+        value: storageQueueAccount.properties.primaryEndpoints.queue
+      }
+      {
+        name: 'GameEngine__QueueName'
+        value: gameStartQueueName
+      }
     ]
   }
 }
@@ -110,6 +131,23 @@ module gamesData 'modules/games-data.bicep' = {
     appInsightsConnectionString: appInsights.properties.ConnectionString
     appConfigEndpoint: appConfig.properties.endpoint
     jobCommand: jobCommand
+    storageAccountName: storageQueueAccount.name
+    queueServiceUri: storageQueueAccount.properties.primaryEndpoints.queue
+    gameStartQueueName: gameStartQueueName
+    queueIdentityResourceId: acrPullIdentity.id
+    queueIdentityClientId: acrPullIdentity.properties.clientId
+    gamesApiBaseUrl: 'https://${gamesApi.outputs.fqdn}'
+  }
+}
+
+// Grant the shared managed identity queue data access on the landing-zone storage
+// account — used by the Games API to enqueue and by the job (scaler + runtime) to consume.
+module queueRoleAssignment 'modules/queue-role-assignment.bicep' = {
+  name: 'gamesQueueRoleAssignment'
+  scope: resourceGroup(landingZone.resourceGroup)
+  params: {
+    storageAccountName: landingZone.storageQueueAccount
+    principalId: acrPullIdentity.properties.principalId
   }
 }
 

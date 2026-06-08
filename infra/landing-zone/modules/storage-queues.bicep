@@ -1,6 +1,9 @@
 param name string
 param location string
 
+@description('Names of the queues to provision in the queue service')
+param queueNames array = []
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: name
   location: location
@@ -21,6 +24,14 @@ resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2023-05-0
   name: 'default'
   properties: {}
 }
+
+resource queues 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-05-01' = [
+  for queueName in queueNames: {
+    parent: queueService
+    name: queueName
+    properties: {}
+  }
+]
 
 output id string = storageAccount.id
 output name string = storageAccount.name

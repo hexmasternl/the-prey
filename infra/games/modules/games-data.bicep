@@ -40,6 +40,24 @@ param appConfigEndpoint string
 @description('Container Apps Job command override (default: the API entrypoint)')
 param jobCommand array = []
 
+@description('Name of the landing-zone storage account hosting the trigger queue')
+param storageAccountName string
+
+@description('Queue service endpoint URI of the storage account')
+param queueServiceUri string
+
+@description('Name of the storage queue that triggers the job when a game starts')
+param gameStartQueueName string
+
+@description('Resource ID of the user-assigned identity the job uses for queue access')
+param queueIdentityResourceId string
+
+@description('Client ID of the user-assigned identity the job uses for queue access')
+param queueIdentityClientId string
+
+@description('Base URL of the Games API the engine calls back to broadcast location updates')
+param gamesApiBaseUrl string
+
 var pgServerName = 'theprey-games-pg-${environmentName}'
 
 // PostgreSQL Flexible Server
@@ -89,12 +107,33 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
   properties: {
     environmentId: containerAppsEnvironmentId
     configuration: {
-      triggerType: 'Manual'
+      triggerType: 'Event'
       replicaTimeout: 300
       replicaRetryLimit: 0
-      manualTriggerConfig: {
+      eventTriggerConfig: {
         parallelism: 1
         replicaCompletionCount: 1
+        scale: {
+          minExecutions: 0
+          maxExecutions: 1
+          pollingInterval: 30
+          rules: [
+            {
+              name: 'gamestart-queue'
+              type: 'azure-queue'
+              // Job scale rules support managed-identity auth at the API level (2024-03-01);
+              // the Bicep type for JobScaleRule is stale and omits the `identity` property.
+              #disable-next-line BCP037
+              identity: queueIdentityResourceId
+              metadata: {
+                accountName: storageAccountName
+                queueName: gameStartQueueName
+                queueLength: '1'
+                cloud: 'AzurePublicCloud'
+              }
+            }
+          ]
+        }
       }
       registries: [
         {
@@ -135,6 +174,22 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
             {
               name: 'ConnectionStrings__Games'
               secretRef: 'pg-connection-string'
+            }
+            {
+              name: 'AZURE_CLIENT_ID'
+              value: queueIdentityClientId
+            }
+            {
+              name: 'ConnectionStrings__game-engine-queue'
+              value: queueServiceUri
+            }
+            {
+              name: 'GameEngine__QueueName'
+              value: gameStartQueueName
+            }
+            {
+              name: 'GamesApi__Url'
+              value: gamesApiBaseUrl
             }
           ]
         }

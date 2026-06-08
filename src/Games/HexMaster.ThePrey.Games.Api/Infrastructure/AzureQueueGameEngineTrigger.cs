@@ -2,6 +2,7 @@ using Azure.Storage.Queues;
 using HexMaster.ThePrey.Games;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using ThePrey.Aspire.ServiceDefaults;
 
 namespace HexMaster.ThePrey.Games.Api.Infrastructure;
 
@@ -17,7 +18,7 @@ internal sealed class AzureQueueGameEngineTrigger : IGameEngineTrigger
         ILogger<AzureQueueGameEngineTrigger> logger)
     {
         _queueServiceClient = queueServiceClient;
-        _queueName = configuration["GameEngine:QueueName"] ?? "game-engine-queue";
+        _queueName = configuration["GameEngine:QueueName"] ?? AspireConstants.Queues.GameStart;
         _logger = logger;
     }
 

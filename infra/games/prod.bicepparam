@@ -8,6 +8,7 @@ param landingZone = {
   applicationInsights: 'theprey-prod-ai'
   appConfig: 'theprey-lz-ac-gp53pncm'
   keyVault: 'theprey-lz-kv-gp53pn'
+  storageQueueAccount: 'thepreylzgp53pncmsq'
 }
 // Service configuration
 param environmentName = 'prod'
