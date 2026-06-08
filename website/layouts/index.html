@@ -44,7 +44,7 @@
   <p>{{ i18n "home_game_p1" }}</p>
   <p>{{ i18n "home_game_p2" }}</p>
   <div class="phase-grid reveal-stagger">
-    {{ range hugo.Data.home.phases }}
+    {{ range site.Data.home.phases }}
     <div class="panel">
       <div class="ptitle">{{ i18n (printf "home_phase_%s_title" .key) }}</div>
       <div class="phase-figure {{ .accent }}"><span class="phase-num" data-count="{{ .value }}">{{ .value }}</span><span class="unit"> {{ .unit }}</span></div>
@@ -60,7 +60,7 @@
   <div class="eyebrow">{{ i18n "home_roles_eyebrow" }}</div>
   <h2>{{ i18n "home_roles_title" }}</h2>
   <div class="roles-grid reveal-stagger" style="margin-top:24px">
-    {{ range hugo.Data.home.roles }}
+    {{ range site.Data.home.roles }}
     {{ partial "role-card.html" (dict
       "url"     (.url | relLangURL)
       "glyph"   .glyph
