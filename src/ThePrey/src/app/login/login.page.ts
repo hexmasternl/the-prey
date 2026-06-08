@@ -8,6 +8,7 @@ import { IonContent, IonButton } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, take } from 'rxjs/operators';
 import { getCallbackUri } from '../auth.utils';
+import { DebugLogService } from '../debug/debug-log.service';
 
 @Component({
   selector: 'app-login',
@@ -17,6 +18,7 @@ import { getCallbackUri } from '../auth.utils';
 })
 export class LoginPage implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly debug = inject(DebugLogService);
 
   constructor(
     private authService: AuthService,
@@ -35,11 +37,15 @@ export class LoginPage implements OnInit {
       take(1),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => {
-      this.router.navigate(['/home'], { replaceUrl: true });
+      this.debug.log('LoginPage saw authenticated=true → navigating to /home');
+      this.router.navigate(['/home'], { replaceUrl: true })
+        .then((ok) => this.debug.log('navigate(/home) result', ok))
+        .catch((err) => this.debug.log('navigate(/home) FAILED', err));
     });
   }
 
   login(): void {
+    this.debug.log('login() tapped; redirect_uri', getCallbackUri());
     this.authService.loginWithRedirect({
       authorizationParams: { redirect_uri: getCallbackUri() },
       ...(Capacitor.isNativePlatform() && {
@@ -48,5 +54,12 @@ export class LoginPage implements OnInit {
         },
       }),
     });
+  }
+
+  copyLog(): void {
+    const ta = document.querySelector<HTMLTextAreaElement>('#debug-log');
+    if (!ta) return;
+    ta.select();
+    document.execCommand('copy');
   }
 }

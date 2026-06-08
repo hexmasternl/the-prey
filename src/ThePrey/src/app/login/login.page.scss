@@ -2,6 +2,37 @@ ion-content.login-content {
   --background: var(--tp-bg-void, #0c0e0c);
 }
 
+/* TEMP debug panel: remove once the login flow is fixed. */
+.debug-panel {
+  width: 100%;
+  max-width: 480px;
+  margin-top: 2rem;
+}
+
+.debug-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.debug-log {
+  width: 100%;
+  height: 240px;
+  resize: vertical;
+  overflow: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #9dff6b;
+  background: #050705;
+  border: 1px solid var(--ion-color-primary, #64ff00);
+  border-radius: 4px;
+  padding: 0.5rem;
+  white-space: pre;
+}
+
 .login-container {
   display: flex;
   flex-direction: column;

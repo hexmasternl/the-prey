@@ -22,7 +22,17 @@ public static class Extensions
     private const string AlivenessEndpointPath = "/alive";
 
     public const string DefaultCorsPolicyName = "DefaultCors";
-    private const string DefaultCorsOrigin = "http://localhost:8100";
+
+    // Origins allowed when "Cors:AllowedOrigins" is not configured. Includes the Capacitor
+    // WebView origins, which are constant across environments (the native app always reports
+    // origin https://localhost on Android / capacitor://localhost on iOS regardless of which
+    // API environment it targets), so they must be allowed in production as well as dev.
+    private static readonly string[] DefaultCorsOrigins =
+    [
+        "http://localhost:8100",  // Ionic dev server (browser / `ionic serve`)
+        "https://localhost",      // Capacitor Android WebView
+        "capacitor://localhost",  // Capacitor iOS WebView
+    ];
 
     // Auth0 tenant authority and API identifier (audience) shared by every backend service.
     // Override per environment via configuration keys "Auth0:Domain" and "Auth0:Audience".
@@ -81,7 +91,7 @@ public static class Extensions
     {
         var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]
             ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            ?? [DefaultCorsOrigin];
+            ?? DefaultCorsOrigins;
 
         builder.Services.AddCors(options =>
         {

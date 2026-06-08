@@ -9,6 +9,7 @@ import { Capacitor } from '@capacitor/core';
 import { filter, mergeMap, switchMap, take } from 'rxjs/operators';
 import { nativeCallbackUri } from './auth.utils';
 import { UserStateService } from './users/user-state.service';
+import { DebugLogService } from './debug/debug-log.service';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +22,7 @@ export class AppComponent implements OnInit {
   private readonly ngZone = inject(NgZone);
   private readonly router = inject(Router);
   private readonly userState = inject(UserStateService);
+  private readonly debug = inject(DebugLogService);
 
   private readonly authLoading = toSignal(this.authService.isLoading$, { initialValue: true });
   private readonly authenticated = toSignal(this.authService.isAuthenticated$, { initialValue: false });
@@ -48,44 +50,48 @@ export class AppComponent implements OnInit {
       this.userState.init(claims);
     });
 
-    if (!Capacitor.isNativePlatform()) return;
+    // Surface auth-state transitions so we can see what the app observes on-device.
+    this.debug.log('expected callback URI', nativeCallbackUri);
+    this.authService.isLoading$.subscribe((v) => this.debug.log('isLoading$', v));
+    this.authService.isAuthenticated$.subscribe((v) => this.debug.log('isAuthenticated$', v));
+    this.authService.error$.subscribe((e) => this.debug.log('Auth0 error$', e));
+
+    if (!Capacitor.isNativePlatform()) {
+      this.debug.log('not native platform — deep-link handlers skipped');
+      return;
+    }
 
     // Handle cold-start deep link (Android: app not in memory when tapped)
     App.getLaunchUrl().then((result) => {
-      if (!result?.url) return;
-      const url = result.url;
-      if (url.startsWith(nativeCallbackUri)) {
-        this.ngZone.run(() => {
-          this.authService.handleRedirectCallback(url).pipe(
-            mergeMap(() => Browser.close()),
-          ).subscribe();
-        });
-      } else {
-        // Game join deep link: nl.hexmaster.theprey://join?gameId=<id>
-        const gameIdMatch = url.match(/[?&]gameId=([^&]+)/);
-        if (gameIdMatch?.[1]) {
-          this.ngZone.run(() => {
-            this.router.navigate(['/games/join'], { queryParams: { gameId: gameIdMatch[1] } });
-          });
-        }
-      }
+      this.debug.log('getLaunchUrl', result?.url ?? '(none)');
+      if (result?.url) this.handleDeepLink(result.url);
     });
 
     // Handle foreground deep link
     App.addListener('appUrlOpen', ({ url }: URLOpenListenerEvent) => {
-      this.ngZone.run(() => {
-        if (url.startsWith(nativeCallbackUri)) {
-          this.authService.handleRedirectCallback(url).pipe(
-            mergeMap(() => Browser.close()),
-          ).subscribe();
-        } else {
-          // Game join deep link: nl.hexmaster.theprey://join?gameId=<id>
-          const gameIdMatch = url.match(/[?&]gameId=([^&]+)/);
-          if (gameIdMatch?.[1]) {
-            this.router.navigate(['/games/join'], { queryParams: { gameId: gameIdMatch[1] } });
-          }
+      this.debug.log('appUrlOpen', url);
+      this.handleDeepLink(url);
+    });
+  }
+
+  private handleDeepLink(url: string): void {
+    this.ngZone.run(() => {
+      if (url.startsWith(nativeCallbackUri)) {
+        this.debug.log('handleRedirectCallback start');
+        this.authService.handleRedirectCallback(url).pipe(
+          mergeMap(() => Browser.close()),
+        ).subscribe({
+          next: () => this.debug.log('handleRedirectCallback SUCCESS'),
+          error: (err) => this.debug.log('handleRedirectCallback FAILED', err),
+        });
+      } else {
+        this.debug.log('deep link did not match callback URI', url);
+        // Game join deep link: nl.hexmaster.theprey://join?gameId=<id>
+        const gameIdMatch = url.match(/[?&]gameId=([^&]+)/);
+        if (gameIdMatch?.[1]) {
+          this.router.navigate(['/games/join'], { queryParams: { gameId: gameIdMatch[1] } });
         }
-      });
+      }
     });
   }
 }

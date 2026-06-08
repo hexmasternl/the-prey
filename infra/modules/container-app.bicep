@@ -22,6 +22,9 @@ param additionalSecrets array = []
 @description('Extra environment variables (each element: { name, value } or { name, secretRef })')
 param additionalEnvVars array = []
 
+@description('Comma-separated list of origins allowed to call this API from a browser (CORS). Maps to the "Cors:AllowedOrigins" config key consumed by AddDefaultCors. Includes the Capacitor native WebView origins (https://localhost on Android, capacitor://localhost on iOS) which are constant across environments, plus the production website. Adjust the website origin(s) here if the public domain differs.')
+param corsAllowedOrigins string = 'https://localhost,capacitor://localhost,https://theprey.nl,https://www.theprey.nl'
+
 @description('Minimum replica count')
 param minReplicas int = 0
 
@@ -72,6 +75,10 @@ var baseEnvVars = [
   {
     name: 'AZURE_APP_CONFIGURATION_ENDPOINT'
     value: appConfig.properties.endpoint
+  }
+  {
+    name: 'Cors__AllowedOrigins'
+    value: corsAllowedOrigins
   }
 ]
 
