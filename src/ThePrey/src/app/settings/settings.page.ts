@@ -16,6 +16,7 @@ import { of } from 'rxjs';
 import { LanguageService, SupportedLanguage } from '../i18n/language.service';
 import { SettingsService } from './settings.service';
 import { UserStateService } from '../users/user-state.service';
+import { DebugLogService } from '../debug/debug-log.service';
 
 @Component({
   selector: 'app-settings',
@@ -39,6 +40,7 @@ export class SettingsPage implements OnInit {
   private readonly languageService = inject(LanguageService);
   private readonly userState = inject(UserStateService);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly debug = inject(DebugLogService);
 
   saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
   isLoading = true;

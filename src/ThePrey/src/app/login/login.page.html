@@ -8,20 +8,5 @@
     >
       {{ 'LOGIN.START_HUNT' | translate }}
     </ion-button>
-
-    <!-- TEMP debug panel: remove once the login flow is fixed. -->
-    <div class="debug-panel">
-      <div class="debug-actions">
-        <ion-button size="small" fill="outline" (click)="copyLog()">Copy</ion-button>
-        <ion-button size="small" fill="outline" color="medium" (click)="debug.clear()">Clear</ion-button>
-      </div>
-      <textarea
-        id="debug-log"
-        class="debug-log"
-        readonly
-        spellcheck="false"
-        [value]="debug.text()"
-      ></textarea>
-    </div>
   </div>
 </ion-content>

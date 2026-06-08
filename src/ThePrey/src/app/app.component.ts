@@ -10,18 +10,21 @@ import { filter, mergeMap, switchMap, take } from 'rxjs/operators';
 import { nativeCallbackUri } from './auth.utils';
 import { UserStateService } from './users/user-state.service';
 import { DebugLogService } from './debug/debug-log.service';
+import { DebugOverlayComponent } from './debug/debug-overlay.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
-  imports: [IonApp, IonRouterOutlet, IonSpinner],
+  imports: [IonApp, IonRouterOutlet, IonSpinner, DebugOverlayComponent],
 })
 export class AppComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly ngZone = inject(NgZone);
   private readonly router = inject(Router);
   private readonly userState = inject(UserStateService);
+  // Injected eagerly so console/error capture is installed at app start, even
+  // before the overlay is first shown.
   private readonly debug = inject(DebugLogService);
 
   private readonly authLoading = toSignal(this.authService.isLoading$, { initialValue: true });
@@ -50,26 +53,15 @@ export class AppComponent implements OnInit {
       this.userState.init(claims);
     });
 
-    // Surface auth-state transitions so we can see what the app observes on-device.
-    this.debug.log('expected callback URI', nativeCallbackUri);
-    this.authService.isLoading$.subscribe((v) => this.debug.log('isLoading$', v));
-    this.authService.isAuthenticated$.subscribe((v) => this.debug.log('isAuthenticated$', v));
-    this.authService.error$.subscribe((e) => this.debug.log('Auth0 error$', e));
-
-    if (!Capacitor.isNativePlatform()) {
-      this.debug.log('not native platform — deep-link handlers skipped');
-      return;
-    }
+    if (!Capacitor.isNativePlatform()) return;
 
     // Handle cold-start deep link (Android: app not in memory when tapped)
     App.getLaunchUrl().then((result) => {
-      this.debug.log('getLaunchUrl', result?.url ?? '(none)');
       if (result?.url) this.handleDeepLink(result.url);
     });
 
     // Handle foreground deep link
     App.addListener('appUrlOpen', ({ url }: URLOpenListenerEvent) => {
-      this.debug.log('appUrlOpen', url);
       this.handleDeepLink(url);
     });
   }
@@ -77,15 +69,12 @@ export class AppComponent implements OnInit {
   private handleDeepLink(url: string): void {
     this.ngZone.run(() => {
       if (url.startsWith(nativeCallbackUri)) {
-        this.debug.log('handleRedirectCallback start');
         this.authService.handleRedirectCallback(url).pipe(
           mergeMap(() => Browser.close()),
         ).subscribe({
-          next: () => this.debug.log('handleRedirectCallback SUCCESS'),
-          error: (err) => this.debug.log('handleRedirectCallback FAILED', err),
+          error: (err) => console.error('Auth0 handleRedirectCallback failed', err),
         });
       } else {
-        this.debug.log('deep link did not match callback URI', url);
         // Game join deep link: nl.hexmaster.theprey://join?gameId=<id>
         const gameIdMatch = url.match(/[?&]gameId=([^&]+)/);
         if (gameIdMatch?.[1]) {

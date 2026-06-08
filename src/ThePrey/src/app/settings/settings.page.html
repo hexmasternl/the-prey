@@ -89,5 +89,25 @@
       </div>
     </section>
 
+    <!-- Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Section 3: DEVELOPER -->
+    <section class="settings-section">
+      <div class="section-head">
+        <span class="section-label">DEVELOPER</span>
+      </div>
+      <button
+        type="button"
+        class="debug-toggle"
+        [class.active]="debug.enabled()"
+        (click)="debug.toggle()"
+      >
+        <span class="debug-toggle-name">Debug overlay</span>
+        <span class="debug-toggle-state">{{ debug.enabled() ? 'ON' : 'OFF' }}</span>
+      </button>
+      <p class="field-hint">Shows an on-screen log of console output and errors at the bottom of every page.</p>
+    </section>
+
   </form>
 </ion-content>
