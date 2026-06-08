@@ -21,7 +21,6 @@ import { AuthService } from '@auth0/auth0-angular';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { firstValueFrom } from 'rxjs';
-import { nativeGameJoinUri } from '../auth.utils';
 import { GameConfigurationDto, GameDto, GamesService } from './games.service';
 import { UserStateService } from '../users/user-state.service';
 
@@ -266,17 +265,18 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   async shareGame(): Promise<void> {
     const g = this.game();
     if (!g) return;
-    // On device, share the custom-scheme deep link so tapping it reopens the app
-    // on the join screen. In the browser there is no app to open, so link to the web join page.
-    const url = Capacitor.isNativePlatform()
-      ? nativeGameJoinUri(g.id)
-      : `${window.location.origin}/games/join?gameId=${g.id}`;
     const message = `${this.translate.instant('GAME_SHARE.MESSAGE')} ${g.gameCode}`;
     const title = this.translate.instant('GAME_SHARE.TITLE');
     try {
       if (Capacitor.isNativePlatform()) {
-        await Share.share({ title, text: message, url });
+        // Chat apps like WhatsApp only linkify http(s) URLs, not custom schemes,
+        // and there is no public web join page yet — so share the code as plain
+        // text. (A tappable https App Link can replace this once theprey.nl serves
+        // a join page and verifies assetlinks.json.)
+        await Share.share({ title, text: message });
       } else if (navigator.share) {
+        // In the browser there is no app to open, so link to the web join page.
+        const url = `${window.location.origin}/games/join?gameId=${g.id}`;
         await navigator.share({ title, text: message, url });
       }
     } catch {
