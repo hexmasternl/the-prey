@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/staticwebapp.config.json",
+  "routes": [
+    {
+      "route": "/.well-known/assetlinks.json",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/games/join/*",
+      "rewrite": "/games/join/index.html"
+    }
+  ],
+  "mimeTypes": {
+    ".json": "application/json"
+  }
+}
