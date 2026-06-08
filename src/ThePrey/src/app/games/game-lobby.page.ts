@@ -276,7 +276,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     if (!g) return;
     const message = `${this.translate.instant('GAME_SHARE.MESSAGE')} ${g.gameCode}`;
     const title = this.translate.instant('GAME_SHARE.TITLE');
-    // The recipient still needs the 8-digit code to join, so the message carries
+    // The recipient still needs the 4-digit code to join, so the message carries
     // both the code (in `message`) and the tappable link on its own line.
     const link = `${GAME_JOIN_LINK_BASE}/${g.id}`;
     try {

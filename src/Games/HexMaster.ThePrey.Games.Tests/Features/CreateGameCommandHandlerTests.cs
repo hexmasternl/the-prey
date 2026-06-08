@@ -36,7 +36,7 @@ public sealed class CreateGameCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldAssignEightDigitGameCode_WhenCommandIsValid()
+    public async Task Handle_ShouldAssignFourDigitGameCode_WhenCommandIsValid()
     {
         var result = await _handler.Handle(ValidCommand(), CancellationToken.None);
 
@@ -79,7 +79,7 @@ public sealed class CreateGameCommandHandlerTests
     {
         _repository
             .Setup(r => r.AddAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new DuplicateGameCodeException("00000000"));
+            .ThrowsAsync(new DuplicateGameCodeException("0000"));
 
         await Assert.ThrowsAsync<DuplicateGameCodeException>(() => _handler.Handle(ValidCommand(), CancellationToken.None));
 
