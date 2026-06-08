@@ -48,6 +48,17 @@ module acaEnv 'modules/container-apps-environment.bicep' = {
   }
 }
 
+// Managed gateway: path-based routing across the backend container apps,
+// mirroring the YARP gateway configured in the Aspire AppHost.
+module httpRouteConfig 'modules/http-route-config.bicep' = {
+  name: 'httpRouteConfig'
+  scope: rg
+  params: {
+    containerAppsEnvironmentName: acaEnv.outputs.name
+    environmentName: environmentName
+  }
+}
+
 module keyVault 'modules/key-vault.bicep' = {
   name: 'keyVault'
   scope: rg
@@ -88,6 +99,7 @@ module acrPullIdentity 'modules/acr-pull-identity.bicep' = {
 output resourceGroupName string = rg.name
 output containerAppsEnvironmentId string = acaEnv.outputs.id
 output containerAppsEnvironmentName string = acaEnv.outputs.name
+output gatewayFqdn string = httpRouteConfig.outputs.fqdn
 output appInsightsName string = appInsights.outputs.name
 output keyVaultName string = keyVault.outputs.name
 output keyVaultUri string = keyVault.outputs.uri

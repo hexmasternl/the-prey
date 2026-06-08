@@ -6,9 +6,13 @@ on:
       - main
     paths:
       - 'website/**'
+      - 'infra/website/**'
+      - '.github/workflows/deploy-website.yml'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  id-token: write
+  contents: read
 
 jobs:
   build-and-deploy:
@@ -20,9 +24,27 @@ jobs:
           submodules: true
           fetch-depth: 0
 
+      - name: Log in to Azure
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_PROD_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_PROD_TENANTID }}
+          subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
+
+      - name: Provision Static Web App
+        id: provision
+        run: |
+          az deployment sub create \
+            --name theprey-website-prod \
+            --location westeurope \
+            --template-file infra/website/main.bicep \
+            --query properties.outputs -o json > outputs.json
+          echo "name=$(jq -r '.staticSiteName.value' outputs.json)" >> "$GITHUB_OUTPUT"
+          echo "rg=$(jq -r '.resourceGroupName.value' outputs.json)" >> "$GITHUB_OUTPUT"
+
       - name: Read Hugo version
         id: hugo-version
-        run: echo "version=$(cat website/.hugo-version)" >> $GITHUB_OUTPUT
+        run: echo "version=$(cat website/.hugo-version)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
@@ -34,9 +56,22 @@ jobs:
         working-directory: website
         run: hugo --minify
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Get Static Web App deployment token
+        id: token
+        run: |
+          token=$(az staticwebapp secrets list \
+            --name "${{ steps.provision.outputs.name }}" \
+            --resource-group "${{ steps.provision.outputs.rg }}" \
+            --query properties.apiKey -o tsv)
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: website/public
-          publish_branch: gh-pages
+          azure_static_web_apps_api_token: ${{ steps.token.outputs.token }}
+          action: upload
+          app_location: website/public
+          output_location: ''
+          skip_app_build: true
+          skip_api_build: true
