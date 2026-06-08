@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
 		<title>Roles on The Prey</title>
-		<link>http://localhost:1314/en/roles/</link>
+		<link>https://theprey.nl/en/roles/</link>
 		<description>Recent content in Roles on The Prey</description>
 		<generator>Hugo</generator>
 		<language>en</language>
@@ -10,26 +10,26 @@
 		
 		
 		
-			<atom:link href="http://localhost:1314/en/roles/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="https://theprey.nl/en/roles/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>Game Creator</title>
-				<link>http://localhost:1314/en/roles/game-creator/</link>
+				<link>https://theprey.nl/en/roles/game-creator/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:1314/en/roles/game-creator/</guid>
+				<guid>https://theprey.nl/en/roles/game-creator/</guid>
 				<description>&lt;h2 id=&#34;your-responsibility&#34;&gt;Your Responsibility&lt;/h2&gt;&#xA;&lt;p&gt;The Game Creator sets up the game before it begins. You control the playfield, the lobby, and role assignments. Once the game starts, you play as a Hunter or Prey — the Creator role ends at launch.&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;h2 id=&#34;four-pre-game-steps&#34;&gt;Four Pre-Game Steps&lt;/h2&gt;&#xA;&lt;p&gt;&lt;strong&gt;1. Define the Playfield&lt;/strong&gt;&#xA;Draw the boundary polygon in the app. The playfield is the GPS area within which the game is played. Keep it tight enough to be exciting, large enough to allow real hiding.&lt;/p&gt;</description>
 			</item>
 			<item>
 				<title>Hunter</title>
-				<link>http://localhost:1314/en/roles/hunter/</link>
+				<link>https://theprey.nl/en/roles/hunter/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:1314/en/roles/hunter/</guid>
+				<guid>https://theprey.nl/en/roles/hunter/</guid>
 				<description>&lt;h2 id=&#34;your-goal&#34;&gt;Your Goal&lt;/h2&gt;&#xA;&lt;p&gt;You are a Hunter. Tag every Prey before the game timer reaches zero. If all Prey are eliminated, Hunters win.&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;h2 id=&#34;head-start--wait-it-out&#34;&gt;Head Start — Wait It Out&lt;/h2&gt;&#xA;&lt;p&gt;When the game starts, Hunters must wait. The 10-minute head start is for Prey only. Your map shows the playfield boundary but no Prey positions.&lt;/p&gt;&#xA;&lt;p&gt;Stay near the playfield. Use the time to plan your approach.&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;h2 id=&#34;active-hunt--gps-tracking&#34;&gt;Active Hunt — GPS Tracking&lt;/h2&gt;&#xA;&lt;p&gt;When the head start ends, the hunt is on. Prey GPS positions appear as pins on your map. Positions update on a fixed interval — check the map regularly.&lt;/p&gt;</description>
 			</item>
 			<item>
 				<title>Prey</title>
-				<link>http://localhost:1314/en/roles/prey/</link>
+				<link>https://theprey.nl/en/roles/prey/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:1314/en/roles/prey/</guid>
+				<guid>https://theprey.nl/en/roles/prey/</guid>
 				<description>&lt;h2 id=&#34;your-goal&#34;&gt;Your Goal&lt;/h2&gt;&#xA;&lt;p&gt;You are the Prey. Survive until the game timer hits zero. If at least one Prey is still untagged when time runs out, all Prey win.&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;h2 id=&#34;head-start--10-minutes&#34;&gt;Head Start — 10 Minutes&lt;/h2&gt;&#xA;&lt;p&gt;When the game starts, you have a 10-minute head start. &lt;strong&gt;Your location is not shared with Hunters during this window.&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;p&gt;Use this time to scatter and find cover. Move away from the playfield entrance. Do not stand still.&lt;/p&gt;</description>
 			</item>
 	</channel>
