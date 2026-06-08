@@ -85,6 +85,18 @@ resource pgServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
   }
 }
 
+// Allow connections from all Azure services (Container Apps API + job). The 0.0.0.0/0.0.0.0
+// start/end IP is the special rule Azure interprets as "Allow public access from any Azure
+// service within Azure to this server" — not an open-to-the-internet rule.
+resource allowAzureServices 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2024-08-01' = {
+  parent: pgServer
+  name: 'AllowAllAzureServicesAndResourcesWithinAzure'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
+}
+
 resource gamesDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
   parent: pgServer
   name: 'games'
