@@ -3,8 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ if .IsHome }}{{ .Site.Title }} // {{ i18n "site_tagline" }}{{ else }}{{ .Title }} // {{ .Site.Title }}{{ end }}</title>
-  <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
+  {{ $title := cond .IsHome (printf "%s // %s" .Site.Title (i18n "site_tagline")) (printf "%s // %s" .Title .Site.Title) }}
+  {{ $description := .Description | default .Site.Params.description }}
+  <title>{{ $title }}</title>
+  <meta name="description" content="{{ $description }}">
+  {{ $keywords := .Params.keywords | default .Site.Params.keywords }}
+  {{ with $keywords }}<meta name="keywords" content="{{ delimit . ", " }}">{{ end }}
+
+  {{/* Open Graph (social share previews) */}}
+  <meta property="og:title" content="{{ $title }}">
+  <meta property="og:type" content="{{ cond .IsHome "website" "article" }}">
+  <meta property="og:image" content="{{ (.Params.image | default .Site.Params.ogImage) | absURL }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:description" content="{{ $description }}">
+  <meta property="og:site_name" content="{{ .Site.Title }}">
+
+  <link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | relURL }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">

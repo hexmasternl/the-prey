@@ -25,3 +25,7 @@ defaultContentLanguageInSubdir = true
 
 [params]
   description = "A GPS-based hide-and-seek game. Hunt or be hunted."
+  # Site-wide fallback when a page does not define its own keywords.
+  keywords = ["The Prey", "GPS game", "hide and seek", "location-based game", "outdoor multiplayer game", "real-world tag game", "GPS hide and seek"]
+  # Default Open Graph share image (served from static/). Pages may override via front matter `image`.
+  ogImage = "favicon.svg"
