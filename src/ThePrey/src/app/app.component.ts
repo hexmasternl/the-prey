@@ -75,9 +75,9 @@ export class AppComponent implements OnInit {
           error: (err) => console.error('Auth0 handleRedirectCallback failed', err),
         });
       } else {
-        // Game join deep link, e.g.
-        //   nl.hexmaster.theprey://theprey.eu.auth0.com/capacitor/nl.hexmaster.theprey/games/join/<id>
-        // Older links used a ?gameId=<id> query param — still supported.
+        // Game join App Link, e.g. https://theprey.nl/games/join/<id> (the OS routes
+        // these in via autoVerify). Older links used a ?gameId=<id> query param —
+        // still supported as a fallback.
         const pathMatch = url.match(/\/games\/join\/([^/?#]+)/);
         const queryMatch = url.match(/[?&]gameId=([^&]+)/);
         const gameId = pathMatch?.[1] ?? queryMatch?.[1];

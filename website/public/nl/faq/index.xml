@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
 		<title>FAQ on The Prey</title>
-		<link>http://localhost:1313/nl/faq/</link>
+		<link>https://theprey.nl/nl/faq/</link>
 		<description>Recent content in FAQ on The Prey</description>
 		<generator>Hugo</generator>
 		<language>nl</language>
@@ -10,6 +10,6 @@
 		
 		
 		
-			<atom:link href="http://localhost:1313/nl/faq/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="https://theprey.nl/nl/faq/index.xml" rel="self" type="application/rss+xml" />
 	</channel>
 </rss>

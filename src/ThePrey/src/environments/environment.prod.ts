@@ -1,10 +1,12 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.theprey.nl',
+  apiUrl:
+    'https://gateway.jollyfield-ab1afcde.westeurope.azurecontainerapps.io',
   auth0: {
-    domain: 'YOUR_AUTH0_DOMAIN',
-    clientId: 'YOUR_AUTH0_CLIENT_ID',
+    domain: 'theprey.eu.auth0.com',
+    clientId: 'tJrm2nPrAX4kES7XEnjUsL38cqbAbraJ',
   },
-  auth0ClientId: 'REPLACE_ME',
-  auth0ClientSecret: 'REPLACE_ME',
+  auth0ClientId: 'uHNkakrYJwnsPoI7LgP1VK89WdAhg8VQ',
+  auth0ClientSecret:
+    'uBuuiDOxJoOaTC8sA8JN5rVm1-0690vFYmjW_QG9Jnzx3i8UHFC1FaUy8fbmJ_vZ',
 };

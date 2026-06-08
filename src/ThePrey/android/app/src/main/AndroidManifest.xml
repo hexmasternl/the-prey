@@ -36,6 +36,24 @@
                 <data android:scheme="@string/custom_url_scheme" />
             </intent-filter>
 
+            <!--
+                Android App Link for game-join URLs. autoVerify makes the OS fetch
+                https://theprey.nl/.well-known/assetlinks.json and, once the signing
+                fingerprint matches, route https://theprey.nl/games/join/<id> (and the
+                www host) straight into the app instead of the browser. Scoped to the
+                /games/join path so documentation pages on the same domain are NOT
+                captured by the app.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="theprey.nl" />
+                <data android:host="www.theprey.nl" />
+                <data android:pathPrefix="/games/join" />
+            </intent-filter>
+
         </activity>
 
         <provider

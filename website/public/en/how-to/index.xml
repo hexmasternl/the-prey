@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
 		<title>How-To Guides on The Prey</title>
-		<link>http://localhost:1313/en/how-to/</link>
+		<link>https://theprey.nl/en/how-to/</link>
 		<description>Recent content in How-To Guides on The Prey</description>
 		<generator>Hugo</generator>
 		<language>en</language>
@@ -10,40 +10,40 @@
 		
 		
 		
-			<atom:link href="http://localhost:1313/en/how-to/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="https://theprey.nl/en/how-to/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>Create a Game</title>
-				<link>http://localhost:1313/en/how-to/create-a-game/</link>
+				<link>https://theprey.nl/en/how-to/create-a-game/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:1313/en/how-to/create-a-game/</guid>
+				<guid>https://theprey.nl/en/how-to/create-a-game/</guid>
 				<description>&lt;ol class=&#34;steps&#34;&gt;&#xA;&lt;li&gt;Open The Prey app and tap &lt;strong&gt;Create Game&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Select a saved playfield or draw a new one. The playfield defines the game boundary.&lt;/li&gt;&#xA;&lt;li&gt;The app generates a join code. Share it with all participants before proceeding.&lt;/li&gt;&#xA;&lt;li&gt;Wait for players to join. They appear in the lobby list as they connect.&lt;/li&gt;&#xA;&lt;li&gt;Assign each player a role — &lt;strong&gt;Prey&lt;/strong&gt; or &lt;strong&gt;Hunter&lt;/strong&gt;. Every game needs at least one of each.&lt;/li&gt;&#xA;&lt;li&gt;Assign yourself a role if you are playing.&lt;/li&gt;&#xA;&lt;li&gt;Confirm all players are assigned and ready.&lt;/li&gt;&#xA;&lt;li&gt;Tap &lt;strong&gt;Start Game&lt;/strong&gt;. The 10-minute head start begins. Prey scatter. Hunters wait.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 			<item>
 				<title>Draw a Playfield</title>
-				<link>http://localhost:1313/en/how-to/draw-a-playfield/</link>
+				<link>https://theprey.nl/en/how-to/draw-a-playfield/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:1313/en/how-to/draw-a-playfield/</guid>
+				<guid>https://theprey.nl/en/how-to/draw-a-playfield/</guid>
 				<description>&lt;ol class=&#34;steps&#34;&gt;&#xA;&lt;li&gt;Open The Prey app and navigate to &lt;strong&gt;Playfields&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Tap &lt;strong&gt;New Playfield&lt;/strong&gt;. The map opens centered on your current GPS position.&lt;/li&gt;&#xA;&lt;li&gt;Tap the map to place your first vertex. A pin appears.&lt;/li&gt;&#xA;&lt;li&gt;Continue tapping to place each corner of your boundary polygon. Place at least three vertices.&lt;/li&gt;&#xA;&lt;li&gt;Use &lt;strong&gt;pinch&lt;/strong&gt; to zoom in and out for precision. Use &lt;strong&gt;drag&lt;/strong&gt; on any vertex to reposition it.&lt;/li&gt;&#xA;&lt;li&gt;To remove a vertex, tap it. To add one on an edge, long press the edge between two vertices.&lt;/li&gt;&#xA;&lt;li&gt;When the shape looks correct, tap &lt;strong&gt;Confirm Polygon&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Enter a name for the playfield and tap &lt;strong&gt;Save&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;The playfield is now available to select when creating a new game.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 			<item>
 				<title>GPS Signal Lost</title>
-				<link>http://localhost:1313/en/how-to/gps-signal-lost/</link>
+				<link>https://theprey.nl/en/how-to/gps-signal-lost/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:1313/en/how-to/gps-signal-lost/</guid>
+				<guid>https://theprey.nl/en/how-to/gps-signal-lost/</guid>
 				<description>&lt;ol class=&#34;steps&#34;&gt;&#xA;&lt;li&gt;Check your device&#39;s status bar. A GPS icon with a slash or no icon at all means location services are off or restricted.&lt;/li&gt;&#xA;&lt;li&gt;Open your device &lt;strong&gt;Settings → Location&lt;/strong&gt; and confirm location is enabled system-wide.&lt;/li&gt;&#xA;&lt;li&gt;Open &lt;strong&gt;Settings → Apps → The Prey → Permissions → Location&lt;/strong&gt; and confirm it is set to &lt;strong&gt;Always Allow&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;If the app is in the background, bring it to the foreground. Some devices suspend background GPS when battery saver is active.&lt;/li&gt;&#xA;&lt;li&gt;Disable &lt;strong&gt;Battery Saver&lt;/strong&gt; mode during gameplay. It restricts background app activity and can cut GPS transmissions.&lt;/li&gt;&#xA;&lt;li&gt;If signal is still lost, force-close the app and reopen it. The GPS service restarts on launch.&lt;/li&gt;&#xA;&lt;li&gt;Inform the Game Creator if your signal was lost for an extended period. Decisions about whether that time period counts are at the Game Creator&#39;s discretion.&lt;/li&gt;&#xA;&lt;li&gt;On Android: if the background service notification disappears from your notification shade, the foreground service has stopped. Reopen the app to restart it.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 			<item>
 				<title>Join a Game</title>
-				<link>http://localhost:1313/en/how-to/join-a-game/</link>
+				<link>https://theprey.nl/en/how-to/join-a-game/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:1313/en/how-to/join-a-game/</guid>
+				<guid>https://theprey.nl/en/how-to/join-a-game/</guid>
 				<description>&lt;ol class=&#34;steps&#34;&gt;&#xA;&lt;li&gt;Get the join code from the Game Creator. It is displayed in their app on the game lobby screen.&lt;/li&gt;&#xA;&lt;li&gt;Open The Prey app on your device.&lt;/li&gt;&#xA;&lt;li&gt;Tap &lt;strong&gt;Join Game&lt;/strong&gt; on the home screen.&lt;/li&gt;&#xA;&lt;li&gt;Enter the join code and tap &lt;strong&gt;Join&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;You land in the lobby. Wait for the Game Creator to assign your role.&lt;/li&gt;&#xA;&lt;li&gt;Grant location permissions when prompted. Select &lt;strong&gt;Always Allow&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Once the Game Creator launches the game, your role screen appears. The head start begins immediately.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 			<item>
 				<title>Understand Your Role Mid-Game</title>
-				<link>http://localhost:1313/en/how-to/understand-your-role/</link>
+				<link>https://theprey.nl/en/how-to/understand-your-role/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:1313/en/how-to/understand-your-role/</guid>
+				<guid>https://theprey.nl/en/how-to/understand-your-role/</guid>
 				<description>&lt;ol class=&#34;steps&#34;&gt;&#xA;&lt;li&gt;When the game starts, your role screen appears — &lt;strong&gt;Prey&lt;/strong&gt; or &lt;strong&gt;Hunter&lt;/strong&gt;. Read it. It tells you what to do next.&lt;/li&gt;&#xA;&lt;li&gt;If you are &lt;strong&gt;Prey&lt;/strong&gt;: the head start countdown is on screen. Move immediately. Do not wait for hunters to appear — they start tracking as soon as the head start ends.&lt;/li&gt;&#xA;&lt;li&gt;If you are &lt;strong&gt;Hunter&lt;/strong&gt;: the head start countdown is on screen too. Use the time to study the playfield boundary and plan your approach.&lt;/li&gt;&#xA;&lt;li&gt;Open the map tab when the Active Hunt begins. Your position is the center marker. Prey pins appear at their last broadcast location.&lt;/li&gt;&#xA;&lt;li&gt;As &lt;strong&gt;Prey&lt;/strong&gt;: the map shows Hunter positions so you know which direction to avoid. Keep moving. Pinned positions are not real-time — assume Hunters are closer than the map shows.&lt;/li&gt;&#xA;&lt;li&gt;As &lt;strong&gt;Hunter&lt;/strong&gt;: cross-reference Prey pin positions with the terrain. Prey on the edge of the playfield have limited escape routes. Cut them off.&lt;/li&gt;&#xA;&lt;li&gt;Watch the timer in the top bar. The Final Stretch warning fires at 5 minutes remaining. Prey — stay hidden and wait it out. Hunters — close in fast.&lt;/li&gt;&#xA;&lt;li&gt;When the game ends, results are shown automatically. Both Prey and Hunters see who survived.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 	</channel>

@@ -24,6 +24,15 @@ import { firstValueFrom } from 'rxjs';
 import { GameConfigurationDto, GameDto, GamesService } from './games.service';
 import { UserStateService } from '../users/user-state.service';
 
+/**
+ * Base of the Android App Link for joining a game. Tapping
+ * https://theprey.nl/games/join/<gameId> opens the app on the join screen when
+ * installed (verified via /.well-known/assetlinks.json) and falls back to the
+ * website otherwise. Unlike a custom scheme, this https link is tappable in
+ * WhatsApp and other chat apps.
+ */
+const GAME_JOIN_LINK_BASE = 'https://theprey.nl/games/join';
+
 @Component({
   selector: 'app-game-lobby',
   templateUrl: 'game-lobby.page.html',
@@ -267,17 +276,16 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     if (!g) return;
     const message = `${this.translate.instant('GAME_SHARE.MESSAGE')} ${g.gameCode}`;
     const title = this.translate.instant('GAME_SHARE.TITLE');
+    // The recipient still needs the 8-digit code to join, so the message carries
+    // both the code (in `message`) and the tappable link on its own line.
+    const link = `${GAME_JOIN_LINK_BASE}/${g.id}`;
     try {
       if (Capacitor.isNativePlatform()) {
-        // Chat apps like WhatsApp only linkify http(s) URLs, not custom schemes,
-        // and there is no public web join page yet — so share the code as plain
-        // text. (A tappable https App Link can replace this once theprey.nl serves
-        // a join page and verifies assetlinks.json.)
-        await Share.share({ title, text: message });
+        // The Capacitor Share plugin only accepts http(s)/file URLs in `url`, so the
+        // https App Link goes inside the text where chat apps will still linkify it.
+        await Share.share({ title, text: `${message}\n${link}` });
       } else if (navigator.share) {
-        // In the browser there is no app to open, so link to the web join page.
-        const url = `${window.location.origin}/games/join?gameId=${g.id}`;
-        await navigator.share({ title, text: message, url });
+        await navigator.share({ title, text: message, url: link });
       }
     } catch {
       // user cancelled or share failed — no action needed
