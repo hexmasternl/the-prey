@@ -14,7 +14,7 @@ param apiCustomDomain string = 'api.theprey.nl'
 
 @description('''Bind apiCustomDomain to the gateway. Enable only AFTER the A and asuid TXT DNS records
 are created (use the gatewayInboundIp / gatewayCustomDomainVerificationId outputs).''')
-param enableApiCustomDomain bool = false
+param enableApiCustomDomain bool = true
 
 @description('Resource ID of an existing certificate for the custom domain (empty = free managed certificate).')
 param apiCustomDomainCertificateId string = ''

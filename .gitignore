@@ -428,3 +428,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Compiled Bicep ARM artifacts
+infra/**/*.json
