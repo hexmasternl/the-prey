@@ -9,6 +9,16 @@ param environmentName string = 'prod'
 @description('Short unique suffix for globally-unique resource names (auto-derived from subscription ID)')
 param uniqueSuffix string = take(uniqueString(subscription().id), 8)
 
+@description('Custom domain (hostname) to bind to the gateway.')
+param apiCustomDomain string = 'api.theprey.nl'
+
+@description('''Bind apiCustomDomain to the gateway. Enable only AFTER the A and asuid TXT DNS records
+are created (use the gatewayInboundIp / gatewayCustomDomainVerificationId outputs).''')
+param enableApiCustomDomain bool = false
+
+@description('Resource ID of an existing certificate for the custom domain (empty = free managed certificate).')
+param apiCustomDomainCertificateId string = ''
+
 var rgName = 'rg-theprey-landing-${environmentName}'
 var prefix = 'theprey-${environmentName}'
 var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
@@ -56,6 +66,10 @@ module httpRouteConfig 'modules/http-route-config.bicep' = {
   params: {
     containerAppsEnvironmentName: acaEnv.outputs.name
     environmentName: environmentName
+    location: location
+    customDomain: apiCustomDomain
+    enableCustomDomain: enableApiCustomDomain
+    customDomainCertificateId: apiCustomDomainCertificateId
   }
 }
 
@@ -103,6 +117,8 @@ output resourceGroupName string = rg.name
 output containerAppsEnvironmentId string = acaEnv.outputs.id
 output containerAppsEnvironmentName string = acaEnv.outputs.name
 output gatewayFqdn string = httpRouteConfig.outputs.fqdn
+output gatewayInboundIp string = httpRouteConfig.outputs.environmentInboundIp
+output gatewayCustomDomainVerificationId string = httpRouteConfig.outputs.customDomainVerificationId
 output appInsightsName string = appInsights.outputs.name
 output keyVaultName string = keyVault.outputs.name
 output keyVaultUri string = keyVault.outputs.uri
