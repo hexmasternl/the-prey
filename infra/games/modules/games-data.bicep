@@ -1,5 +1,8 @@
-@description('Azure region')
+@description('Azure region for Container Apps resources (must match the ACA environment region)')
 param location string
+
+@description('Azure region for the PostgreSQL Flexible Server (West Europe is prohibited for Postgres)')
+param pgLocation string
 
 @description('Environment discriminator')
 param environmentName string
@@ -42,7 +45,7 @@ var pgServerName = 'theprey-games-pg-${environmentName}'
 // PostgreSQL Flexible Server
 resource pgServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
   name: pgServerName
-  location: location
+  location: pgLocation
   sku: {
     name: 'Standard_B1ms'
     tier: 'Burstable'

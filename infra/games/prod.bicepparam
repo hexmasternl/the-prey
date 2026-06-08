@@ -12,6 +12,7 @@ param landingZone = {
 // Service configuration
 param environmentName = 'prod'
 param location = 'westeurope'
+param pgLocation = 'northeurope'
 param imageTag = '1.0.0'
 param registryServer = ''
 param pgAdminLogin = 'thepreyadmin'

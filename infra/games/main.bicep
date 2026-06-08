@@ -3,6 +3,9 @@ targetScope = 'subscription'
 @description('Primary Azure region for all Games resources')
 param location string = 'westeurope'
 
+@description('Azure region for the PostgreSQL Flexible Server (West Europe is prohibited for Postgres)')
+param pgLocation string = 'northeurope'
+
 @description('Environment discriminator')
 param environmentName string = 'prod'
 
@@ -95,6 +98,7 @@ module gamesData 'modules/games-data.bicep' = {
   scope: rg
   params: {
     location: location
+    pgLocation: pgLocation
     environmentName: environmentName
     gamesImage: gamesImage
     registryServer: registryServer
