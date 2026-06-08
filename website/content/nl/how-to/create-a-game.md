@@ -4,13 +4,11 @@ description: "Stap voor stap: een spel aanmaken in The Prey — kies een speelve
 keywords: ["spel aanmaken", "spel starten", "toegangscode", "rollen toewijzen", "speelveld", "The Prey handleiding"]
 ---
 
-<ol class="steps">
-<li>Open The Prey-app en tik op <strong>Spel Aanmaken</strong>.</li>
-<li>Selecteer een opgeslagen speelveld of teken een nieuw speelveld. Het speelveld definieert de spelgrens.</li>
-<li>De app genereert een deelnamecode. Deel die met alle deelnemers voor je verdergaat.</li>
-<li>Wacht tot spelers toetreden. Ze verschijnen in de lobbylijst terwijl ze verbinding maken.</li>
-<li>Wijs elke speler een rol toe — <strong>Prooi</strong> of <strong>Jager</strong>. Elk spel heeft minimaal één van elk nodig.</li>
-<li>Wijs jezelf een rol toe als je meespeelt.</li>
-<li>Bevestig dat alle spelers zijn toegewezen en klaar zijn.</li>
-<li>Tik op <strong>Spel Starten</strong>. De 10 minuten voorsprong begint. Prooi verspreidt zich. Jagers wachten.</li>
-</ol>
+1. Open The Prey-app en tik op **Spel Aanmaken**.
+2. Selecteer een opgeslagen speelveld of teken een nieuw speelveld. Het speelveld definieert de spelgrens.
+3. De app genereert een deelnamecode. Deel die met alle deelnemers voor je verdergaat.
+4. Wacht tot spelers toetreden. Ze verschijnen in de lobbylijst terwijl ze verbinding maken.
+5. Wijs elke speler een rol toe — **Prooi** of **Jager**. Elk spel heeft minimaal één van elk nodig.
+6. Wijs jezelf een rol toe als je meespeelt.
+7. Bevestig dat alle spelers zijn toegewezen en klaar zijn.
+8. Tik op **Spel Starten**. De 10 minuten voorsprong begint. Prooi verspreidt zich. Jagers wachten.
