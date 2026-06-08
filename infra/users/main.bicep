@@ -25,6 +25,9 @@ param landingZone {
 
 var rgName = 'rg-theprey-users-${environmentName}'
 var usersImage = '${registryServer}/theprey/users-api:${imageTag}'
+var storageAccountName = uniqueString(rgName)
+// Table service URI for passwordless (managed-identity) access; matches the Aspire 'users-tables' connection.
+var usersTablesEndpoint = 'https://${storageAccountName}.table.${environment().suffixes.storage}/'
 
 resource rg 'Microsoft.Resources/resourceGroups@2024-07-01' = {
   name: rgName
@@ -53,17 +56,24 @@ module usersApi '../modules/container-app.bicep' = {
     acrPullIdentityId: acrPullIdentity.id
     image: usersImage
     landingZone: landingZone
+    additionalEnvVars: [
+      {
+        name: 'ConnectionStrings__users-tables'
+        value: usersTablesEndpoint
+      }
+    ]
   }
 }
 
-// Table storage with Storage Table Data Contributor for the API's managed identity
+// Table storage with a 'users' table and Storage Table Data Contributor for the API's managed identity
 module usersStorage '../modules/storage-tables.bicep' = {
   name: 'usersStorage'
   scope: rg
   params: {
-    name: uniqueString(rgName)
+    name: storageAccountName
     location: location
     principalId: usersApi.outputs.principalId
+    tableName: 'users'
   }
 }
 

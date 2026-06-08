@@ -13,3 +13,4 @@ param landingZone = {
 param environmentName = 'prod'
 param location = 'westeurope'
 param imageTag = '1.0.0'
+param registryServer = ''

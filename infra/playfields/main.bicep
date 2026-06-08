@@ -25,6 +25,9 @@ param landingZone {
 
 var rgName = 'rg-theprey-playfields-${environmentName}'
 var playfieldsImage = '${registryServer}/theprey/playfields-api:${imageTag}'
+var storageAccountName = uniqueString(rgName)
+// Table service URI for passwordless (managed-identity) access; matches the Aspire 'playfields-tables' connection.
+var playfieldsTablesEndpoint = 'https://${storageAccountName}.table.${environment().suffixes.storage}/'
 
 resource rg 'Microsoft.Resources/resourceGroups@2024-07-01' = {
   name: rgName
@@ -53,17 +56,24 @@ module playfieldsApi '../modules/container-app.bicep' = {
     acrPullIdentityId: acrPullIdentity.id
     image: playfieldsImage
     landingZone: landingZone
+    additionalEnvVars: [
+      {
+        name: 'ConnectionStrings__playfields-tables'
+        value: playfieldsTablesEndpoint
+      }
+    ]
   }
 }
 
-// Table storage with Storage Table Data Contributor for the API's managed identity
+// Table storage with a 'playfields' table and Storage Table Data Contributor for the API's managed identity
 module playfieldsStorage '../modules/storage-tables.bicep' = {
   name: 'playfieldsStorage'
   scope: rg
   params: {
-    name: uniqueString(rgName)
+    name: storageAccountName
     location: location
     principalId: playfieldsApi.outputs.principalId
+    tableName: 'playfields'
   }
 }
 
