@@ -56,6 +56,8 @@ module playfieldsApi '../modules/container-app.bicep' = {
     acrPullIdentityId: acrPullIdentity.id
     image: playfieldsImage
     landingZone: landingZone
+    enableDapr: true
+    daprAppId: 'hexmaster-theprey-playfields-api'
     additionalEnvVars: [
       {
         name: 'ConnectionStrings__playfields-tables'

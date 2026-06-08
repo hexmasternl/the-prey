@@ -28,6 +28,22 @@ param minReplicas int = 0
 @description('Maximum replica count')
 param maxReplicas int = 2
 
+@description('Enable the Dapr sidecar for this container app (mirrors WithDaprSidecar() in the Aspire AppHost)')
+param enableDapr bool = false
+
+@description('Dapr application id. Must be stable per app; used by the Dapr runtime and for state-store key prefixing. Defaults to the container app name.')
+param daprAppId string = name
+
+@description('Port the app listens on for Dapr to invoke (matches the container ingress target port)')
+param daprAppPort int = 8080
+
+@description('Protocol Dapr uses to talk to the app')
+@allowed([
+  'http'
+  'grpc'
+])
+param daprAppProtocol string = 'http'
+
 param landingZone object
 
 resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' existing = {
@@ -59,6 +75,20 @@ var baseEnvVars = [
   }
 ]
 
+// Dapr config block on the container app. The state-store component itself is
+// registered on the managed environment (see landing-zone/modules/redis.bicep);
+// this enables the per-app sidecar so the app can reach that component.
+var daprConfig = enableDapr
+  ? {
+      enabled: true
+      appId: daprAppId
+      appProtocol: daprAppProtocol
+      appPort: daprAppPort
+    }
+  : {
+      enabled: false
+    }
+
 resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: name
   location: location
@@ -84,6 +114,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         }
       ]
       secrets: concat(baseSecrets, additionalSecrets)
+      dapr: daprConfig
     }
     template: {
       containers: [

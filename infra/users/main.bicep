@@ -56,6 +56,8 @@ module usersApi '../modules/container-app.bicep' = {
     acrPullIdentityId: acrPullIdentity.id
     image: usersImage
     landingZone: landingZone
+    enableDapr: true
+    daprAppId: 'hexmaster-theprey-users-api'
     additionalEnvVars: [
       {
         name: 'ConnectionStrings__users-tables'

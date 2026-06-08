@@ -86,6 +86,8 @@ module gamesApi '../modules/container-app.bicep' = {
     acrPullIdentityId: acrPullIdentity.id
     image: gamesImage
     landingZone: landingZone
+    enableDapr: true
+    daprAppId: 'hexmaster-theprey-games-api'
     additionalSecrets: [
       {
         name: 'pg-connection-string'
