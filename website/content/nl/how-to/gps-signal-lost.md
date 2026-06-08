@@ -1,6 +1,7 @@
 ---
 title: "GPS-signaal Verloren"
-description: "Wat te doen als je locatie stopt met uitzenden."
+description: "Wat te doen als je GPS-signaal wegvalt in The Prey — herstel locatie op de achtergrond, ga naar open lucht en zend je positie weer uit."
+keywords: ["GPS-signaal verloren", "locatie wordt niet bijgewerkt", "locatie op achtergrond", "GPS-problemen", "The Prey hulp"]
 ---
 
 <ol class="steps">

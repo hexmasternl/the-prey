@@ -1,6 +1,7 @@
 ---
 title: "FAQ"
-description: "Quick answers to common questions."
+description: "Frequently asked questions about The Prey: player counts, GPS and location permissions, the head start, tagging, playfields, and win conditions."
+keywords: ["The Prey FAQ", "frequently asked questions", "GPS permissions", "how to play", "player count", "tagging", "playfield", "help"]
 ---
 
 <details>

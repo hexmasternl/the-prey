@@ -1,6 +1,7 @@
 ---
 title: "Playfield"
-description: "The arena. The boundary. The rules of the terrain."
+description: "How to draw and use a playfield in The Prey — define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one."
+keywords: ["playfield", "GPS boundary", "polygon map", "game area", "draw playfield", "map editor", "The Prey playfield"]
 ---
 
 ## What Is a Playfield?

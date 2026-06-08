@@ -1,6 +1,7 @@
 ---
 title: "Spelmaker"
-description: "Definieer de arena. Wijs rollen toe. Start de jacht."
+description: "De rol van Spelmaker in The Prey: bepaal het speelveld, deel de toegangscode, wijs Jager- en Prooirollen toe en start het spel."
+keywords: ["Spelmaker", "spel hosten", "toegangscode", "rollen toewijzen", "spel opzetten", "The Prey"]
 ---
 
 ## Jouw Verantwoordelijkheid

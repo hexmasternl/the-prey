@@ -1,6 +1,7 @@
 ---
 title: "Create a Game"
-description: "Set up a session, assign roles, and start the hunt."
+description: "Step-by-step: create a game in The Prey — pick a playfield, share the join code, assign Hunter and Prey roles, and start the 10-minute head start."
+keywords: ["create a game", "start a game", "join code", "assign roles", "playfield", "The Prey how-to"]
 ---
 
 <ol class="steps">

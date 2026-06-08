@@ -1,6 +1,7 @@
 ---
 title: "Understand Your Role Mid-Game"
-description: "What to focus on once the clock is running."
+description: "Understand your role mid-game in The Prey — what Hunters and Prey should focus on once the head start ends and the clock is running."
+keywords: ["understand your role", "Hunter tips", "Prey tips", "in-game strategy", "The Prey how-to"]
 ---
 
 <ol class="steps">

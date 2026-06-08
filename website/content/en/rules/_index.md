@@ -1,6 +1,7 @@
 ---
 title: "Rules"
-description: "Everything you need to know before the hunt begins."
+description: "The full rules of The Prey: timing phases, the 10-minute head start, GPS update schedule, tagging and elimination, and how Hunters and Prey win."
+keywords: ["The Prey rules", "game rules", "head start", "GPS tracking", "tagging", "elimination", "win conditions", "hide and seek rules"]
 ---
 
 ## Game Concept

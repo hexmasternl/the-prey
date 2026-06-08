@@ -1,6 +1,7 @@
 ---
 title: "Speelveld"
-description: "De arena. De grens. De regels van het terrein."
+description: "Hoe je een speelveld tekent en gebruikt in The Prey — bepaal de GPS-grens, leer de kaartgebaren, sla speelvelden op en start een spel vanuit een speelveld."
+keywords: ["speelveld", "GPS-grens", "polygoon kaart", "speelgebied", "speelveld tekenen", "kaarteditor", "The Prey speelveld"]
 ---
 
 ## Wat Is een Speelveld?

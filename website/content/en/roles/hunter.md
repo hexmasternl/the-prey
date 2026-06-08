@@ -1,6 +1,7 @@
 ---
 title: "Hunter"
-description: "Track. Close in. Tag. Don't let them escape."
+description: "Playing as a Hunter in The Prey: wait out the head start, track Prey by GPS pins, close the gap, tag them, and coordinate with other Hunters."
+keywords: ["Hunter", "GPS tracking", "tag prey", "hunt", "chase", "coordinate hunters", "The Prey hunter"]
 ---
 
 ## Your Goal

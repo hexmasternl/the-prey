@@ -1,6 +1,7 @@
 ---
 title: "Draw a Playfield"
-description: "Define the arena — before the game starts."
+description: "How to draw a playfield in The Prey — tap the map to place boundary vertices, shape the GPS polygon, and save the arena before you play."
+keywords: ["draw a playfield", "GPS boundary", "polygon", "map vertices", "game area", "The Prey how-to"]
 ---
 
 <ol class="steps">

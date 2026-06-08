@@ -1,6 +1,7 @@
 ---
 title: "FAQ"
-description: "Snelle antwoorden op veelgestelde vragen."
+description: "Veelgestelde vragen over The Prey: aantal spelers, GPS- en locatierechten, de voorsprong, taggen, speelvelden en winvoorwaarden."
+keywords: ["The Prey FAQ", "veelgestelde vragen", "GPS-rechten", "hoe te spelen", "aantal spelers", "taggen", "speelveld", "hulp"]
 ---
 
 <details>

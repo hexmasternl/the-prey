@@ -1,6 +1,7 @@
 ---
 title: "Prey"
-description: "Hide. Move. Survive. Don't get tagged."
+description: "Playing as Prey in The Prey: use the head start to scatter and hide, keep moving during the hunt, manage background GPS, and survive until the timer ends."
+keywords: ["Prey", "hide", "survive", "background GPS", "head start", "evade hunters", "The Prey prey"]
 ---
 
 ## Your Goal

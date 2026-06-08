@@ -1,6 +1,7 @@
 ---
 title: "Je Rol Begrijpen Tijdens het Spel"
-description: "Waar je op moet letten zodra de klok loopt."
+description: "Begrijp je rol tijdens het spel in The Prey — waar Jagers en Prooien op moeten letten zodra de voorsprong voorbij is en de klok loopt."
+keywords: ["je rol begrijpen", "tips voor Jager", "tips voor Prooi", "strategie tijdens het spel", "The Prey handleiding"]
 ---
 
 <ol class="steps">

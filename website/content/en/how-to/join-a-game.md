@@ -1,6 +1,7 @@
 ---
 title: "Join a Game"
-description: "Get into the lobby and get assigned your role."
+description: "How to join a game in The Prey — enter the join code, land in the lobby, and get assigned your role by the Game Creator."
+keywords: ["join a game", "join code", "lobby", "get a role", "The Prey how-to"]
 ---
 
 <ol class="steps">

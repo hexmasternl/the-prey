@@ -1,6 +1,7 @@
 ---
 title: "Een Spel Aanmaken"
-description: "Stel een sessie in, wijs rollen toe en start de jacht."
+description: "Stap voor stap: een spel aanmaken in The Prey — kies een speelveld, deel de toegangscode, wijs Jager- en Prooirollen toe en start de voorsprong van 10 minuten."
+keywords: ["spel aanmaken", "spel starten", "toegangscode", "rollen toewijzen", "speelveld", "The Prey handleiding"]
 ---
 
 <ol class="steps">

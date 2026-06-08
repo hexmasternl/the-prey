@@ -1,6 +1,7 @@
 ---
 title: "Game Creator"
-description: "Define the arena. Assign the roles. Start the hunt."
+description: "The Game Creator role in The Prey: define the playfield, share the join code, assign Hunter and Prey roles, and start the game."
+keywords: ["Game Creator", "host a game", "join code", "assign roles", "set up game", "The Prey"]
 ---
 
 ## Your Responsibility
