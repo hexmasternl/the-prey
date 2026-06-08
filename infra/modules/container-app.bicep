@@ -16,13 +16,6 @@ param acrPullIdentityId string
 @description('Container image reference including tag')
 param image string
 
-@description('Application Insights connection string')
-@secure()
-param appInsightsConnectionString string
-
-@description('App Configuration store endpoint')
-param appConfigEndpoint string
-
 @description('Extra Container Apps secrets (each element: { name, value })')
 param additionalSecrets array = []
 
@@ -35,10 +28,23 @@ param minReplicas int = 0
 @description('Maximum replica count')
 param maxReplicas int = 2
 
+param landingZone object
+
+resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' existing = {
+  name: landingZone.appConfig
+  scope: resourceGroup(landingZone.resourceGroup)
+}
+
+resource appInsights 'Microsoft.Insights/components@2020-02-02' existing= {
+  name: landingZone.applicationInsights
+  scope: resourceGroup(landingZone.resourceGroup)
+}
+
+
 var baseSecrets = [
   {
     name: 'appinsights-connection-string'
-    value: appInsightsConnectionString
+    value: appInsights.properties.ConnectionString
   }
 ]
 
@@ -49,7 +55,7 @@ var baseEnvVars = [
   }
   {
     name: 'AZURE_APP_CONFIGURATION_ENDPOINT'
-    value: appConfigEndpoint
+    value: appConfig.properties.endpoint
   }
 ]
 

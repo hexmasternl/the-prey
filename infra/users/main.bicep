@@ -22,12 +22,6 @@ param landingZone {
   acrPullIdentity: string
 }
 
-@description('Application Insights connection string')
-@secure()
-param appInsightsConnectionString string
-
-@description('App Configuration store endpoint')
-param appConfigEndpoint string
 
 var rgName = 'rg-theprey-users-${environmentName}'
 var usersImage = '${registryServer}/theprey/users-api:${imageTag}'
@@ -58,8 +52,6 @@ module usersApi '../modules/container-app.bicep' = {
     registryServer: registryServer
     acrPullIdentityId: acrPullIdentity.id
     image: usersImage
-    appInsightsConnectionString: appInsightsConnectionString
-    appConfigEndpoint: appConfigEndpoint
   }
 }
 

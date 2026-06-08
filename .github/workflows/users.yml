@@ -153,6 +153,4 @@ jobs:
             --parameters @infra/users/prod.bicepparam \
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
-              registryServer="${{ secrets.ACR_HOSTNAME }}" \
-              appInsightsConnectionString="${{ steps.lz.outputs.appInsightsConnectionString }}" \
-              appConfigEndpoint="${{ steps.lz.outputs.appConfigEndpoint }}"
+              registryServer="${{ secrets.ACR_HOSTNAME }}"
