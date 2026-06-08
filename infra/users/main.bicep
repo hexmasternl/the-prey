@@ -6,9 +6,6 @@ param location string = 'westeurope'
 @description('Environment discriminator')
 param environmentName string = 'prod'
 
-@description('Short unique suffix for globally-unique storage account names')
-param uniqueSuffix string = take(uniqueString(subscription().id), 8)
-
 @description('Container image tag (semVer from GitVersion)')
 param imageTag string
 
@@ -52,6 +49,7 @@ module usersApi '../modules/container-app.bicep' = {
     registryServer: registryServer
     acrPullIdentityId: acrPullIdentity.id
     image: usersImage
+    landingZone: landingZone
   }
 }
 
@@ -60,7 +58,7 @@ module usersStorage '../modules/storage-tables.bicep' = {
   name: 'usersStorage'
   scope: rg
   params: {
-    name: 'thepreyusers${uniqueSuffix}st'
+    name: uniqueString(rgName)
     location: location
     principalId: usersApi.outputs.principalId
   }

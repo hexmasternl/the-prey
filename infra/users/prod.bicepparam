@@ -12,3 +12,5 @@ param landingZone = {
 // Service configuration
 param environmentName = 'prod'
 param location = 'westeurope'
+param registryServer = 'theprey.azurecr.io'
+param imageTag = '1.0.0'
