@@ -84,15 +84,6 @@ module acrPullIdentity 'modules/acr-pull-identity.bicep' = {
   }
 }
 
-resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(subscription().id, rgName, '${prefix}-acr-pull-id', acrPullRoleId)
-  properties: {
-    principalId: acrPullIdentity.outputs.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleId)
-  }
-}
-
 // Outputs consumed by service Bicep templates and GitHub Actions workflows
 output resourceGroupName string = rg.name
 output containerAppsEnvironmentId string = acaEnv.outputs.id
