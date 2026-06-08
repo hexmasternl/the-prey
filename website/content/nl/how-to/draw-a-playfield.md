@@ -4,14 +4,12 @@ description: "Hoe je een speelveld tekent in The Prey — tik op de kaart om gre
 keywords: ["speelveld tekenen", "GPS-grens", "polygoon", "kaartpunten", "speelgebied", "The Prey handleiding"]
 ---
 
-<ol class="steps">
-<li>Open The Prey-app en navigeer naar <strong>Speelvelden</strong>.</li>
-<li>Tik op <strong>Nieuw Speelveld</strong>. De kaart opent gecentreerd op je huidige GPS-positie.</li>
-<li>Tik op de kaart om je eerste hoekpunt te plaatsen. Er verschijnt een pin.</li>
-<li>Tik verder om elke hoek van je grenspolygoon te plaatsen. Plaats minimaal drie hoekpunten.</li>
-<li>Gebruik <strong>knijpen</strong> om in en uit te zoomen voor precisie. Gebruik <strong>slepen</strong> op een hoekpunt om het te herpositioneren.</li>
-<li>Om een hoekpunt te verwijderen, tik erop. Om er één toe te voegen op een rand, druk lang op de rand tussen twee hoekpunten.</li>
-<li>Wanneer de vorm er goed uitziet, tik op <strong>Polygoon Bevestigen</strong>.</li>
-<li>Voer een naam in voor het speelveld en tik op <strong>Opslaan</strong>.</li>
-<li>Het speelveld is nu beschikbaar om te selecteren bij het aanmaken van een nieuw spel.</li>
-</ol>
+1. Open The Prey-app en navigeer naar **Speelvelden**.
+2. Tik op **Nieuw Speelveld**. De kaart opent gecentreerd op je huidige GPS-positie.
+3. Tik op de kaart om je eerste hoekpunt te plaatsen. Er verschijnt een pin.
+4. Tik verder om elke hoek van je grenspolygoon te plaatsen. Plaats minimaal drie hoekpunten.
+5. Gebruik **knijpen** om in en uit te zoomen voor precisie. Gebruik **slepen** op een hoekpunt om het te herpositioneren.
+6. Om een hoekpunt te verwijderen, tik erop. Om er één toe te voegen op een rand, druk lang op de rand tussen twee hoekpunten.
+7. Wanneer de vorm er goed uitziet, tik op **Polygoon Bevestigen**.
+8. Voer een naam in voor het speelveld en tik op **Opslaan**.
+9. Het speelveld is nu beschikbaar om te selecteren bij het aanmaken van een nieuw spel.
