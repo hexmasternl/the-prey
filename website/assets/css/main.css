@@ -550,6 +550,13 @@ section { margin-bottom: 64px; scroll-margin-top: 30px; }
   .hero-actions { flex-direction: column; }
   .hero-actions .btn { text-align: center; }
 
+  /* stack the radar above the copy as a centered "scanning" intro */
+  .hero-grid { flex-direction: column-reverse; align-items: stretch; gap: 28px; }
+  .hero-content { flex: 1 1 auto; }
+  .hero-aside { margin: 0 auto; }
+  .radar { width: clamp(180px, 62vw, 240px); }
+  .coords { display: none; }
+
   .roles-grid { grid-template-columns: 1fr; }
 }
 
@@ -565,11 +572,13 @@ section { margin-bottom: 64px; scroll-margin-top: 30px; }
 @keyframes page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .site-main { animation: page-in 0.5s ease both; }
 
-/* ---- scroll reveal ---- */
-.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+/* ---- scroll reveal ----
+   Base-hidden state is gated behind `.js` so that, without JavaScript, all
+   content renders normally (progressive enhancement — never hide on JS failure). */
+.js .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .reveal.in { opacity: 1; transform: none; }
 
-.reveal-stagger > * { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.js .reveal-stagger > * { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
 .reveal-stagger.in > * { opacity: 1; transform: none; }
 .reveal-stagger.in > *:nth-child(2) { transition-delay: 0.08s; }
 .reveal-stagger.in > *:nth-child(3) { transition-delay: 0.16s; }
