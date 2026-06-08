@@ -14,7 +14,7 @@ public sealed class Game
     public const int MaxLobbySize = 16;
 
     /// <summary>Length of the shareable game code: exactly this many decimal digits.</summary>
-    public const int GameCodeLength = 8;
+    public const int GameCodeLength = 4;
 
     /// <summary>Reporting interval, in seconds, that applies while a participant has an active penalty.</summary>
     public const int PenaltyReportingIntervalSeconds = 10;
@@ -24,7 +24,7 @@ public sealed class Game
 
     public Guid Id { get; private set; }
 
-    /// <summary>The shareable code players use to find this game: exactly 8 decimal digits.</summary>
+    /// <summary>The shareable code players use to find this game: exactly 4 decimal digits.</summary>
     public string GameCode { get; private set; } = default!;
 
     public Guid PlayfieldId { get; private set; }

@@ -46,7 +46,7 @@ export class GameJoinPage implements ViewWillEnter {
 
   readonly canJoin = computed(
     () =>
-      this.joinCode().length === 8 &&
+      this.joinCode().length === 4 &&
       !this.isSubmitting() &&
       this.gameId() != null &&
       this.callsign() != null &&
@@ -81,7 +81,7 @@ export class GameJoinPage implements ViewWillEnter {
 
   onCodeInput(event: Event): void {
     const raw = (event.target as HTMLInputElement).value;
-    const digits = raw.replace(/\D/g, '').slice(0, 8);
+    const digits = raw.replace(/\D/g, '').slice(0, 4);
     this.joinCode.set(digits);
     (event.target as HTMLInputElement).value = digits;
     this.errorWrongCode.set(false);

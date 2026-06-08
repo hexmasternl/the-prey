@@ -16,7 +16,7 @@ public sealed record CreateGameRequest(
     bool EnableHunterBoundaryPenalty = false,
     string? ProfilePictureUrl = null);
 
-/// <summary>Join a game's lobby using the 8-digit join code. The user id is taken from the authenticated caller.</summary>
+/// <summary>Join a game's lobby using the 4-digit join code. The user id is taken from the authenticated caller.</summary>
 public sealed record JoinGameRequest(string JoinCode, string DisplayName, string? ProfilePictureUrl = null);
 
 /// <summary>Start a game, designating the lobby member who becomes the hunter.</summary>

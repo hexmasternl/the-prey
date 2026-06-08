@@ -95,6 +95,10 @@ public sealed class CreateGameCommandHandler : ICommandHandler<CreateGameCommand
     }
 
     /// <summary>A cryptographically random code of exactly <see cref="Game.GameCodeLength"/> decimal digits.</summary>
-    private static string GenerateGameCode() =>
-        RandomNumberGenerator.GetInt32(0, 100_000_000).ToString("D8");
+    private static string GenerateGameCode()
+    {
+        var exclusiveUpperBound = (int)Math.Pow(10, Game.GameCodeLength);
+        return RandomNumberGenerator.GetInt32(0, exclusiveUpperBound)
+            .ToString("D" + Game.GameCodeLength);
+    }
 }
