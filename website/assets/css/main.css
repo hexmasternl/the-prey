@@ -442,6 +442,26 @@ tr:last-child td { border-bottom: none; }
 /* roles grid */
 .roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; margin-top: 32px; }
 
+/* role card (shared by home + roles list via partials/role-card.html) */
+.role-card-link { text-decoration: none; display: block; }
+.role-card-link:hover { text-decoration: none; }
+.pcard.lg { padding: 20px 20px 20px 24px; transition: 0.18s; }
+.pcard.lg .av { width: 52px; height: 52px; font-size: 22px; }
+
+/* home timing panels */
+.phase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 32px; }
+.phase-figure { font-family: var(--head); font-size: 36px; }
+.phase-figure .unit { font-size: 16px; color: var(--text-ghost); }
+.phase-figure.signal { color: var(--signal); text-shadow: 0 0 16px var(--signal-glow); }
+.phase-figure.caution { color: var(--caution); text-shadow: 0 0 16px rgba(255, 179, 0, 0.3); }
+.phase-desc { margin-top: 8px; font-size: 13px; }
+
+/* generic list-page page listing (layouts/_default/list.html) */
+.page-list { margin-top: 32px; list-style: none; padding: 0; }
+.page-list li { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line-soft); }
+.page-list a { font-family: var(--head); font-size: 16px; }
+.page-list p { margin: 4px 0 0; }
+
 /* ---- FAQ ACCORDION ---- */
 details { border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; }
 summary {

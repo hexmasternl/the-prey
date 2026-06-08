@@ -8,19 +8,17 @@
 
   <div class="roles-grid">
     {{ range .Pages }}
-    {{ $isHunter := eq .File.BaseFileName "hunter" }}
-    {{ $isCreator := eq .File.BaseFileName "game-creator" }}
-    <a href="{{ .RelPermalink }}" style="text-decoration:none">
-      <div class="pcard {{ if $isHunter }}hunter{{ else if $isCreator }}hunter{{ else }}prey{{ end }}" style="padding:20px 20px 20px 24px;cursor:pointer;transition:.18s">
-        <div class="av" style="width:52px;height:52px;font-size:22px">
-          {{ if $isHunter }}⬤{{ else if $isCreator }}◈{{ else }}◎{{ end }}
-        </div>
-        <div>
-          <div class="nm">{{ .Title }}</div>
-          <div class="st">{{ .Description }}</div>
-        </div>
-      </div>
-    </a>
+    {{ $base := .File.BaseFileName }}
+    {{ $isHunter := eq $base "hunter" }}
+    {{ $isCreator := eq $base "game-creator" }}
+    {{ partial "role-card.html" (dict
+      "url"     .RelPermalink
+      "glyph"   (cond $isHunter "⬤" (cond $isCreator "◈" "◎"))
+      "variant" (cond (or $isHunter $isCreator) "hunter" "prey")
+      "name"    .Title
+      "tagline" .Description
+      "large"   true
+    ) }}
     {{ end }}
   </div>
 </div>

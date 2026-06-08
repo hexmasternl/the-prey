@@ -1,0 +1,11 @@
+{{- /* Reusable role card.
+  Expects a dict: url, glyph, variant ("prey"|"hunter"), name, tagline, large (bool). */ -}}
+<a href="{{ .url }}" class="role-card-link">
+  <div class="pcard {{ .variant }}{{ if .large }} lg{{ end }}">
+    <div class="av">{{ .glyph }}</div>
+    <div>
+      <div class="nm">{{ .name }}</div>
+      <div class="st">{{ .tagline }}</div>
+    </div>
+  </div>
+</a>

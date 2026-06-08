@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="/css/main.min.97b4bf97bcc553e99a65791360a0e595ddcac94a076301e321171be75589308d.css">
+  <link rel="stylesheet" href="/css/main.min.4a23feeb7f611873d744a143edf903a9345c6741d9d67578144c04c7da5faf9a.css">
 </head>
 <body>
 <div class="site-shell">
@@ -85,22 +85,26 @@
   <h2>Hunt or be Hunted</h2>
   <p>The Prey drops players into a real-world GPS arena. One team hides and runs. The other tracks and tags. Every 30 seconds the map updates. Every move matters.</p>
   <p>Games last 60 minutes. Prey have a 10-minute head start to scatter before Hunters see their first ping. After that — you are on the radar.</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:32px">
+  <div class="phase-grid">
+    
     <div class="panel">
       <div class="ptitle">Head Start</div>
-      <div style="font-family:var(--head);font-size:36px;color:var(--signal);text-shadow:0 0 16px var(--signal-glow)">10<span style="font-size:16px;color:var(--text-ghost)"> min</span></div>
-      <p style="margin-top:8px;font-size:13px">Prey scatter. No location data. Hunters wait.</p>
+      <div class="phase-figure signal">10<span class="unit"> min</span></div>
+      <p class="phase-desc">Prey scatter. No location data. Hunters wait.</p>
     </div>
+    
     <div class="panel">
       <div class="ptitle">Active Hunt</div>
-      <div style="font-family:var(--head);font-size:36px;color:var(--signal);text-shadow:0 0 16px var(--signal-glow)">~45<span style="font-size:16px;color:var(--text-ghost)"> min</span></div>
-      <p style="margin-top:8px;font-size:13px">GPS pings live. Map updates every 30 seconds.</p>
+      <div class="phase-figure signal">~45<span class="unit"> min</span></div>
+      <p class="phase-desc">GPS pings live. Map updates every 30 seconds.</p>
     </div>
+    
     <div class="panel">
       <div class="ptitle">Final Stretch</div>
-      <div style="font-family:var(--head);font-size:36px;color:var(--caution);text-shadow:0 0 16px rgba(255,179,0,.3)">5<span style="font-size:16px;color:var(--text-ghost)"> min</span></div>
-      <p style="margin-top:8px;font-size:13px">Warning issued. Close in or hold on.</p>
+      <div class="phase-figure caution">5<span class="unit"> min</span></div>
+      <p class="phase-desc">Warning issued. Close in or hold on.</p>
     </div>
+    
   </div>
 </section>
 
@@ -108,33 +112,40 @@
   <div class="eyebrow">Roles</div>
   <h2>Every Player Has a Job</h2>
   <div class="roles-grid" style="margin-top:24px">
-    <a href="/en/roles/prey/" style="text-decoration:none">
-      <div class="pcard prey" style="cursor:pointer">
-        <div class="av">◎</div>
-        <div>
-          <div class="nm">Prey</div>
-          <div class="st">Hide. Move. Survive.</div>
-        </div>
-      </div>
-    </a>
-    <a href="/en/roles/hunter/" style="text-decoration:none">
-      <div class="pcard hunter" style="cursor:pointer">
-        <div class="av">⬤</div>
-        <div>
-          <div class="nm">Hunter</div>
-          <div class="st">Track. Close in. Tag.</div>
-        </div>
-      </div>
-    </a>
-    <a href="/en/roles/game-creator/" style="text-decoration:none">
-      <div class="pcard hunter" style="cursor:pointer">
-        <div class="av">◈</div>
-        <div>
-          <div class="nm">Game Creator</div>
-          <div class="st">Define. Assign. Launch.</div>
-        </div>
-      </div>
-    </a>
+    
+    <a href="/en/roles/prey/" class="role-card-link">
+  <div class="pcard prey">
+    <div class="av">◎</div>
+    <div>
+      <div class="nm">Prey</div>
+      <div class="st">Hide. Move. Survive.</div>
+    </div>
+  </div>
+</a>
+
+    
+    <a href="/en/roles/hunter/" class="role-card-link">
+  <div class="pcard hunter">
+    <div class="av">⬤</div>
+    <div>
+      <div class="nm">Hunter</div>
+      <div class="st">Track. Close in. Tag.</div>
+    </div>
+  </div>
+</a>
+
+    
+    <a href="/en/roles/game-creator/" class="role-card-link">
+  <div class="pcard hunter">
+    <div class="av">◈</div>
+    <div>
+      <div class="nm">Game Creator</div>
+      <div class="st">Define. Assign. Launch.</div>
+    </div>
+  </div>
+</a>
+
+    
   </div>
 </section>
 

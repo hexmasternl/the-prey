@@ -5,79 +5,53 @@
   <div class="br bl"></div>
   <div class="br brr"></div>
   <div class="coords">52.3676°N / 4.9041°E</div>
-  <div class="tag">// Signal Acquired</div>
+  <div class="tag">{{ i18n "home_hero_tag" }}</div>
   <h1>THE <em>PREY</em></h1>
   <p class="lede">{{ .Description }}</p>
-  <p class="lede" style="margin-top:8px">GPS-based hide-and-seek. Define the arena. Scatter and hide. Hunt them down before time runs out.</p>
+  <p class="lede" style="margin-top:8px">{{ i18n "home_hero_sub" }}</p>
   <div class="hero-actions">
-    <a href="{{ "/rules/" | relLangURL }}" class="btn primary">Read the Rules</a>
-    <a href="{{ "/how-to/" | relLangURL }}" class="btn ghost">How-To Guides</a>
+    <a href="{{ "/rules/" | relLangURL }}" class="btn primary">{{ i18n "home_cta_rules" }}</a>
+    <a href="{{ "/how-to/" | relLangURL }}" class="btn ghost">{{ i18n "home_cta_howto" }}</a>
   </div>
 </div>
 
 <section>
-  <div class="eyebrow">The Game</div>
-  <h2>Hunt or be Hunted</h2>
-  <p>The Prey drops players into a real-world GPS arena. One team hides and runs. The other tracks and tags. Every 30 seconds the map updates. Every move matters.</p>
-  <p>Games last 60 minutes. Prey have a 10-minute head start to scatter before Hunters see their first ping. After that — you are on the radar.</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:32px">
+  <div class="eyebrow">{{ i18n "home_game_eyebrow" }}</div>
+  <h2>{{ i18n "home_game_title" }}</h2>
+  <p>{{ i18n "home_game_p1" }}</p>
+  <p>{{ i18n "home_game_p2" }}</p>
+  <div class="phase-grid">
+    {{ range hugo.Data.home.phases }}
     <div class="panel">
-      <div class="ptitle">Head Start</div>
-      <div style="font-family:var(--head);font-size:36px;color:var(--signal);text-shadow:0 0 16px var(--signal-glow)">10<span style="font-size:16px;color:var(--text-ghost)"> min</span></div>
-      <p style="margin-top:8px;font-size:13px">Prey scatter. No location data. Hunters wait.</p>
+      <div class="ptitle">{{ i18n (printf "home_phase_%s_title" .key) }}</div>
+      <div class="phase-figure {{ .accent }}">{{ .value }}<span class="unit"> {{ .unit }}</span></div>
+      <p class="phase-desc">{{ i18n (printf "home_phase_%s_desc" .key) }}</p>
     </div>
-    <div class="panel">
-      <div class="ptitle">Active Hunt</div>
-      <div style="font-family:var(--head);font-size:36px;color:var(--signal);text-shadow:0 0 16px var(--signal-glow)">~45<span style="font-size:16px;color:var(--text-ghost)"> min</span></div>
-      <p style="margin-top:8px;font-size:13px">GPS pings live. Map updates every 30 seconds.</p>
-    </div>
-    <div class="panel">
-      <div class="ptitle">Final Stretch</div>
-      <div style="font-family:var(--head);font-size:36px;color:var(--caution);text-shadow:0 0 16px rgba(255,179,0,.3)">5<span style="font-size:16px;color:var(--text-ghost)"> min</span></div>
-      <p style="margin-top:8px;font-size:13px">Warning issued. Close in or hold on.</p>
-    </div>
+    {{ end }}
   </div>
 </section>
 
 <section>
-  <div class="eyebrow">Roles</div>
-  <h2>Every Player Has a Job</h2>
+  <div class="eyebrow">{{ i18n "home_roles_eyebrow" }}</div>
+  <h2>{{ i18n "home_roles_title" }}</h2>
   <div class="roles-grid" style="margin-top:24px">
-    <a href="{{ "/roles/prey/" | relLangURL }}" style="text-decoration:none">
-      <div class="pcard prey" style="cursor:pointer">
-        <div class="av">◎</div>
-        <div>
-          <div class="nm">Prey</div>
-          <div class="st">Hide. Move. Survive.</div>
-        </div>
-      </div>
-    </a>
-    <a href="{{ "/roles/hunter/" | relLangURL }}" style="text-decoration:none">
-      <div class="pcard hunter" style="cursor:pointer">
-        <div class="av">⬤</div>
-        <div>
-          <div class="nm">Hunter</div>
-          <div class="st">Track. Close in. Tag.</div>
-        </div>
-      </div>
-    </a>
-    <a href="{{ "/roles/game-creator/" | relLangURL }}" style="text-decoration:none">
-      <div class="pcard hunter" style="cursor:pointer">
-        <div class="av">◈</div>
-        <div>
-          <div class="nm">Game Creator</div>
-          <div class="st">Define. Assign. Launch.</div>
-        </div>
-      </div>
-    </a>
+    {{ range hugo.Data.home.roles }}
+    {{ partial "role-card.html" (dict
+      "url"     (.url | relLangURL)
+      "glyph"   .glyph
+      "variant" .variant
+      "name"    (i18n (printf "home_role_%s_name" .key))
+      "tagline" (i18n (printf "home_role_%s_tagline" .key))
+    ) }}
+    {{ end }}
   </div>
 </section>
 
 <section>
   <div style="display:flex;gap:14px;flex-wrap:wrap">
-    <a href="{{ "/rules/" | relLangURL }}" class="btn ghost">Rules</a>
-    <a href="{{ "/playfield/" | relLangURL }}" class="btn ghost">Playfield</a>
-    <a href="{{ "/faq/" | relLangURL }}" class="btn ghost">FAQ</a>
+    <a href="{{ "/rules/" | relLangURL }}" class="btn ghost">{{ i18n "nav_rules" }}</a>
+    <a href="{{ "/playfield/" | relLangURL }}" class="btn ghost">{{ i18n "nav_playfield" }}</a>
+    <a href="{{ "/faq/" | relLangURL }}" class="btn ghost">{{ i18n "nav_faq" }}</a>
   </div>
 </section>
 {{ end }}
