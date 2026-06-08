@@ -47,7 +47,12 @@ public sealed class UserResolver : IUserResolver
             try
             {
                 var request = _dapr.CreateInvokeMethodRequest(HttpMethod.Get, _options.UsersAppId, $"internal/users/{subjectId}");
+                // Dapr 1.17 marks the HttpRequestMessage overload [Obsolete] in favour of native HTTP/gRPC
+                // clients. We keep it deliberately: it is the only abstract (Moq-able) invocation overload,
+                // and migrating off Dapr service invocation is an architectural change tracked separately.
+#pragma warning disable CS0618
                 user = await _dapr.InvokeMethodAsync<UserDto>(request, ct);
+#pragma warning restore CS0618
             }
             catch (InvocationException ex) when (ex.Response?.StatusCode == HttpStatusCode.NotFound)
             {

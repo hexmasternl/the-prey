@@ -29,7 +29,12 @@ public sealed class PlayfieldInfoProvider : IPlayfieldInfoProvider
                 PlayfieldsAppId,
                 $"internal/playfields/{playfieldId}");
 
+            // Dapr 1.17 marks the HttpRequestMessage overload [Obsolete] in favour of native HTTP/gRPC
+            // clients. We keep it deliberately: it is the only abstract (Moq-able) invocation overload,
+            // and migrating off Dapr service invocation is an architectural change tracked separately.
+#pragma warning disable CS0618
             var dto = await _dapr.InvokeMethodAsync<PlayFieldDto>(request, ct);
+#pragma warning restore CS0618
 
             return dto is null
                 ? null

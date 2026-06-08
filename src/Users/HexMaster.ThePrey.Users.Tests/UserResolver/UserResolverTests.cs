@@ -55,11 +55,13 @@ public sealed class UserResolverTests
         Assert.Equal(cachedDto.DisplayName, result.DisplayName);
 
         // InvokeMethodAsync(HttpRequestMessage, ct) should not be called on a cache hit
+#pragma warning disable CS0618 // obsolete but only Moq-able invocation overload — see UserResolver.cs
         _daprMock.Verify(
             d => d.InvokeMethodAsync<UserDto>(
                 It.IsAny<HttpRequestMessage>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
+#pragma warning restore CS0618
     }
 
     [Fact]
@@ -70,7 +72,7 @@ public sealed class UserResolverTests
         var serviceDto = CreateUserDto();
 
         _daprMock
-            .Setup(d => d.GetStateAsync<UserDto>(
+            .Setup(d => d.GetStateAsync<UserDto?>(
                 _options.StateStoreName,
                 $"user-subject:{subjectId}",
                 It.IsAny<ConsistencyMode?>(),
@@ -78,11 +80,15 @@ public sealed class UserResolverTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserDto?)null);
 
+        // CreateInvokeMethodRequest + the HttpRequestMessage overload is the only Moq-able
+        // service-invocation API; Dapr 1.17 marks it [Obsolete] (CS0618) — suppress, see UserResolver.cs.
+#pragma warning disable CS0618
         _daprMock
             .Setup(d => d.InvokeMethodAsync<UserDto>(
                 It.IsAny<HttpRequestMessage>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(serviceDto);
+#pragma warning restore CS0618
 
         _daprMock
             .Setup(d => d.SaveStateAsync(
@@ -121,7 +127,7 @@ public sealed class UserResolverTests
         const string subjectId = "auth0|not-found";
 
         _daprMock
-            .Setup(d => d.GetStateAsync<UserDto>(
+            .Setup(d => d.GetStateAsync<UserDto?>(
                 _options.StateStoreName,
                 $"user-subject:{subjectId}",
                 It.IsAny<ConsistencyMode?>(),
@@ -136,11 +142,13 @@ public sealed class UserResolverTests
             new Exception("Not Found"),
             notFoundResponse);
 
+#pragma warning disable CS0618 // obsolete but only Moq-able invocation overload — see UserResolver.cs
         _daprMock
             .Setup(d => d.InvokeMethodAsync<UserDto>(
                 It.IsAny<HttpRequestMessage>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(invocationException);
+#pragma warning restore CS0618
 
         var sut = CreateSut();
 

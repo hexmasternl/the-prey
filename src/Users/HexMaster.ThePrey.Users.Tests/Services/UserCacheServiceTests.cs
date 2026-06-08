@@ -52,7 +52,7 @@ public sealed class UserCacheServiceTests
         const string subjectId = "auth0|missing";
 
         _daprClientMock
-            .Setup(d => d.GetStateAsync<UserCacheEntry>(
+            .Setup(d => d.GetStateAsync<UserCacheEntry?>(
                 StateStoreName,
                 $"theprey:users:by-subject:{subjectId}",
                 It.IsAny<ConsistencyMode?>(),
