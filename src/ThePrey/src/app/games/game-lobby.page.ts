@@ -18,7 +18,10 @@ import { addIcons } from 'ionicons';
 import { checkmarkCircle, personRemove, shareSocial } from 'ionicons/icons';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '@auth0/auth0-angular';
+import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
 import { firstValueFrom } from 'rxjs';
+import { nativeGameJoinUri } from '../auth.utils';
 import { GameConfigurationDto, GameDto, GamesService } from './games.service';
 import { UserStateService } from '../users/user-state.service';
 
@@ -69,7 +72,11 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
 
-  readonly canShare = computed(() => typeof navigator !== 'undefined' && !!navigator.share);
+  readonly canShare = computed(
+    () =>
+      Capacitor.isNativePlatform() ||
+      (typeof navigator !== 'undefined' && !!navigator.share),
+  );
 
   constructor() {
     addIcons({ checkmarkCircle, personRemove, shareSocial });
@@ -258,15 +265,20 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   async shareGame(): Promise<void> {
     const g = this.game();
-    if (!g || !navigator.share) return;
-    const url = `${window.location.origin}/games/join?gameId=${g.id}`;
+    if (!g) return;
+    // On device, share the custom-scheme deep link so tapping it reopens the app
+    // on the join screen. In the browser there is no app to open, so link to the web join page.
+    const url = Capacitor.isNativePlatform()
+      ? nativeGameJoinUri(g.id)
+      : `${window.location.origin}/games/join?gameId=${g.id}`;
     const message = `${this.translate.instant('GAME_SHARE.MESSAGE')} ${g.gameCode}`;
+    const title = this.translate.instant('GAME_SHARE.TITLE');
     try {
-      await navigator.share({
-        title: this.translate.instant('GAME_SHARE.TITLE'),
-        text: message,
-        url,
-      });
+      if (Capacitor.isNativePlatform()) {
+        await Share.share({ title, text: message, url });
+      } else if (navigator.share) {
+        await navigator.share({ title, text: message, url });
+      }
     } catch {
       // user cancelled or share failed — no action needed
     }
