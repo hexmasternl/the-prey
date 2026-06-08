@@ -111,6 +111,16 @@ module acrPullIdentity 'modules/acr-pull-identity.bicep' = {
   }
 }
 
+module redis 'modules/redis.bicep' = {
+  name: 'redis'
+  scope: rg
+  params: {
+    name: '${prefix}-redis'
+    location: location
+    containerAppsEnvironmentName: acaEnv.outputs.name
+  }
+}
+
 // Outputs consumed by service Bicep templates and GitHub Actions workflows
 output resourceGroupName string = rg.name
 output containerAppsEnvironmentId string = acaEnv.outputs.id
@@ -125,5 +135,8 @@ output appConfigEndpoint string = appConfig.outputs.endpoint
 output storageQueueAccountName string = storageQueues.outputs.name
 output acrPullIdentityId string = acrPullIdentity.outputs.id
 output acrPullIdentityClientId string = acrPullIdentity.outputs.clientId
+output redisName string = redis.outputs.name
+output redisHostName string = redis.outputs.hostName
+output daprStateStoreComponentName string = redis.outputs.daprComponentName
 #disable-next-line outputs-should-not-contain-secrets
 output appInsightsConnectionString string = appInsights.outputs.connectionString
