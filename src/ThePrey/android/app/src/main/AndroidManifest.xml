@@ -22,6 +22,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!--
+                Custom-scheme deep link. Routes nl.hexmaster.theprey://... URIs back into
+                the app, which is what makes the Auth0 redirect callback (and game-join
+                links) reach AppComponent's appUrlOpen / getLaunchUrl handlers. Without
+                this filter the OS has no registered handler for the scheme and silently
+                drops the redirect, so login never completes on-device.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="@string/custom_url_scheme" />
+            </intent-filter>
+
         </activity>
 
         <provider
