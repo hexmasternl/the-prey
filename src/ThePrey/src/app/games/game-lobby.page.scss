@@ -225,6 +225,17 @@ ion-header ion-toolbar {
   padding-right: 2px;
 }
 
+// ── Owner hint: tap to assign hunter ─────────────────────────
+.assign-hint {
+  font-family: var(--tp-body);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--tp-text-soft);
+  text-transform: uppercase;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+
 // ── Operatives block ─────────────────────────────────────────
 .operatives-block {
   position: relative;
@@ -296,6 +307,11 @@ ion-header ion-toolbar {
   &--hunter {
     color: var(--tp-caution);
     border: 1px solid rgba(255, 179, 0, 0.4);
+  }
+
+  &--prey {
+    color: var(--tp-prey);
+    border: 1px solid rgba(100, 255, 0, 0.4);
   }
 
   &--ready {

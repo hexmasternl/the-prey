@@ -204,12 +204,16 @@
       {{ 'GAME_LOBBY.PLAYERS' | translate }} ({{ g.lobby.length }})
     </div>
 
+    @if (isOwner()) {
+    <p class="assign-hint">{{ 'GAME_LOBBY.ASSIGN_HINT' | translate }}</p>
+    }
+
     <div class="operatives-block">
       @for (player of g.lobby; track player.userId) {
       <div
         class="operative-row"
-        [class.operative-row--clickable]="isOwner() && !isCurrentUser(player.userId)"
-        (click)="isOwner() && !isCurrentUser(player.userId) && designateHunter(player.userId)"
+        [class.operative-row--clickable]="isOwner()"
+        (click)="isOwner() && designateHunter(player.userId)"
       >
         <div class="operative-info">
           <div class="operative-name">
@@ -217,11 +221,14 @@
             <span class="you-tag">{{ 'GAME_LOBBY.YOU' | translate }}</span>
             }
           </div>
-          @if (player.designatedHunter || player.isReady) {
           <div class="operative-meta">
             @if (player.designatedHunter) {
             <span class="badge badge--hunter"
               >{{ 'GAME_LOBBY.ROLE_HUNTER' | translate }}</span
+            >
+            } @else {
+            <span class="badge badge--prey"
+              >{{ 'GAME_LOBBY.ROLE_PREY' | translate }}</span
             >
             } @if (player.isReady) {
             <span class="badge badge--ready"
@@ -229,7 +236,6 @@
             >
             }
           </div>
-          }
         </div>
 
         <div class="operative-end">
