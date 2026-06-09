@@ -1,8 +1,9 @@
+using System.Text.Json;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.Features.UpdateLocationBroadcast;
 using HexMaster.ThePrey.Games.Notifications;
-using Microsoft.AspNetCore.Mvc;
+using HexMaster.ThePrey.Games.Security;
 
 namespace HexMaster.ThePrey.Games.Api.Endpoints;
 
@@ -32,19 +33,54 @@ public static class GameEngineEndpoints
 
     private static async Task<IResult> LocationUpdate(
         Guid gameId,
-        [FromBody] LocationUpdateRequest request,
         HttpContext httpContext,
         ICommandHandler<UpdateLocationBroadcastCommand, UpdateLocationBroadcastResult> handler,
         IConfiguration configuration,
+        ILoggerFactory loggerFactory,
         CancellationToken ct)
     {
-        var expectedKey = configuration["GameEngine:EngineKey"];
-        if (!string.IsNullOrEmpty(expectedKey))
+        var logger = loggerFactory.CreateLogger(nameof(GameEngineEndpoints));
+        var secret = configuration["GameEngine:EngineKey"];
+        if (string.IsNullOrEmpty(secret))
         {
-            var providedKey = httpContext.Request.Headers["X-Engine-Key"].FirstOrDefault();
-            if (providedKey != expectedKey)
-                return Results.Unauthorized();
+            logger.LogWarning(
+                "GameEngine:EngineKey is not configured. Rejecting location-update request for game {GameId}.",
+                gameId);
+            return Results.Unauthorized();
         }
+
+        // Buffer the raw body so we can verify the signature over its exact bytes.
+        httpContext.Request.EnableBuffering();
+        using var ms = new MemoryStream();
+        await httpContext.Request.Body.CopyToAsync(ms, ct);
+        var bodyBytes = ms.ToArray();
+
+        var timestamp = httpContext.Request.Headers[EngineRequestSigner.TimestampHeaderName].FirstOrDefault();
+        var signature = httpContext.Request.Headers[EngineRequestSigner.SignatureHeaderName].FirstOrDefault();
+
+        if (!EngineRequestSigner.Verify(secret, timestamp, signature, bodyBytes, DateTimeOffset.UtcNow))
+        {
+            logger.LogWarning(
+                "HMAC verification failed for location-update on game {GameId}. Timestamp header: {Timestamp}",
+                gameId,
+                timestamp);
+            return Results.Unauthorized();
+        }
+
+        LocationUpdateRequest? request;
+        try
+        {
+            request = JsonSerializer.Deserialize<LocationUpdateRequest>(
+                bodyBytes,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch (JsonException)
+        {
+            return Results.UnprocessableEntity();
+        }
+
+        if (request is null)
+            return Results.UnprocessableEntity();
 
         var locations = request.Locations
             .Select(l => new ParticipantLocationUpdate(l.UserId, l.Latitude, l.Longitude))
@@ -85,7 +121,7 @@ public static class GameEngineEndpoints
 
         await foreach (var evt in engineEventBus.Subscribe(gameId).WithCancellation(ct))
         {
-            var json = System.Text.Json.JsonSerializer.Serialize(evt);
+            var json = JsonSerializer.Serialize(evt);
             await httpContext.Response.WriteAsync($"event: location-update\ndata: {json}\n\n", ct);
             await httpContext.Response.Body.FlushAsync(ct);
         }
