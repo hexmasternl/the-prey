@@ -88,6 +88,7 @@ module gamesApi '../modules/container-app.bicep' = {
     landingZone: landingZone
     enableDapr: true
     daprAppId: 'hexmaster-theprey-games-api'
+    minReplicas: 1
     additionalSecrets: [
       {
         name: 'pg-connection-string'
