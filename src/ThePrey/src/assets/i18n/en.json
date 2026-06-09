@@ -1,4 +1,8 @@
 {
+  "ERRORS": {
+    "NETWORK": "No connection. Check your network and try again.",
+    "SERVER": "Something went wrong on our end. Please try again."
+  },
   "LOGIN": {
     "START_HUNT": "START HUNT"
   },

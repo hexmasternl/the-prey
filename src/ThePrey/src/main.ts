@@ -5,6 +5,7 @@ import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalo
 import { provideAuth0 } from '@auth0/auth0-angular';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authTokenInterceptor } from './app/auth/auth-token.interceptor';
+import { httpErrorInterceptor } from './app/core/http-error.interceptor';
 import { Capacitor } from '@capacitor/core';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -26,7 +27,9 @@ bootstrapApplication(AppComponent, {
     { provide: ErrorHandler, useClass: DebugErrorHandler },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
-    provideHttpClient(withInterceptors([authTokenInterceptor])),
+    // httpErrorInterceptor is listed first so it wraps authTokenInterceptor and surfaces
+    // both downstream HTTP failures and a failed token refresh.
+    provideHttpClient(withInterceptors([httpErrorInterceptor, authTokenInterceptor])),
     provideTranslateService({
       loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
       fallbackLang: 'en',

@@ -1,4 +1,8 @@
 {
+  "ERRORS": {
+    "NETWORK": "Geen verbinding. Controleer je netwerk en probeer het opnieuw.",
+    "SERVER": "Er ging iets mis aan onze kant. Probeer het opnieuw."
+  },
   "LOGIN": {
     "START_HUNT": "START DE JACHT"
   },
