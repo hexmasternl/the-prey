@@ -12,7 +12,18 @@
   <div class="status-bar">
     <span class="status-pill">LIVE</span>
     <span class="role-tag">HUNTER</span>
+    <span class="link-tag" [class.link-on]="isTracking()">{{ isTracking() ? 'LIVE' : 'OFF' }}</span>
   </div>
+
+  <!-- Tracking-inactive warning (non-blocking) -->
+  @if (trackingInactive()) {
+  <div class="alert-banner track-warn">
+    <span class="alert-icon">▲</span>
+    <div>
+      <div class="alert-title">{{ 'GAME_PROGRESS.TRACKING_INACTIVE' | translate }}</div>
+    </div>
+  </div>
+  }
 
   <!-- GPS alert banner -->
   @if (gpsAlert()) {

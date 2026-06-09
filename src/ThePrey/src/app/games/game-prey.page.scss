@@ -104,4 +104,15 @@
     color: var(--caution);
     text-shadow: 0 0 10px rgba(255, 179, 0, 0.4);
   }
+
+  /* LINK cell: green + glow when location reporting is live, dim when off. */
+  &.hud-link-on .hud-value {
+    color: #64ff00;
+    text-shadow: 0 0 10px rgba(100, 255, 0, 0.4);
+  }
+}
+
+/* Tracking-inactive warning reuses the .alert-banner.alert-warn styling. */
+.track-warn {
+  z-index: 11;
 }

@@ -1,23 +1,27 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
 import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
+import { Preferences } from '@capacitor/preferences';
+import { TranslatePipe } from '@ngx-translate/core';
 import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
 import { GameStreamService } from './game-stream.service';
+import { GameLocationService } from './game-location.service';
 
 @Component({
   selector: 'app-game-hunter',
   templateUrl: 'game-hunter.page.html',
   styleUrls: ['game-hunter.page.scss'],
-  imports: [IonContent],
+  imports: [IonContent, TranslatePipe],
 })
-export class GameHunterPage implements OnInit, OnDestroy {
+export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly gamesService = inject(GamesService);
   private readonly streamService = inject(GameStreamService);
+  private readonly locationService = inject(GameLocationService);
   private readonly auth = inject(AuthService);
 
   readonly timeRemaining = signal('--:--');
@@ -29,6 +33,10 @@ export class GameHunterPage implements OnInit, OnDestroy {
   readonly showTagModal = signal(false);
   readonly taggablePrey = signal<GameParticipantStatusDto[]>([]);
   readonly tagInFlight = signal(false);
+  /** True when background location reporting could not be (re)started for this game. */
+  readonly trackingInactive = signal(false);
+  /** Live tracking state from the singleton service (true while broadcasting). */
+  readonly isTracking = this.locationService.isTracking;
 
   private gameId!: string;
   private map!: L.Map;
@@ -54,10 +62,21 @@ export class GameHunterPage implements OnInit, OnDestroy {
     this.connectStream(token);
   }
 
+  /**
+   * Health-check the background tracking session every time the page is shown. The
+   * hunter must keep reporting position (preys see hunter distance), so the singleton
+   * GameLocationService is (re)started here if it is not already tracking this game.
+   */
+  async ionViewWillEnter(): Promise<void> {
+    await this.ensureTracking();
+  }
+
   ngOnDestroy(): void {
     this.clearPoll();
     this.clearPingInterval();
     this.streamService.disconnect();
+    // NOTE: intentionally do NOT stop location tracking here — the service must keep
+    // broadcasting while the game is in progress even if the player leaves this page.
     if (this.watchId !== null) {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
@@ -65,6 +84,43 @@ export class GameHunterPage implements OnInit, OnDestroy {
     if (this.map) {
       this.map.remove();
     }
+  }
+
+  private async ensureTracking(): Promise<void> {
+    if (this.isTracking()) {
+      this.trackingInactive.set(false);
+      return;
+    }
+
+    // 1. Recover from a persisted session (e.g. after the OS killed the app).
+    const storedId = (await Preferences.get({ key: 'game.tracking.gameId' })).value;
+    const storedEnd = (await Preferences.get({ key: 'game.tracking.gameEndTime' })).value;
+    if (storedId === this.gameId && storedEnd) {
+      const end = new Date(storedEnd);
+      if (end.getTime() > Date.now()) {
+        await this.locationService.start(this.gameId, end);
+        this.trackingInactive.set(false);
+        return;
+      }
+    }
+
+    // 2. No (valid) stored context — derive the end time from the live game.
+    try {
+      const game = await this.gamesService.getGame(this.gameId);
+      if (game.startedAt) {
+        const end = new Date(new Date(game.startedAt).getTime() + game.configuration.gameDuration * 60_000);
+        if (end.getTime() > Date.now()) {
+          await this.locationService.start(this.gameId, end);
+          this.trackingInactive.set(false);
+          return;
+        }
+      }
+    } catch {
+      // fall through to the inactive warning
+    }
+
+    // 3. Nothing to resume — surface a non-blocking warning.
+    this.trackingInactive.set(true);
   }
 
   recenter(): void {
@@ -282,6 +338,7 @@ export class GameHunterPage implements OnInit, OnDestroy {
     this.streamService.on('game-ended', () => {
       this.clearPoll();
       this.streamService.disconnect();
+      void this.locationService.stop();
       this.router.navigate(['/home'], { replaceUrl: true });
     });
   }

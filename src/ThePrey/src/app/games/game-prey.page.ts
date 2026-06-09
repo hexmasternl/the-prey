@@ -1,10 +1,12 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
 import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
 import { Geolocation } from '@capacitor/geolocation';
+import { Preferences } from '@capacitor/preferences';
+import { TranslatePipe } from '@ngx-translate/core';
 import { GameStatusDto, GamesService } from './games.service';
 import { GameStreamService } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
@@ -13,9 +15,9 @@ import { GameLocationService } from './game-location.service';
   selector: 'app-game-prey',
   templateUrl: 'game-prey.page.html',
   styleUrls: ['game-prey.page.scss'],
-  imports: [IonContent],
+  imports: [IonContent, TranslatePipe],
 })
-export class GamePreyPage implements OnInit, OnDestroy {
+export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly route          = inject(ActivatedRoute);
   private readonly router         = inject(Router);
   private readonly gamesService   = inject(GamesService);
@@ -28,6 +30,10 @@ export class GamePreyPage implements OnInit, OnDestroy {
   readonly hasActivePenalty = signal(false);
   readonly gpsAlert        = signal<string | null>(null);
   readonly gameOverMessage  = signal<string | null>(null);
+  /** True when background location reporting could not be (re)started for this game. */
+  readonly trackingInactive = signal(false);
+  /** Live tracking state from the singleton service (true while broadcasting). */
+  readonly isTracking = this.locationService.isTracking;
 
   private gameId!: string;
   private token!: string;
@@ -55,11 +61,6 @@ export class GamePreyPage implements OnInit, OnDestroy {
 
     this.initMap();
 
-    // Start background location broadcasting (native foreground service on Android,
-    // interval + HttpClient fallback on web). On Android the service autonomously
-    // polls game status, updates its own interval, and self-terminates when the game ends.
-    await this.locationService.startTracking(this.gameId, this.currentUserId ?? '', 30_000);
-
     // Separate watch purely for updating the on-screen map marker
     this.startMapWatch();
 
@@ -67,14 +68,62 @@ export class GamePreyPage implements OnInit, OnDestroy {
     this.connectStream();
   }
 
+  /**
+   * Health-check the background tracking session every time the page is shown. The
+   * GameLocationService is a singleton that outlives this page, so if it is already
+   * tracking this game there is nothing to do. Otherwise attempt to recover a session
+   * (after an OS kill) from Preferences, or derive the end time from the live game.
+   */
+  async ionViewWillEnter(): Promise<void> {
+    await this.ensureTracking();
+  }
+
   ngOnDestroy(): void {
     this.clearPoll();
     this.streamService.disconnect();
-    this.locationService.stopTracking();
+    // NOTE: intentionally do NOT stop location tracking here — the service must keep
+    // broadcasting while the game is in progress even if the player leaves this page.
     this.stopMapWatch();
     if (this.map) {
       this.map.remove();
     }
+  }
+
+  private async ensureTracking(): Promise<void> {
+    if (this.isTracking()) {
+      this.trackingInactive.set(false);
+      return;
+    }
+
+    // 1. Recover from a persisted session (e.g. after the OS killed the app).
+    const storedId = (await Preferences.get({ key: 'game.tracking.gameId' })).value;
+    const storedEnd = (await Preferences.get({ key: 'game.tracking.gameEndTime' })).value;
+    if (storedId === this.gameId && storedEnd) {
+      const end = new Date(storedEnd);
+      if (end.getTime() > Date.now()) {
+        await this.locationService.start(this.gameId, end);
+        this.trackingInactive.set(false);
+        return;
+      }
+    }
+
+    // 2. No (valid) stored context — derive the end time from the live game.
+    try {
+      const game = await this.gamesService.getGame(this.gameId);
+      if (game.startedAt) {
+        const end = new Date(new Date(game.startedAt).getTime() + game.configuration.gameDuration * 60_000);
+        if (end.getTime() > Date.now()) {
+          await this.locationService.start(this.gameId, end);
+          this.trackingInactive.set(false);
+          return;
+        }
+      }
+    } catch {
+      // fall through to the inactive warning
+    }
+
+    // 3. Nothing to resume — surface a non-blocking warning.
+    this.trackingInactive.set(true);
   }
 
   // -------------------------------------------------------------------------
@@ -218,7 +267,7 @@ export class GamePreyPage implements OnInit, OnDestroy {
     this.streamService.on('game-ended', () => {
       this.clearPoll();
       this.streamService.disconnect();
-      this.locationService.stopTracking();
+      void this.locationService.stop();
       this.router.navigate(['/home'], { replaceUrl: true });
     });
   }
@@ -226,7 +275,7 @@ export class GamePreyPage implements OnInit, OnDestroy {
   private handleGameOver(message: string): void {
     this.clearPoll();
     this.streamService.disconnect();
-    this.locationService.stopTracking();
+    void this.locationService.stop();
     this.stopMapWatch();
     this.gameOverMessage.set(message);
   }

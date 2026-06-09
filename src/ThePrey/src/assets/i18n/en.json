@@ -152,5 +152,16 @@
   "GAME_SHARE": {
     "TITLE": "Join me on The Prey!",
     "MESSAGE": "You are invited to join a game on The Prey! Tap the link to join, then enter this code:"
+  },
+  "GAME_TRACKING": {
+    "NOTIFICATION_TITLE": "The Prey — operation live",
+    "NOTIFICATION_BODY": "Reporting your position to command. Tracking continues while the app is in the background."
+  },
+  "GAME_PROGRESS": {
+    "ROLE_HUNTER": "HUNTER",
+    "ROLE_PREY": "PREY",
+    "TRACKING_ACTIVE": "LIVE",
+    "TRACKING_INACTIVE": "LOCATION REPORTING INACTIVE",
+    "BACK": "← BACK"
   }
 }

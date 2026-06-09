@@ -67,15 +67,10 @@
         </provider>
 
         <!--
-            LocationForegroundService: keeps GPS tracking alive when the screen is locked.
-            foregroundServiceType="location" is required on API 29+ and enables the system to
-            grant location access while the service is running in the foreground.
+            Background location tracking is handled by the
+            @capacitor-community/background-geolocation plugin, which contributes its own
+            foreground service (foregroundServiceType="location") via manifest merge.
         -->
-        <service
-            android:name=".LocationForegroundService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="location" />
 
     </application>
 
@@ -93,5 +88,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- Android 14+ (API 34): must declare the service type explicitly -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <!-- Android 13+ (API 33): required to display the foreground-service notification -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
 </manifest>

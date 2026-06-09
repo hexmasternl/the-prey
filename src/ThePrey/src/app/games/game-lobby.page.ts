@@ -22,6 +22,7 @@ import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { firstValueFrom } from 'rxjs';
 import { GameConfigurationDto, GameDto, GamesService } from './games.service';
+import { GameLocationService } from './game-location.service';
 import { UserStateService } from '../users/user-state.service';
 
 /**
@@ -54,6 +55,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly gamesService = inject(GamesService);
+  private readonly locationService = inject(GameLocationService);
   private readonly userState = inject(UserStateService);
   private readonly authService = inject(AuthService);
   private readonly toastCtrl = inject(ToastController);
@@ -149,9 +151,22 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       if (!game) return;
       const uid = this.currentUserId();
       this.closeStream();
-      if (game.hunter?.userId === uid) {
+
+      const isHunter = game.hunter?.userId === uid;
+      const isPrey = game.preys.some(p => p.userId === uid);
+
+      // Start background location tracking before navigating so reporting begins the
+      // moment the game starts. The in-game page's ionViewWillEnter is a no-op when a
+      // session for this game is already active (idempotent start).
+      if (isHunter || isPrey) {
+        const startedAt = game.startedAt ? new Date(game.startedAt) : new Date();
+        const endTime = new Date(startedAt.getTime() + game.configuration.gameDuration * 60_000);
+        void this.locationService.start(game.id, endTime);
+      }
+
+      if (isHunter) {
         this.router.navigate(['/games', game.id, 'hunt'], { replaceUrl: true });
-      } else if (game.preys.some(p => p.userId === uid)) {
+      } else if (isPrey) {
         this.router.navigate(['/games', game.id, 'play'], { replaceUrl: true });
       }
     } catch {

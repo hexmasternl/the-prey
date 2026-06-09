@@ -1,163 +1,205 @@
-import { inject, Injectable, OnDestroy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Capacitor } from '@capacitor/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
-import { firstValueFrom } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { GameLocation } from './game-location-plugin';
+import { Preferences } from '@capacitor/preferences';
+import { TranslateService } from '@ngx-translate/core';
+import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
+import { GamesService } from './games.service';
 
-interface LocationBody {
+/**
+ * Native background geolocation plugin. Registered manually because the package ships
+ * type definitions only — there is no runtime web implementation, so we guard every
+ * call behind `Capacitor.isNativePlatform()` and fall back to `@capacitor/geolocation`
+ * on the web (browser/PWA), where background tracking is not possible anyway.
+ */
+const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
+
+/** Preferences keys used to recover an active tracking session after an OS kill. */
+const PREF_GAME_ID = 'game.tracking.gameId';
+const PREF_END_TIME = 'game.tracking.gameEndTime';
+
+/** Fallback reporting cadence when the backend has not (yet) supplied one. */
+const DEFAULT_INTERVAL_SECONDS = 30;
+
+interface LastFix {
   latitude: number;
   longitude: number;
+  accuracy: number;
+  /** Milliseconds since the unix epoch, or null if the platform did not supply it. */
+  time: number | null;
 }
 
 /**
- * GameLocationService is the single point of truth for background location
- * broadcasting during a prey game session.
+ * Single source of truth for background location broadcasting during an active game.
  *
- * - On Android: delegates entirely to the native LocationForegroundService via
- *   the GameLocation Capacitor plugin. The service runs in a foreground service
- *   context so it survives screen lock.
+ * Lifecycle:
+ *  - `start(gameId, gameEndTime)` activates the native foreground service (Android) or
+ *    iOS background location, persists the game context to Preferences for OS-kill
+ *    recovery, and begins a self-scheduling post loop.
+ *  - `stop()` deactivates the plugin, clears Preferences, and flips `isTracking` to false.
  *
- * - On web (browser / PWA): falls back to @capacitor/geolocation + HttpClient
- *   with a setInterval loop. This only works while the browser tab is active
- *   (browsers suspend JS timers in background tabs), but it provides parity for
- *   local development and testing.
+ * Authentication reuses the in-app Auth0 session: every `POST /games/{id}/locations` is
+ * sent through Angular's `HttpClient`, and `authTokenInterceptor` attaches a fresh Bearer
+ * token. No client id/secret is baked into the app.
  *
- * Usage in GamePreyPage:
- *   await this.locationService.startTracking(gameId, userId, intervalMs);
- *   // ...later...
- *   this.locationService.stopTracking();
- *   // The native Android service manages its own interval autonomously.
- *   // updateInterval() is retained for the web fallback and future use.
+ * The reporting interval is driven entirely by the backend response
+ * (`nextLocationIntervalSeconds` / `penaltyIntervalSeconds`); the service never hardcodes
+ * the cadence beyond the failure fallback.
  */
 @Injectable({ providedIn: 'root' })
-export class GameLocationService implements OnDestroy {
-  private readonly http = inject(HttpClient);
+export class GameLocationService {
+  private readonly games = inject(GamesService);
+  private readonly translate = inject(TranslateService);
 
-  /** True when the native Android plugin is available. */
-  private readonly isNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+  private readonly isNative = Capacitor.isNativePlatform();
 
-  // Web-fallback state
-  private webIntervalHandle: ReturnType<typeof setInterval> | null = null;
+  private readonly trackingSignal = signal(false);
+  /** Readonly boolean signal: true while a tracking session is active. */
+  readonly isTracking = this.trackingSignal.asReadonly();
+
+  private nativeWatcherId: string | null = null;
   private webWatchId: string | null = null;
-  private webGameId: string | null = null;
-  private webIntervalMs = 30_000;
-  private lastLat: number | null = null;
-  private lastLon: number | null = null;
-
-  // -------------------------------------------------------------------------
-  // Public API
-  // -------------------------------------------------------------------------
+  private currentGameId: string | null = null;
+  private gameEndTime: Date | null = null;
+  private lastFix: LastFix | null = null;
+  private postTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastIntervalSeconds = DEFAULT_INTERVAL_SECONDS;
 
   /**
-   * Start broadcasting the device's GPS location to the game server.
+   * Begin broadcasting the device location for `gameId` until `gameEndTime`.
    *
-   * @param gameId     Active game UUID.
-   * @param userId     The player's own user ID — passed to the native service so it
-   *                   can detect elimination and self-terminate.
-   * @param intervalMs Initial milliseconds between each POST. Defaults to 30 000.
-   *                   On Android the service updates this from the server's
-   *                   nextPingDuration autonomously.
+   * - No-op when already tracking the same game.
+   * - Stops the previous session first when switching to a different game.
+   * - Does nothing if `gameEndTime` is already in the past.
    */
-  async startTracking(gameId: string, userId: string, intervalMs = 30_000): Promise<void> {
-    if (this.isNative) {
-      await GameLocation.startTracking({
-        gameId,
-        apiUrl: environment.apiUrl,
-        clientId: environment.auth0ClientId,
-        clientSecret: environment.auth0ClientSecret,
-        userId,
-        intervalMs,
-      });
-    } else {
-      await this.startWebTracking(gameId, intervalMs);
+  async start(gameId: string, gameEndTime: Date): Promise<void> {
+    if (this.trackingSignal() && this.currentGameId === gameId) {
+      return; // already tracking this game — no duplicate session
     }
+    if (this.trackingSignal() && this.currentGameId !== gameId) {
+      await this.stop(); // switch games: tear down the old session first
+    }
+    if (gameEndTime.getTime() <= Date.now()) {
+      return; // game window already closed
+    }
+
+    this.currentGameId = gameId;
+    this.gameEndTime = gameEndTime;
+    this.lastIntervalSeconds = DEFAULT_INTERVAL_SECONDS;
+    this.lastFix = null;
+
+    await Preferences.set({ key: PREF_GAME_ID, value: gameId });
+    await Preferences.set({ key: PREF_END_TIME, value: gameEndTime.toISOString() });
+
+    if (this.isNative) {
+      const backgroundTitle = this.translate.instant('GAME_TRACKING.NOTIFICATION_TITLE');
+      const backgroundMessage = this.translate.instant('GAME_TRACKING.NOTIFICATION_BODY');
+      this.nativeWatcherId = await BackgroundGeolocation.addWatcher(
+        { backgroundTitle, backgroundMessage, requestPermissions: true, stale: false, distanceFilter: 0 },
+        (position, error) => {
+          if (error || !position) return;
+          this.lastFix = {
+            latitude: position.latitude,
+            longitude: position.longitude,
+            accuracy: position.accuracy,
+            time: position.time,
+          };
+        },
+      );
+    } else {
+      this.webWatchId = await Geolocation.watchPosition(
+        { enableHighAccuracy: true, maximumAge: 5_000 },
+        (position, err) => {
+          if (err || !position) return;
+          this.lastFix = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            time: position.timestamp,
+          };
+        },
+      );
+    }
+
+    this.trackingSignal.set(true);
+    this.scheduleNextPost(0); // fire the first cycle immediately
   }
 
-  /**
-   * Stop all location broadcasting and clean up resources.
-   */
-  async stopTracking(): Promise<void> {
-    if (this.isNative) {
-      await GameLocation.stopTracking();
-    } else {
-      this.stopWebTracking();
+  /** Stop tracking, deactivate the plugin, and clear the persisted recovery context. */
+  async stop(): Promise<void> {
+    if (this.postTimer !== null) {
+      clearTimeout(this.postTimer);
+      this.postTimer = null;
     }
-  }
-
-  /**
-   * Adjust the POST interval without restarting. Call this whenever the
-   * server returns a new `nextPingDuration` value.
-   *
-   * @param intervalMs New interval in milliseconds.
-   */
-  async updateInterval(intervalMs: number): Promise<void> {
-    if (this.isNative) {
-      await GameLocation.updateInterval({ intervalMs });
-    } else {
-      // Restart the web interval with the new cadence
-      if (this.webGameId) {
-        this.stopWebTracking();
-        await this.startWebTracking(this.webGameId, intervalMs);
+    if (this.nativeWatcherId !== null) {
+      try {
+        await BackgroundGeolocation.removeWatcher({ id: this.nativeWatcherId });
+      } catch {
+        // watcher already gone — ignore
       }
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.stopWebTracking();
-  }
-
-  // -------------------------------------------------------------------------
-  // Web / browser fallback
-  // -------------------------------------------------------------------------
-
-  private async startWebTracking(gameId: string, intervalMs: number): Promise<void> {
-    this.stopWebTracking(); // Clear any previous session
-
-    this.webGameId     = gameId;
-    this.webIntervalMs = intervalMs;
-
-    // Start watching GPS position with Capacitor Geolocation
-    this.webWatchId = await Geolocation.watchPosition(
-      { enableHighAccuracy: true, maximumAge: 5_000 },
-      (position, err) => {
-        if (err || !position) return;
-        this.lastLat = position.coords.latitude;
-        this.lastLon = position.coords.longitude;
-      }
-    );
-
-    // Fire immediately, then repeat at intervalMs
-    this.postWebLocation();
-    this.webIntervalHandle = setInterval(() => this.postWebLocation(), intervalMs);
-  }
-
-  private stopWebTracking(): void {
-    if (this.webIntervalHandle !== null) {
-      clearInterval(this.webIntervalHandle);
-      this.webIntervalHandle = null;
+      this.nativeWatcherId = null;
     }
     if (this.webWatchId !== null) {
-      Geolocation.clearWatch({ id: this.webWatchId });
+      await Geolocation.clearWatch({ id: this.webWatchId });
       this.webWatchId = null;
     }
-    this.webGameId   = null;
-    this.lastLat     = null;
-    this.lastLon     = null;
+
+    this.currentGameId = null;
+    this.gameEndTime = null;
+    this.lastFix = null;
+    this.trackingSignal.set(false);
+
+    await Preferences.remove({ key: PREF_GAME_ID });
+    await Preferences.remove({ key: PREF_END_TIME });
   }
 
-  private postWebLocation(): void {
-    if (this.lastLat === null || this.lastLon === null) return;
-    if (!this.webGameId) return;
+  private scheduleNextPost(delaySeconds: number): void {
+    this.postTimer = setTimeout(() => void this.postCycle(), delaySeconds * 1_000);
+  }
 
-    const body: LocationBody = { latitude: this.lastLat, longitude: this.lastLon };
-    const url = `${environment.apiUrl}/games/${this.webGameId}/location`;
+  /**
+   * One reporting cycle: enforce the end-time guard, post the latest fix, then schedule
+   * the next cycle using the backend-supplied interval (falling back to the last known
+   * interval, then 30 s). Never throws — a failed post simply reschedules.
+   */
+  private async postCycle(): Promise<void> {
+    if (!this.trackingSignal() || !this.currentGameId) {
+      return;
+    }
 
-    firstValueFrom(
-      this.http.post(url, body)
-    ).catch(() => {
-      // Network error — skip this tick; we'll retry on the next interval
-    });
+    // Auto-stop guard: the game window has closed.
+    if (this.gameEndTime && Date.now() >= this.gameEndTime.getTime()) {
+      await this.stop();
+      return;
+    }
+
+    const fix = this.lastFix;
+    if (!fix) {
+      // No GPS fix yet — try again on the next interval.
+      this.scheduleNextPost(this.lastIntervalSeconds);
+      return;
+    }
+
+    let nextInterval = this.lastIntervalSeconds;
+    try {
+      const recordedAt = new Date(fix.time ?? Date.now()).toISOString();
+      const response = await this.games.recordLocation(
+        this.currentGameId,
+        fix.latitude,
+        fix.longitude,
+        fix.accuracy,
+        recordedAt,
+      );
+      nextInterval =
+        response.penaltyIntervalSeconds ?? response.nextLocationIntervalSeconds ?? this.lastIntervalSeconds;
+      this.lastIntervalSeconds = nextInterval > 0 ? nextInterval : DEFAULT_INTERVAL_SECONDS;
+    } catch {
+      // Network error / 401 / token failure: keep tracking, retry on the last known cadence.
+      this.lastIntervalSeconds = this.lastIntervalSeconds > 0 ? this.lastIntervalSeconds : DEFAULT_INTERVAL_SECONDS;
+    }
+
+    if (this.trackingSignal()) {
+      this.scheduleNextPost(this.lastIntervalSeconds);
+    }
   }
 }

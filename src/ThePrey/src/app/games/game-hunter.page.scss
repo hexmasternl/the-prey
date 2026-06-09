@@ -97,6 +97,25 @@
   text-shadow: 0 0 8px var(--hunter-glow);
 }
 
+/* Location reporting status pill in the status bar. */
+.link-tag {
+  margin-left: auto;
+  font-family: 'PT Mono', 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text-soft, #888);
+
+  &.link-on {
+    color: #64ff00;
+    text-shadow: 0 0 8px rgba(100, 255, 0, 0.4);
+  }
+}
+
+/* Tracking-inactive warning reuses the .alert-banner styling. */
+.track-warn {
+  z-index: 11;
+}
+
 /* Alert banner */
 .alert-banner {
   position: absolute;

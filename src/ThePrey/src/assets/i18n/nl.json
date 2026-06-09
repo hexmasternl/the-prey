@@ -152,5 +152,16 @@
   "GAME_SHARE": {
     "TITLE": "Doe mee op The Prey!",
     "MESSAGE": "Je bent uitgenodigd om deel te nemen aan een spel op The Prey! Tik op de link om mee te doen en voer daarna deze code in:"
+  },
+  "GAME_TRACKING": {
+    "NOTIFICATION_TITLE": "The Prey — operatie actief",
+    "NOTIFICATION_BODY": "Je positie wordt doorgegeven aan de commandopost. Tracking gaat door terwijl de app op de achtergrond staat."
+  },
+  "GAME_PROGRESS": {
+    "ROLE_HUNTER": "JAGER",
+    "ROLE_PREY": "PROOI",
+    "TRACKING_ACTIVE": "ACTIEF",
+    "TRACKING_INACTIVE": "LOCATIE DOORGEVEN INACTIEF",
+    "BACK": "← TERUG"
   }
 }

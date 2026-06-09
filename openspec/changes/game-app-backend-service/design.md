@@ -1,3 +1,19 @@
+## Revision (applied during implementation)
+
+Two decisions were refined against the existing codebase during apply:
+
+1. **No separate `game-progress` page.** The repo already has role-specific in-game pages
+   (`GamePreyPage` at `games/:id/play`, `GameHunterPage` at `games/:id/hunt`) with a Leaflet
+   map and live status. Per the product owner, these are kept and own the tracking lifecycle
+   instead of a new shared page, because hunter and prey behaviour differs. The
+   `game-progress-view` requirements are realised on both existing pages (entry health-check,
+   status indicator, stop-on-end).
+2. **The previous native plugin (`GameLocation`) baked an Auth0 client id/secret** into the
+   app (`environment.auth0ClientId/Secret`) and did a client-credentials grant. This is
+   retired entirely. The community plugin + in-app Auth0 user session (Decision 3) replaces
+   it, so no secret is shipped. ⚠️ The secret previously committed in `environment.prod.ts`
+   must be rotated in Auth0, as it remains in git history.
+
 ## Context
 
 The Ionic/Angular app already has `@capacitor/geolocation` for one-shot location lookups and `@capacitor/preferences` for lightweight key-value persistence. There is no background location tracking today. The backend's `POST /games/{id}/locations` endpoint accepts a GPS coordinate and returns the next reporting interval in seconds (`interval` field on `RecordLocationResponse`). The game has a configurable `GameDuration` (minutes), and participants can be subject to penalties that change the interval to 10 s. Auth0 Angular SDK (`@auth0/auth0-angular`) manages access tokens; `getAccessTokenSilently()` can be called at any point in the app's JS runtime.

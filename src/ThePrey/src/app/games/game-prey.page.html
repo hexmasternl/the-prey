@@ -13,6 +13,16 @@
   </div>
   }
 
+  <!-- Tracking-inactive warning (non-blocking) -->
+  @if (trackingInactive()) {
+  <div class="alert-banner alert-warn track-warn">
+    <span class="alert-icon">▲</span>
+    <div>
+      <div class="alert-title">{{ 'GAME_PROGRESS.TRACKING_INACTIVE' | translate }}</div>
+    </div>
+  </div>
+  }
+
   <!-- HUD bar -->
   <div class="hud-bar">
     <div class="hud-cell">
@@ -26,6 +36,10 @@
     <div class="hud-cell" [class.hud-penalty]="hasActivePenalty()">
       <div class="hud-label">PENALTY</div>
       <div class="hud-value">{{ hasActivePenalty() ? 'ACTIVE' : '—' }}</div>
+    </div>
+    <div class="hud-cell" [class.hud-link-on]="isTracking()">
+      <div class="hud-label">LINK</div>
+      <div class="hud-value">{{ isTracking() ? 'LIVE' : 'OFF' }}</div>
     </div>
   </div>
 </ion-content>

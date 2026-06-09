@@ -6,7 +6,7 @@ export const environment = {
     domain: 'theprey.eu.auth0.com',
     clientId: 'tJrm2nPrAX4kES7XEnjUsL38cqbAbraJ',
   },
-  auth0ClientId: 'uHNkakrYJwnsPoI7LgP1VK89WdAhg8VQ',
-  auth0ClientSecret:
-    'uBuuiDOxJoOaTC8sA8JN5rVm1-0690vFYmjW_QG9Jnzx3i8UHFC1FaUy8fbmJ_vZ',
+  // NOTE: No machine-to-machine client id/secret is stored in the app. Location
+  // reporting reuses the in-app Auth0 user session (see GameLocationService); the
+  // Bearer token is attached by authTokenInterceptor on every API request.
 };
