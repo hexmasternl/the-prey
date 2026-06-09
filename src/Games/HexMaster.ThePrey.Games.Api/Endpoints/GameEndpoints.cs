@@ -123,7 +123,8 @@ public static class GameEndpoints
         group.MapGet("/{id:guid}/lobby/stream", StreamLobbyEvents)
             .WithName("StreamLobbyEvents")
             .Produces(StatusCodes.Status200OK, contentType: "text/event-stream")
-            .AllowAnonymous();
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status401Unauthorized);
 
         group.MapGet("/{id:guid}/stream", StreamGameEvents)
             .WithName("StreamGameEvents")
@@ -490,6 +491,7 @@ public static class GameEndpoints
         Guid id,
         ClaimsPrincipal principal,
         IUserResolver userResolver,
+        IGameRepository gameRepository,
         ILobbyEventBus eventBus,
         HttpContext httpContext,
         CancellationToken ct)
@@ -504,6 +506,16 @@ public static class GameEndpoints
         if (user is null)
         {
             httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+
+        // Only participants of the game may subscribe to its lobby events (mirrors the
+        // in-game stream). Prevents any authenticated user from spying on a lobby they are
+        // not part of.
+        var game = await gameRepository.GetByIdAsync(id, ct);
+        if (game is null || !game.IsParticipant(user.UserId))
+        {
+            httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }
 
