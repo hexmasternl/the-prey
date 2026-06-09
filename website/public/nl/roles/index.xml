@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
 		<title>Rollen on The Prey</title>
-		<link>http://localhost:50521/nl/roles/</link>
+		<link>https://theprey.nl/nl/roles/</link>
 		<description>Recent content in Rollen on The Prey</description>
 		<generator>Hugo</generator>
 		<language>nl</language>
@@ -10,26 +10,26 @@
 		
 		
 		
-			<atom:link href="http://localhost:50521/nl/roles/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="https://theprey.nl/nl/roles/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>Jager</title>
-				<link>http://localhost:50521/nl/roles/hunter/</link>
+				<link>https://theprey.nl/nl/roles/hunter/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:50521/nl/roles/hunter/</guid>
+				<guid>https://theprey.nl/nl/roles/hunter/</guid>
 				<description>&lt;h2 id=&#34;je-doel&#34;&gt;Je Doel&lt;/h2&gt;&#xA;&lt;p&gt;Jij bent een Jager. Tag alle Prooi voordat de timer nul bereikt. Als alle Prooi geëlimineerd zijn, winnen de Jagers.&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;h2 id=&#34;voorsprong--wacht-af&#34;&gt;Voorsprong — Wacht Af&lt;/h2&gt;&#xA;&lt;p&gt;Wanneer het spel begint, moeten Jagers wachten. De 10 minuten voorsprong is alleen voor Prooi. Je kaart toont de speelveldgrens, maar geen Prooiposities.&lt;/p&gt;&#xA;&lt;p&gt;Blijf bij het speelveld. Gebruik de tijd om je aanpak te plannen.&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;h2 id=&#34;actieve-jacht--gps-tracking&#34;&gt;Actieve Jacht — GPS-tracking&lt;/h2&gt;&#xA;&lt;p&gt;Wanneer de voorsprong eindigt, begint de jacht. GPS-posities van Prooi verschijnen als pins op je kaart. Posities worden met een vast interval bijgewerkt — controleer de kaart regelmatig.&lt;/p&gt;</description>
 			</item>
 			<item>
 				<title>Prooi</title>
-				<link>http://localhost:50521/nl/roles/prey/</link>
+				<link>https://theprey.nl/nl/roles/prey/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:50521/nl/roles/prey/</guid>
+				<guid>https://theprey.nl/nl/roles/prey/</guid>
 				<description>&lt;h2 id=&#34;je-doel&#34;&gt;Je Doel&lt;/h2&gt;&#xA;&lt;p&gt;Jij bent de Prooi. Overleef tot de timer nul bereikt. Als er ten minste één Prooi onaangeroerd is wanneer de tijd om is, winnen alle Prooi.&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;h2 id=&#34;voorsprong--10-minuten&#34;&gt;Voorsprong — 10 Minuten&lt;/h2&gt;&#xA;&lt;p&gt;Wanneer het spel begint, heb je 10 minuten voorsprong. &lt;strong&gt;Je locatie wordt tijdens dit tijdvenster niet met Jagers gedeeld.&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;p&gt;Gebruik deze tijd om te verspreiden en dekking te zoeken. Beweeg weg van de ingang van het speelveld. Sta niet stil.&lt;/p&gt;</description>
 			</item>
 			<item>
 				<title>Spelmaker</title>
-				<link>http://localhost:50521/nl/roles/game-creator/</link>
+				<link>https://theprey.nl/nl/roles/game-creator/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:50521/nl/roles/game-creator/</guid>
+				<guid>https://theprey.nl/nl/roles/game-creator/</guid>
 				<description>&lt;h2 id=&#34;jouw-verantwoordelijkheid&#34;&gt;Jouw Verantwoordelijkheid&lt;/h2&gt;&#xA;&lt;p&gt;De Spelmaker stelt het spel in voordat het begint. Je beheert het speelveld, de lobby en roltoewijzingen. Zodra het spel begint, speel je als Jager of Prooi — de Spelmakerrol eindigt bij de lancering.&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;h2 id=&#34;vier-stappen-voor-het-spel&#34;&gt;Vier Stappen Voor het Spel&lt;/h2&gt;&#xA;&lt;p&gt;&lt;strong&gt;1. Definieer het Speelveld&lt;/strong&gt;&#xA;Teken de grenspolygoon in de app. Het speelveld is het GPS-gebied waarbinnen het spel gespeeld wordt. Houd het strak genoeg om spannend te zijn, groot genoeg om echt te verstappen.&lt;/p&gt;</description>
 			</item>
 	</channel>

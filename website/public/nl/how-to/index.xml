@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
 		<title>Handleidingen on The Prey</title>
-		<link>http://localhost:50521/nl/how-to/</link>
+		<link>https://theprey.nl/nl/how-to/</link>
 		<description>Recent content in Handleidingen on The Prey</description>
 		<generator>Hugo</generator>
 		<language>nl</language>
@@ -10,40 +10,40 @@
 		
 		
 		
-			<atom:link href="http://localhost:50521/nl/how-to/index.xml" rel="self" type="application/rss+xml" />
+			<atom:link href="https://theprey.nl/nl/how-to/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>Deelnemen aan een Spel</title>
-				<link>http://localhost:50521/nl/how-to/join-a-game/</link>
+				<link>https://theprey.nl/nl/how-to/join-a-game/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:50521/nl/how-to/join-a-game/</guid>
+				<guid>https://theprey.nl/nl/how-to/join-a-game/</guid>
 				<description>&lt;ol&gt;&#xA;&lt;li&gt;Haal de deelnamecode op bij de Spelmaker. Die staat in hun app op het lobby-scherm.&lt;/li&gt;&#xA;&lt;li&gt;Open The Prey-app op je apparaat.&lt;/li&gt;&#xA;&lt;li&gt;Tik op &lt;strong&gt;Deelnemen aan Spel&lt;/strong&gt; op het startscherm.&lt;/li&gt;&#xA;&lt;li&gt;Voer de deelnamecode in en tik op &lt;strong&gt;Deelnemen&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Je belandt in de lobby. Wacht tot de Spelmaker je rol toewijst.&lt;/li&gt;&#xA;&lt;li&gt;Geef locatierechten wanneer daarom gevraagd wordt. Selecteer &lt;strong&gt;Altijd Toestaan&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Zodra de Spelmaker het spel lanceert, verschijnt je rolscherm. De voorsprong begint onmiddellijk.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 			<item>
 				<title>Een Speelveld Tekenen</title>
-				<link>http://localhost:50521/nl/how-to/draw-a-playfield/</link>
+				<link>https://theprey.nl/nl/how-to/draw-a-playfield/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:50521/nl/how-to/draw-a-playfield/</guid>
+				<guid>https://theprey.nl/nl/how-to/draw-a-playfield/</guid>
 				<description>&lt;ol&gt;&#xA;&lt;li&gt;Open The Prey-app en navigeer naar &lt;strong&gt;Speelvelden&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Tik op &lt;strong&gt;Nieuw Speelveld&lt;/strong&gt;. De kaart opent gecentreerd op je huidige GPS-positie.&lt;/li&gt;&#xA;&lt;li&gt;Tik op de kaart om je eerste hoekpunt te plaatsen. Er verschijnt een pin.&lt;/li&gt;&#xA;&lt;li&gt;Tik verder om elke hoek van je grenspolygoon te plaatsen. Plaats minimaal drie hoekpunten.&lt;/li&gt;&#xA;&lt;li&gt;Gebruik &lt;strong&gt;knijpen&lt;/strong&gt; om in en uit te zoomen voor precisie. Gebruik &lt;strong&gt;slepen&lt;/strong&gt; op een hoekpunt om het te herpositioneren.&lt;/li&gt;&#xA;&lt;li&gt;Om een hoekpunt te verwijderen, tik erop. Om er één toe te voegen op een rand, druk lang op de rand tussen twee hoekpunten.&lt;/li&gt;&#xA;&lt;li&gt;Wanneer de vorm er goed uitziet, tik op &lt;strong&gt;Polygoon Bevestigen&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Voer een naam in voor het speelveld en tik op &lt;strong&gt;Opslaan&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Het speelveld is nu beschikbaar om te selecteren bij het aanmaken van een nieuw spel.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 			<item>
 				<title>Een Spel Aanmaken</title>
-				<link>http://localhost:50521/nl/how-to/create-a-game/</link>
+				<link>https://theprey.nl/nl/how-to/create-a-game/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:50521/nl/how-to/create-a-game/</guid>
+				<guid>https://theprey.nl/nl/how-to/create-a-game/</guid>
 				<description>&lt;ol&gt;&#xA;&lt;li&gt;Open The Prey-app en tik op &lt;strong&gt;Spel Aanmaken&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Selecteer een opgeslagen speelveld of teken een nieuw speelveld. Het speelveld definieert de spelgrens.&lt;/li&gt;&#xA;&lt;li&gt;De app genereert een deelnamecode. Deel die met alle deelnemers voor je verdergaat.&lt;/li&gt;&#xA;&lt;li&gt;Wacht tot spelers toetreden. Ze verschijnen in de lobbylijst terwijl ze verbinding maken.&lt;/li&gt;&#xA;&lt;li&gt;Wijs elke speler een rol toe — &lt;strong&gt;Prooi&lt;/strong&gt; of &lt;strong&gt;Jager&lt;/strong&gt;. Elk spel heeft minimaal één van elk nodig.&lt;/li&gt;&#xA;&lt;li&gt;Wijs jezelf een rol toe als je meespeelt.&lt;/li&gt;&#xA;&lt;li&gt;Bevestig dat alle spelers zijn toegewezen en klaar zijn.&lt;/li&gt;&#xA;&lt;li&gt;Tik op &lt;strong&gt;Spel Starten&lt;/strong&gt;. De 10 minuten voorsprong begint. Prooi verspreidt zich. Jagers wachten.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 			<item>
 				<title>GPS-signaal Verloren</title>
-				<link>http://localhost:50521/nl/how-to/gps-signal-lost/</link>
+				<link>https://theprey.nl/nl/how-to/gps-signal-lost/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:50521/nl/how-to/gps-signal-lost/</guid>
+				<guid>https://theprey.nl/nl/how-to/gps-signal-lost/</guid>
 				<description>&lt;ol&gt;&#xA;&lt;li&gt;Controleer de statusbalk van je apparaat. Een GPS-pictogram met een streep door of geen pictogram betekent dat locatieservices uit of beperkt zijn.&lt;/li&gt;&#xA;&lt;li&gt;Open &lt;strong&gt;Instellingen → Locatie&lt;/strong&gt; op je apparaat en bevestig dat locatie systeembreed is ingeschakeld.&lt;/li&gt;&#xA;&lt;li&gt;Open &lt;strong&gt;Instellingen → Apps → The Prey → Rechten → Locatie&lt;/strong&gt; en bevestig dat dit is ingesteld op &lt;strong&gt;Altijd Toestaan&lt;/strong&gt;.&lt;/li&gt;&#xA;&lt;li&gt;Als de app op de achtergrond draait, breng hem naar de voorgrond. Sommige apparaten onderbreken achtergrond-GPS wanneer de batterijbesparing actief is.&lt;/li&gt;&#xA;&lt;li&gt;Schakel de &lt;strong&gt;Batterijbesparing&lt;/strong&gt; uit tijdens het spelen. Dit beperkt achtergrondactiviteit van apps en kan GPS-uitzendingen onderbreken.&lt;/li&gt;&#xA;&lt;li&gt;Als het signaal nog steeds weg is, sluit de app geforceerd en open hem opnieuw. De GPS-service herstart bij het opstarten.&lt;/li&gt;&#xA;&lt;li&gt;Informeer de Spelmaker als je signaal langere tijd weg was. Beslissingen over of die periode meetelt zijn naar goeddunken van de Spelmaker.&lt;/li&gt;&#xA;&lt;li&gt;Op Android: als de achtergrondservicemelding uit je meldingenbalk verdwijnt, is de voorgrondservice gestopt. Heropen de app om hem opnieuw te starten.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 			<item>
 				<title>Je Rol Begrijpen Tijdens het Spel</title>
-				<link>http://localhost:50521/nl/how-to/understand-your-role/</link>
+				<link>https://theprey.nl/nl/how-to/understand-your-role/</link>
 				<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-				<guid>http://localhost:50521/nl/how-to/understand-your-role/</guid>
+				<guid>https://theprey.nl/nl/how-to/understand-your-role/</guid>
 				<description>&lt;ol&gt;&#xA;&lt;li&gt;Wanneer het spel begint, verschijnt je rolscherm — &lt;strong&gt;Prooi&lt;/strong&gt; of &lt;strong&gt;Jager&lt;/strong&gt;. Lees het. Het vertelt je wat je hierna moet doen.&lt;/li&gt;&#xA;&lt;li&gt;Als je &lt;strong&gt;Prooi&lt;/strong&gt; bent: de voorsprong-afteller staat op het scherm. Beweeg onmiddellijk. Wacht niet tot Jagers verschijnen — ze beginnen te traceren zodra de voorsprong eindigt.&lt;/li&gt;&#xA;&lt;li&gt;Als je &lt;strong&gt;Jager&lt;/strong&gt; bent: de voorsprong-afteller staat ook op jouw scherm. Gebruik de tijd om de speelveldgrens te bestuderen en je aanpak te plannen.&lt;/li&gt;&#xA;&lt;li&gt;Open het kaarttabblad wanneer de Actieve Jacht begint. Je positie is het middenpunt. Prooipins verschijnen op hun laatste uitzendlocatie.&lt;/li&gt;&#xA;&lt;li&gt;Als &lt;strong&gt;Prooi&lt;/strong&gt;: de kaart toont Jagerposities zodat je weet welke richting je moet vermijden. Blijf bewegen. Pinposities zijn niet real-time — ga ervan uit dat Jagers dichterbij zijn dan de kaart aangeeft.&lt;/li&gt;&#xA;&lt;li&gt;Als &lt;strong&gt;Jager&lt;/strong&gt;: vergelijk Prooipinposities met het terrein. Prooi aan de rand van het speelveld heeft beperkte vluchtwegen. Snijd ze af.&lt;/li&gt;&#xA;&lt;li&gt;Let op de timer in de bovenste balk. De eindfase-waarschuwing klinkt bij 5 minuten resterend. Prooi — blijf verborgen en wacht het uit. Jagers — sluit snel in.&lt;/li&gt;&#xA;&lt;li&gt;Wanneer het spel eindigt, worden resultaten automatisch weergegeven. Zowel Prooi als Jagers zien wie overleefde.&lt;/li&gt;&#xA;&lt;/ol&gt;</description>
 			</item>
 	</channel>

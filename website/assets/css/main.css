@@ -79,6 +79,10 @@ body::after {
 .site-shell {
   display: grid;
   grid-template-rows: auto 1fr auto;
+  /* minmax(0, 1fr) — without the 0 min, the single grid column sizes to its
+     content's max-content width (the wide ticker marquee), forcing the whole
+     page to ~1200px and breaking the mobile viewport. */
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -192,6 +196,9 @@ body::after {
   margin: 0 auto;
   padding: 60px var(--space) 120px;
   width: 100%;
+  /* allow this grid item to shrink below its content's intrinsic width so the
+     ticker marquee can't force horizontal overflow on small screens. */
+  min-width: 0;
 }
 
 .site-footer {
