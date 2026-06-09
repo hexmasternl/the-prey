@@ -9,23 +9,18 @@ import { Capacitor } from '@capacitor/core';
 import { filter, mergeMap, switchMap, take } from 'rxjs/operators';
 import { nativeCallbackUri } from './auth.utils';
 import { UserStateService } from './users/user-state.service';
-import { DebugLogService } from './debug/debug-log.service';
-import { DebugOverlayComponent } from './debug/debug-overlay.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
-  imports: [IonApp, IonRouterOutlet, IonSpinner, DebugOverlayComponent],
+  imports: [IonApp, IonRouterOutlet, IonSpinner],
 })
 export class AppComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly ngZone = inject(NgZone);
   private readonly router = inject(Router);
   private readonly userState = inject(UserStateService);
-  // Injected eagerly so console/error capture is installed at app start, even
-  // before the overlay is first shown.
-  private readonly debug = inject(DebugLogService);
 
   private readonly authLoading = toSignal(this.authService.isLoading$, { initialValue: true });
   private readonly authenticated = toSignal(this.authService.isAuthenticated$, { initialValue: false });
