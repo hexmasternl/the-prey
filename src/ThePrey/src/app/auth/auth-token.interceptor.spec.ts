@@ -11,7 +11,11 @@ describe('authTokenInterceptor', () => {
   let injector: EnvironmentInjector;
 
   beforeEach(() => {
-    auth = jasmine.createSpyObj<AuthService>('AuthService', ['getAccessTokenSilently']);
+    auth = jasmine.createSpyObj<AuthService>('AuthService', [
+      'getAccessTokenSilently',
+      'loginWithRedirect',
+    ]);
+    auth.loginWithRedirect.and.returnValue(of(undefined) as unknown as Observable<void>);
     TestBed.configureTestingModule({
       providers: [{ provide: AuthService, useValue: auth }],
     });
@@ -52,6 +56,21 @@ describe('authTokenInterceptor', () => {
       firstValueFrom(run(new HttpRequest('GET', `${environment.apiUrl}/games`), next as unknown as HttpHandlerFn)),
     ).toBeRejected();
 
+    expect(next).not.toHaveBeenCalled();
+    expect(auth.loginWithRedirect).not.toHaveBeenCalled();
+  });
+
+  it('starts a fresh login when the session has no refresh token, and still rejects', async () => {
+    auth.getAccessTokenSilently.and.returnValue(
+      throwError(() => new Error('Missing Refresh Token')) as unknown as Observable<string>,
+    );
+    const next = jasmine.createSpy('next').and.returnValue(of({} as HttpEvent<unknown>));
+
+    await expectAsync(
+      firstValueFrom(run(new HttpRequest('GET', `${environment.apiUrl}/games`), next as unknown as HttpHandlerFn)),
+    ).toBeRejected();
+
+    expect(auth.loginWithRedirect).toHaveBeenCalledTimes(1);
     expect(next).not.toHaveBeenCalled();
   });
 });
