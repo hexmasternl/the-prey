@@ -12,7 +12,10 @@ public sealed record GameDto(
     ParticipantDto? Hunter,
     IReadOnlyList<ParticipantDto> Preys,
     DateTimeOffset? StartedAt,
-    Guid? DesignatedHunterUserId);
+    Guid? DesignatedHunterUserId,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? EndsAt,
+    DateTimeOffset CleanUpAfter);
 
 /// <summary>A condensed view of a game for list results.</summary>
 public sealed record GameSummaryDto(

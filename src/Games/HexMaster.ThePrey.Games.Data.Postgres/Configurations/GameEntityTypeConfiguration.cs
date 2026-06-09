@@ -24,6 +24,10 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
         builder.Property(g => g.OwnerUserId);
         builder.Property(g => g.Status).HasConversion<string>().HasMaxLength(32);
         builder.Property(g => g.StartedAt);
+        builder.Property(g => g.CreatedAt);
+        builder.Property(g => g.EndsAt);
+        builder.Property(g => g.CleanUpAfter);
+        builder.HasIndex(g => g.CleanUpAfter).HasDatabaseName("IX_Games_CleanUpAfter");
         builder.Property(g => g.DesignatedHunterUserId);
 
         // Computed, behaviour-only members must not be mapped.

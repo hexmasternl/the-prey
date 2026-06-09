@@ -54,4 +54,7 @@ public sealed class GameRepository : IGameRepository
             .Where(g => g.OwnerUserId == userId || g.Lobby.Any(p => p.UserId == userId))
             .ToListAsync(ct);
     }
+
+    public async Task<int> DeleteExpiredGamesAsync(DateTimeOffset cutoff, CancellationToken ct)
+        => await _db.Games.Where(g => g.CleanUpAfter <= cutoff).ExecuteDeleteAsync(ct);
 }

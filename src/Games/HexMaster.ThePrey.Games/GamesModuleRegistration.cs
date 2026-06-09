@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
+using HexMaster.ThePrey.Games.BackgroundServices;
 using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
@@ -44,6 +45,8 @@ public static class GamesModuleRegistration
         services.AddSingleton<ILobbyEventBus, InProcessLobbyEventBus>();
         services.AddSingleton<IGameEventBus, InProcessGameEventBus>();
         services.AddSingleton<IGameEngineEventBus, InProcessGameEngineEventBus>();
+
+        services.AddHostedService<GameCleanupService>();
 
         return services;
     }

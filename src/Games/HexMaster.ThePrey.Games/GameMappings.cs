@@ -62,7 +62,10 @@ internal static class GameMappings
             game.Hunter?.ToDto(),
             game.Preys.Select(p => p.ToDto()).ToList(),
             game.StartedAt,
-            game.DesignatedHunterUserId);
+            game.DesignatedHunterUserId,
+            game.CreatedAt,
+            game.EndsAt,
+            game.CleanUpAfter);
 
     internal static GameSummaryDto ToSummaryDto(this Game game) =>
         new(game.Id, game.GameCode, game.PlayfieldId, game.OwnerUserId, game.Status.ToString(), game.Lobby.Count);

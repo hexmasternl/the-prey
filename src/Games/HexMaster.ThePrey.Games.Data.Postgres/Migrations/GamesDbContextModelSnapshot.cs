@@ -27,8 +27,17 @@ namespace HexMaster.ThePrey.Games.Data.Postgres.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset>("CleanUpAfter")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid?>("DesignatedHunterUserId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("EndsAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("GameCode")
                         .IsRequired()
@@ -50,6 +59,9 @@ namespace HexMaster.ThePrey.Games.Data.Postgres.Migrations
                         .HasColumnType("character varying(32)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CleanUpAfter")
+                        .HasDatabaseName("IX_Games_CleanUpAfter");
 
                     b.HasIndex("GameCode")
                         .IsUnique();
