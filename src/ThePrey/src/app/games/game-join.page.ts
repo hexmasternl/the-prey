@@ -53,6 +53,8 @@ export class GameJoinPage implements ViewWillEnter {
   readonly errorWrongCode = signal(false);
   readonly gameNotFound = signal(false);
   readonly gameStarted = signal(false);
+  /** Translation key for a join failure shown to the user (full lobby, server error, …); null when none. */
+  readonly joinErrorKey = signal<string | null>(null);
 
   readonly callsign = computed(() => this.userState.profile()?.callsign ?? null);
 
@@ -125,6 +127,7 @@ export class GameJoinPage implements ViewWillEnter {
     this.joinCode.set(digits);
     (event.target as HTMLInputElement).value = digits;
     this.errorWrongCode.set(false);
+    this.joinErrorKey.set(null);
   }
 
   async join(): Promise<void> {
