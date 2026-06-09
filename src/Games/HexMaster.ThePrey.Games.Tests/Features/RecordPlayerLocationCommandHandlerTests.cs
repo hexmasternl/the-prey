@@ -141,4 +141,59 @@ public sealed class RecordPlayerLocationCommandHandlerTests
             It.Is<ParticipantLocatedEvent>(e => e.ParticipantRole == "Hunter"),
             It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    [Fact]
+    public async Task Handle_ShouldNotPublishStatusChanged_WhenPreyWasAlreadyActive()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, preyIds[0], 52.2, 5.2, null), CancellationToken.None);
+
+        _eventBus.Verify(b => b.PublishAsync(
+            It.IsAny<Guid>(),
+            It.IsAny<ParticipantStatusChangedEvent>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPublishStatusChanged_WhenPreyTransitionsFromPassiveToActive()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        var preyId = preyIds[0];
+        var coord = GpsCoordinate.Create(52.1, 5.1);
+        // Record location so LastLocationAt is set, then advance time → Passive via timeout
+        game.RecordLocation(preyId, coord, Start);
+        game.ApplyTimeoutTransitions(Start.AddMinutes(6)); // 6 min silent → Passive (>5 min, <7 min)
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, preyId, 52.2, 5.2, null), CancellationToken.None);
+
+        _eventBus.Verify(b => b.PublishAsync(
+            game.Id,
+            It.Is<ParticipantStatusChangedEvent>(e =>
+                e.ParticipantId == preyId && e.NewState == "Active" && e.ParticipantRole == "Prey"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotChangeState_WhenParticipantIsOut()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        var preyId = preyIds[0];
+        var coord = GpsCoordinate.Create(52.1, 5.1);
+        game.RecordLocation(preyId, coord, Start);
+        game.ApplyTimeoutTransitions(Start.AddMinutes(8)); // → Out
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, preyId, 52.2, 5.2, null), CancellationToken.None);
+
+        _eventBus.Verify(b => b.PublishAsync(
+            It.IsAny<Guid>(),
+            It.IsAny<ParticipantStatusChangedEvent>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

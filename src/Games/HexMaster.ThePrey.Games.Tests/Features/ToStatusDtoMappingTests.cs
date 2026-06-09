@@ -1,4 +1,5 @@
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
+using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Tests.Factories;
 using Moq;
 
@@ -90,5 +91,69 @@ public sealed class ToStatusDtoMappingTests
         Assert.NotNull(result);
         Assert.NotNull(result!.Hunter);
         Assert.Null(result.Hunter!.LastKnownLocation);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSetHunterStateToActive_Always()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, DateTimeOffset.UtcNow.AddMinutes(-5));
+
+        var repoMock = new Moq.Mock<IGameRepository>();
+        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
+
+        var handler = new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQueryHandler(repoMock.Object, playfieldsMock.Object);
+        var result = await handler.Handle(new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQuery(game.Id, hunterId), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal("Active", result!.Hunter!.State);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSetPreyStateToTagged_WhenPreyIsTagged()
+    {
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, startedAt);
+        var preyId = preyIds[0];
+        game.TagParticipant(hunterId, preyId);
+
+        var repoMock = new Moq.Mock<IGameRepository>();
+        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
+
+        var handler = new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQueryHandler(repoMock.Object, playfieldsMock.Object);
+        var result = await handler.Handle(new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQuery(game.Id, hunterId), CancellationToken.None);
+
+        Assert.NotNull(result);
+        var taggedPrey = result!.Preys.Single(p => p.UserId == preyId);
+        Assert.Equal("Tagged", taggedPrey.State);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCountOnlyActiveAndPassivePreys_InPreysLeft()
+    {
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        // 3 preys total
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, startedAt, playerCount: 4);
+
+        // Tag one prey
+        game.TagParticipant(hunterId, preyIds[0]);
+        // Set one to Out via timeout
+        game.RecordLocation(preyIds[1], GpsCoordinate.Create(52.0, 5.0), startedAt);
+        game.ApplyTimeoutTransitions(startedAt.AddMinutes(8)); // → Out
+
+        var repoMock = new Moq.Mock<IGameRepository>();
+        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
+
+        var handler = new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQueryHandler(repoMock.Object, playfieldsMock.Object);
+        var result = await handler.Handle(new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQuery(game.Id, hunterId), CancellationToken.None);
+
+        Assert.NotNull(result);
+        // 3 preys, 1 Tagged, 1 Out → PreysLeft = 1 Active
+        Assert.Equal(1, result!.PreysLeft);
     }
 }

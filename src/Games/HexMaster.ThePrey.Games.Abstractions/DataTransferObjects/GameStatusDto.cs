@@ -9,11 +9,13 @@ public sealed record GameStatusDto(
     IReadOnlyList<GameParticipantStatusDto> Preys,
     int GameDurationLeft,
     int NextPingDuration,
-    bool IsEndgame);
+    bool IsEndgame,
+    int PreysLeft);
 
 /// <summary>The status and last known location of a single game participant.</summary>
 public sealed record GameParticipantStatusDto(
     Guid UserId,
     string Callsign,
     GpsCoordinateDto? LastKnownLocation,
-    bool HasActivePenalty);
+    bool HasActivePenalty,
+    string State);

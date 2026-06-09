@@ -1,0 +1,98 @@
+using HexMaster.ThePrey.Games.DomainModels;
+using HexMaster.ThePrey.Games.Features.TagPlayer;
+using HexMaster.ThePrey.Games.Notifications;
+using HexMaster.ThePrey.Games.Tests.Factories;
+using Moq;
+
+namespace HexMaster.ThePrey.Games.Tests.Features;
+
+public sealed class TagPlayerCommandHandlerTests
+{
+    private static readonly DateTimeOffset Start = new(2026, 6, 9, 12, 0, 0, TimeSpan.Zero);
+
+    private readonly Mock<IGameRepository> _repository = new();
+    private readonly Mock<IGameEventBus> _eventBus = new();
+    private readonly TagPlayerCommandHandler _handler;
+
+    public TagPlayerCommandHandlerTests()
+    {
+        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
+            .Returns(ValueTask.CompletedTask);
+        _handler = new TagPlayerCommandHandler(_repository.Object, _eventBus.Object);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldTagPreyAndPublishEvent_WhenHunterTagsActiveTarget()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(
+            new TagPlayerCommand(game.Id, hunterId, preyIds[0]), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(PlayerState.Tagged, game.Preys.Single(p => p.UserId == preyIds[0]).State);
+        _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
+        _eventBus.Verify(b => b.PublishAsync(
+            game.Id,
+            It.Is<ParticipantStatusChangedEvent>(e =>
+                e.ParticipantId == preyIds[0] && e.NewState == "Tagged" && e.ParticipantRole == "Prey"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNull_WhenGameNotFound()
+    {
+        _repository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Game?)null);
+
+        var result = await _handler.Handle(
+            new TagPlayerCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowUnauthorized_WhenCallerIsNotHunter()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            _handler.Handle(new TagPlayerCommand(game.Id, preyIds[0], preyIds[1]), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowArgumentException_WhenTargetNotFound()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _handler.Handle(new TagPlayerCommand(game.Id, hunterId, Guid.NewGuid()), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperation_WhenTargetIsAlreadyTagged()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        game.TagParticipant(hunterId, preyIds[0]);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyIds[0]), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperation_WhenTargetIsOut()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        var preyId = preyIds[0];
+        game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Start);
+        game.ApplyTimeoutTransitions(Start.AddMinutes(8)); // → Out
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyId), CancellationToken.None));
+    }
+}

@@ -1,6 +1,7 @@
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.BackgroundServices;
+using HexMaster.ThePrey.Games.Features.TagPlayer;
 using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
@@ -39,6 +40,7 @@ public static class GamesModuleRegistration
         services.AddScoped<IQueryHandler<GetActiveGameQuery, GameStatusDto?>, GetActiveGameQueryHandler>();
         services.AddScoped<IQueryHandler<GetGameStatusQuery, GameStatusDto?>, GetGameStatusQueryHandler>();
 
+        services.AddScoped<ICommandHandler<TagPlayerCommand, TagPlayerResult?>, TagPlayerCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateLocationBroadcastCommand, UpdateLocationBroadcastResult>, UpdateLocationBroadcastCommandHandler>();
 
         services.AddSingleton<IGameMetrics, GameMetrics>();
@@ -47,6 +49,7 @@ public static class GamesModuleRegistration
         services.AddSingleton<IGameEngineEventBus, InProcessGameEngineEventBus>();
 
         services.AddHostedService<GameCleanupService>();
+        services.AddHostedService<PlayerStateMonitor>();
 
         return services;
     }

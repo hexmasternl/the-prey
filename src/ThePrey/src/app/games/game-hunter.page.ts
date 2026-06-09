@@ -4,7 +4,7 @@ import { IonContent } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
 import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
-import { GameStatusDto, GamesService } from './games.service';
+import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
 import { GameStreamService } from './game-stream.service';
 
 @Component({
@@ -26,12 +26,17 @@ export class GameHunterPage implements OnInit, OnDestroy {
   readonly nearestDistance = signal<string>('--');
   readonly gpsAlert = signal<string | null>(null);
   readonly pingCountdown = signal(30);
+  readonly showTagModal = signal(false);
+  readonly taggablePrey = signal<GameParticipantStatusDto[]>([]);
+  readonly tagInFlight = signal(false);
 
   private gameId!: string;
   private map!: L.Map;
   private selfMarker: L.CircleMarker | null = null;
   private playfieldPolygon: L.Polygon | null = null;
   private preyMarkers = new Map<string, L.CircleMarker>();
+  /** Local participant state map keyed by userId */
+  private participantStates = new Map<string, string>();
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private pingIntervalTimer: ReturnType<typeof setInterval> | null = null;
   private watchId: number | null = null;
@@ -66,6 +71,28 @@ export class GameHunterPage implements OnInit, OnDestroy {
     this.autoFollow = true;
     if (this.selfLatLng) {
       this.map.setView(this.selfLatLng, this.map.getZoom());
+    }
+  }
+
+  openTagModal(): void {
+    // Show only Active/Passive preys
+    this.showTagModal.set(true);
+  }
+
+  closeTagModal(): void {
+    this.showTagModal.set(false);
+  }
+
+  async confirmTag(prey: GameParticipantStatusDto): Promise<void> {
+    if (this.tagInFlight()) return;
+    this.tagInFlight.set(true);
+    try {
+      await this.gamesService.tagPlayer(this.gameId, prey.userId);
+      this.showTagModal.set(false);
+    } catch {
+      // Tag failed — let user retry
+    } finally {
+      this.tagInFlight.set(false);
     }
   }
 
@@ -133,14 +160,24 @@ export class GameHunterPage implements OnInit, OnDestroy {
     const mins = Math.floor(status.gameDurationLeft / 60).toString().padStart(2, '0');
     const secs = (status.gameDurationLeft % 60).toString().padStart(2, '0');
     this.timeRemaining.set(`${mins}:${secs}`);
-    this.preysLeft.set(status.preys.length);
+    this.preysLeft.set(status.preysLeft);
 
     const me = status.hunter;
     this.hasActivePenalty.set(me?.hasActivePenalty ?? false);
 
+    // Seed the local state map from the status snapshot
+    for (const prey of status.preys) {
+      this.participantStates.set(prey.userId, prey.state);
+    }
+    this.updateTaggablePrey(status.preys);
+
     this.drawPlayfield(status.playfieldCoordinates);
     this.updatePreyBlips(status);
     this.updateNearestDistance();
+  }
+
+  private updateTaggablePrey(preys: GameParticipantStatusDto[]): void {
+    this.taggablePrey.set(preys.filter(p => p.state === 'Active' || p.state === 'Passive'));
   }
 
   private drawPlayfield(coords: { latitude: number; longitude: number }[]): void {
@@ -160,23 +197,23 @@ export class GameHunterPage implements OnInit, OnDestroy {
   private updatePreyBlips(status: GameStatusDto): void {
     for (const prey of status.preys) {
       if (!prey.lastKnownLocation) continue;
-      this.upsertPreyBlip(prey.userId, prey.lastKnownLocation.latitude, prey.lastKnownLocation.longitude);
+      this.upsertPreyBlip(prey.userId, prey.lastKnownLocation.latitude, prey.lastKnownLocation.longitude, prey.state);
     }
   }
 
-  private upsertPreyBlip(userId: string, lat: number, lng: number): void {
+  private upsertPreyBlip(userId: string, lat: number, lng: number, state: string): void {
     const latlng: L.LatLngExpression = [lat, lng];
+    const isInactive = state === 'Tagged' || state === 'Out';
+    const options: L.CircleMarkerOptions = isInactive
+      ? { radius: 6, color: '#888888', fillColor: '#888888', fillOpacity: 0.7, weight: 2 }
+      : { radius: 6, color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9, weight: 2 };
+
     const existing = this.preyMarkers.get(userId);
     if (existing) {
       existing.setLatLng(latlng);
+      existing.setStyle(options);
     } else {
-      const marker = L.circleMarker(latlng, {
-        radius: 6,
-        color: '#ff2f1f',
-        fillColor: '#ff2f1f',
-        fillOpacity: 0.9,
-        weight: 2,
-      }).addTo(this.map);
+      const marker = L.circleMarker(latlng, options).addTo(this.map);
       this.preyMarkers.set(userId, marker);
     }
   }
@@ -187,7 +224,9 @@ export class GameHunterPage implements OnInit, OnDestroy {
       return;
     }
     let minMetres = Infinity;
-    for (const marker of this.preyMarkers.values()) {
+    for (const [userId, marker] of this.preyMarkers.entries()) {
+      const state = this.participantStates.get(userId) ?? 'Active';
+      if (state === 'Tagged' || state === 'Out') continue;
       const d = this.selfLatLng.distanceTo(marker.getLatLng());
       if (d < minMetres) minMetres = d;
     }
@@ -208,9 +247,32 @@ export class GameHunterPage implements OnInit, OnDestroy {
 
     this.streamService.on('participant-located', (payload) => {
       if (payload.participantRole === 'Prey') {
-        this.upsertPreyBlip(payload.userId, payload.latitude, payload.longitude);
+        const state = payload.participantState ?? this.participantStates.get(payload.userId) ?? 'Active';
+        this.participantStates.set(payload.userId, state);
+        this.upsertPreyBlip(payload.userId, payload.latitude, payload.longitude, state);
         this.updateNearestDistance();
       }
+    });
+
+    this.streamService.on('participant-status-changed', (payload) => {
+      this.participantStates.set(payload.participantId, payload.newState);
+      const marker = this.preyMarkers.get(payload.participantId);
+      if (marker) {
+        const isInactive = payload.newState === 'Tagged' || payload.newState === 'Out';
+        marker.setStyle(isInactive
+          ? { color: '#888888', fillColor: '#888888', fillOpacity: 0.7 }
+          : { color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9 }
+        );
+      }
+      // Recalculate preys left
+      const activeCount = [...this.participantStates.values()].filter(s => s === 'Active' || s === 'Passive').length;
+      this.preysLeft.set(activeCount);
+      // Update taggable list
+      const taggable = [...this.participantStates.entries()]
+        .filter(([, s]) => s === 'Active' || s === 'Passive')
+        .map(([id]) => ({ userId: id } as GameParticipantStatusDto));
+      this.taggablePrey.set(taggable);
+      this.updateNearestDistance();
     });
 
     this.streamService.on('state-changed', () => {

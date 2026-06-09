@@ -237,8 +237,11 @@ public sealed class Game
         newHunter.ChangeRole(ParticipantRole.Hunter);
     }
 
-    /// <summary>Records a GPS location for a participant of an in-progress game.</summary>
-    public void RecordLocation(Guid userId, GpsCoordinate coordinate, DateTimeOffset at)
+    /// <summary>
+    /// Records a GPS location for a participant of an in-progress game and activates their state
+    /// (no-op when the participant is Out or Tagged). Returns the participant's previous state.
+    /// </summary>
+    public PlayerState RecordLocation(Guid userId, GpsCoordinate coordinate, DateTimeOffset at)
     {
         ArgumentNullException.ThrowIfNull(coordinate);
 
@@ -249,6 +252,40 @@ public sealed class Game
             ?? throw new InvalidOperationException("Only a participant of the game can record a location.");
 
         participant.RecordLocation(LocationReading.Create(coordinate, at));
+        return participant.ActivateIfAllowed(at);
+    }
+
+    /// <summary>
+    /// Applies timeout-based state transitions to all prey participants. Returns a list of
+    /// (userId, newState) pairs for every participant whose state changed.
+    /// </summary>
+    public IReadOnlyList<(Guid UserId, PlayerState NewState)> ApplyTimeoutTransitions(DateTimeOffset now)
+    {
+        var changes = new List<(Guid, PlayerState)>();
+        foreach (var participant in _participants.Where(p => p.Role == ParticipantRole.Prey))
+        {
+            if (participant.TryTransitionByTimeout(now, out var newState))
+                changes.Add((participant.UserId, newState));
+        }
+        return changes;
+    }
+
+    /// <summary>
+    /// Marks a prey participant as Tagged. The caller must be the hunter; the target must exist
+    /// as a prey in Active or Passive state; the game must be InProgress.
+    /// </summary>
+    public void TagParticipant(Guid callerId, Guid targetUserId)
+    {
+        if (Status != GameStatus.InProgress)
+            throw new InvalidOperationException("Players can only be tagged while the game is in progress.");
+
+        if (Hunter?.UserId != callerId)
+            throw new UnauthorizedAccessException("Only the hunter can tag preys.");
+
+        var target = _participants.FirstOrDefault(p => p.UserId == targetUserId && p.Role == ParticipantRole.Prey)
+            ?? throw new ArgumentException("The target participant is not a prey of this game.", nameof(targetUserId));
+
+        target.Tag();
     }
 
     /// <summary>Applies a penalty, expiring at <paramref name="endsAt"/>, to a participant.</summary>

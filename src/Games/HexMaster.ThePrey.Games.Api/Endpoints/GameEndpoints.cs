@@ -13,6 +13,7 @@ using HexMaster.ThePrey.Games.Features.RemoveLobbyPlayer;
 using HexMaster.ThePrey.Games.Features.SetHunter;
 using HexMaster.ThePrey.Games.Features.SetReady;
 using HexMaster.ThePrey.Games.Features.StartGame;
+using HexMaster.ThePrey.Games.Features.TagPlayer;
 using HexMaster.ThePrey.Games.Features.UpdateGameSettings;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Users.Integration;
@@ -110,6 +111,14 @@ public static class GameEndpoints
             .Produces<GameDto>()
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{id:guid}/participants/{participantId:guid}/tag", TagPlayer)
+            .WithName("TagPlayer")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict)
+            .Produces(StatusCodes.Status401Unauthorized);
 
         group.MapGet("/{id:guid}/lobby/stream", StreamLobbyEvents)
             .WithName("StreamLobbyEvents")
@@ -444,6 +453,39 @@ public static class GameEndpoints
         }
     }
 
+    private static async Task<IResult> TagPlayer(
+        Guid id,
+        Guid participantId,
+        ClaimsPrincipal principal,
+        IUserResolver userResolver,
+        ICommandHandler<TagPlayerCommand, TagPlayerResult?> handler,
+        CancellationToken ct)
+    {
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        try
+        {
+            var result = await handler.Handle(new TagPlayerCommand(id, user.UserId, participantId), ct);
+            if (result is null) return Results.NotFound();
+            return Results.NoContent();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
+        }
+        catch (InvalidOperationException)
+        {
+            return Results.Conflict();
+        }
+        catch (ArgumentException)
+        {
+            return Results.NotFound();
+        }
+    }
+
     private static async Task StreamLobbyEvents(
         Guid id,
         ClaimsPrincipal principal,
@@ -528,6 +570,8 @@ public static class GameEndpoints
                 break;
             }
         }
+        // participant-status-changed events are broadcast to all connected participants (hunters and preys)
+        // via the default pass-through above — no filtering needed.
     }
 
     private static IResult ValidationProblem(Exception ex)

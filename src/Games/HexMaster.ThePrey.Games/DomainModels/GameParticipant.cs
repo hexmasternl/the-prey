@@ -12,6 +12,8 @@ public sealed class GameParticipant
 
     public Guid UserId { get; private set; }
     public ParticipantRole Role { get; private set; }
+    public PlayerState State { get; private set; } = PlayerState.Active;
+    public DateTimeOffset? LastLocationAt { get; private set; }
     public GpsCoordinate? Location { get; private set; }
     public IReadOnlyList<Penalty> Penalties => _penalties.AsReadOnly();
     public IReadOnlyList<LocationReading> Locations => _locations.AsReadOnly();
@@ -26,7 +28,8 @@ public sealed class GameParticipant
         return new GameParticipant
         {
             UserId = userId,
-            Role = role
+            Role = role,
+            State = PlayerState.Active
         };
     }
 
@@ -36,13 +39,17 @@ public sealed class GameParticipant
         ParticipantRole role,
         GpsCoordinate? location,
         IEnumerable<Penalty> penalties,
-        IEnumerable<LocationReading> locations)
+        IEnumerable<LocationReading> locations,
+        PlayerState state = PlayerState.Active,
+        DateTimeOffset? lastLocationAt = null)
     {
         var participant = new GameParticipant
         {
             UserId = userId,
             Role = role,
-            Location = location
+            Location = location,
+            State = state,
+            LastLocationAt = lastLocationAt
         };
         participant._penalties.AddRange(penalties);
         participant._locations.AddRange(locations);
@@ -50,6 +57,58 @@ public sealed class GameParticipant
     }
 
     internal void ChangeRole(ParticipantRole role) => Role = role;
+
+    /// <summary>
+    /// Activates the participant and records the location timestamp. No-op when already Out or Tagged.
+    /// Returns the state before the call.
+    /// </summary>
+    internal PlayerState ActivateIfAllowed(DateTimeOffset at)
+    {
+        var previous = State;
+        if (State != PlayerState.Out && State != PlayerState.Tagged)
+        {
+            State = PlayerState.Active;
+            LastLocationAt = at;
+        }
+        return previous;
+    }
+
+    /// <summary>
+    /// Applies timeout-based transitions. Returns true (and sets newState) when the state changed.
+    /// Out and Tagged participants are never transitioned.
+    /// </summary>
+    internal bool TryTransitionByTimeout(DateTimeOffset now, out PlayerState newState)
+    {
+        newState = State;
+        if (State == PlayerState.Out || State == PlayerState.Tagged || LastLocationAt is null)
+            return false;
+
+        var silentMinutes = (now - LastLocationAt.Value).TotalMinutes;
+
+        if (silentMinutes >= 7)
+        {
+            newState = PlayerState.Out;
+            State = PlayerState.Out;
+            return true;
+        }
+
+        if (silentMinutes >= 5 && State == PlayerState.Active)
+        {
+            newState = PlayerState.Passive;
+            State = PlayerState.Passive;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Marks the participant as Tagged. Throws when the participant is not Active or Passive.</summary>
+    internal void Tag()
+    {
+        if (State != PlayerState.Active && State != PlayerState.Passive)
+            throw new InvalidOperationException("Only an Active or Passive prey can be tagged.");
+        State = PlayerState.Tagged;
+    }
 
     internal void RecordLocation(LocationReading reading)
     {

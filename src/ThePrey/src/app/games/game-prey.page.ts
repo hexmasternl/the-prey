@@ -27,6 +27,7 @@ export class GamePreyPage implements OnInit, OnDestroy {
   readonly preysLeft       = signal(0);
   readonly hasActivePenalty = signal(false);
   readonly gpsAlert        = signal<string | null>(null);
+  readonly gameOverMessage  = signal<string | null>(null);
 
   private gameId!: string;
   private token!: string;
@@ -34,6 +35,8 @@ export class GamePreyPage implements OnInit, OnDestroy {
   private playerMarker: L.CircleMarker | null = null;
   private playfieldPolygon: L.Polygon | null = null;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Local participant state map keyed by userId */
+  private participantStates = new Map<string, string>();
 
   /** Capacitor Geolocation watch — used only for the on-screen map marker. */
   private mapWatchId: string | null = null;
@@ -150,11 +153,16 @@ export class GamePreyPage implements OnInit, OnDestroy {
     const mins = Math.floor(status.gameDurationLeft / 60).toString().padStart(2, '0');
     const secs = (status.gameDurationLeft % 60).toString().padStart(2, '0');
     this.timeRemaining.set(`${mins}:${secs}`);
-    this.preysLeft.set(status.preys.length);
+    this.preysLeft.set(status.preysLeft);
 
     const me = status.preys.find(p => p.userId === this.currentUserId)
       ?? (status.hunter?.userId === this.currentUserId ? status.hunter : null);
     this.hasActivePenalty.set(me?.hasActivePenalty ?? false);
+
+    // Seed local state map from snapshot
+    for (const prey of status.preys) {
+      this.participantStates.set(prey.userId, prey.state);
+    }
 
     this.drawPlayfield(status.playfieldCoordinates);
   }
@@ -181,8 +189,25 @@ export class GamePreyPage implements OnInit, OnDestroy {
     this.streamService.connect(this.gameId, this.token);
 
     this.streamService.on('participant-located', (payload) => {
-      if (payload.participantRole === 'Hunter') {
-        // Hunter location is for contextual awareness; no map marker shown to prey
+      if (payload.participantRole === 'Prey' && payload.participantState) {
+        this.participantStates.set(payload.userId, payload.participantState);
+      }
+    });
+
+    this.streamService.on('participant-status-changed', (payload) => {
+      this.participantStates.set(payload.participantId, payload.newState);
+
+      // Recalculate preys-remaining count
+      const activeCount = [...this.participantStates.values()].filter(s => s === 'Active' || s === 'Passive').length;
+      this.preysLeft.set(activeCount);
+
+      // React when our own state changes
+      if (payload.participantId === this.currentUserId) {
+        if (payload.newState === 'Tagged') {
+          this.handleGameOver('You have been tagged. Game over for you.');
+        } else if (payload.newState === 'Out') {
+          this.handleGameOver('You left the area for too long. You are out.');
+        }
       }
     });
 
@@ -196,6 +221,14 @@ export class GamePreyPage implements OnInit, OnDestroy {
       this.locationService.stopTracking();
       this.router.navigate(['/home'], { replaceUrl: true });
     });
+  }
+
+  private handleGameOver(message: string): void {
+    this.clearPoll();
+    this.streamService.disconnect();
+    this.locationService.stopTracking();
+    this.stopMapWatch();
+    this.gameOverMessage.set(message);
   }
 
   // -------------------------------------------------------------------------

@@ -6,12 +6,12 @@ The games capability lets an authenticated player create a game on a play field,
 ## Requirements
 ### Requirement: Game creation
 
-The system SHALL allow an authenticated player to create a game by providing the identifier of a play field and a complete game configuration. The creating player SHALL become the owner of the game. A newly created game SHALL be assigned a unique identifier, SHALL start in the **Lobby** state with an empty lobby, no hunter, and no preys, and SHALL be persisted.
+The system SHALL allow an authenticated player to create a game by providing the identifier of a play field and a complete game configuration. The creating player SHALL become the owner of the game. A newly created game SHALL be assigned a unique identifier, SHALL start in the **Lobby** state with an empty lobby, no hunter, and no preys, SHALL record `CreatedAt` as the server time at the moment of creation, SHALL set `CleanUpAfter` to `CreatedAt + 48 hours`, and SHALL be persisted.
 
 #### Scenario: Create a valid game
 
 - **WHEN** an authenticated player submits a create request with a play-field identifier and a valid configuration
-- **THEN** the system creates a game owned by the player in the Lobby state, assigns it a unique identifier, persists it, and returns the created game with HTTP 201 Created
+- **THEN** the system creates a game owned by the player in the Lobby state, assigns it a unique identifier, sets `CreatedAt` to the current server time, sets `CleanUpAfter` to `CreatedAt + 48 hours`, persists it, and returns the created game with HTTP 201 Created
 
 #### Scenario: Reject creation from an unauthenticated caller
 
@@ -78,12 +78,12 @@ The system SHALL allow authenticated players to join the lobby of a game that is
 
 ### Requirement: Starting a game and designating roles
 
-The system SHALL allow the owner of a game in the Lobby state to start it by designating exactly one lobby member as the **hunter**. The designated hunter's user identifier MUST match a player in the lobby. On start, every other lobby member SHALL become a **prey**. Starting SHALL require at least one hunter and at least one prey (a minimum of two lobby players). Starting SHALL record the start time and transition the game to the **InProgress** state. A game MUST NOT be started more than once.
+The system SHALL allow the owner of a game in the Lobby state to start it by designating exactly one lobby member as the **hunter**. The designated hunter's user identifier MUST match a player in the lobby. On start, every other lobby member SHALL become a **prey**. Starting SHALL require at least one hunter and at least one prey (a minimum of two lobby players). Starting SHALL record the start time, set `EndsAt` to `StartedAt + GameDuration` (in minutes), and transition the game to the **InProgress** state. A game MUST NOT be started more than once.
 
 #### Scenario: Owner starts a game with a valid hunter
 
 - **WHEN** the owner starts a Lobby game, naming a hunter who is a lobby member, with at least one other lobby member present
-- **THEN** the system designates that member as the hunter, turns every other lobby member into a prey, records the start time, transitions the game to InProgress, and returns the started game
+- **THEN** the system designates that member as the hunter, turns every other lobby member into a prey, records the start time, sets `EndsAt` to `StartedAt + GameDuration`, transitions the game to InProgress, and returns the started game
 
 #### Scenario: Reject a hunter who is not in the lobby
 
@@ -102,12 +102,17 @@ The system SHALL allow the owner of a game in the Lobby state to start it by des
 
 ### Requirement: Recording player locations
 
-The system SHALL allow a participant (the hunter or a prey) of an InProgress game to submit a GPS location. Each submission SHALL append a location reading — carrying a unique identifier, the GPS coordinate, and the time it was recorded — to that participant's location history, and SHALL update the participant's current location to the submitted coordinate. Each GPS coordinate MUST have a latitude in the range -90 to 90 and a longitude in the range -180 to 180. Only users who are participants of the game MAY submit locations, and only while the game is InProgress.
+The system SHALL allow a participant (the hunter or a prey) of an InProgress game to submit a GPS location. Each submission SHALL append a location reading — carrying a unique identifier, the GPS coordinate, and the time it was recorded — to that participant's location history. Each GPS coordinate MUST have a latitude in the range -90 to 90 and a longitude in the range -180 to 180. Only users who are participants of the game MAY submit locations, and only while the game is InProgress. The submission SHALL NOT update the participant's `Location` property directly; `Location` is updated exclusively by the game engine's broadcast cycle and reflects the last broadcasted position, not the last submitted position.
 
 #### Scenario: Participant records a location
 
 - **WHEN** a participant of an InProgress game submits a valid GPS coordinate
-- **THEN** the system appends a location reading to that participant's history, updates their current location, and acknowledges the submission
+- **THEN** the system appends a location reading to that participant's history and acknowledges the submission
+
+#### Scenario: Location submission does not update the broadcasted Location property
+
+- **WHEN** a participant submits a GPS coordinate
+- **THEN** the `Location` property on the `GameParticipant` record is unchanged; it retains the value set by the most recent game engine broadcast cycle
 
 #### Scenario: Reject a location from a non-participant
 
@@ -178,12 +183,12 @@ Each participant SHALL carry a collection of penalties, where each penalty has a
 
 ### Requirement: Retrieve a game
 
-The system SHALL allow an authenticated player to retrieve a single game by its identifier. The returned game SHALL include its identifier, play-field identifier, owner, status, configuration, lobby, and — once started — its hunter and preys, including each participant's current location, penalties, and location history.
+The system SHALL allow an authenticated player to retrieve a single game by its identifier. The returned game SHALL include its identifier, play-field identifier, owner, status, configuration, lobby, `CreatedAt`, `EndsAt`, `CleanUpAfter`, and — once started — its hunter and preys, including each participant's current location, penalties, and location history.
 
 #### Scenario: Retrieve an existing game
 
 - **WHEN** an authenticated player requests a game by an identifier that exists
-- **THEN** the system returns the game with HTTP 200 OK including its status, configuration, lobby, and (when started) hunter and preys
+- **THEN** the system returns the game with HTTP 200 OK including its status, configuration, lobby, `CreatedAt`, `EndsAt` (null if not yet started), `CleanUpAfter`, and (when started) hunter and preys
 
 #### Scenario: Retrieve a non-existent game
 
@@ -206,12 +211,12 @@ The system SHALL allow an authenticated player to list the games visible to them
 
 ### Requirement: Persist games in PostgreSQL
 
-The system SHALL persist games durably in PostgreSQL through Entity Framework Core and the Aspire PostgreSQL integration. Persistence details (the relational schema, the mapping of the lobby, participants, penalties, and location history, and EF Core migrations) SHALL be confined to a dedicated data adapter and MUST NOT leak into the domain model or the API contracts. The domain model MUST NOT carry storage-framework attributes or types.
+The system SHALL persist games durably in PostgreSQL through Entity Framework Core and the Aspire PostgreSQL integration. The `Games` table SHALL include columns `CreatedAt` (`TIMESTAMPTZ NOT NULL`), `EndsAt` (`TIMESTAMPTZ NULL`), and `CleanUpAfter` (`TIMESTAMPTZ NOT NULL`). `CleanUpAfter` SHALL have a database index to support efficient cleanup queries. Persistence details SHALL be confined to a dedicated data adapter and MUST NOT leak into the domain model or the API contracts. The domain model MUST NOT carry storage-framework attributes or types.
 
 #### Scenario: Created game survives retrieval
 
 - **WHEN** a game has been created, joined, started, and had locations recorded, and is later retrieved by its identifier
-- **THEN** the system returns a game whose owner, play field, configuration, lobby, hunter, preys, penalties, and location history match what was persisted
+- **THEN** the system returns a game whose owner, play field, configuration, lobby, hunter, preys, penalties, location history, `CreatedAt`, `EndsAt`, and `CleanUpAfter` match what was persisted
 
 #### Scenario: Domain model is persistence-agnostic
 

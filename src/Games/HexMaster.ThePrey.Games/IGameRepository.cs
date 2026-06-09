@@ -13,6 +13,9 @@ public interface IGameRepository
     /// <summary>Returns the games owned by the given user plus the games whose lobby they have joined.</summary>
     Task<IReadOnlyList<Game>> ListForUserAsync(Guid userId, CancellationToken ct);
 
+    /// <summary>Returns all games currently in the InProgress state (used by the PlayerStateMonitor).</summary>
+    Task<IReadOnlyList<Game>> GetAllInProgressAsync(CancellationToken ct);
+
     /// <summary>Hard-deletes all games whose CleanUpAfter is at or before <paramref name="cutoff"/>. Returns the number of deleted rows.</summary>
     Task<int> DeleteExpiredGamesAsync(DateTimeOffset cutoff, CancellationToken ct);
 }

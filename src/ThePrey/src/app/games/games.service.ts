@@ -65,6 +65,7 @@ export interface GameParticipantStatusDto {
   callsign: string;
   lastKnownLocation: GpsCoordinateDto | null;
   hasActivePenalty: boolean;
+  state: string;
 }
 
 export interface GameStatusDto {
@@ -76,6 +77,7 @@ export interface GameStatusDto {
   gameDurationLeft: number;
   nextPingDuration: number;
   isEndgame: boolean;
+  preysLeft: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -142,6 +144,12 @@ export class GamesService {
 
   getGameStatus(gameId: string): Promise<GameStatusDto> {
     return firstValueFrom(this.http.get<GameStatusDto>(`${this.apiBase}/${gameId}/status`));
+  }
+
+  tagPlayer(gameId: string, participantId: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(`${this.apiBase}/${gameId}/participants/${participantId}/tag`, {})
+    );
   }
 
   connectLobbyStream(gameId: string, token: string): EventSource {

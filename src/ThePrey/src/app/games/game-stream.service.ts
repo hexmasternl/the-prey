@@ -1,15 +1,17 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
-export type GameEventType = 'state-changed' | 'participant-located' | 'game-ended';
+export type GameEventType = 'state-changed' | 'participant-located' | 'participant-status-changed' | 'game-ended';
 
 export interface StateChangedPayload { gameId: string; newState: string; }
-export interface ParticipantLocatedPayload { gameId: string; userId: string; participantRole: string; latitude: number; longitude: number; }
+export interface ParticipantLocatedPayload { gameId: string; userId: string; participantRole: string; latitude: number; longitude: number; participantState: string; }
+export interface ParticipantStatusChangedPayload { gameId: string; participantId: string; participantRole: string; newState: string; }
 export interface GameEndedPayload { gameId: string; }
 
 type EventPayloadMap = {
   'state-changed': StateChangedPayload;
   'participant-located': ParticipantLocatedPayload;
+  'participant-status-changed': ParticipantStatusChangedPayload;
   'game-ended': GameEndedPayload;
 };
 
@@ -52,7 +54,7 @@ export class GameStreamService {
     const url = `${environment.apiUrl}/games/${this.gameId}/stream`;
     this.source = new EventSource(url);
 
-    const eventTypes: GameEventType[] = ['state-changed', 'participant-located', 'game-ended'];
+    const eventTypes: GameEventType[] = ['state-changed', 'participant-located', 'participant-status-changed', 'game-ended'];
     for (const type of eventTypes) {
       this.source.addEventListener(type, (e: MessageEvent) => {
         const handler = this.handlers[type];

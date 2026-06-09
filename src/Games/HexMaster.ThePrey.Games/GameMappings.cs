@@ -15,15 +15,19 @@ internal static class GameMappings
         var nextPingDuration = game.IsParticipant(userId) ? ComputeNextPingDuration(game, userId, now) : 0;
         var isEndgame = game.IsInFinalStage(now);
 
+        var preys = game.Preys.Select(p => p.ToStatusDto(game, now, isHunter: false)).ToList();
+        var preysLeft = preys.Count(p => p.State is "Active" or "Passive");
+
         return new GameStatusDto(
             game.Id,
             playfieldInfo?.Name ?? string.Empty,
             playfieldInfo?.Coordinates ?? [],
-            game.Hunter?.ToStatusDto(game, now),
-            game.Preys.Select(p => p.ToStatusDto(game, now)).ToList(),
+            game.Hunter?.ToStatusDto(game, now, isHunter: true),
+            preys,
             gameDurationLeft,
             nextPingDuration,
-            isEndgame);
+            isEndgame,
+            preysLeft);
     }
 
     private static int ComputeNextPingDuration(Game game, Guid userId, DateTimeOffset now)
@@ -35,13 +39,14 @@ internal static class GameMappings
         return (int)Math.Max(0, (lastLocation.RecordedAt.AddSeconds(interval) - now).TotalSeconds);
     }
 
-    private static GameParticipantStatusDto ToStatusDto(this GameParticipant participant, Game game, DateTimeOffset now)
+    private static GameParticipantStatusDto ToStatusDto(this GameParticipant participant, Game game, DateTimeOffset now, bool isHunter)
     {
         var callsign = game.Lobby.FirstOrDefault(l => l.UserId == participant.UserId)?.DisplayName ?? "Unknown";
         var location = participant.Location is null
             ? null
             : new GpsCoordinateDto(participant.Location.Latitude, participant.Location.Longitude);
-        return new GameParticipantStatusDto(participant.UserId, callsign, location, participant.HasActivePenalty(now));
+        var state = isHunter ? "Active" : participant.State.ToString();
+        return new GameParticipantStatusDto(participant.UserId, callsign, location, participant.HasActivePenalty(now), state);
     }
 
 

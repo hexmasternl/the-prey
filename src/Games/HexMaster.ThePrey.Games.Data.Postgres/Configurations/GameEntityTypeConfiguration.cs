@@ -68,6 +68,8 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
             participants.HasKey("GameId", "UserId");
             participants.Property(p => p.UserId);
             participants.Property(p => p.Role).HasConversion<string>().HasMaxLength(16);
+            participants.Property(p => p.State).HasConversion<string>().HasMaxLength(16).HasDefaultValue(PlayerState.Active);
+            participants.Property(p => p.LastLocationAt).IsRequired(false);
 
             participants.OwnsOne(p => p.Location, location =>
             {
