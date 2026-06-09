@@ -14,6 +14,11 @@ const TOAST_THROTTLE_MS = 4_000;
  * keep their own handling. Only network loss (status 0) and server errors (5xx) are toasted;
  * routine 4xx responses (validation, conflicts, forbidden) are left to the page that made the
  * call, which can show contextual messaging. Errors from non-API origins are ignored.
+ *
+ * Only genuine HTTP failures (HttpErrorResponse) are classified. Non-HTTP errors — most
+ * notably a failed Auth0 silent token refresh thrown by authTokenInterceptor, which this
+ * interceptor wraps — never reach the wire and must NOT be reported as a lost connection;
+ * they are rethrown untouched so the auth flow can prompt re-authentication.
  */
 export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
   if (!req.url.startsWith(environment.apiUrl)) {
@@ -25,9 +30,10 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: unknown) => {
-      const status = error instanceof HttpErrorResponse ? error.status : 0;
-      if (status === 0 || status >= 500) {
-        void presentToast(toasts, translate, status === 0 ? 'ERRORS.NETWORK' : 'ERRORS.SERVER');
+      if (error instanceof HttpErrorResponse) {
+        if (error.status === 0 || error.status >= 500) {
+          void presentToast(toasts, translate, error.status === 0 ? 'ERRORS.NETWORK' : 'ERRORS.SERVER');
+        }
       }
       return throwError(() => error);
     }),

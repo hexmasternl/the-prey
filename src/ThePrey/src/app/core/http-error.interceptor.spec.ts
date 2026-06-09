@@ -60,6 +60,18 @@ describe('httpErrorInterceptor', () => {
     jasmine.clock().uninstall();
   });
 
+  it('stays silent on non-HTTP errors (e.g. a failed Auth0 token refresh) and rethrows', async () => {
+    const req = new HttpRequest('GET', `${environment.apiUrl}/games`);
+    const authError = new Error('Login required');
+    const next: HttpHandlerFn = () => throwError(() => authError);
+
+    await expectAsync(
+      firstValueFrom(runInInjectionContext(injector, () => httpErrorInterceptor(req, next))),
+    ).toBeRejectedWith(authError);
+
+    expect(toastCtrl.create).not.toHaveBeenCalled();
+  });
+
   it('ignores non-API origins', async () => {
     const req = new HttpRequest('GET', 'https://tiles.example.com/1/2/3.png');
     const next: HttpHandlerFn = () => throwError(() => new HttpErrorResponse({ status: 500 }));
