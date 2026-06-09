@@ -1109,7 +1109,7 @@
 
 </div>
 <script>
-  document.querySelectorAll('.hud-collapse-bar').forEach(bar => {
+  document.querySelectorAll('.hud-collapse-bar, .hud-collapse-handle').forEach(bar => {
     bar.addEventListener('click', () => {
       bar.closest('.hud-panel').classList.toggle('collapsed');
     });
