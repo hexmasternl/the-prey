@@ -160,6 +160,33 @@ export class GamesService {
     return firstValueFrom(this.http.get<GameStatusDto>(`${this.apiBase}/${gameId}/status`));
   }
 
+  /** Fetch the role-specific in-game state (hunter distance for preys, prey locations for hunters). */
+  getGameState(gameId: string): Promise<GameStateDto> {
+    return firstValueFrom(this.http.get<GameStateDto>(`${this.apiBase}/${gameId}/state`));
+  }
+
+  /**
+   * Report a GPS fix to the backend. The Auth0 Bearer token is attached automatically by
+   * `authTokenInterceptor` (every request to the API origin is authenticated). Returns the
+   * server-chosen next reporting interval so the caller can schedule its next post.
+   */
+  recordLocation(
+    gameId: string,
+    latitude: number,
+    longitude: number,
+    accuracy: number,
+    recordedAt: string,
+  ): Promise<RecordLocationResponse> {
+    return firstValueFrom(
+      this.http.post<RecordLocationResponse>(`${this.apiBase}/${gameId}/locations`, {
+        latitude,
+        longitude,
+        accuracy,
+        recordedAt,
+      }),
+    );
+  }
+
   tagPlayer(gameId: string, participantId: string): Promise<void> {
     return firstValueFrom(
       this.http.post<void>(`${this.apiBase}/${gameId}/participants/${participantId}/tag`, {})
