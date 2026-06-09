@@ -83,6 +83,10 @@
     <p class="error-msg">{{ 'GAME_JOIN.ERROR_WRONG_CODE' | translate }}</p>
     }
 
+    @if (joinErrorKey(); as key) {
+    <p class="error-msg">{{ key | translate }}</p>
+    }
+
     @if (callsign(); as name) {
     <div class="operative-display">
       <span class="operative-label">{{ 'GAME_JOIN.OPERATIVE' | translate }}</span>

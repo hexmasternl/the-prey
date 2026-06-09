@@ -143,20 +143,33 @@ export class GameJoinPage implements ViewWillEnter {
 
     this.isSubmitting.set(true);
     this.errorWrongCode.set(false);
+    this.joinErrorKey.set(null);
     try {
       const joined = await this.gamesService.joinGame(gameId, this.joinCode(), callsign);
       await this.router.navigate(['/games', joined.id, 'lobby']);
     } catch (err: unknown) {
-      const body = this.errorBody(err);
-      if (body?.toLowerCase().includes('already')) {
-        await this.router.navigate(['/games', gameId, 'lobby']);
-        return;
+      // The server returns a stable ProblemDetails `code`; map each to the right UI reaction.
+      switch (this.errorCode(err)) {
+        case 'player_already_joined':
+          // Already a member of this lobby — just take them in.
+          await this.router.navigate(['/games', gameId, 'lobby']);
+          return;
+        case 'game_already_started':
+          this.gameStarted.set(true);
+          return;
+        case 'game_not_found':
+          this.gameNotFound.set(true);
+          return;
+        case 'invalid_join_code':
+          this.errorWrongCode.set(true);
+          return;
+        case 'lobby_full':
+          this.joinErrorKey.set('GAME_JOIN.ERROR_FULL');
+          return;
+        default:
+          this.joinErrorKey.set('GAME_JOIN.ERROR_SERVER');
+          return;
       }
-      if (body?.toLowerCase().includes('progress') || body?.toLowerCase().includes('started')) {
-        this.gameStarted.set(true);
-        return;
-      }
-      this.errorWrongCode.set(true);
     } finally {
       this.isSubmitting.set(false);
     }
@@ -166,9 +179,14 @@ export class GameJoinPage implements ViewWillEnter {
     this.router.navigate(['/home']);
   }
 
-  private errorBody(err: unknown): string | null {
+  /** Reads the stable error `code` from a ProblemDetails HTTP error body, if present. */
+  private errorCode(err: unknown): string | null {
     if (err && typeof err === 'object' && 'error' in err) {
-      return JSON.stringify((err as { error: unknown }).error);
+      const body = (err as { error: unknown }).error;
+      if (body && typeof body === 'object' && 'code' in body) {
+        const code = (body as { code: unknown }).code;
+        return typeof code === 'string' ? code : null;
+      }
     }
     return null;
   }
