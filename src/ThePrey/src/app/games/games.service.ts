@@ -80,6 +80,20 @@ export interface GameStatusDto {
   preysLeft: number;
 }
 
+/** Response to a POST /games/{id}/locations call. Mirrors the backend RecordLocationResponse. */
+export interface RecordLocationResponse {
+  accepted: boolean;
+  nextLocationIntervalSeconds: number;
+  penaltyIntervalSeconds: number | null;
+  penaltyEndsAt: string | null;
+}
+
+/** Role-specific in-game state returned by GET /games/{id}/state. */
+export interface GameStateDto {
+  hunterDistanceMeters: number | null;
+  preyLocations: GpsCoordinateDto[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class GamesService {
   private readonly http = inject(HttpClient);
