@@ -15,7 +15,9 @@ public sealed record GameDto(
     Guid? DesignatedHunterUserId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? EndsAt,
-    DateTimeOffset CleanUpAfter);
+    DateTimeOffset CleanUpAfter,
+    string Outcome,
+    DateTimeOffset? CompletedAt);
 
 /// <summary>A condensed view of a game for list results.</summary>
 public sealed record GameSummaryDto(

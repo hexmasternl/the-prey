@@ -7,4 +7,6 @@ public interface IGameMetrics
     void RecordGameStarted();
 
     void RecordLocationRecorded();
+
+    void RecordGameCompleted(string outcome);
 }

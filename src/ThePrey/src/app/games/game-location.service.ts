@@ -21,6 +21,9 @@ const PREF_END_TIME = 'game.tracking.gameEndTime';
 /** Fallback reporting cadence when the backend has not (yet) supplied one. */
 const DEFAULT_INTERVAL_SECONDS = 30;
 
+/** Consecutive failed posts before the session is flagged as degraded to the UI. */
+const REPORTING_FAILURE_THRESHOLD = 3;
+
 interface LastFix {
   latitude: number;
   longitude: number;
@@ -28,6 +31,14 @@ interface LastFix {
   /** Milliseconds since the unix epoch, or null if the platform did not supply it. */
   time: number | null;
 }
+
+/**
+ * Why location reporting is not working, surfaced to the UI so the player understands
+ * a broken-looking game instead of seeing a silently empty map.
+ *  - `denied`: the OS location permission was refused/revoked — the user must grant it.
+ *  - `unavailable`: location is enabled but no fix can be obtained (no signal, GPS off).
+ */
+export type GpsErrorKind = 'denied' | 'unavailable';
 
 /**
  * Single source of truth for background location broadcasting during an active game.
@@ -56,6 +67,26 @@ export class GameLocationService {
   private readonly trackingSignal = signal(false);
   /** Readonly boolean signal: true while a tracking session is active. */
   readonly isTracking = this.trackingSignal.asReadonly();
+
+  private readonly gpsErrorSignal = signal<GpsErrorKind | null>(null);
+  /**
+   * Readonly signal describing why the device cannot produce a location fix, or `null`
+   * when GPS is healthy. Pages surface this so a denied permission or lost signal is
+   * visible instead of an empty map. Cleared as soon as a valid fix arrives.
+   */
+  readonly gpsError = this.gpsErrorSignal.asReadonly();
+
+  private readonly reportingDegradedSignal = signal(false);
+  /**
+   * Readonly signal: true once several consecutive location posts have failed (network
+   * loss, expired session, server down). Surfaced so the player knows their position is
+   * no longer reaching the server rather than silently going stale. Cleared on the next
+   * successful post.
+   */
+  readonly reportingDegraded = this.reportingDegradedSignal.asReadonly();
+
+  /** Consecutive failed post cycles; drives `reportingDegraded` past the threshold. */
+  private consecutiveFailures = 0;
 
   private nativeWatcherId: string | null = null;
   private webWatchId: string | null = null;
@@ -87,6 +118,9 @@ export class GameLocationService {
     this.gameEndTime = gameEndTime;
     this.lastIntervalSeconds = DEFAULT_INTERVAL_SECONDS;
     this.lastFix = null;
+    this.gpsErrorSignal.set(null);
+    this.reportingDegradedSignal.set(false);
+    this.consecutiveFailures = 0;
 
     await Preferences.set({ key: PREF_GAME_ID, value: gameId });
     await Preferences.set({ key: PREF_END_TIME, value: gameEndTime.toISOString() });
@@ -97,7 +131,13 @@ export class GameLocationService {
       this.nativeWatcherId = await BackgroundGeolocation.addWatcher(
         { backgroundTitle, backgroundMessage, requestPermissions: true, stale: false, distanceFilter: 0 },
         (position, error) => {
-          if (error || !position) return;
+          if (error) {
+            // The plugin reports a denied/disabled permission as code 'NOT_AUTHORIZED'.
+            this.gpsErrorSignal.set(error.code === 'NOT_AUTHORIZED' ? 'denied' : 'unavailable');
+            return;
+          }
+          if (!position) return;
+          this.gpsErrorSignal.set(null);
           this.lastFix = {
             latitude: position.latitude,
             longitude: position.longitude,
@@ -110,7 +150,12 @@ export class GameLocationService {
       this.webWatchId = await Geolocation.watchPosition(
         { enableHighAccuracy: true, maximumAge: 5_000 },
         (position, err) => {
-          if (err || !position) return;
+          if (err) {
+            this.gpsErrorSignal.set(this.classifyWebGpsError(err));
+            return;
+          }
+          if (!position) return;
+          this.gpsErrorSignal.set(null);
           this.lastFix = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -148,9 +193,18 @@ export class GameLocationService {
     this.gameEndTime = null;
     this.lastFix = null;
     this.trackingSignal.set(false);
+    this.gpsErrorSignal.set(null);
+    this.reportingDegradedSignal.set(false);
+    this.consecutiveFailures = 0;
 
     await Preferences.remove({ key: PREF_GAME_ID });
     await Preferences.remove({ key: PREF_END_TIME });
+  }
+
+  /** Map a web Geolocation error to our coarse error kind (code 1 = PERMISSION_DENIED). */
+  private classifyWebGpsError(err: unknown): GpsErrorKind {
+    const code = (err as { code?: number } | null)?.code;
+    return code === 1 ? 'denied' : 'unavailable';
   }
 
   private scheduleNextPost(delaySeconds: number): void {
@@ -193,9 +247,17 @@ export class GameLocationService {
       nextInterval =
         response.penaltyIntervalSeconds ?? response.nextLocationIntervalSeconds ?? this.lastIntervalSeconds;
       this.lastIntervalSeconds = nextInterval > 0 ? nextInterval : DEFAULT_INTERVAL_SECONDS;
+      // Post succeeded — position is reaching the server again.
+      this.consecutiveFailures = 0;
+      this.reportingDegradedSignal.set(false);
     } catch {
-      // Network error / 401 / token failure: keep tracking, retry on the last known cadence.
+      // Network error / 401 / token failure: keep tracking, retry on the last known cadence,
+      // but flag the session as degraded once failures persist so the UI can warn the player.
       this.lastIntervalSeconds = this.lastIntervalSeconds > 0 ? this.lastIntervalSeconds : DEFAULT_INTERVAL_SECONDS;
+      this.consecutiveFailures += 1;
+      if (this.consecutiveFailures >= REPORTING_FAILURE_THRESHOLD) {
+        this.reportingDegradedSignal.set(true);
+      }
     }
 
     if (this.trackingSignal()) {

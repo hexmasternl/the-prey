@@ -51,7 +51,10 @@ export class GameStreamService {
   private openConnection(): void {
     if (!this.gameId || !this.token) return;
 
-    const url = `${environment.apiUrl}/games/${this.gameId}/stream`;
+    // EventSource cannot send an Authorization header, so the JWT is passed as a query
+    // parameter and validated server-side (JwtBearer OnMessageReceived). Without this the
+    // authenticated /stream endpoint always responds 401 and the live game never connects.
+    const url = `${environment.apiUrl}/games/${this.gameId}/stream?token=${encodeURIComponent(this.token)}`;
     this.source = new EventSource(url);
 
     const eventTypes: GameEventType[] = ['state-changed', 'participant-located', 'participant-status-changed', 'game-ended'];

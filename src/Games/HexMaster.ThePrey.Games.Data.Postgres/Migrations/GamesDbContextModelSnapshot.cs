@@ -30,6 +30,9 @@ namespace HexMaster.ThePrey.Games.Data.Postgres.Migrations
                     b.Property<DateTimeOffset>("CleanUpAfter")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -43,6 +46,11 @@ namespace HexMaster.ThePrey.Games.Data.Postgres.Migrations
                         .IsRequired()
                         .HasMaxLength(4)
                         .HasColumnType("character varying(4)");
+
+                    b.Property<int>("Outcome")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<Guid>("OwnerUserId")
                         .HasColumnType("uuid");

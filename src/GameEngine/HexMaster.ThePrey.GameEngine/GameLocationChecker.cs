@@ -78,6 +78,7 @@ internal sealed class GameLocationChecker
             {
                 _logger.LogInformation("Game {GameId} has ended; performing final broadcast", gameId);
                 await BroadcastAllParticipantsAsync(cycleContext, currentGame, ct);
+                await CallCompleteGameEndpointAsync(gameId, ct);
                 return;
             }
 
@@ -222,6 +223,28 @@ internal sealed class GameLocationChecker
         var payload = new { Locations = locations };
         var response = await client.PostAsJsonAsync($"/game-engine/{gameId}/location-update", payload, ct);
         response.EnsureSuccessStatusCode();
+    }
+
+    private async Task CallCompleteGameEndpointAsync(Guid gameId, CancellationToken ct)
+    {
+        using var activity = GameEngineActivitySource.Source.StartActivity("GameEngine.CompleteGame");
+        activity?.SetTag("game.id", gameId);
+
+        try
+        {
+            var client = _httpClientFactory.CreateClient("GamesApi");
+            // Empty body — the endpoint only needs the gameId in the route.
+            var response = await client.PostAsJsonAsync($"/game-engine/{gameId}/complete", new { }, ct);
+            response.EnsureSuccessStatusCode();
+            _logger.LogInformation("Game {GameId} completion notification sent successfully", gameId);
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.AddException(ex);
+            _logger.LogError(ex, "Failed to notify Games API of completion for game {GameId}", gameId);
+            throw;
+        }
     }
 
     private sealed record ParticipantLocationPayload(Guid UserId, double Latitude, double Longitude);

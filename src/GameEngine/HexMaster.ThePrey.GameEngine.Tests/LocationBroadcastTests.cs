@@ -12,7 +12,7 @@ public sealed class LocationBroadcastTests
     {
         // A participant with an empty Locations list has nothing to broadcast
         var config = GameConfiguration.Create(60, 5, 10, 30, 10);
-        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "12345678", config);
+        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
 
         var playerId = Guid.NewGuid();
         var secondId = Guid.NewGuid();
@@ -35,7 +35,7 @@ public sealed class LocationBroadcastTests
     public void Participant_WithLocationHistory_ShouldHaveMostRecentSelected()
     {
         var config = GameConfiguration.Create(60, 5, 10, 30, 10);
-        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "12345678", config);
+        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
 
         var hunterId = Guid.NewGuid();
         var preyId = Guid.NewGuid();
@@ -63,7 +63,7 @@ public sealed class LocationBroadcastTests
     public void UpdateBroadcastLocation_ShouldSetLocationProperty()
     {
         var config = GameConfiguration.Create(60, 5, 10, 30, 10);
-        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "12345678", config);
+        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
 
         var hunterId = Guid.NewGuid();
         var preyId = Guid.NewGuid();
@@ -87,7 +87,7 @@ public sealed class LocationBroadcastTests
     {
         // Task 9.2: RecordLocation must NOT set Location — that is exclusively engine's job
         var config = GameConfiguration.Create(60, 5, 10, 30, 10);
-        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "12345678", config);
+        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
 
         var hunterId = Guid.NewGuid();
         var preyId = Guid.NewGuid();

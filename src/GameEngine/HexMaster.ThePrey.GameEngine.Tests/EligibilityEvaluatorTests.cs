@@ -11,7 +11,7 @@ public sealed class EligibilityEvaluatorTests
     private static Game CreateStartedGame(int playerCount = 3)
     {
         var config = GameConfiguration.Create(60, 5, 10, 30, 10);
-        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "12345678", config);
+        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
         var ids = new List<Guid>();
         for (var i = 0; i < playerCount; i++)
         {

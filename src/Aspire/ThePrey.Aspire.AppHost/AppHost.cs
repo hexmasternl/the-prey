@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using ThePrey.Aspire.ServiceDefaults;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -17,7 +18,17 @@ var gameEngineQueue = storage.AddQueues(AspireConstants.Resources.GameEngineQueu
 var postgres = builder.AddPostgres(AspireConstants.Resources.Postgres);
 var gamesDatabase = postgres.AddDatabase(AspireConstants.Resources.GamesDatabase);
 
-
+// Shared secret used by GameEngine (signer) and Games API (verifier) to HMAC-sign the
+// internal location-update calls. For local dev we seed an ephemeral value so Aspire resolves
+// the parameter without prompting and without a secret living in source. In CI/prod, supply it
+// explicitly via the `Parameters__engine_key` environment variable (or user secrets), which
+// takes precedence over this generated default.
+if (string.IsNullOrEmpty(builder.Configuration["Parameters:engine-key"]))
+{
+    builder.Configuration["Parameters:engine-key"] =
+        Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+}
+var engineKey = builder.AddParameter("engine-key", secret: true);
 
 var usersApi = builder.AddProject<Projects.HexMaster_ThePrey_Users_Api>(AspireConstants.Resources.UsersApi)
     .WaitFor(usersTables)
@@ -37,6 +48,7 @@ var playFieldsApi = builder.AddProject<Projects.HexMaster_ThePrey_PlayFields_Api
 
 var gamesApi = builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireConstants.Resources.GamesApi)
     .WithReference(gamesDatabase)
+    .WithEnvironment("GameEngine__EngineKey", engineKey)
     .WithDaprSidecar(opts =>
     {
         opts.WithReference(stateStore);
@@ -46,8 +58,11 @@ var gamesApi = builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireCo
 var gameEngine = builder.AddProject<Projects.HexMaster_ThePrey_GameEngine>(AspireConstants.Resources.GameEngine)
     .WithReference(gameEngineQueue)
     .WithReference(gamesDatabase)
+    .WithReference(gamesApi)
+    .WithEnvironment("GameEngine__EngineKey", engineKey)
     .WaitFor(gamesDatabase)
-    .WaitFor(gameEngineQueue);
+    .WaitFor(gameEngineQueue)
+    .WaitFor(gamesApi);
 
 var gateway = builder.AddYarp(AspireConstants.Resources.Gateway)
     .WithHttpEndpoint(port: 5000)

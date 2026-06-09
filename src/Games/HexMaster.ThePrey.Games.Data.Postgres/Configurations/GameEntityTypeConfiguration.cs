@@ -29,6 +29,8 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
         builder.Property(g => g.CleanUpAfter);
         builder.HasIndex(g => g.CleanUpAfter).HasDatabaseName("IX_Games_CleanUpAfter");
         builder.Property(g => g.DesignatedHunterUserId);
+        builder.Property(g => g.CompletedAt);
+        builder.Property(g => g.Outcome).HasConversion<int>().HasDefaultValue(GameOutcome.Undecided);
 
         // Computed, behaviour-only members must not be mapped.
         builder.Ignore(g => g.Hunter);
