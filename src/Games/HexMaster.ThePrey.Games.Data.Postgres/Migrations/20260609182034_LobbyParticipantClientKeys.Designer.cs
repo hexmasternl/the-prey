@@ -3,6 +3,7 @@ using System;
 using HexMaster.ThePrey.Games.Data.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HexMaster.ThePrey.Games.Data.Postgres.Migrations
 {
     [DbContext(typeof(GamesDbContext))]
-    partial class GamesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609182034_LobbyParticipantClientKeys")]
+    partial class LobbyParticipantClientKeys
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

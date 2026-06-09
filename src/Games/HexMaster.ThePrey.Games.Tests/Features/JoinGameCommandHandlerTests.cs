@@ -42,7 +42,7 @@ public sealed class JoinGameCommandHandlerTests
         var game = GameFaker.LobbyGame(gameCode: "1111");
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        await Assert.ThrowsAsync<InvalidJoinCodeException>(() =>
             _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), "9999", "Bob", null), CancellationToken.None));
 
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -56,7 +56,7 @@ public sealed class JoinGameCommandHandlerTests
         game.JoinLobby(existingPlayer);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        await Assert.ThrowsAsync<PlayerAlreadyInLobbyException>(() =>
             _handler.Handle(new JoinGameCommand(game.Id, existingPlayer.UserId, game.GameCode, existingPlayer.DisplayName, null), CancellationToken.None));
 
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -68,8 +68,22 @@ public sealed class JoinGameCommandHandlerTests
         var started = GameFaker.StartedGame(out _, out _, DateTimeOffset.UtcNow);
         _repository.Setup(r => r.GetByIdAsync(started.Id, It.IsAny<CancellationToken>())).ReturnsAsync(started);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        await Assert.ThrowsAsync<GameNotJoinableException>(() =>
             _handler.Handle(new JoinGameCommand(started.Id, Guid.NewGuid(), started.GameCode, "Carol", null), CancellationToken.None));
+
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowLobbyFull_WhenLobbyIsAtCapacity()
+    {
+        var game = GameFaker.LobbyGame();
+        for (var i = game.Lobby.Count; i < Game.MaxLobbySize; i++)
+            game.JoinLobby(GameFaker.Player());
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<LobbyFullException>(() =>
+            _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), game.GameCode, "Late", null), CancellationToken.None));
 
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
     }

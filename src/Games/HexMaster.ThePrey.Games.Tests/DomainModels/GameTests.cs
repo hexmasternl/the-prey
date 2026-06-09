@@ -55,7 +55,7 @@ public sealed class GameTests
         var player = GameFaker.Player();
         game.JoinLobby(player);
 
-        Assert.Throws<InvalidOperationException>(() => game.JoinLobby(GameFaker.Player(player.UserId)));
+        Assert.Throws<PlayerAlreadyInLobbyException>(() => game.JoinLobby(GameFaker.Player(player.UserId)));
         Assert.Single(game.Lobby);
     }
 
@@ -64,7 +64,7 @@ public sealed class GameTests
     {
         var game = GameFaker.StartedGame(out _, out _, Start);
 
-        Assert.Throws<InvalidOperationException>(() => game.JoinLobby(GameFaker.Player()));
+        Assert.Throws<GameNotJoinableException>(() => game.JoinLobby(GameFaker.Player()));
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public sealed class GameTests
     {
         var game = GameFaker.LobbyGameWithPlayers(Game.MaxLobbySize, out _);
 
-        Assert.Throws<InvalidOperationException>(() => game.JoinLobby(GameFaker.Player()));
+        Assert.Throws<LobbyFullException>(() => game.JoinLobby(GameFaker.Player()));
         Assert.Equal(Game.MaxLobbySize, game.Lobby.Count);
     }
 

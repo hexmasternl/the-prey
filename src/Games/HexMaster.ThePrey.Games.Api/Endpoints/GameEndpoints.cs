@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
+using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.EndGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
@@ -205,7 +206,18 @@ public static class GameEndpoints
         try
         {
             var result = await handler.Handle(new JoinGameCommand(id, user.UserId, request.JoinCode, request.DisplayName, request.ProfilePictureUrl), ct);
-            return result is null ? Results.NotFound() : Results.Ok(result.Game);
+            return result is null
+                ? GameRuleProblem("game_not_found", "The game does not exist.", StatusCodes.Status404NotFound)
+                : Results.Ok(result.Game);
+        }
+        catch (GameRuleException ex)
+        {
+            // Surface a stable, machine-readable code the client maps to a localized message.
+            // An invalid join code is a bad request; the rest are conflicts with the game's state.
+            var status = ex is InvalidJoinCodeException
+                ? StatusCodes.Status400BadRequest
+                : StatusCodes.Status409Conflict;
+            return GameRuleProblem(ex.Code, ex.Message, status);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
         {
@@ -670,4 +682,14 @@ public static class GameEndpoints
             [key] = [ex.Message]
         });
     }
+
+    /// <summary>
+    /// Returns a ProblemDetails carrying a stable <paramref name="code"/> in its extensions so the
+    /// client can map the failure to a localized message without parsing the human-readable detail.
+    /// </summary>
+    private static IResult GameRuleProblem(string code, string detail, int statusCode)
+        => Results.Problem(detail: detail, statusCode: statusCode, extensions: new Dictionary<string, object?>
+        {
+            ["code"] = code
+        });
 }

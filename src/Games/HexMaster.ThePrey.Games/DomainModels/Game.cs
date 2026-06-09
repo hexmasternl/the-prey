@@ -128,13 +128,13 @@ public sealed class Game
         ArgumentNullException.ThrowIfNull(player);
 
         if (Status != GameStatus.Lobby)
-            throw new InvalidOperationException("Players can only join a game that is in the lobby.");
+            throw new GameNotJoinableException();
 
         if (_lobby.Any(p => p.UserId == player.UserId))
-            throw new InvalidOperationException("This player is already in the lobby.");
+            throw new PlayerAlreadyInLobbyException();
 
         if (_lobby.Count >= MaxLobbySize)
-            throw new InvalidOperationException($"The lobby is full: a game holds at most {MaxLobbySize} players.");
+            throw new LobbyFullException(MaxLobbySize);
 
         _lobby.Add(player);
     }

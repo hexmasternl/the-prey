@@ -25,7 +25,7 @@ public sealed class JoinGameCommandHandler : ICommandHandler<JoinGameCommand, Jo
                 return null;
 
             if (!string.Equals(command.JoinCode, game.GameCode, StringComparison.Ordinal))
-                throw new InvalidOperationException("The join code is incorrect.");
+                throw new InvalidJoinCodeException();
 
             game.JoinLobby(LobbyPlayer.Create(command.UserId, command.DisplayName, command.ProfilePictureUrl));
 

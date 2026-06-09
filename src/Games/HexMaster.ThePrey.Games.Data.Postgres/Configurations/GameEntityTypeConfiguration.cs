@@ -55,7 +55,11 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
             lobby.ToTable("LobbyPlayers");
             lobby.WithOwner().HasForeignKey("GameId");
             lobby.HasKey("GameId", "UserId");
-            lobby.Property(p => p.UserId);
+            // UserId is a client-supplied key. Without this, EF's convention marks a Guid key as
+            // store-generated (ValueGeneratedOnAdd) and then uses "is the key set?" to decide
+            // add-vs-update: a populated UserId looks like an existing row, so adding a player to a
+            // tracked game emits UPDATE (0 rows) instead of INSERT and throws a concurrency error.
+            lobby.Property(p => p.UserId).ValueGeneratedNever();
             lobby.Property(p => p.DisplayName).HasMaxLength(256);
             lobby.Property(p => p.ProfilePictureUrl);
             lobby.Property(p => p.IsReady).HasColumnName("IsReady").HasDefaultValue(false);
@@ -68,7 +72,9 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
             participants.ToTable("GameParticipants");
             participants.WithOwner().HasForeignKey("GameId");
             participants.HasKey("GameId", "UserId");
-            participants.Property(p => p.UserId);
+            // Client-supplied key — see the LobbyPlayers note above; ValueGeneratedNever keeps EF
+            // from treating an added participant on a tracked game as an UPDATE instead of an INSERT.
+            participants.Property(p => p.UserId).ValueGeneratedNever();
             participants.Property(p => p.Role).HasConversion<string>().HasMaxLength(16);
             participants.Property(p => p.State).HasConversion<string>().HasMaxLength(16).HasDefaultValue(PlayerState.Active);
             participants.Property(p => p.LastLocationAt).IsRequired(false);
