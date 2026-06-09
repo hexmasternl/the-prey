@@ -33,10 +33,10 @@
 - [x] 5.1 Create `src/PlayFields/HexMaster.ThePrey.PlayFields.Api/Dockerfile` and verify it builds locally
 - [x] 5.2 Create `infra/playfields/main.bicep` — subscription scope, `rg-theprey-playfields-prod`: PlayFields API container app + table-storage account with managed-identity role assignment (via shared modules)
 - [x] 5.3 Create `.github/workflows/playfields.yml` — path-filtered triggers (PlayFields + shared code + `infra/playfields/**`), GitVersion, `dotnet test` for PlayFields.Tests, docker build/push `theprey/playfields-api:<semVer>`, OIDC deploy
-- [ ] 5.4 Run the PlayFields workflow end-to-end and verify the API and storage account are deployed
+- [x] 5.4 Run the PlayFields workflow end-to-end and verify the API and storage account are deployed
 
 ## 6. Verification & documentation
 
-- [ ] 6.1 Verify independence: push a change touching only one module and confirm only that service's workflow runs
-- [ ] 6.2 Verify PR behavior: open a PR touching infra and confirm what-if/validation runs without deploying
+- [x] 6.1 Verify independence: push a change touching only one module and confirm only that service's workflow runs
+- [x] 6.2 Verify PR behavior: open a PR touching infra and confirm what-if/validation runs without deploying
 - [x] 6.3 Add `docs/deployment/azure-deployment.md` documenting workflow layout, required secrets, deployment order (landing zone first), and the image-tag rollback procedure
