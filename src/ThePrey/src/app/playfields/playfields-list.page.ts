@@ -26,7 +26,7 @@ import {
 } from '@ionic/angular/standalone';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { addIcons } from 'ionicons';
-import { add } from 'ionicons/icons';
+import { add, chevronBack } from 'ionicons/icons';
 import { from, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -80,7 +80,7 @@ export class PlayfieldsListPage implements ViewWillEnter {
   readonly currentPublicQuery = signal('');
 
   constructor() {
-    addIcons({ add });
+    addIcons({ add, chevronBack });
 
     this.searchQuery$.pipe(
       debounceTime(400),

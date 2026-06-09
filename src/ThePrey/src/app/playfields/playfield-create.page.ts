@@ -6,6 +6,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonInput,
   IonItem,
   IonLabel,
@@ -17,6 +18,8 @@ import {
   ToastController,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { chevronBack } from 'ionicons/icons';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PlayfieldsService } from './playfields.service';
 import { PlayfieldDraftService } from './playfield-draft.service';
@@ -33,6 +36,7 @@ import { UserStateService } from '../users/user-state.service';
     IonToolbar,
     IonButtons,
     IonButton,
+    IonIcon,
     IonTitle,
     IonContent,
     IonItem,
@@ -49,6 +53,10 @@ export class PlayfieldCreatePage implements ViewWillEnter {
   private readonly userState = inject(UserStateService);
   private readonly draftService = inject(PlayfieldDraftService);
   private readonly toastController = inject(ToastController);
+
+  constructor() {
+    addIcons({ chevronBack });
+  }
 
   readonly name = signal('');
   readonly isPublic = signal(false);

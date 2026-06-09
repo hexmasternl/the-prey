@@ -1,7 +1,10 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="back()">&#8592; {{ 'PLAYFIELD_DETAIL.BACK' | translate }}</ion-button>
+      <ion-button fill="clear" (click)="back()">
+        <ion-icon slot="start" name="chevron-back"></ion-icon>
+        {{ 'PLAYFIELD_DETAIL.BACK' | translate }}
+      </ion-button>
     </ion-buttons>
     <ion-title>{{ 'PLAYFIELD_DETAIL.TITLE' | translate }}</ion-title>
   </ion-toolbar>
@@ -14,7 +17,10 @@
     </div>
   } @else if (notFound()) {
     <p>{{ 'PLAYFIELD_DETAIL.NOT_FOUND' | translate }}</p>
-    <ion-button fill="clear" (click)="back()">&#8592; {{ 'PLAYFIELD_DETAIL.BACK' | translate }}</ion-button>
+    <ion-button fill="clear" (click)="back()">
+      <ion-icon slot="start" name="chevron-back"></ion-icon>
+      {{ 'PLAYFIELD_DETAIL.BACK' | translate }}
+    </ion-button>
   } @else if (playfield()) {
     <ion-item>
       <ion-input

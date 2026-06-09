@@ -1,7 +1,9 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="back()">&#8592;</ion-button>
+      <ion-button fill="clear" (click)="back()">
+        <ion-icon slot="icon-only" name="chevron-back"></ion-icon>
+      </ion-button>
     </ion-buttons>
     <ion-title>{{ 'PLAYFIELD_LIST.TITLE' | translate }}</ion-title>
     <ion-buttons slot="end">
