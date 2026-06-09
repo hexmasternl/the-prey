@@ -47,10 +47,12 @@ export const routes: Routes = [
     canActivate: [authGuardFn],
   },
   {
+    // No authGuardFn here: the join page is the entry point for shared deep links,
+    // so it restores the session itself and redirects to /login (preserving the
+    // join target) when there is none, instead of the guard's default redirect.
     path: 'games/join',
     loadComponent: () =>
       import('./games/game-join.page').then((m) => m.GameJoinPage),
-    canActivate: [authGuardFn],
   },
   {
     path: 'games/:id/lobby',

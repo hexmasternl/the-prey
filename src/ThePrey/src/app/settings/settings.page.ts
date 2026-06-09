@@ -6,9 +6,12 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { chevronBack } from 'ionicons/icons';
 import { TranslatePipe } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
@@ -28,6 +31,7 @@ import { UserStateService } from '../users/user-state.service';
     IonButtons,
     IonButton,
     IonContent,
+    IonIcon,
     ReactiveFormsModule,
     TranslatePipe,
   ],
@@ -39,6 +43,10 @@ export class SettingsPage implements OnInit {
   private readonly languageService = inject(LanguageService);
   private readonly userState = inject(UserStateService);
   private readonly destroyRef = inject(DestroyRef);
+
+  constructor() {
+    addIcons({ chevronBack });
+  }
 
   saveStatus: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
   isLoading = true;
