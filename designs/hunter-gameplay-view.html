@@ -188,7 +188,7 @@
   }
 
   /* ============================================================
-     PREY DOTS — red flashing blips, one per prey
+     PREY DOTS — red flashing blips, one per active/passive prey
   ============================================================ */
   .prey-dot {
     position: absolute;
@@ -219,13 +219,24 @@
     100% { inset: -16px; opacity: 0; }
   }
 
+  /* Tagged or Out prey — grey, no animation */
+  .prey-dot.inactive .core {
+    background: #888;
+    box-shadow: none;
+    animation: none;
+    opacity: .6;
+  }
+  .prey-dot.inactive .ring {
+    display: none;
+  }
+
   /* ============================================================
      RE-CENTER FAB
   ============================================================ */
   .recenter-fab {
     position: absolute;
     right: 14px;
-    bottom: 148px; /* sits above hud-panel */
+    bottom: 230px; /* sits above hud-panel (4-cell grid + ping strip) */
     z-index: 12;
     width: 36px; height: 36px;
     border-radius: 50%;
@@ -560,14 +571,20 @@
           <div class="core"></div>
         </div>
 
-        <!-- PREY A — far, upper-left -->
+        <!-- PREY A — active, far upper-left -->
         <div class="prey-dot" style="top:24%;left:30%">
           <div class="ring"></div>
           <div class="core"></div>
         </div>
 
-        <!-- PREY B — far, lower-right -->
+        <!-- PREY B — active, far lower-right -->
         <div class="prey-dot" style="top:70%;left:68%">
+          <div class="ring"></div>
+          <div class="core"></div>
+        </div>
+
+        <!-- PREY C — tagged (Out/Tagged), grey dot, no flash -->
+        <div class="prey-dot inactive" style="top:38%;left:74%">
           <div class="ring"></div>
           <div class="core"></div>
         </div>
@@ -595,6 +612,12 @@
               <div class="hud-value">14:12</div>
               <div class="hud-sub">remaining</div>
             </div>
+            <!-- Active preys — count of Active + Passive only -->
+            <div class="hud-cell">
+              <div class="hud-label">Active Preys</div>
+              <div class="hud-value">2</div>
+              <div class="hud-sub">in play</div>
+            </div>
             <!-- Closest prey — far, ghost/dim -->
             <div class="hud-cell">
               <div class="hud-label">
@@ -603,6 +626,12 @@
               </div>
               <div class="hud-value dim">187<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
               <div class="hud-sub">tracking</div>
+            </div>
+            <!-- Penalty indicator — none active -->
+            <div class="hud-cell">
+              <div class="hud-label">Penalty</div>
+              <div class="hud-value dim">—</div>
+              <div class="hud-sub">none</div>
             </div>
           </div>
 
@@ -617,7 +646,7 @@
         </div>
 
       </div>
-      <div class="screen-note">Two preys on map, closest 187 m away. 14 min left. Next prey broadcast in 23 s. All values calm.</div>
+      <div class="screen-note">3 preys on map — 2 active (red flash), 1 tagged (grey). Active count: 2. Closest 187 m away. 14 min left.</div>
     </div>
 
     <!-- ── STATE 2 · FINAL STAGE ─────────────────────────────────── -->
@@ -684,6 +713,12 @@
               <div class="hud-value caution">04:22</div>
               <div class="hud-sub caution">remaining</div>
             </div>
+            <!-- Active preys — caution color in final stage -->
+            <div class="hud-cell">
+              <div class="hud-label" style="color:var(--caution)">Active Preys</div>
+              <div class="hud-value caution">2</div>
+              <div class="hud-sub caution">in play</div>
+            </div>
             <!-- Closest prey — medium range, yellow -->
             <div class="hud-cell">
               <div class="hud-label">
@@ -692,6 +727,12 @@
               </div>
               <div class="hud-value caution">72<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
               <div class="hud-sub caution">approaching</div>
+            </div>
+            <!-- Penalty indicator — none -->
+            <div class="hud-cell">
+              <div class="hud-label">Penalty</div>
+              <div class="hud-value dim">—</div>
+              <div class="hud-sub">none</div>
             </div>
           </div>
 
@@ -706,7 +747,7 @@
         </div>
 
       </div>
-      <div class="screen-note">Final stage entered. Timer and corner brackets turn yellow. Closest prey at 72 m — approaching.</div>
+      <div class="screen-note">Final stage entered. Timer and brackets turn yellow. Active Preys: 2. Closest prey at 72 m — approaching.</div>
     </div>
 
     <!-- ── STATE 3 · ON TARGET ──────────────────────────────────── -->
@@ -785,6 +826,12 @@
               <div class="hud-value">09:37</div>
               <div class="hud-sub">remaining</div>
             </div>
+            <!-- Active preys — signal green when on target -->
+            <div class="hud-cell">
+              <div class="hud-label">Active Preys</div>
+              <div class="hud-value">2</div>
+              <div class="hud-sub">in play</div>
+            </div>
             <!-- Closest prey — very close, signal green (you're winning) -->
             <div class="hud-cell">
               <div class="hud-label">
@@ -793,6 +840,12 @@
               </div>
               <div class="hud-value">22<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
               <div class="hud-sub on-target">in range!</div>
+            </div>
+            <!-- Penalty indicator — none -->
+            <div class="hud-cell">
+              <div class="hud-label">Penalty</div>
+              <div class="hud-value dim">—</div>
+              <div class="hud-sub">none</div>
             </div>
           </div>
 
@@ -807,7 +860,7 @@
         </div>
 
       </div>
-      <div class="screen-note">Prey 22 m away — fresh data (4 s ago). Everything turns green. "PREY IN RANGE" banner slides in. Corner brackets follow.</div>
+      <div class="screen-note">Prey 22 m away — fresh data (4 s ago). Active Preys: 2. Everything turns green. "PREY IN RANGE" banner slides in.</div>
     </div>
 
   </div><!-- /screens-row -->
@@ -827,12 +880,11 @@
         with a dashed <code>stroke: --hunter-dim</code> border and
         <code>fill: rgba(255,47,31,.04)</code> — a faint red wash instead of the prey
         view's green. The hunter's own position is always a green filled circle with a
-        slow-expanding ring (you are always green). Each prey's last known position is a
-        red filled circle that flashes at 1.1 s intervals — signalling "stale data, not
-        live location." All prey dots share the same animation rate; there is no visual
-        distinction between fresher and more stale data at the dot level.
-        The map scrolls with the tile layer; the SVG polygon is re-projected whenever the
-        map view changes.
+        slow-expanding ring (you are always green). <strong>Active / Passive</strong> preys
+        render as red flashing circles (1.1 s cycle). <strong>Tagged or Out</strong> preys
+        render as static grey circles (<code>#888</code>, no animation) — eliminated, last
+        known position only. The map scrolls with the tile layer; the SVG polygon is
+        re-projected whenever the map view changes.
       </div>
     </div>
     <div class="ann-block">
@@ -852,12 +904,17 @@
     <div class="ann-block">
       <div class="ann-title">HUD Panel</div>
       <div class="ann-body">
-        Two cells: <strong>Game Time</strong> (left) and <strong>Closest Prey</strong> (right).
-        The Closest Prey cell mirrors the prey view's Hunter cell in structure — distance
-        in metres plus a staleness indicator in the label row. The sub-label changes with
-        proximity: "tracking" → "approaching" → "in range!".
+        A 2×2 grid of four cells: <strong>Game Time</strong> (top-left), <strong>Active Preys</strong>
+        (top-right), <strong>Closest Prey</strong> (bottom-left), <strong>Penalty</strong> (bottom-right).
+        <strong>Active Preys</strong> shows the count of prey participants whose state is
+        <code>Active</code> or <code>Passive</code> — <code>Tagged</code> and <code>Out</code>
+        preys are excluded. This counter decrements live on <code>participant-status-changed</code>
+        SSE events. The <strong>Closest Prey</strong> cell considers only
+        <code>Active</code>/<code>Passive</code> preys with known GPS positions.
+        The <strong>Penalty</strong> cell is dim ("—") when no penalty is active;
+        it switches to <code>--caution</code> amber when a penalty is in effect.
         Below the grid, a full-width <strong>Next Update</strong> strip counts down to the
-        next game engine broadcast: the moment prey red dots may move. The bar and
+        next game engine broadcast: the moment prey dots may move. The bar and
         countdown adopt the same color as the Closest Prey cell, tying urgency to proximity.
       </div>
     </div>
@@ -1037,25 +1094,29 @@
       </div>
     </div>
     <div class="ann-block">
-      <div class="ann-title">Multiple Prey Dots</div>
+      <div class="ann-title">Prey Dot States</div>
       <div class="ann-body">
-        Every prey's last known position is rendered as a red flashing dot. All dots share
-        the same 1.1 s flash rate. The HUD's "Closest Prey" cell always reflects the
-        nearest prey at the time of the last broadcast; if a closer prey updates and
-        becomes the new nearest, the cell switches without animation.
-        A future iteration may add a subtle distance ring or label near the closest
-        prey dot to identify it at a glance.
+        Prey dots have two visual modes. <strong>Active / Passive</strong> preys render as
+        red flashing dots (the existing 1.1 s flash cycle) — they are still in the game.
+        <strong>Tagged or Out</strong> preys render as a static grey dot
+        (<code>#888</code>, no animation, 60 % opacity) — they are eliminated and cannot
+        rejoin. The grey dot remains visible so the hunter can see where the eliminated
+        prey last broadcast, but it does not count toward "Closest Prey" or "Active Preys."
+        The state switch happens immediately on receipt of a <code>participant-status-changed</code>
+        SSE event — no poll required.
       </div>
     </div>
     <div class="ann-block">
       <div class="ann-title">Touch Targets</div>
       <div class="ann-body">
-        The HUD panel is a pure readout — no tap targets within it. Map gestures
-        (pan, pinch-zoom) are the primary interactions. The re-center FAB is the only
-        button in the active hunt view; it is at least 48 × 48 px and separated from
-        the HUD top edge by at least 8 px to prevent accidental activation. A future
-        "Tag Prey" confirmation action will surface only when the game logic signals
-        a tag is possible — not as a persistent on-screen element.
+        The HUD grid is a pure readout — no tap targets within the four cells.
+        Two actionable controls exist: the <strong>Re-center FAB</strong> (⊕, 36 × 36 px,
+        above the HUD gradient) and the <strong>Tag Player</strong> button, which appears
+        as a full-width action row below the Next Update strip. Tapping Tag Player opens a
+        modal listing only <code>Active</code>/<code>Passive</code> preys; the hunter must
+        confirm before the tag request is sent. The button is disabled while a tag request
+        is in flight to prevent double-submission. Both controls must be at least 44 × 44 px
+        actual tap target size.
       </div>
     </div>
   </div>

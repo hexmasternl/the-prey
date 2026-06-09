@@ -575,6 +575,12 @@
               <div class="hud-value">12:44</div>
               <div class="hud-sub">remaining</div>
             </div>
+            <!-- Active preys — count of Active + Passive -->
+            <div class="hud-cell">
+              <div class="hud-label">Active Preys</div>
+              <div class="hud-value">3</div>
+              <div class="hud-sub">in play</div>
+            </div>
             <!-- Hunter distance — safe, green -->
             <div class="hud-cell">
               <div class="hud-label">
@@ -583,6 +589,12 @@
               </div>
               <div class="hud-value">147<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
               <div class="hud-sub">distance</div>
+            </div>
+            <!-- Penalty indicator — none active -->
+            <div class="hud-cell">
+              <div class="hud-label">Penalty</div>
+              <div class="hud-value dim">—</div>
+              <div class="hud-sub">none</div>
             </div>
           </div>
 
@@ -597,7 +609,7 @@
         </div>
 
       </div>
-      <div class="screen-note">Hunter 147m away. 12+ min left. Ping in 19 s. All values green — no threat.</div>
+      <div class="screen-note">Hunter 147 m away. Active Preys: 3. 12+ min left. Ping in 19 s. All values green — no threat.</div>
     </div>
 
     <!-- ── STATE 2 · FINAL STAGE ──────────────────────────────── -->
@@ -658,6 +670,12 @@
               <div class="hud-value caution">03:48</div>
               <div class="hud-sub caution">remaining</div>
             </div>
+            <!-- Active preys — caution color in final stage -->
+            <div class="hud-cell">
+              <div class="hud-label" style="color:var(--caution)">Active Preys</div>
+              <div class="hud-value caution">2</div>
+              <div class="hud-sub caution">in play</div>
+            </div>
             <!-- Hunter distance — caution range, yellow -->
             <div class="hud-cell">
               <div class="hud-label">
@@ -666,6 +684,12 @@
               </div>
               <div class="hud-value caution">63<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
               <div class="hud-sub caution">closing in</div>
+            </div>
+            <!-- Penalty indicator — none -->
+            <div class="hud-cell">
+              <div class="hud-label">Penalty</div>
+              <div class="hud-value dim">—</div>
+              <div class="hud-sub">none</div>
             </div>
           </div>
 
@@ -679,7 +703,7 @@
         </div>
 
       </div>
-      <div class="screen-note">Final stage entered. Timer turns yellow. Hunter 63m — caution range. Ping interval shortened.</div>
+      <div class="screen-note">Final stage entered. Timer turns yellow. Active Preys: 2. Hunter 63 m — caution range. Ping interval shortened.</div>
     </div>
 
     <!-- ── STATE 3 · CRITICAL ──────────────────────────────────── -->
@@ -755,6 +779,12 @@
               <div class="hud-value danger flash">04:51</div>
               <div class="hud-sub danger">remaining</div>
             </div>
+            <!-- Active preys — danger red in critical state -->
+            <div class="hud-cell">
+              <div class="hud-label" style="color:var(--hunter)">Active Preys</div>
+              <div class="hud-value danger">1</div>
+              <div class="hud-sub danger">in play</div>
+            </div>
             <!-- Hunter very close — red -->
             <div class="hud-cell">
               <div class="hud-label">
@@ -763,6 +793,12 @@
               </div>
               <div class="hud-value danger">11<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
               <div class="hud-sub danger">right behind you</div>
+            </div>
+            <!-- Penalty indicator — active, caution -->
+            <div class="hud-cell">
+              <div class="hud-label" style="color:var(--caution)">Penalty</div>
+              <div class="hud-value caution flash">10s</div>
+              <div class="hud-sub caution">active</div>
             </div>
           </div>
 
@@ -776,7 +812,7 @@
         </div>
 
       </div>
-      <div class="screen-note">Final stage + last 5 min → timer flashes red. Hunter 11m — danger red. Alert banner slides in. Corner brackets turn red.</div>
+      <div class="screen-note">Final stage + last 5 min. Active Preys: 1. Hunter 11 m — danger red. Penalty active. Timer flashes red. Corner brackets turn red.</div>
     </div>
 
   </div><!-- /screens-row -->
@@ -816,9 +852,16 @@
     <div class="ann-block">
       <div class="ann-title">HUD Panel</div>
       <div class="ann-body">
-        Two cells (2×1 grid) for the two critical readouts, then a full-width ping strip below.
-        Background is near-opaque void with a gradient fade to transparent at the top so it
-        blends into the map seamlessly.
+        A 2×2 grid of four cells: <strong>Game Time</strong> (top-left),
+        <strong>Active Preys</strong> (top-right), <strong>Hunter</strong> distance (bottom-left),
+        <strong>Penalty</strong> (bottom-right). Then a full-width ping strip below.
+        <strong>Active Preys</strong> shows the count of prey participants whose state is
+        <code>Active</code> or <code>Passive</code> — <code>Tagged</code> and <code>Out</code>
+        preys are excluded. The count updates live on <code>participant-status-changed</code>
+        SSE events. The <strong>Penalty</strong> cell is dim ("—") when no penalty is active;
+        it switches to <code>--caution</code> amber and shows the penalty interval in seconds
+        when active.
+        Background is near-opaque void with a gradient fade to transparent at the top.
         All values use <code>Special Elite</code> at 26 px for the main number;
         sub-labels in 10 px uppercase <code>PT Mono</code>.
       </div>
