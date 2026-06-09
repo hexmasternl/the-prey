@@ -276,7 +276,7 @@
     position: absolute;
     bottom: 0; left: 0; right: 0;
     background: linear-gradient(to top, rgba(12,14,12,.97) 85%, transparent);
-    padding: 20px 16px 28px;
+    padding: 0 0 28px;
     z-index: 10;
   }
 
@@ -492,6 +492,110 @@
 
   /* spacer */
   .sep { height: 1px; background: var(--line); margin: 52px 0; }
+
+  /* ============================================================
+     COLLAPSIBLE HUD
+  ============================================================ */
+
+  .hud-collapse-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .hud-collapse-icon {
+    font-size: 8px;
+    color: var(--text-ghost);
+    width: 12px;
+    flex-shrink: 0;
+    transition: transform 0.22s ease;
+  }
+
+  .hud-panel.collapsed .hud-collapse-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Hide the summary bar when expanded — detail is in the three boxes */
+  .hud-panel:not(.collapsed) .hud-collapse-bar {
+    display: none;
+  }
+
+  /* Collapse handle shown at bottom of expanded content */
+  .hud-collapse-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0 2px;
+    cursor: pointer;
+    color: var(--text-ghost);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    gap: 6px;
+  }
+
+  .hud-collapse-handle::before,
+  .hud-collapse-handle::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line-soft);
+  }
+
+  .hud-time-mini {
+    font-family: var(--head);
+    font-size: 18px;
+    color: var(--signal);
+    text-shadow: 0 0 8px var(--signal-glow);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 52px;
+  }
+
+  .hud-ping-mini {
+    font-family: var(--head);
+    font-size: 16px;
+    color: var(--text-ghost);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .hud-expanded-content {
+    overflow: hidden;
+    max-height: 200px;
+    transition: max-height 0.28s ease, padding-bottom 0.28s ease;
+    padding: 0 16px 6px;
+  }
+
+  .hud-panel.collapsed .hud-expanded-content {
+    max-height: 0;
+    padding-bottom: 0;
+  }
+
+  .hud-three-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .hud-three-cols .hud-cell {
+    border-bottom: none;
+    border-right: 1px solid var(--line);
+    padding: 10px 12px;
+  }
+
+  .hud-three-cols .hud-cell:last-child { border-right: none; }
+
+  .hud-three-cols .hud-value { font-size: 22px; }
 </style>
 </head>
 <body>
@@ -563,53 +667,51 @@
           <span class="role-tag">PREY</span>
         </div>
 
-        <!-- HUD PANEL -->
-        <div class="hud-panel">
+        <!-- HUD PANEL — starts collapsed; tap bar to expand -->
+        <div class="hud-panel collapsed" id="hud-p1">
           <span class="cb bl"></span>
           <span class="cb br"></span>
 
-          <div class="hud-grid">
-            <!-- Game timer — normal, green -->
-            <div class="hud-cell">
-              <div class="hud-label">Game Time</div>
-              <div class="hud-value">12:44</div>
-              <div class="hud-sub">remaining</div>
-            </div>
-            <!-- Active preys — count of Active + Passive -->
-            <div class="hud-cell">
-              <div class="hud-label">Active Preys</div>
-              <div class="hud-value">3</div>
-              <div class="hud-sub">in play</div>
-            </div>
-            <!-- Hunter distance — safe, green -->
-            <div class="hud-cell">
-              <div class="hud-label">
-                <span>Hunter</span>
-                <span style="color:var(--text-ghost);font-size:9px">14s ago</span>
-              </div>
-              <div class="hud-value">147<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
-              <div class="hud-sub">distance</div>
-            </div>
-            <!-- Penalty indicator — none active -->
-            <div class="hud-cell">
-              <div class="hud-label">Penalty</div>
-              <div class="hud-value dim">—</div>
-              <div class="hud-sub">none</div>
-            </div>
-          </div>
-
-          <!-- Ping countdown -->
-          <div class="hud-ping-row">
-            <div class="hud-ping-label">Next Ping</div>
+          <div class="hud-collapse-bar">
+            <span class="hud-collapse-icon">▼</span>
+            <span class="hud-time-mini">12:44</span>
             <div class="hud-ping-bar-wrap">
               <div class="hud-ping-bar" style="width:62%"></div>
             </div>
-            <div class="hud-ping-value">00:19</div>
+            <span class="hud-ping-mini">00:19</span>
+          </div>
+
+          <div class="hud-expanded-content">
+            <div class="hud-three-cols">
+              <div class="hud-cell">
+                <div class="hud-label">Game time</div>
+                <div class="hud-value">12:44</div>
+                <div class="hud-sub">remaining</div>
+              </div>
+              <div class="hud-cell">
+                <div class="hud-label">Hunter</div>
+                <div class="hud-value">147<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
+                <div class="hud-sub">14s ago</div>
+              </div>
+              <div class="hud-cell">
+                <div class="hud-label">Preys</div>
+                <div class="hud-value">3</div>
+                <div class="hud-sub">active</div>
+              </div>
+            </div>
+            <div class="hud-ping-row">
+              <div class="hud-ping-label">Next Ping</div>
+              <div class="hud-ping-bar-wrap">
+                <div class="hud-ping-bar" style="width:62%"></div>
+              </div>
+              <div class="hud-ping-value">00:19</div>
+            </div>
+            <div class="hud-collapse-handle">▼ hide</div>
           </div>
         </div>
 
       </div>
-      <div class="screen-note">Hunter 147 m away. Active Preys: 3. 12+ min left. Ping in 19 s. All values green — no threat.</div>
+      <div class="screen-note">Collapsed HUD — game time and ping bar only. Tap to expand. Hunter 147 m away, 3 active preys, 12+ min left.</div>
     </div>
 
     <!-- ── STATE 2 · FINAL STAGE ──────────────────────────────── -->
@@ -656,54 +758,51 @@
           <span class="role-tag">PREY</span>
         </div>
 
-        <div class="hud-panel">
+        <!-- HUD PANEL — expanded, final stage caution colors -->
+        <div class="hud-panel" id="hud-p2">
           <span class="cb bl"></span>
           <span class="cb br"></span>
 
-          <div class="hud-grid">
-            <!-- Game timer — final stage, yellow (>5 min left in final stage) -->
-            <div class="hud-cell">
-              <div class="hud-label" style="color:var(--caution)">
-                <span>Game Time</span>
-                <span style="font-size:8px;letter-spacing:1.5px;color:var(--caution);opacity:.8">FINAL STAGE</span>
-              </div>
-              <div class="hud-value caution">03:48</div>
-              <div class="hud-sub caution">remaining</div>
-            </div>
-            <!-- Active preys — caution color in final stage -->
-            <div class="hud-cell">
-              <div class="hud-label" style="color:var(--caution)">Active Preys</div>
-              <div class="hud-value caution">2</div>
-              <div class="hud-sub caution">in play</div>
-            </div>
-            <!-- Hunter distance — caution range, yellow -->
-            <div class="hud-cell">
-              <div class="hud-label">
-                <span>Hunter</span>
-                <span style="color:var(--caution);font-size:9px">8s ago</span>
-              </div>
-              <div class="hud-value caution">63<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
-              <div class="hud-sub caution">closing in</div>
-            </div>
-            <!-- Penalty indicator — none -->
-            <div class="hud-cell">
-              <div class="hud-label">Penalty</div>
-              <div class="hud-value dim">—</div>
-              <div class="hud-sub">none</div>
-            </div>
-          </div>
-
-          <div class="hud-ping-row" style="border-color: rgba(255,179,0,.3)">
-            <div class="hud-ping-label">Next Ping</div>
+          <div class="hud-collapse-bar">
+            <span class="hud-collapse-icon">▼</span>
+            <span class="hud-time-mini" style="color:var(--caution);text-shadow:0 0 8px var(--caution-glow)">03:48</span>
             <div class="hud-ping-bar-wrap">
               <div class="hud-ping-bar" style="width:30%; background:var(--caution); box-shadow:0 0 6px var(--caution-glow)"></div>
             </div>
-            <div class="hud-ping-value" style="color:var(--caution); text-shadow:0 0 8px var(--caution-glow)">00:09</div>
+            <span class="hud-ping-mini" style="color:var(--caution)">00:09</span>
+          </div>
+
+          <div class="hud-expanded-content">
+            <div class="hud-three-cols" style="border-color:rgba(255,179,0,.3)">
+              <div class="hud-cell">
+                <div class="hud-label" style="color:var(--caution)">Game time</div>
+                <div class="hud-value caution">03:48</div>
+                <div class="hud-sub caution">remaining</div>
+              </div>
+              <div class="hud-cell">
+                <div class="hud-label">Hunter</div>
+                <div class="hud-value caution">63<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
+                <div class="hud-sub caution">8s ago</div>
+              </div>
+              <div class="hud-cell">
+                <div class="hud-label" style="color:var(--caution)">Preys</div>
+                <div class="hud-value caution">2</div>
+                <div class="hud-sub caution">active</div>
+              </div>
+            </div>
+            <div class="hud-ping-row" style="border-color:rgba(255,179,0,.3)">
+              <div class="hud-ping-label">Next Ping</div>
+              <div class="hud-ping-bar-wrap">
+                <div class="hud-ping-bar" style="width:30%; background:var(--caution); box-shadow:0 0 6px var(--caution-glow)"></div>
+              </div>
+              <div class="hud-ping-value" style="color:var(--caution); text-shadow:0 0 8px var(--caution-glow)">00:09</div>
+            </div>
+            <div class="hud-collapse-handle">▼ hide</div>
           </div>
         </div>
 
       </div>
-      <div class="screen-note">Final stage entered. Timer turns yellow. Active Preys: 2. Hunter 63 m — caution range. Ping interval shortened.</div>
+      <div class="screen-note">Expanded HUD — final stage. 3 boxes: game time, hunter 63 m, Active Preys: 2. All caution yellow. Tap handle to collapse.</div>
     </div>
 
     <!-- ── STATE 3 · CRITICAL ──────────────────────────────────── -->
@@ -765,54 +864,50 @@
           </div>
         </div>
 
-        <div class="hud-panel">
+        <!-- HUD PANEL — expanded, critical danger colors -->
+        <div class="hud-panel" id="hud-p3">
           <span class="cb bl" style="border-color:var(--hunter)"></span>
           <span class="cb br" style="border-color:var(--hunter)"></span>
 
-          <div class="hud-grid" style="border-color:rgba(255,47,31,.3)">
-            <!-- last 5 min — timer flashes red -->
-            <div class="hud-cell">
-              <div class="hud-label" style="color:var(--hunter)">
-                <span>Game Time</span>
-                <span style="font-size:8px;letter-spacing:1.5px;color:var(--hunter);opacity:.8">FINAL STAGE</span>
-              </div>
-              <div class="hud-value danger flash">04:51</div>
-              <div class="hud-sub danger">remaining</div>
-            </div>
-            <!-- Active preys — danger red in critical state -->
-            <div class="hud-cell">
-              <div class="hud-label" style="color:var(--hunter)">Active Preys</div>
-              <div class="hud-value danger">1</div>
-              <div class="hud-sub danger">in play</div>
-            </div>
-            <!-- Hunter very close — red -->
-            <div class="hud-cell">
-              <div class="hud-label">
-                <span>Hunter</span>
-                <span style="color:var(--hunter);font-size:9px">3s ago</span>
-              </div>
-              <div class="hud-value danger">11<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
-              <div class="hud-sub danger">right behind you</div>
-            </div>
-            <!-- Penalty indicator — active, caution -->
-            <div class="hud-cell">
-              <div class="hud-label" style="color:var(--caution)">Penalty</div>
-              <div class="hud-value caution flash">10s</div>
-              <div class="hud-sub caution">active</div>
-            </div>
-          </div>
-
-          <div class="hud-ping-row" style="border-color:rgba(255,47,31,.3)">
-            <div class="hud-ping-label" style="color:var(--hunter)">Next Ping</div>
+          <div class="hud-collapse-bar">
+            <span class="hud-collapse-icon">▼</span>
+            <span class="hud-time-mini" style="color:var(--hunter);text-shadow:0 0 8px var(--hunter-glow);animation:value-flash 500ms ease-in-out infinite">04:51</span>
             <div class="hud-ping-bar-wrap">
               <div class="hud-ping-bar" style="width:85%; background:var(--hunter); box-shadow:0 0 6px var(--hunter-glow)"></div>
             </div>
-            <div class="hud-ping-value" style="color:var(--hunter); text-shadow:0 0 8px var(--hunter-glow)">00:03</div>
+            <span class="hud-ping-mini" style="color:var(--hunter)">00:03</span>
+          </div>
+
+          <div class="hud-expanded-content">
+            <div class="hud-three-cols" style="border-color:rgba(255,47,31,.3)">
+              <div class="hud-cell">
+                <div class="hud-label" style="color:var(--hunter)">Game time</div>
+                <div class="hud-value danger flash">04:51</div>
+                <div class="hud-sub danger">remaining</div>
+              </div>
+              <div class="hud-cell">
+                <div class="hud-label">Hunter</div>
+                <div class="hud-value danger">11<span style="font-size:13px;letter-spacing:1px;margin-left:3px">M</span></div>
+                <div class="hud-sub danger">3s ago</div>
+              </div>
+              <div class="hud-cell">
+                <div class="hud-label" style="color:var(--hunter)">Preys</div>
+                <div class="hud-value danger">1</div>
+                <div class="hud-sub danger">active</div>
+              </div>
+            </div>
+            <div class="hud-ping-row" style="border-color:rgba(255,47,31,.3)">
+              <div class="hud-ping-label" style="color:var(--hunter)">Next Ping</div>
+              <div class="hud-ping-bar-wrap">
+                <div class="hud-ping-bar" style="width:85%; background:var(--hunter); box-shadow:0 0 6px var(--hunter-glow)"></div>
+              </div>
+              <div class="hud-ping-value" style="color:var(--hunter); text-shadow:0 0 8px var(--hunter-glow)">00:03</div>
+            </div>
           </div>
         </div>
 
       </div>
-      <div class="screen-note">Final stage + last 5 min. Active Preys: 1. Hunter 11 m — danger red. Penalty active. Timer flashes red. Corner brackets turn red.</div>
+      <div class="screen-note">Expanded HUD — critical. Timer flashes red, hunter 11 m, Active Preys: 1. Collapsed bar time also flashes red.</div>
     </div>
 
   </div><!-- /screens-row -->
@@ -1012,5 +1107,12 @@
   </p>
 
 </div>
+<script>
+  document.querySelectorAll('.hud-collapse-bar').forEach(bar => {
+    bar.addEventListener('click', () => {
+      bar.closest('.hud-panel').classList.toggle('collapsed');
+    });
+  });
+</script>
 </body>
 </html>
