@@ -38,6 +38,8 @@ public sealed class Game
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? EndsAt { get; private set; }
     public DateTimeOffset CleanUpAfter { get; private set; }
+    public DateTimeOffset? CompletedAt { get; private set; }
+    public GameOutcome Outcome { get; private set; }
 
     /// <summary>The lobby player pre-designated as the hunter before the game starts; null until designated.</summary>
     public Guid? DesignatedHunterUserId { get; private set; }
@@ -93,7 +95,9 @@ public sealed class Game
         Guid? designatedHunterUserId = null,
         DateTimeOffset createdAt = default,
         DateTimeOffset? endsAt = null,
-        DateTimeOffset cleanUpAfter = default)
+        DateTimeOffset cleanUpAfter = default,
+        DateTimeOffset? completedAt = null,
+        GameOutcome outcome = GameOutcome.Undecided)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
@@ -109,7 +113,9 @@ public sealed class Game
             DesignatedHunterUserId = designatedHunterUserId,
             CreatedAt = createdAt,
             EndsAt = endsAt,
-            CleanUpAfter = cleanUpAfter
+            CleanUpAfter = cleanUpAfter,
+            CompletedAt = completedAt,
+            Outcome = outcome
         };
         game._lobby.AddRange(lobby);
         game._participants.AddRange(participants);
@@ -300,13 +306,13 @@ public sealed class Game
         participant.ApplyPenalty(Penalty.Create(endsAt));
     }
 
-    /// <summary>Transitions an in-progress game to Completed.</summary>
+    /// <summary>Transitions an in-progress game to Completed and records the outcome.</summary>
     public void Complete(DateTimeOffset at)
     {
         if (Status != GameStatus.InProgress)
             throw new InvalidOperationException("Only an in-progress game can be completed.");
 
-        Status = GameStatus.Completed;
+        ApplyCompletion(at, ComputeOutcome());
     }
 
     /// <summary>
@@ -318,7 +324,29 @@ public sealed class Game
         if (Status == GameStatus.Completed)
             throw new InvalidOperationException("The game has already been completed.");
 
+        var outcome = Status == GameStatus.Lobby ? GameOutcome.Cancelled : ComputeOutcome();
+        ApplyCompletion(now, outcome);
+    }
+
+    private void ApplyCompletion(DateTimeOffset at, GameOutcome outcome)
+    {
         Status = GameStatus.Completed;
+        CompletedAt = at;
+        Outcome = outcome;
+    }
+
+    /// <summary>
+    /// Computes the outcome of an in-progress game based on the current participant states.
+    /// Hunters win when every prey is Tagged or Out; preys win when at least one survives.
+    /// </summary>
+    private GameOutcome ComputeOutcome()
+    {
+        var preys = _participants.Where(p => p.Role == ParticipantRole.Prey).ToList();
+        if (preys.Count == 0) return GameOutcome.Undecided;
+
+        return preys.All(p => p.State is PlayerState.Tagged or PlayerState.Out)
+            ? GameOutcome.HuntersWin
+            : GameOutcome.PreysWin;
     }
 
     /// <summary>

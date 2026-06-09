@@ -11,5 +11,5 @@ public sealed record ParticipantLocatedEvent(Guid GameId, Guid UserId, string Pa
 public sealed record ParticipantStatusChangedEvent(Guid GameId, Guid ParticipantId, string ParticipantRole, string NewState)
     : GameEvent(GameId, "participant-status-changed");
 
-public sealed record GameEndedEvent(Guid GameId)
+public sealed record GameEndedEvent(Guid GameId, string Outcome, int SurvivorCount)
     : GameEvent(GameId, "game-ended");

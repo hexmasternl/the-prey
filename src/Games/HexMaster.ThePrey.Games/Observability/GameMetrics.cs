@@ -9,6 +9,7 @@ public class GameMetrics : IGameMetrics
     private readonly Counter<long> _gamesCreated;
     private readonly Counter<long> _gamesStarted;
     private readonly Counter<long> _locationsRecorded;
+    private readonly Counter<long> _gamesCompleted;
 
     public GameMetrics(IMeterFactory meterFactory)
     {
@@ -28,6 +29,11 @@ public class GameMetrics : IGameMetrics
             "games.locations_recorded",
             unit: "{location}",
             description: "Total number of player locations recorded");
+
+        _gamesCompleted = meter.CreateCounter<long>(
+            "games.completed",
+            unit: "{game}",
+            description: "Total number of games completed");
     }
 
     public virtual void RecordGameCreated() => _gamesCreated.Add(1);
@@ -35,4 +41,7 @@ public class GameMetrics : IGameMetrics
     public virtual void RecordGameStarted() => _gamesStarted.Add(1);
 
     public virtual void RecordLocationRecorded() => _locationsRecorded.Add(1);
+
+    public virtual void RecordGameCompleted(string outcome) =>
+        _gamesCompleted.Add(1, new KeyValuePair<string, object?>("game.outcome", outcome));
 }

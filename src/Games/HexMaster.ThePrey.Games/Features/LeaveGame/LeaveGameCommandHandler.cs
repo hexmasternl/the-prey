@@ -3,6 +3,7 @@ using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.Games;
 
 namespace HexMaster.ThePrey.Games.Features.LeaveGame;
 
@@ -72,7 +73,7 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
             // Owner leaving the lobby cancels (ends) the game.
             game.EndByOwner(_timeProvider.GetUtcNow());
             await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, new GameEndedEvent(game.Id), ct);
+            await _eventBus.PublishAsync(game.Id, game.ToGameEndedEvent(), ct);
             await _lobbyEventBus.PublishAsync(game.Id, "game-ended", game.ToDto(), ct);
         }
         else
@@ -96,7 +97,7 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
             // Hunter leaving an in-progress game ends it.
             game.EndByOwner(_timeProvider.GetUtcNow());
             await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, new GameEndedEvent(game.Id), ct);
+            await _eventBus.PublishAsync(game.Id, game.ToGameEndedEvent(), ct);
         }
         else
         {

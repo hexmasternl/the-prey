@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
+using HexMaster.ThePrey.Games.Notifications;
 
 namespace HexMaster.ThePrey.Games;
 
@@ -70,7 +71,15 @@ internal static class GameMappings
             game.DesignatedHunterUserId,
             game.CreatedAt,
             game.EndsAt,
-            game.CleanUpAfter);
+            game.CleanUpAfter,
+            game.Outcome.ToString(),
+            game.CompletedAt);
+
+    internal static GameEndedEvent ToGameEndedEvent(this Game game) =>
+        new(
+            game.Id,
+            game.Outcome.ToString(),
+            game.Preys.Count(p => p.State is PlayerState.Active or PlayerState.Passive));
 
     internal static GameSummaryDto ToSummaryDto(this Game game) =>
         new(game.Id, game.GameCode, game.PlayfieldId, game.OwnerUserId, game.Status.ToString(), game.Lobby.Count);

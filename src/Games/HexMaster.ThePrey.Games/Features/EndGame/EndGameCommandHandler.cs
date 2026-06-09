@@ -3,6 +3,7 @@ using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.Games;
 
 namespace HexMaster.ThePrey.Games.Features.EndGame;
 
@@ -47,7 +48,7 @@ public sealed class EndGameCommandHandler : ICommandHandler<EndGameCommand, EndG
 
             await _games.UpdateAsync(game, ct);
 
-            await _eventBus.PublishAsync(game.Id, new GameEndedEvent(game.Id), ct);
+            await _eventBus.PublishAsync(game.Id, game.ToGameEndedEvent(), ct);
 
             if (wasInLobby)
                 await _lobbyEventBus.PublishAsync(game.Id, "game-ended", game.ToDto(), ct);

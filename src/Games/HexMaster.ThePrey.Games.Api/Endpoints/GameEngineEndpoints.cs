@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
+using HexMaster.ThePrey.Games.Features.CompleteGame;
 using HexMaster.ThePrey.Games.Features.UpdateLocationBroadcast;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Security;
@@ -20,6 +21,13 @@ public static class GameEngineEndpoints
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status422UnprocessableEntity)
+            .AllowAnonymous();
+
+        group.MapPost("/{gameId:guid}/complete", CompleteGame)
+            .WithName("GameEngineCompleteGame")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status404NotFound)
             .AllowAnonymous();
 
         group.MapGet("/{gameId:guid}/stream", StreamEngineEvents)
@@ -98,6 +106,52 @@ public static class GameEngineEndpoints
         catch (InvalidOperationException)
         {
             return Results.UnprocessableEntity();
+        }
+    }
+
+    private static async Task<IResult> CompleteGame(
+        Guid gameId,
+        HttpContext httpContext,
+        ICommandHandler<CompleteGameCommand, CompleteGameResult> handler,
+        IConfiguration configuration,
+        ILoggerFactory loggerFactory,
+        CancellationToken ct)
+    {
+        var logger = loggerFactory.CreateLogger(nameof(GameEngineEndpoints));
+        var secret = configuration["GameEngine:EngineKey"];
+        if (string.IsNullOrEmpty(secret))
+        {
+            logger.LogWarning(
+                "GameEngine:EngineKey is not configured. Rejecting complete-game request for game {GameId}.",
+                gameId);
+            return Results.Unauthorized();
+        }
+
+        httpContext.Request.EnableBuffering();
+        using var ms = new MemoryStream();
+        await httpContext.Request.Body.CopyToAsync(ms, ct);
+        var bodyBytes = ms.ToArray();
+
+        var timestamp = httpContext.Request.Headers[EngineRequestSigner.TimestampHeaderName].FirstOrDefault();
+        var signature = httpContext.Request.Headers[EngineRequestSigner.SignatureHeaderName].FirstOrDefault();
+
+        if (!EngineRequestSigner.Verify(secret, timestamp, signature, bodyBytes, DateTimeOffset.UtcNow))
+        {
+            logger.LogWarning(
+                "HMAC verification failed for complete-game on game {GameId}. Timestamp header: {Timestamp}",
+                gameId,
+                timestamp);
+            return Results.Unauthorized();
+        }
+
+        try
+        {
+            await handler.Handle(new CompleteGameCommand(gameId), ct);
+            return Results.NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return Results.NotFound();
         }
     }
 

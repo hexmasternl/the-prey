@@ -16,6 +16,7 @@ using HexMaster.ThePrey.Games.Features.RemoveLobbyPlayer;
 using HexMaster.ThePrey.Games.Features.SetHunter;
 using HexMaster.ThePrey.Games.Features.SetReady;
 using HexMaster.ThePrey.Games.Features.StartGame;
+using HexMaster.ThePrey.Games.Features.CompleteGame;
 using HexMaster.ThePrey.Games.Features.UpdateGameSettings;
 using HexMaster.ThePrey.Games.Features.UpdateLocationBroadcast;
 using HexMaster.ThePrey.Games.Notifications;
@@ -46,6 +47,7 @@ public static class GamesModuleRegistration
         services.AddScoped<ICommandHandler<UpdateLocationBroadcastCommand, UpdateLocationBroadcastResult>, UpdateLocationBroadcastCommandHandler>();
         services.AddScoped<ICommandHandler<EndGameCommand, EndGameResult?>, EndGameCommandHandler>();
         services.AddScoped<ICommandHandler<LeaveGameCommand, LeaveGameResult?>, LeaveGameCommandHandler>();
+        services.AddScoped<ICommandHandler<CompleteGameCommand, CompleteGameResult>, CompleteGameCommandHandler>();
 
         services.AddSingleton<IGameMetrics, GameMetrics>();
         services.AddSingleton<ILobbyEventBus, InProcessLobbyEventBus>();
