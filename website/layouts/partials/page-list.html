@@ -1,0 +1,13 @@
+{{- /* Listing of child pages (title + description). Shared by section list layouts.
+  Params (dict): pages — a Pages collection (required).
+  Usage: {{ partial "page-list.html" (dict "pages" .Pages) }} */ -}}
+{{- with .pages -}}
+<ul class="page-list">
+  {{ range . }}
+  <li>
+    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+    {{ with .Description }}<p>{{ . }}</p>{{ end }}
+  </li>
+  {{ end }}
+</ul>
+{{- end -}}

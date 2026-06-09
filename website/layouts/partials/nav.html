@@ -9,18 +9,24 @@
       <span>THE PREY</span>
     </a>
 
-    <ul class="nav-links">
-      <li><a href="{{ "/rules/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/rules" .Lang) }} class="active"{{ end }}>{{ i18n "nav_rules" }}</a></li>
-      <li><a href="{{ "/roles/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/roles" .Lang) }} class="active"{{ end }}>{{ i18n "nav_roles" }}</a></li>
-      <li><a href="{{ "/playfield/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/playfield" .Lang) }} class="active"{{ end }}>{{ i18n "nav_playfield" }}</a></li>
-      <li><a href="{{ "/faq/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/faq" .Lang) }} class="active"{{ end }}>{{ i18n "nav_faq" }}</a></li>
-      <li><a href="{{ "/how-to/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/how-to" .Lang) }} class="active"{{ end }}>{{ i18n "nav_howto" }}</a></li>
-    </ul>
+    <button type="button" class="nav-toggle" aria-label="{{ i18n "nav_menu_label" }}" aria-expanded="false" aria-controls="nav-menu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
 
-    <div class="nav-lang">
-      {{ range .Translations }}
-        <a href="{{ .Permalink }}" class="pill lang">{{ .Language.Params.languageCode }}</a>
-      {{ end }}
+    <div class="nav-menu" id="nav-menu">
+      <ul class="nav-links">
+        <li><a href="{{ "/rules/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/rules" .Lang) }} class="active"{{ end }}>{{ i18n "nav_rules" }}</a></li>
+        <li><a href="{{ "/roles/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/roles" .Lang) }} class="active"{{ end }}>{{ i18n "nav_roles" }}</a></li>
+        <li><a href="{{ "/playfield/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/playfield" .Lang) }} class="active"{{ end }}>{{ i18n "nav_playfield" }}</a></li>
+        <li><a href="{{ "/faq/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/faq" .Lang) }} class="active"{{ end }}>{{ i18n "nav_faq" }}</a></li>
+        <li><a href="{{ "/how-to/" | relLangURL }}"{{ if hasPrefix .RelPermalink (printf "/%s/how-to" .Lang) }} class="active"{{ end }}>{{ i18n "nav_howto" }}</a></li>
+      </ul>
+
+      <div class="nav-lang">
+        {{ range .Translations }}
+          <a href="{{ .Permalink }}" class="pill lang">{{ .Language.Params.languageCode }}</a>
+        {{ end }}
+      </div>
     </div>
   </div>
 </nav>

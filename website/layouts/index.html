@@ -8,13 +8,13 @@
 
   <div class="hero-grid">
     <div class="hero-content">
-      <div class="tag">{{ i18n "home_hero_tag" }}</div>
+      <div class="tag">{{ .Params.hero.tag }}</div>
       <h1>THE <em>PREY</em></h1>
       <p class="lede">{{ .Description }}</p>
-      <p class="lede" style="margin-top:8px">{{ i18n "home_hero_sub" }}</p>
+      <p class="lede hero-sub">{{ .Params.hero.sub }}</p>
       <div class="hero-actions">
-        <a href="{{ "/rules/" | relLangURL }}" class="btn primary">{{ i18n "home_cta_rules" }}</a>
-        <a href="{{ "/how-to/" | relLangURL }}" class="btn ghost">{{ i18n "home_cta_howto" }}</a>
+        <a href="{{ "/rules/" | relLangURL }}" class="btn primary">{{ .Params.hero.ctaRules }}</a>
+        <a href="{{ "/how-to/" | relLangURL }}" class="btn ghost">{{ .Params.hero.ctaHowto }}</a>
       </div>
     </div>
     <div class="hero-aside">
@@ -39,16 +39,15 @@
 </div>
 
 <section class="reveal">
-  <div class="eyebrow">{{ i18n "home_game_eyebrow" }}</div>
-  <h2>{{ i18n "home_game_title" }}</h2>
-  <p>{{ i18n "home_game_p1" }}</p>
-  <p>{{ i18n "home_game_p2" }}</p>
+  <div class="eyebrow">{{ .Params.game.eyebrow }}</div>
+  <h2>{{ .Params.game.title }}</h2>
+  {{ range .Params.game.body }}<p>{{ . }}</p>{{ end }}
   <div class="phase-grid reveal-stagger">
-    {{ range site.Data.home.phases }}
+    {{ range .Params.phases }}
     <div class="panel">
-      <div class="ptitle">{{ i18n (printf "home_phase_%s_title" .key) }}</div>
+      <div class="ptitle">{{ .title }}</div>
       <div class="phase-figure {{ .accent }}"><span class="phase-num" data-count="{{ .value }}">{{ .value }}</span><span class="unit"> {{ .unit }}</span></div>
-      <p class="phase-desc">{{ i18n (printf "home_phase_%s_desc" .key) }}</p>
+      <p class="phase-desc">{{ .desc }}</p>
     </div>
     {{ end }}
   </div>
@@ -57,16 +56,16 @@
 <div class="signal-divider" aria-hidden="true"></div>
 
 <section class="reveal">
-  <div class="eyebrow">{{ i18n "home_roles_eyebrow" }}</div>
-  <h2>{{ i18n "home_roles_title" }}</h2>
-  <div class="roles-grid reveal-stagger" style="margin-top:24px">
-    {{ range site.Data.home.roles }}
+  <div class="eyebrow">{{ .Params.roles.eyebrow }}</div>
+  <h2>{{ .Params.roles.title }}</h2>
+  <div class="roles-grid reveal-stagger">
+    {{ range .Params.roles.items }}
     {{ partial "role-card.html" (dict
       "url"     (.url | relLangURL)
       "glyph"   .glyph
       "variant" .variant
-      "name"    (i18n (printf "home_role_%s_name" .key))
-      "tagline" (i18n (printf "home_role_%s_tagline" .key))
+      "name"    .name
+      "tagline" .tagline
     ) }}
     {{ end }}
   </div>
@@ -75,7 +74,7 @@
 <div class="signal-divider" aria-hidden="true"></div>
 
 <section class="reveal">
-  <div style="display:flex;gap:14px;flex-wrap:wrap">
+  <div class="link-row">
     <a href="{{ "/rules/" | relLangURL }}" class="btn ghost">{{ i18n "nav_rules" }}</a>
     <a href="{{ "/playfield/" | relLangURL }}" class="btn ghost">{{ i18n "nav_playfield" }}</a>
     <a href="{{ "/faq/" | relLangURL }}" class="btn ghost">{{ i18n "nav_faq" }}</a>

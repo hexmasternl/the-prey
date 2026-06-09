@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="nl">
-<head>
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=50521&amp;path=livereload" data-no-instant defer></script>
   <meta charset="UTF-8">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,8 +17,8 @@
   
   <meta property="og:title" content="Regels // The Prey">
   <meta property="og:type" content="article">
-  <meta property="og:image" content="https://theprey.nl/favicon.svg">
-  <meta property="og:url" content="https://theprey.nl/nl/rules/">
+  <meta property="og:image" content="http://localhost:50521/favicon.svg">
+  <meta property="og:url" content="http://localhost:50521/nl/rules/">
   <meta property="og:description" content="De volledige spelregels van The Prey: tijdsfases, de voorsprong van 10 minuten, GPS-updates, taggen en eliminatie, en hoe Jagers en Prooien winnen.">
   <meta property="og:site_name" content="The Prey">
 
@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="/css/main.min.c11eff60edcd24ae31573ec3a902a40c71973f51767533e14ef0bf0b4b6beb2a.css">
+  <link rel="stylesheet" href="/css/main.min.7cae36b4735cfa0967346aeb34a70c3a929f3318f18582bf7e3777ce7c5d4ac2.css">
 </head>
 <body>
 <div class="crt-beam" aria-hidden="true"></div>
@@ -44,18 +44,24 @@
       <span>THE PREY</span>
     </a>
 
-    <ul class="nav-links">
-      <li><a href="/nl/rules/" class="active">Regels</a></li>
-      <li><a href="/nl/roles/">Rollen</a></li>
-      <li><a href="/nl/playfield/">Speelveld</a></li>
-      <li><a href="/nl/faq/">FAQ</a></li>
-      <li><a href="/nl/how-to/">Handleiding</a></li>
-    </ul>
+    <button type="button" class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
 
-    <div class="nav-lang">
-      
-        <a href="https://theprey.nl/en/rules/" class="pill lang">EN</a>
-      
+    <div class="nav-menu" id="nav-menu">
+      <ul class="nav-links">
+        <li><a href="/nl/rules/" class="active">Regels</a></li>
+        <li><a href="/nl/roles/">Rollen</a></li>
+        <li><a href="/nl/playfield/">Speelveld</a></li>
+        <li><a href="/nl/faq/">FAQ</a></li>
+        <li><a href="/nl/how-to/">Handleiding</a></li>
+      </ul>
+
+      <div class="nav-lang">
+        
+          <a href="http://localhost:50521/en/rules/" class="pill lang">EN</a>
+        
+      </div>
     </div>
   </div>
 </nav>
@@ -66,45 +72,50 @@
 
     
 <div class="content-body">
+  <header class="page-head">
   <div class="eyebrow">RULES</div>
   <h1>Regels</h1>
-  <p class="lede" style="font-size:17px;margin-bottom:32px">De volledige spelregels van The Prey: tijdsfases, de voorsprong van 10 minuten, GPS-updates, taggen en eliminatie, en hoe Jagers en Prooien winnen.</p>
+  <p class="lede page-lede">De volledige spelregels van The Prey: tijdsfases, de voorsprong van 10 minuten, GPS-updates, taggen en eliminatie, en hoe Jagers en Prooien winnen.</p>
+</header>
+
   <h2 id="spelconcept">Spelconcept</h2>
 <p>The Prey is een GPS-gebaseerd verstoppertje gespeeld in een bepaald buitengebied dat een <strong>speelveld</strong> heet. Eén of meer spelers zijn <strong>Prooi</strong> — zij verstoppen zich en ontwijken. De rest zijn <strong>Jagers</strong> — zij traceren en taggen.</p>
 <p>Het spel heeft een tijdslimiet. Jagers winnen door alle Prooi te taggen voor de tijd om is. Prooi wint als er ten minste één overlevende is wanneer de klok nul bereikt.</p>
 <hr>
 <h2 id="tijdsfasen">Tijdsfasen</h2>
-<table>
-	<thead>
-			<tr>
-					<th>Fase</th>
-					<th>Duur</th>
-					<th>Wat er gebeurt</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td>Voorsprong</td>
-					<td>10 minuten</td>
-					<td>Prooi verspreidt zich en verstopt zich. Jagers wachten. Geen locaties gedeeld.</td>
-			</tr>
-			<tr>
-					<td>Actieve Jacht</td>
-					<td>~45 minuten</td>
-					<td>De jacht begint. GPS-pingen van Prooi worden aan alle Jagers doorgegeven.</td>
-			</tr>
-			<tr>
-					<td>Eindfase</td>
-					<td>Laatste 5 minuten</td>
-					<td>Waarschuwing gegeven. Alle spelers worden op de hoogte gesteld.</td>
-			</tr>
-			<tr>
-					<td>Totaal</td>
-					<td>~60 minuten</td>
-					<td>Spel eindigt. Resultaten worden weergegeven.</td>
-			</tr>
-	</tbody>
-</table>
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Fase</th>
+        <th>Duur</th>
+        <th>Wat er gebeurt</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Voorsprong</td>
+        <td>10 minuten</td>
+        <td>Prooi verspreidt zich en verstopt zich. Jagers wachten. Geen locaties gedeeld.</td>
+      </tr>
+      <tr>
+        <td>Actieve Jacht</td>
+        <td>~45 minuten</td>
+        <td>De jacht begint. GPS-pingen van Prooi worden aan alle Jagers doorgegeven.</td>
+      </tr>
+      <tr>
+        <td>Eindfase</td>
+        <td>Laatste 5 minuten</td>
+        <td>Waarschuwing gegeven. Alle spelers worden op de hoogte gesteld.</td>
+      </tr>
+      <tr>
+        <td>Totaal</td>
+        <td>~60 minuten</td>
+        <td>Spel eindigt. Resultaten worden weergegeven.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 <hr>
 <h2 id="gps-updateschema">GPS-updateschema</h2>
 <p>Prooilocaties worden als GPS-pins op de kaart van de Jager uitgezonden. Updates komen met een vast interval — doorgaans elke 30 seconden tijdens de Actieve Jacht. Tijdens de Voorsprong worden geen locatiegegevens verzonden.</p>
@@ -130,6 +141,6 @@
 
 </div>
 
-<script src="/js/main.min.0abf87811728ef18a8e58715f04ca29877d4554c12e44a7a1ce7ce0a53b2b023.js" defer></script>
+<script src="/js/main.min.bdf43d6bac08f29ba48c4782d9de25a51a261a58165d9575c79233d05e6165cb.js" defer></script>
 </body>
 </html>

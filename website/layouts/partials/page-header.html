@@ -1,0 +1,12 @@
+{{- /* Standard content-page header: eyebrow + title + optional lede.
+  Params (dict):
+    ctx     — the page (required)
+    eyebrow — override label (optional; defaults to the section name, uppercased)
+  Usage: {{ partial "page-header.html" (dict "ctx" .) }}
+         {{ partial "page-header.html" (dict "ctx" . "eyebrow" (i18n "nav_faq")) }} */ -}}
+{{- $ctx := .ctx -}}
+<header class="page-head">
+  <div class="eyebrow">{{ .eyebrow | default ($ctx.Section | upper) }}</div>
+  <h1>{{ $ctx.Title }}</h1>
+  {{ with $ctx.Description }}<p class="lede page-lede">{{ . }}</p>{{ end }}
+</header>

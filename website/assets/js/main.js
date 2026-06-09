@@ -3,6 +3,38 @@
 (function () {
   "use strict";
 
+  /* ---- mobile nav toggle ---- */
+  (function () {
+    var toggle = document.querySelector(".nav-toggle");
+    var menu = document.getElementById("nav-menu");
+    if (!toggle || !menu) { return; }
+
+    function setOpen(open) {
+      menu.classList.toggle("open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    toggle.addEventListener("click", function () {
+      setOpen(toggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    // Close after tapping a link inside the menu.
+    menu.addEventListener("click", function (e) {
+      if (e.target.closest("a")) { setOpen(false); }
+    });
+
+    // Close on Escape.
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { setOpen(false); }
+    });
+
+    // Reset state when crossing back to the desktop layout.
+    var desktop = window.matchMedia("(min-width: 881px)");
+    (desktop.addEventListener ? desktop.addEventListener.bind(desktop, "change") : desktop.addListener.bind(desktop))(function (e) {
+      if (e.matches) { setOpen(false); }
+    });
+  })();
+
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function parseCount(raw) {

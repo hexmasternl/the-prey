@@ -7,36 +7,10 @@ nav_playfield: "Playfield"
 nav_faq: "FAQ"
 nav_howto: "How-To"
 
+nav_menu_label: "Menu"
 lang_switch_label: "Switch language"
 
 translation_pending_title: "Translation Pending"
 translation_pending_msg: "This page is only available in English. A Dutch translation is coming soon."
 
 footer_copy: "END OF TRANSMISSION"
-
-# ---- Home page ----
-home_hero_tag: "// Signal Acquired"
-home_hero_sub: "GPS-based hide-and-seek. Define the arena. Scatter and hide. Hunt them down before time runs out."
-home_cta_rules: "Read the Rules"
-home_cta_howto: "How-To Guides"
-
-home_game_eyebrow: "The Game"
-home_game_title: "Hunt or be Hunted"
-home_game_p1: "The Prey drops players into a real-world GPS arena. One team hides and runs. The other tracks and tags. Every 30 seconds the map updates. Every move matters."
-home_game_p2: "Games last 60 minutes. Prey have a 10-minute head start to scatter before Hunters see their first ping. After that — you are on the radar."
-
-home_phase_headstart_title: "Head Start"
-home_phase_headstart_desc: "Prey scatter. No location data. Hunters wait."
-home_phase_active_title: "Active Hunt"
-home_phase_active_desc: "GPS pings live. Map updates every 30 seconds."
-home_phase_final_title: "Final Stretch"
-home_phase_final_desc: "Warning issued. Close in or hold on."
-
-home_roles_eyebrow: "Roles"
-home_roles_title: "Every Player Has a Job"
-home_role_prey_name: "Prey"
-home_role_prey_tagline: "Hide. Move. Survive."
-home_role_hunter_name: "Hunter"
-home_role_hunter_tagline: "Track. Close in. Tag."
-home_role_creator_name: "Game Creator"
-home_role_creator_tagline: "Define. Assign. Launch."

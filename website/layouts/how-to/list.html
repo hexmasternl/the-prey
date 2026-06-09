@@ -1,16 +1,7 @@
 {{ define "main" }}
 <div class="content-body">
-  <div class="eyebrow">{{ i18n "nav_howto" }}</div>
-  <h1>{{ .Title }}</h1>
-  {{ with .Description }}<p class="lede" style="font-size:17px;margin-bottom:32px">{{ . }}</p>{{ end }}
+  {{ partial "page-header.html" (dict "ctx" . "eyebrow" (i18n "nav_howto")) }}
   {{ .Content }}
-  <ul style="list-style:none;padding:0;margin-top:24px">
-    {{ range .Pages }}
-    <li style="margin-bottom:12px;padding:14px 18px;border:1px solid var(--line);border-radius:var(--radius)">
-      <a href="{{ .RelPermalink }}" style="font-family:var(--head);font-size:15px;color:var(--text)">{{ .Title }}</a>
-      {{ with .Description }}<p style="margin:4px 0 0;font-size:13px">{{ . }}</p>{{ end }}
-    </li>
-    {{ end }}
-  </ul>
+  {{ partial "page-list.html" (dict "pages" .Pages) }}
 </div>
 {{ end }}

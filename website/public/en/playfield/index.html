@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=50521&amp;path=livereload" data-no-instant defer></script>
   <meta charset="UTF-8">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,8 +17,8 @@
   
   <meta property="og:title" content="Playfield // The Prey">
   <meta property="og:type" content="article">
-  <meta property="og:image" content="https://theprey.nl/favicon.svg">
-  <meta property="og:url" content="https://theprey.nl/en/playfield/">
+  <meta property="og:image" content="http://localhost:50521/favicon.svg">
+  <meta property="og:url" content="http://localhost:50521/en/playfield/">
   <meta property="og:description" content="How to draw and use a playfield in The Prey — define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one.">
   <meta property="og:site_name" content="The Prey">
 
@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="/css/main.min.c11eff60edcd24ae31573ec3a902a40c71973f51767533e14ef0bf0b4b6beb2a.css">
+  <link rel="stylesheet" href="/css/main.min.7cae36b4735cfa0967346aeb34a70c3a929f3318f18582bf7e3777ce7c5d4ac2.css">
 </head>
 <body>
 <div class="crt-beam" aria-hidden="true"></div>
@@ -44,18 +44,24 @@
       <span>THE PREY</span>
     </a>
 
-    <ul class="nav-links">
-      <li><a href="/en/rules/">Rules</a></li>
-      <li><a href="/en/roles/">Roles</a></li>
-      <li><a href="/en/playfield/" class="active">Playfield</a></li>
-      <li><a href="/en/faq/">FAQ</a></li>
-      <li><a href="/en/how-to/">How-To</a></li>
-    </ul>
+    <button type="button" class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
 
-    <div class="nav-lang">
-      
-        <a href="https://theprey.nl/nl/playfield/" class="pill lang">NL</a>
-      
+    <div class="nav-menu" id="nav-menu">
+      <ul class="nav-links">
+        <li><a href="/en/rules/">Rules</a></li>
+        <li><a href="/en/roles/">Roles</a></li>
+        <li><a href="/en/playfield/" class="active">Playfield</a></li>
+        <li><a href="/en/faq/">FAQ</a></li>
+        <li><a href="/en/how-to/">How-To</a></li>
+      </ul>
+
+      <div class="nav-lang">
+        
+          <a href="http://localhost:50521/nl/playfield/" class="pill lang">NL</a>
+        
+      </div>
     </div>
   </div>
 </nav>
@@ -66,9 +72,12 @@
 
     
 <div class="content-body">
+  <header class="page-head">
   <div class="eyebrow">PLAYFIELD</div>
   <h1>Playfield</h1>
-  <p class="lede" style="font-size:17px;margin-bottom:32px">How to draw and use a playfield in The Prey — define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one.</p>
+  <p class="lede page-lede">How to draw and use a playfield in The Prey — define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one.</p>
+</header>
+
   <h2 id="what-is-a-playfield">What Is a Playfield?</h2>
 <p>A playfield is a GPS polygon — a closed boundary drawn on a map that defines the valid game area. Players must stay within it during the hunt. Prey who leave the boundary can be disqualified at the Game Creator&rsquo;s discretion.</p>
 <p>Playfields are created before the game and can be saved and reused for future sessions.</p>
@@ -84,36 +93,38 @@
 <p>Your saved playfields appear in the Playfield list and can be selected when starting a new game.</p>
 <hr>
 <h2 id="map-gestures">Map Gestures</h2>
-<table>
-	<thead>
-			<tr>
-					<th>Gesture</th>
-					<th>Action</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td>Tap</td>
-					<td>Place a new vertex</td>
-			</tr>
-			<tr>
-					<td>Drag vertex</td>
-					<td>Reposition a placed vertex</td>
-			</tr>
-			<tr>
-					<td>Pinch</td>
-					<td>Zoom in / zoom out</td>
-			</tr>
-			<tr>
-					<td>Long press edge</td>
-					<td>Insert a new vertex on that edge</td>
-			</tr>
-			<tr>
-					<td>Tap vertex</td>
-					<td>Remove that vertex</td>
-			</tr>
-	</tbody>
-</table>
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Gesture</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tap</td>
+        <td>Place a new vertex</td>
+      </tr>
+      <tr>
+        <td>Drag vertex</td>
+        <td>Reposition a placed vertex</td>
+      </tr>
+      <tr>
+        <td>Pinch</td>
+        <td>Zoom in / zoom out</td>
+      </tr>
+      <tr>
+        <td>Long press edge</td>
+        <td>Insert a new vertex on that edge</td>
+      </tr>
+      <tr>
+        <td>Tap vertex</td>
+        <td>Remove that vertex</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 <hr>
 <h2 id="starting-a-game-from-a-playfield">Starting a Game from a Playfield</h2>
 <p>Open a saved playfield and tap <strong>Start Game</strong>. This creates a game session linked to that boundary. Invite players with the generated join code, assign roles in the lobby, and launch.</p>
@@ -130,6 +141,6 @@
 
 </div>
 
-<script src="/js/main.min.0abf87811728ef18a8e58715f04ca29877d4554c12e44a7a1ce7ce0a53b2b023.js" defer></script>
+<script src="/js/main.min.bdf43d6bac08f29ba48c4782d9de25a51a261a58165d9575c79233d05e6165cb.js" defer></script>
 </body>
 </html>

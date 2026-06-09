@@ -1,18 +1,7 @@
 {{ define "main" }}
 <div class="content-body">
-  <div class="eyebrow">{{ .Section | upper }}</div>
-  <h1>{{ .Title }}</h1>
-  {{ with .Description }}<p class="lede" style="font-size:17px;margin-bottom:32px">{{ . }}</p>{{ end }}
+  {{ partial "page-header.html" (dict "ctx" .) }}
   {{ .Content }}
-  {{ if .Pages }}
-  <ul class="page-list">
-    {{ range .Pages }}
-    <li>
-      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-      {{ with .Description }}<p>{{ . }}</p>{{ end }}
-    </li>
-    {{ end }}
-  </ul>
-  {{ end }}
+  {{ partial "page-list.html" (dict "pages" .Pages) }}
 </div>
 {{ end }}

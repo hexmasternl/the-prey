@@ -150,6 +150,43 @@ body::after {
   margin-left: auto;
 }
 
+/* On desktop the menu wrapper is transparent — its children (links + lang)
+   participate directly in the .nav-inner flex row. Becomes a collapsible
+   dropdown at the mobile breakpoint. */
+.nav-menu { display: contents; }
+
+/* Hamburger toggle — hidden until the mobile breakpoint. */
+.nav-toggle {
+  display: none;
+  margin-left: auto;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  position: relative;
+}
+.nav-toggle-bars,
+.nav-toggle-bars::before,
+.nav-toggle-bars::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  background: var(--signal);
+  transform: translateX(-50%);
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+.nav-toggle-bars { top: 50%; margin-top: -1px; }
+.nav-toggle-bars::before { top: -6px; }
+.nav-toggle-bars::after { top: 6px; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars { background: transparent; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::before { top: 0; transform: translateX(-50%) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::after { top: 0; transform: translateX(-50%) rotate(-45deg); }
+
 .site-main {
   max-width: 1200px;
   margin: 0 auto;
@@ -170,8 +207,8 @@ body::after {
 /* ---- TYPOGRAPHY ---- */
 h1, h2, h3, h4 { font-family: var(--head); line-height: 1.1; }
 h1 { font-size: clamp(36px, 6vw, 72px); color: var(--text); margin-bottom: 20px; }
-h2 { font-size: 34px; color: var(--text); margin-bottom: 18px; }
-h3 { font-size: 19px; color: var(--signal); margin: 38px 0 14px; letter-spacing: 0.5px; }
+h2 { font-size: clamp(26px, 5vw, 34px); color: var(--text); margin-bottom: 18px; }
+h3 { font-size: clamp(17px, 3.5vw, 19px); color: var(--signal); margin: 38px 0 14px; letter-spacing: 0.5px; }
 h4 { font-size: 15px; color: var(--text); margin: 24px 0 10px; }
 
 p { max-width: 68ch; margin-bottom: 14px; color: var(--text-soft); }
@@ -209,6 +246,17 @@ th {
   font-weight: normal;
 }
 tr:last-child td { border-bottom: none; }
+
+/* Horizontal scroll wrapper for wide tables on narrow screens
+   (layouts/_default/_markup/render-table.html). */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 20px 0;
+}
+.table-scroll table { margin: 0; min-width: 30rem; }
+.table-scroll th, .table-scroll td { white-space: nowrap; }
 
 /* ---- EYEBROW ---- */
 .eyebrow {
@@ -269,6 +317,10 @@ tr:last-child td { border-bottom: none; }
   max-width: 60ch;
   margin-top: 24px;
 }
+.hero .lede.hero-sub { margin-top: 8px; }
+
+/* row of inline buttons (home footer links) */
+.link-row { display: flex; gap: 14px; flex-wrap: wrap; }
 
 .hero-actions {
   display: flex;
@@ -520,39 +572,102 @@ section { margin-bottom: 64px; scroll-margin-top: 30px; }
 
 .content-body { max-width: 800px; }
 
+/* standard page header (partials/page-header.html) */
+.page-head { margin-bottom: 8px; }
+.page-lede {
+  font-size: 17px;
+  color: var(--text-soft);
+  max-width: 68ch;
+  margin-bottom: 32px;
+}
+
+/* "back to section" footer link (how-to single) */
+.page-back { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
+
+/* compact button modifier */
+.btn-sm { font-size: 12px; padding: 8px 16px; }
+
 /* ---- RESPONSIVE ---- */
 @media (max-width: 880px) {
   .site-nav { padding: 0 16px; }
+  .nav-inner { position: relative; gap: 14px; }
 
-  .nav-inner {
-    flex-wrap: wrap;
-    height: auto;
-    padding: 12px 0;
-    gap: 12px;
+  .nav-toggle { display: block; }
+
+  /* Collapsible dropdown panel anchored under the nav bar. */
+  .nav-menu {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-void);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid var(--line);
+    border-top: 1px solid var(--line-soft);
+    max-height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    transition: max-height 0.28s ease, visibility 0s linear 0.28s;
+  }
+  .nav-menu.open {
+    max-height: 80vh;
+    overflow-y: auto;
+    visibility: visible;
+    transition: max-height 0.28s ease;
   }
 
   .nav-links {
-    flex-wrap: wrap;
-    order: 3;
-    width: 100%;
-    gap: 4px;
-    padding-bottom: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 6px 0;
   }
-
   .nav-links a {
-    font-size: 11px;
-    padding: 4px 8px;
+    border-left: 0;
+    border-bottom: 1px solid var(--line-soft);
+    padding: 15px 4px;
+    font-size: 13px;
+  }
+  .nav-links li:last-child a { border-bottom: 0; }
+  .nav-links a:hover,
+  .nav-links a.active {
+    border-left: 0;
+    border-left-color: transparent;
+    color: var(--signal);
+    background: rgba(100, 255, 0, 0.06);
   }
 
-  .nav-lang { order: 2; margin-left: 0; }
+  .nav-lang {
+    margin: 0;
+    display: flex;
+    gap: 10px;
+    padding: 14px 0 18px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .nav-lang .pill.lang { padding: 9px 18px; }
 
   .site-main { padding: 40px 16px 80px; }
 
-  .hero { padding: 36px 24px; }
+  .hero { padding: 36px 22px; }
+  .hero .coords { display: none; }
   .hero-actions { flex-direction: column; }
-  .hero-actions .btn { text-align: center; }
+  .hero-actions .btn { text-align: center; padding: 14px 26px; }
 
   .roles-grid { grid-template-columns: 1fr; }
+}
+
+/* ---- small phones ---- */
+@media (max-width: 480px) {
+  .site-main { padding: 28px 14px 64px; }
+  .hero { padding: 28px 18px; }
+  .hero .tag { letter-spacing: 2.5px; }
+  .panel { padding: 20px; }
+  .phase-grid { grid-template-columns: 1fr; }
+  section { margin-bottom: 48px; }
+  h3 { margin-top: 30px; }
+  .alert { padding: 12px 14px; }
 }
 
 @media (min-width: 1200px) {

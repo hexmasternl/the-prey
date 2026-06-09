@@ -7,36 +7,10 @@ nav_playfield: "Speelveld"
 nav_faq: "FAQ"
 nav_howto: "Handleiding"
 
+nav_menu_label: "Menu"
 lang_switch_label: "Wissel taal"
 
 translation_pending_title: "Vertaling Lopend"
 translation_pending_msg: "Deze pagina is alleen beschikbaar in het Engels. Een Nederlandse vertaling volgt binnenkort."
 
 footer_copy: "EINDE TRANSMISSIE"
-
-# ---- Home page ----
-home_hero_tag: "// Signaal Ontvangen"
-home_hero_sub: "GPS-verstoppertje. Bepaal de arena. Verspreid je en verstop je. Spoor ze op voordat de tijd om is."
-home_cta_rules: "Lees de Regels"
-home_cta_howto: "Handleidingen"
-
-home_game_eyebrow: "Het Spel"
-home_game_title: "Jaag of Word Gejaagd"
-home_game_p1: "The Prey zet spelers in een echte GPS-arena. Eén team verstopt zich en rent. Het andere traceert en tagt. Elke 30 seconden ververst de kaart. Elke beweging telt."
-home_game_p2: "Spellen duren 60 minuten. Prooi krijgt 10 minuten voorsprong om zich te verspreiden voordat Jagers hun eerste ping zien. Daarna — sta je op de radar."
-
-home_phase_headstart_title: "Voorsprong"
-home_phase_headstart_desc: "Prooi verspreidt zich. Geen locatiedata. Jagers wachten."
-home_phase_active_title: "Actieve Jacht"
-home_phase_active_desc: "GPS-pings live. Kaart ververst elke 30 seconden."
-home_phase_final_title: "Eindfase"
-home_phase_final_desc: "Waarschuwing afgegeven. Sluit in of houd vol."
-
-home_roles_eyebrow: "Rollen"
-home_roles_title: "Elke Speler Heeft een Taak"
-home_role_prey_name: "Prooi"
-home_role_prey_tagline: "Verstop. Beweeg. Overleef."
-home_role_hunter_name: "Jager"
-home_role_hunter_tagline: "Traceer. Sluit in. Tag."
-home_role_creator_name: "Spelmaker"
-home_role_creator_tagline: "Bepaal. Wijs toe. Lanceer."

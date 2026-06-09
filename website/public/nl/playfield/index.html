@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="nl">
-<head>
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=50521&amp;path=livereload" data-no-instant defer></script>
   <meta charset="UTF-8">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,8 +17,8 @@
   
   <meta property="og:title" content="Speelveld // The Prey">
   <meta property="og:type" content="article">
-  <meta property="og:image" content="https://theprey.nl/favicon.svg">
-  <meta property="og:url" content="https://theprey.nl/nl/playfield/">
+  <meta property="og:image" content="http://localhost:50521/favicon.svg">
+  <meta property="og:url" content="http://localhost:50521/nl/playfield/">
   <meta property="og:description" content="Hoe je een speelveld tekent en gebruikt in The Prey — bepaal de GPS-grens, leer de kaartgebaren, sla speelvelden op en start een spel vanuit een speelveld.">
   <meta property="og:site_name" content="The Prey">
 
@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="/css/main.min.c11eff60edcd24ae31573ec3a902a40c71973f51767533e14ef0bf0b4b6beb2a.css">
+  <link rel="stylesheet" href="/css/main.min.7cae36b4735cfa0967346aeb34a70c3a929f3318f18582bf7e3777ce7c5d4ac2.css">
 </head>
 <body>
 <div class="crt-beam" aria-hidden="true"></div>
@@ -44,18 +44,24 @@
       <span>THE PREY</span>
     </a>
 
-    <ul class="nav-links">
-      <li><a href="/nl/rules/">Regels</a></li>
-      <li><a href="/nl/roles/">Rollen</a></li>
-      <li><a href="/nl/playfield/" class="active">Speelveld</a></li>
-      <li><a href="/nl/faq/">FAQ</a></li>
-      <li><a href="/nl/how-to/">Handleiding</a></li>
-    </ul>
+    <button type="button" class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
 
-    <div class="nav-lang">
-      
-        <a href="https://theprey.nl/en/playfield/" class="pill lang">EN</a>
-      
+    <div class="nav-menu" id="nav-menu">
+      <ul class="nav-links">
+        <li><a href="/nl/rules/">Regels</a></li>
+        <li><a href="/nl/roles/">Rollen</a></li>
+        <li><a href="/nl/playfield/" class="active">Speelveld</a></li>
+        <li><a href="/nl/faq/">FAQ</a></li>
+        <li><a href="/nl/how-to/">Handleiding</a></li>
+      </ul>
+
+      <div class="nav-lang">
+        
+          <a href="http://localhost:50521/en/playfield/" class="pill lang">EN</a>
+        
+      </div>
     </div>
   </div>
 </nav>
@@ -66,9 +72,12 @@
 
     
 <div class="content-body">
+  <header class="page-head">
   <div class="eyebrow">PLAYFIELD</div>
   <h1>Speelveld</h1>
-  <p class="lede" style="font-size:17px;margin-bottom:32px">Hoe je een speelveld tekent en gebruikt in The Prey — bepaal de GPS-grens, leer de kaartgebaren, sla speelvelden op en start een spel vanuit een speelveld.</p>
+  <p class="lede page-lede">Hoe je een speelveld tekent en gebruikt in The Prey — bepaal de GPS-grens, leer de kaartgebaren, sla speelvelden op en start een spel vanuit een speelveld.</p>
+</header>
+
   <h2 id="wat-is-een-speelveld">Wat Is een Speelveld?</h2>
 <p>Een speelveld is een GPS-polygoon — een gesloten grens getekend op een kaart die het geldige spelgebied definieert. Spelers moeten er tijdens de jacht binnen blijven. Prooi die de grens verlaat kan naar goeddunken van de Spelmaker gediskwalificeerd worden.</p>
 <p>Speelvelden worden voor het spel aangemaakt en kunnen worden opgeslagen en hergebruikt voor toekomstige sessies.</p>
@@ -84,36 +93,38 @@
 <p>Je opgeslagen speelvelden verschijnen in de speelveldlijst en kunnen worden geselecteerd bij het starten van een nieuw spel.</p>
 <hr>
 <h2 id="kaartgebaren">Kaartgebaren</h2>
-<table>
-	<thead>
-			<tr>
-					<th>Gebaar</th>
-					<th>Actie</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td>Tikken</td>
-					<td>Nieuw hoekpunt plaatsen</td>
-			</tr>
-			<tr>
-					<td>Hoekpunt slepen</td>
-					<td>Een geplaatst hoekpunt herpositioneren</td>
-			</tr>
-			<tr>
-					<td>Knijpen</td>
-					<td>In- / uitzoomen</td>
-			</tr>
-			<tr>
-					<td>Lang indrukken op rand</td>
-					<td>Nieuw hoekpunt invoegen op die rand</td>
-			</tr>
-			<tr>
-					<td>Hoekpunt tikken</td>
-					<td>Dat hoekpunt verwijderen</td>
-			</tr>
-	</tbody>
-</table>
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Gebaar</th>
+        <th>Actie</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tikken</td>
+        <td>Nieuw hoekpunt plaatsen</td>
+      </tr>
+      <tr>
+        <td>Hoekpunt slepen</td>
+        <td>Een geplaatst hoekpunt herpositioneren</td>
+      </tr>
+      <tr>
+        <td>Knijpen</td>
+        <td>In- / uitzoomen</td>
+      </tr>
+      <tr>
+        <td>Lang indrukken op rand</td>
+        <td>Nieuw hoekpunt invoegen op die rand</td>
+      </tr>
+      <tr>
+        <td>Hoekpunt tikken</td>
+        <td>Dat hoekpunt verwijderen</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 <hr>
 <h2 id="een-spel-starten-vanuit-een-speelveld">Een Spel Starten vanuit een Speelveld</h2>
 <p>Open een opgeslagen speelveld en tik op <strong>Spel Starten</strong>. Dit maakt een spelssessie gekoppeld aan die grens. Nodig spelers uit met de gegenereerde deelnamecode, wijs rollen toe in de lobby en lanceer.</p>
@@ -130,6 +141,6 @@
 
 </div>
 
-<script src="/js/main.min.0abf87811728ef18a8e58715f04ca29877d4554c12e44a7a1ce7ce0a53b2b023.js" defer></script>
+<script src="/js/main.min.bdf43d6bac08f29ba48c4782d9de25a51a261a58165d9575c79233d05e6165cb.js" defer></script>
 </body>
 </html>

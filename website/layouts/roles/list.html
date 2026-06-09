@@ -1,8 +1,6 @@
 {{ define "main" }}
 <div class="content-body">
-  <div class="eyebrow">{{ i18n "nav_roles" }}</div>
-  <h1>{{ .Title }}</h1>
-  {{ with .Description }}<p style="font-size:17px;margin-bottom:32px;color:var(--text-soft)">{{ . }}</p>{{ end }}
+  {{ partial "page-header.html" (dict "ctx" . "eyebrow" (i18n "nav_roles")) }}
 
   {{ .Content }}
 

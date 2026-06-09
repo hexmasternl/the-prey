@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-	<meta name="generator" content="Hugo 0.162.0">
+	<meta name="generator" content="Hugo 0.162.0"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=50521&amp;path=livereload" data-no-instant defer></script>
   <meta charset="UTF-8">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,8 +18,8 @@
   
   <meta property="og:title" content="The Prey // GPS Verstoppertje">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://theprey.nl/favicon.svg">
-  <meta property="og:url" content="https://theprey.nl/nl/">
+  <meta property="og:image" content="http://localhost:50521/favicon.svg">
+  <meta property="og:url" content="http://localhost:50521/nl/">
   <meta property="og:description" content="The Prey is een GPS-verstoppertje in de echte wereld. Prooien verspreiden zich en overleven, terwijl Jagers ze opsporen via GPS. Ren. Verstop je. Overleef.">
   <meta property="og:site_name" content="The Prey">
 
@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="/css/main.min.c11eff60edcd24ae31573ec3a902a40c71973f51767533e14ef0bf0b4b6beb2a.css">
+  <link rel="stylesheet" href="/css/main.min.7cae36b4735cfa0967346aeb34a70c3a929f3318f18582bf7e3777ce7c5d4ac2.css">
 </head>
 <body>
 <div class="crt-beam" aria-hidden="true"></div>
@@ -45,18 +45,24 @@
       <span>THE PREY</span>
     </a>
 
-    <ul class="nav-links">
-      <li><a href="/nl/rules/">Regels</a></li>
-      <li><a href="/nl/roles/">Rollen</a></li>
-      <li><a href="/nl/playfield/">Speelveld</a></li>
-      <li><a href="/nl/faq/">FAQ</a></li>
-      <li><a href="/nl/how-to/">Handleiding</a></li>
-    </ul>
+    <button type="button" class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
 
-    <div class="nav-lang">
-      
-        <a href="https://theprey.nl/en/" class="pill lang">EN</a>
-      
+    <div class="nav-menu" id="nav-menu">
+      <ul class="nav-links">
+        <li><a href="/nl/rules/">Regels</a></li>
+        <li><a href="/nl/roles/">Rollen</a></li>
+        <li><a href="/nl/playfield/">Speelveld</a></li>
+        <li><a href="/nl/faq/">FAQ</a></li>
+        <li><a href="/nl/how-to/">Handleiding</a></li>
+      </ul>
+
+      <div class="nav-lang">
+        
+          <a href="http://localhost:50521/en/" class="pill lang">EN</a>
+        
+      </div>
     </div>
   </div>
 </nav>
@@ -78,7 +84,7 @@
       <div class="tag">// Signaal Ontvangen</div>
       <h1>THE <em>PREY</em></h1>
       <p class="lede">The Prey is een GPS-verstoppertje in de echte wereld. Prooien verspreiden zich en overleven, terwijl Jagers ze opsporen via GPS. Ren. Verstop je. Overleef.</p>
-      <p class="lede" style="margin-top:8px">GPS-verstoppertje. Bepaal de arena. Verspreid je en verstop je. Spoor ze op voordat de tijd om is.</p>
+      <p class="lede hero-sub">GPS-verstoppertje. Bepaal de arena. Verspreid je en verstop je. Spoor ze op voordat de tijd om is.</p>
       <div class="hero-actions">
         <a href="/nl/rules/" class="btn primary">Lees de Regels</a>
         <a href="/nl/how-to/" class="btn ghost">Handleidingen</a>
@@ -126,8 +132,7 @@
 <section class="reveal">
   <div class="eyebrow">Het Spel</div>
   <h2>Jaag of Word Gejaagd</h2>
-  <p>The Prey zet spelers in een echte GPS-arena. Eén team verstopt zich en rent. Het andere traceert en tagt. Elke 30 seconden ververst de kaart. Elke beweging telt.</p>
-  <p>Spellen duren 60 minuten. Prooi krijgt 10 minuten voorsprong om zich te verspreiden voordat Jagers hun eerste ping zien. Daarna — sta je op de radar.</p>
+  <p>The Prey zet spelers in een echte GPS-arena. Eén team verstopt zich en rent. Het andere traceert en tagt. Elke 30 seconden ververst de kaart. Elke beweging telt.</p><p>Spellen duren 60 minuten. Prooi krijgt 10 minuten voorsprong om zich te verspreiden voordat Jagers hun eerste ping zien. Daarna — sta je op de radar.</p>
   <div class="phase-grid reveal-stagger">
     
     <div class="panel">
@@ -156,7 +161,7 @@
 <section class="reveal">
   <div class="eyebrow">Rollen</div>
   <h2>Elke Speler Heeft een Taak</h2>
-  <div class="roles-grid reveal-stagger" style="margin-top:24px">
+  <div class="roles-grid reveal-stagger">
     
     <a href="/nl/roles/prey/" class="role-card-link">
   <div class="pcard prey">
@@ -197,7 +202,7 @@
 <div class="signal-divider" aria-hidden="true"></div>
 
 <section class="reveal">
-  <div style="display:flex;gap:14px;flex-wrap:wrap">
+  <div class="link-row">
     <a href="/nl/rules/" class="btn ghost">Regels</a>
     <a href="/nl/playfield/" class="btn ghost">Speelveld</a>
     <a href="/nl/faq/" class="btn ghost">FAQ</a>
@@ -213,6 +218,6 @@
 
 </div>
 
-<script src="/js/main.min.0abf87811728ef18a8e58715f04ca29877d4554c12e44a7a1ce7ce0a53b2b023.js" defer></script>
+<script src="/js/main.min.bdf43d6bac08f29ba48c4782d9de25a51a261a58165d9575c79233d05e6165cb.js" defer></script>
 </body>
 </html>

@@ -1,13 +1,11 @@
 {{ define "main" }}
 <div class="content-body">
-  <div class="eyebrow">{{ i18n "nav_howto" }}</div>
-  <h1>{{ .Title }}</h1>
-  {{ with .Description }}<p class="lede" style="font-size:17px;margin-bottom:32px">{{ . }}</p>{{ end }}
+  {{ partial "page-header.html" (dict "ctx" . "eyebrow" (i18n "nav_howto")) }}
   <div class="howto-content">
     {{ .Content }}
   </div>
-  <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--line)">
-    <a href="{{ "/how-to/" | relLangURL }}" class="btn ghost" style="font-size:12px;padding:8px 16px">← {{ i18n "nav_howto" }}</a>
+  <div class="page-back">
+    <a href="{{ "/how-to/" | relLangURL }}" class="btn ghost btn-sm">← {{ i18n "nav_howto" }}</a>
   </div>
 </div>
 {{ end }}
