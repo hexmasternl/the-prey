@@ -16,6 +16,9 @@ public sealed class Game
     /// <summary>Length of the shareable game code: exactly this many decimal digits.</summary>
     public const int GameCodeLength = 4;
 
+    /// <summary>How many hours after creation a game record is eligible for hard deletion.</summary>
+    public const int CleanupWindowHours = 48;
+
     /// <summary>Reporting interval, in seconds, that applies while a participant has an active penalty.</summary>
     public const int PenaltyReportingIntervalSeconds = 10;
 
@@ -32,6 +35,9 @@ public sealed class Game
     public GameStatus Status { get; private set; }
     public GameConfiguration Configuration { get; private set; } = default!;
     public DateTimeOffset? StartedAt { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset? EndsAt { get; private set; }
+    public DateTimeOffset CleanUpAfter { get; private set; }
 
     /// <summary>The lobby player pre-designated as the hunter before the game starts; null until designated.</summary>
     public Guid? DesignatedHunterUserId { get; private set; }
@@ -59,6 +65,7 @@ public sealed class Game
         ValidateGameCode(gameCode);
         ArgumentNullException.ThrowIfNull(configuration);
 
+        var now = DateTimeOffset.UtcNow;
         return new Game
         {
             Id = Guid.NewGuid(),
@@ -66,7 +73,9 @@ public sealed class Game
             OwnerUserId = ownerUserId,
             PlayfieldId = playfieldId,
             Configuration = configuration,
-            Status = GameStatus.Lobby
+            Status = GameStatus.Lobby,
+            CreatedAt = now,
+            CleanUpAfter = now.AddHours(CleanupWindowHours)
         };
     }
 
@@ -81,7 +90,10 @@ public sealed class Game
         DateTimeOffset? startedAt,
         IEnumerable<LobbyPlayer> lobby,
         IEnumerable<GameParticipant> participants,
-        Guid? designatedHunterUserId = null)
+        Guid? designatedHunterUserId = null,
+        DateTimeOffset createdAt = default,
+        DateTimeOffset? endsAt = null,
+        DateTimeOffset cleanUpAfter = default)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
@@ -94,7 +106,10 @@ public sealed class Game
             Status = status,
             Configuration = configuration,
             StartedAt = startedAt,
-            DesignatedHunterUserId = designatedHunterUserId
+            DesignatedHunterUserId = designatedHunterUserId,
+            CreatedAt = createdAt,
+            EndsAt = endsAt,
+            CleanUpAfter = cleanUpAfter
         };
         game._lobby.AddRange(lobby);
         game._participants.AddRange(participants);
@@ -196,6 +211,7 @@ public sealed class Game
         }
 
         StartedAt = startedAt;
+        EndsAt = startedAt.AddMinutes(Configuration.GameDuration);
         Status = GameStatus.InProgress;
     }
 
