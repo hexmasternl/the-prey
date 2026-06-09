@@ -1,14 +1,20 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '@auth0/auth0-angular';
+import { firstValueFrom } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
 import {
   IonButton,
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonSpinner,
   IonToolbar,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { chevronBack } from 'ionicons/icons';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GameDto, GamesService } from './games.service';
 import { UserStateService } from '../users/user-state.service';
@@ -24,14 +30,20 @@ import { UserStateService } from '../users/user-state.service';
     IonButtons,
     IonButton,
     IonContent,
+    IonIcon,
     IonSpinner,
   ],
 })
 export class GameJoinPage implements ViewWillEnter {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
   private readonly gamesService = inject(GamesService);
   private readonly userState = inject(UserStateService);
+
+  constructor() {
+    addIcons({ chevronBack });
+  }
 
   readonly gameId = signal<string | null>(this.route.snapshot.queryParamMap.get('gameId'));
   readonly joinCode = signal('');
@@ -61,11 +73,27 @@ export class GameJoinPage implements ViewWillEnter {
       this.gameNotFound.set(true);
       return;
     }
+
     this.isLoading.set(true);
     this.game.set(null);
     this.gameNotFound.set(false);
     this.gameStarted.set(false);
     this.errorWrongCode.set(false);
+
+    // This page is reachable via a shared join link, so the visitor may not be
+    // authenticated yet. Attempt a silent session restore first; if there is no
+    // valid session, send them to login and return here once they sign in. Only
+    // fetch the game once we actually hold a token — otherwise the request fails
+    // authentication and the game looks (wrongly) like it doesn't exist.
+    const authenticated = await this.restoreSession();
+    if (!authenticated) {
+      this.isLoading.set(false);
+      await this.router.navigate(['/login'], {
+        queryParams: { returnUrl: this.router.url },
+      });
+      return;
+    }
+
     try {
       const g = await this.gamesService.getGame(id);
       this.game.set(g);
@@ -77,6 +105,18 @@ export class GameJoinPage implements ViewWillEnter {
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  /**
+   * Report whether a session exists, waiting for the Auth0 SDK to finish its startup
+   * session check (the silent refresh-token restore) first. We read `isAuthenticated$`
+   * rather than calling `getAccessTokenSilently()` so this agrees with the login page's
+   * own signal — otherwise the two disagree and bounce the user between join and login
+   * in a loop.
+   */
+  private async restoreSession(): Promise<boolean> {
+    await firstValueFrom(this.auth.isLoading$.pipe(filter((loading) => !loading), take(1)));
+    return firstValueFrom(this.auth.isAuthenticated$.pipe(take(1)));
   }
 
   onCodeInput(event: Event): void {
@@ -101,7 +141,7 @@ export class GameJoinPage implements ViewWillEnter {
     this.isSubmitting.set(true);
     this.errorWrongCode.set(false);
     try {
-      const joined = await this.gamesService.joinGame(gameId, callsign);
+      const joined = await this.gamesService.joinGame(gameId, this.joinCode(), callsign);
       await this.router.navigate(['/games', joined.id, 'lobby']);
     } catch (err: unknown) {
       const body = this.errorBody(err);

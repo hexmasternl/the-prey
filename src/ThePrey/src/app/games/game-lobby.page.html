@@ -1,9 +1,10 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="back()"
-        >{{ 'GAME_LOBBY.BACK' | translate }}</ion-button
-      >
+      <ion-button fill="clear" (click)="back()">
+        <ion-icon slot="start" name="chevron-back"></ion-icon>
+        {{ 'GAME_LOBBY.BACK' | translate }}
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

@@ -120,9 +120,14 @@ export class GamesService {
     return firstValueFrom(this.http.get<GameDto>(`${this.apiBase}/${id}`));
   }
 
-  joinGame(gameId: string, displayName: string, profilePictureUrl?: string | null): Promise<GameDto> {
+  joinGame(
+    gameId: string,
+    joinCode: string,
+    displayName: string,
+    profilePictureUrl?: string | null,
+  ): Promise<GameDto> {
     return firstValueFrom(
-      this.http.post<GameDto>(`${this.apiBase}/${gameId}/lobby`, { displayName, profilePictureUrl })
+      this.http.post<GameDto>(`${this.apiBase}/${gameId}/lobby`, { joinCode, displayName, profilePictureUrl })
     );
   }
 

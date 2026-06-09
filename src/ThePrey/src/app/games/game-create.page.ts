@@ -5,6 +5,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonSelect,
   IonSelectOption,
   IonSpinner,
@@ -12,6 +13,8 @@ import {
   ModalController,
   ToastController,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { chevronBack } from 'ionicons/icons';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PlayfieldSelectionPage } from '../playfields/playfield-selection/playfield-selection.page';
 import { PlayFieldRecord } from '../playfields/playfield.model';
@@ -29,6 +32,7 @@ import { UserStateService } from '../users/user-state.service';
     IonButtons,
     IonButton,
     IonContent,
+    IonIcon,
     IonSelect,
     IonSelectOption,
     IonSpinner,
@@ -41,6 +45,10 @@ export class GameCreatePage {
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
   private readonly translate = inject(TranslateService);
+
+  constructor() {
+    addIcons({ chevronBack });
+  }
 
   readonly gameDuration = signal(60);
   readonly hunterDelay = signal(10);

@@ -15,7 +15,7 @@ import {
   ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkCircle, personRemove, shareSocial } from 'ionicons/icons';
+import { checkmarkCircle, chevronBack, personRemove, shareSocial } from 'ionicons/icons';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '@auth0/auth0-angular';
 import { Capacitor } from '@capacitor/core';
@@ -89,7 +89,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   );
 
   constructor() {
-    addIcons({ checkmarkCircle, personRemove, shareSocial });
+    addIcons({ checkmarkCircle, chevronBack, personRemove, shareSocial });
   }
 
   async ionViewWillEnter(): Promise<void> {
