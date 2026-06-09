@@ -2,8 +2,13 @@
 
 - [ ] 1.1 Install `@capacitor-community/background-geolocation` and run `npx cap sync`
 - [ ] 1.2 Add `ACCESS_BACKGROUND_LOCATION` and foreground service permissions to `android/app/src/main/AndroidManifest.xml`
-- [ ] 1.3 Add `NSLocationAlwaysAndWhenInUseUsageDescription` and `NSLocationWhenInUseUsageDescription` to `ios/App/App/Info.plist`
-- [ ] 1.4 Add `location` to the `UIBackgroundModes` array in `ios/App/App/Info.plist`
+- [ ] 1.3 Add `NSLocationAlwaysAndWhenInUseUsageDescription` and `NSLocationWhenInUseUsageDescription` to `ios/App/App/Info.plist` — **DEFERRED: no iOS platform exists in the repo yet (`ios/` is absent). Required keys documented below for when `npx cap add ios` is run.**
+- [ ] 1.4 Add `location` to the `UIBackgroundModes` array in `ios/App/App/Info.plist` — **DEFERRED (see 1.3).**
+
+> **iOS configuration to apply once `ios/` exists** (`ios/App/App/Info.plist`):
+> - `NSLocationAlwaysAndWhenInUseUsageDescription` — "The Prey reports your position to the game while it runs, even when the app is in the background."
+> - `NSLocationWhenInUseUsageDescription` — same/short variant.
+> - `UIBackgroundModes` array MUST include `location`.
 
 ## 2. Backend service — `GamesService` extension
 
@@ -19,15 +24,20 @@
 - [ ] 3.6 Implement the auto-stop guard: when `gameEndTime` elapses, call `stop()` automatically from within the timer chain
 - [ ] 3.7 Handle `start()` called while already tracking the same game (no-op) and different game (stop old, start new)
 
-## 4. `game-progress` page
+## 4. In-game role pages (REVISED — no separate `game-progress` page)
 
-- [ ] 4.1 Create `game-progress.page.ts` — inject `GameLocationService`, `GamesService`, `ActivatedRoute`, `AuthService`
-- [ ] 4.2 Implement `ionViewWillEnter`: fetch game state via `GET /games/{id}/state`, check `isTracking()`, read Preferences and call `start()` if recovery is possible, else show inactive warning
-- [ ] 4.3 Implement `ionViewWillLeave`: do NOT stop tracking (the service outlives the page)
-- [ ] 4.4 Display the player's role (hunter / prey), game code, and a status indicator (tracking active / inactive warning)
-- [ ] 4.5 Create `game-progress.page.html` with the tactical theme, role display, and tracking status indicator
-- [ ] 4.6 Create `game-progress.page.scss`
-- [ ] 4.7 Register route `games/:id/play` in `app.routes.ts` with `authGuardFn`
+> **Decision:** Per product owner, there is NO separate `game-progress` page. The existing
+> role-specific `GamePreyPage` (`games/:id/play`) and `GameHunterPage` (`games/:id/hunt`)
+> are the in-game views and own the tracking lifecycle, because the two roles need
+> different behaviour. The §4 tasks below are integrated into both existing pages.
+
+- [ ] 4.1 Wire `GameLocationService` into `game-prey.page.ts` and `game-hunter.page.ts` (both already inject `GamesService`, `ActivatedRoute`, `AuthService`)
+- [ ] 4.2 Implement `ionViewWillEnter` health check on both pages: check `isTracking()`; if false, recover from Preferences (matching gameId + future end time) or derive end time from the live game (`startedAt + gameDuration`) and call `start()`; otherwise show an inactive warning
+- [ ] 4.3 Do NOT stop tracking on `ionViewWillLeave`/`ngOnDestroy` (the service outlives the page); only stop on `game-ended`, elimination, or the service's own end-time guard
+- [ ] 4.4 Display a tracking status indicator (tracking active / inactive warning) on both pages
+- [ ] 4.5 Add the status indicator markup to `game-prey.page.html` and `game-hunter.page.html` in the existing tactical theme
+- [ ] 4.6 (n/a — no new scss page; reuse existing page styles, add indicator styles)
+- [ ] 4.7 Routes `games/:id/play` and `games/:id/hunt` already exist in `app.routes.ts` with `authGuardFn` — verified, no change needed
 
 ## 5. Lobby page integration
 
