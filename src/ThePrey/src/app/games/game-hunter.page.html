@@ -30,6 +30,17 @@
   </div>
   }
 
+  <!-- Location reporting degraded (server unreachable) — only when GPS itself is fine -->
+  @if (reportingDegraded() && !gpsError()) {
+  <div class="alert-banner">
+    <span class="alert-icon">▲</span>
+    <div>
+      <div class="alert-title">{{ 'GAME_PROGRESS.REPORTING_DEGRADED_TITLE' | translate }}</div>
+      <div class="alert-msg">{{ 'GAME_PROGRESS.REPORTING_DEGRADED_MSG' | translate }}</div>
+    </div>
+  </div>
+  }
+
   <!-- Tracking-inactive warning (non-blocking) -->
   @if (trackingInactive()) {
   <div class="alert-banner track-warn">

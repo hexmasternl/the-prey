@@ -21,6 +21,9 @@ const PREF_END_TIME = 'game.tracking.gameEndTime';
 /** Fallback reporting cadence when the backend has not (yet) supplied one. */
 const DEFAULT_INTERVAL_SECONDS = 30;
 
+/** Consecutive failed posts before the session is flagged as degraded to the UI. */
+const REPORTING_FAILURE_THRESHOLD = 3;
+
 interface LastFix {
   latitude: number;
   longitude: number;
@@ -73,6 +76,18 @@ export class GameLocationService {
    */
   readonly gpsError = this.gpsErrorSignal.asReadonly();
 
+  private readonly reportingDegradedSignal = signal(false);
+  /**
+   * Readonly signal: true once several consecutive location posts have failed (network
+   * loss, expired session, server down). Surfaced so the player knows their position is
+   * no longer reaching the server rather than silently going stale. Cleared on the next
+   * successful post.
+   */
+  readonly reportingDegraded = this.reportingDegradedSignal.asReadonly();
+
+  /** Consecutive failed post cycles; drives `reportingDegraded` past the threshold. */
+  private consecutiveFailures = 0;
+
   private nativeWatcherId: string | null = null;
   private webWatchId: string | null = null;
   private currentGameId: string | null = null;
@@ -104,6 +119,8 @@ export class GameLocationService {
     this.lastIntervalSeconds = DEFAULT_INTERVAL_SECONDS;
     this.lastFix = null;
     this.gpsErrorSignal.set(null);
+    this.reportingDegradedSignal.set(false);
+    this.consecutiveFailures = 0;
 
     await Preferences.set({ key: PREF_GAME_ID, value: gameId });
     await Preferences.set({ key: PREF_END_TIME, value: gameEndTime.toISOString() });
@@ -177,6 +194,8 @@ export class GameLocationService {
     this.lastFix = null;
     this.trackingSignal.set(false);
     this.gpsErrorSignal.set(null);
+    this.reportingDegradedSignal.set(false);
+    this.consecutiveFailures = 0;
 
     await Preferences.remove({ key: PREF_GAME_ID });
     await Preferences.remove({ key: PREF_END_TIME });
@@ -228,9 +247,17 @@ export class GameLocationService {
       nextInterval =
         response.penaltyIntervalSeconds ?? response.nextLocationIntervalSeconds ?? this.lastIntervalSeconds;
       this.lastIntervalSeconds = nextInterval > 0 ? nextInterval : DEFAULT_INTERVAL_SECONDS;
+      // Post succeeded — position is reaching the server again.
+      this.consecutiveFailures = 0;
+      this.reportingDegradedSignal.set(false);
     } catch {
-      // Network error / 401 / token failure: keep tracking, retry on the last known cadence.
+      // Network error / 401 / token failure: keep tracking, retry on the last known cadence,
+      // but flag the session as degraded once failures persist so the UI can warn the player.
       this.lastIntervalSeconds = this.lastIntervalSeconds > 0 ? this.lastIntervalSeconds : DEFAULT_INTERVAL_SECONDS;
+      this.consecutiveFailures += 1;
+      if (this.consecutiveFailures >= REPORTING_FAILURE_THRESHOLD) {
+        this.reportingDegradedSignal.set(true);
+      }
     }
 
     if (this.trackingSignal()) {
