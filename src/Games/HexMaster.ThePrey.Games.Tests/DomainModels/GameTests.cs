@@ -170,4 +170,81 @@ public sealed class GameTests
 
         Assert.Equal(GameStatus.Completed, game.Status);
     }
+
+    // EndByOwner
+
+    [Fact]
+    public void EndByOwner_ShouldTransitionLobbyToCompleted()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(2, out _);
+
+        game.EndByOwner(Start);
+
+        Assert.Equal(GameStatus.Completed, game.Status);
+    }
+
+    [Fact]
+    public void EndByOwner_ShouldTransitionInProgressToCompleted()
+    {
+        var game = GameFaker.StartedGame(out _, out _, Start);
+
+        game.EndByOwner(Start.AddMinutes(10));
+
+        Assert.Equal(GameStatus.Completed, game.Status);
+    }
+
+    [Fact]
+    public void EndByOwner_ShouldThrow_WhenAlreadyCompleted()
+    {
+        var game = GameFaker.StartedGame(out _, out _, Start);
+        game.Complete(Start.AddMinutes(60));
+
+        Assert.Throws<InvalidOperationException>(() => game.EndByOwner(Start.AddMinutes(60)));
+    }
+
+    // Forfeit
+
+    [Fact]
+    public void Forfeit_ShouldSetPreyStateToOut_WhenInProgress()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start);
+
+        game.Forfeit(preyIds[0]);
+
+        var prey = game.Preys.Single(p => p.UserId == preyIds[0]);
+        Assert.Equal(PlayerState.Out, prey.State);
+    }
+
+    [Fact]
+    public void Forfeit_ShouldThrow_WhenUserIsNotAParticipant()
+    {
+        var game = GameFaker.StartedGame(out _, out _, Start);
+
+        Assert.Throws<ArgumentException>(() => game.Forfeit(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public void Forfeit_ShouldThrow_WhenUserIsTheHunter()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start);
+
+        Assert.Throws<InvalidOperationException>(() => game.Forfeit(hunterId));
+    }
+
+    [Fact]
+    public void Forfeit_ShouldThrow_WhenGameIsNotInProgress()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(2, out var ids);
+
+        Assert.Throws<InvalidOperationException>(() => game.Forfeit(ids[0]));
+    }
+
+    [Fact]
+    public void Forfeit_ShouldThrow_WhenPreyIsAlreadyOut()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start);
+        game.Forfeit(preyIds[0]);
+
+        Assert.Throws<InvalidOperationException>(() => game.Forfeit(preyIds[0]));
+    }
 }

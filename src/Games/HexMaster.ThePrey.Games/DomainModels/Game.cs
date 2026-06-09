@@ -309,6 +309,36 @@ public sealed class Game
         Status = GameStatus.Completed;
     }
 
+    /// <summary>
+    /// Ends the game on behalf of its owner. Allowed from Lobby (cancel) and InProgress (force-complete).
+    /// Throws when the game is already Completed.
+    /// </summary>
+    public void EndByOwner(DateTimeOffset now)
+    {
+        if (Status == GameStatus.Completed)
+            throw new InvalidOperationException("The game has already been completed.");
+
+        Status = GameStatus.Completed;
+    }
+
+    /// <summary>
+    /// Marks a prey participant as Out (forfeit). Allowed while InProgress.
+    /// Throws when the game is not InProgress or the user is not an active prey.
+    /// </summary>
+    public void Forfeit(Guid userId)
+    {
+        if (Status != GameStatus.InProgress)
+            throw new InvalidOperationException("A participant can only forfeit while the game is in progress.");
+
+        var participant = FindParticipant(userId)
+            ?? throw new ArgumentException("This user is not a participant of the game.", nameof(userId));
+
+        if (participant.Role != ParticipantRole.Prey)
+            throw new InvalidOperationException("Only a prey participant can forfeit.");
+
+        participant.ForfeitOut();
+    }
+
     /// <summary>The moment the game is scheduled to end (start time plus the configured duration).</summary>
     public DateTimeOffset? ScheduledEndAt =>
         StartedAt is { } started ? started.AddMinutes(Configuration.GameDuration) : null;

@@ -3,11 +3,13 @@ using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.BackgroundServices;
 using HexMaster.ThePrey.Games.Features.TagPlayer;
 using HexMaster.ThePrey.Games.Features.CreateGame;
+using HexMaster.ThePrey.Games.Features.EndGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
 using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.GetGameStatus;
 using HexMaster.ThePrey.Games.Features.JoinGame;
+using HexMaster.ThePrey.Games.Features.LeaveGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
 using HexMaster.ThePrey.Games.Features.RemoveLobbyPlayer;
@@ -42,6 +44,8 @@ public static class GamesModuleRegistration
 
         services.AddScoped<ICommandHandler<TagPlayerCommand, TagPlayerResult?>, TagPlayerCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateLocationBroadcastCommand, UpdateLocationBroadcastResult>, UpdateLocationBroadcastCommandHandler>();
+        services.AddScoped<ICommandHandler<EndGameCommand, EndGameResult?>, EndGameCommandHandler>();
+        services.AddScoped<ICommandHandler<LeaveGameCommand, LeaveGameResult?>, LeaveGameCommandHandler>();
 
         services.AddSingleton<IGameMetrics, GameMetrics>();
         services.AddSingleton<ILobbyEventBus, InProcessLobbyEventBus>();

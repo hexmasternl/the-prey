@@ -110,6 +110,14 @@ public sealed class GameParticipant
         State = PlayerState.Tagged;
     }
 
+    /// <summary>Marks the participant as Out (forfeit). Throws when already Out or Tagged.</summary>
+    internal void ForfeitOut()
+    {
+        if (State == PlayerState.Out || State == PlayerState.Tagged)
+            throw new InvalidOperationException("A participant that is already Out or Tagged cannot forfeit.");
+        State = PlayerState.Out;
+    }
+
     internal void RecordLocation(LocationReading reading)
     {
         ArgumentNullException.ThrowIfNull(reading);

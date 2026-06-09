@@ -2,11 +2,13 @@ using System.Security.Claims;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.Features.CreateGame;
+using HexMaster.ThePrey.Games.Features.EndGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
 using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.GetGameStatus;
 using HexMaster.ThePrey.Games.Features.JoinGame;
+using HexMaster.ThePrey.Games.Features.LeaveGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
 using HexMaster.ThePrey.Games.Features.RemoveLobbyPlayer;
@@ -114,6 +116,22 @@ public static class GameEndpoints
 
         group.MapPost("/{id:guid}/participants/{participantId:guid}/tag", TagPlayer)
             .WithName("TagPlayer")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict)
+            .Produces(StatusCodes.Status401Unauthorized);
+
+        group.MapPost("/{id:guid}/end", EndGame)
+            .WithName("EndGame")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict)
+            .Produces(StatusCodes.Status401Unauthorized);
+
+        group.MapPost("/{id:guid}/leave", LeaveGame)
+            .WithName("LeaveGame")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
@@ -472,6 +490,64 @@ public static class GameEndpoints
             var result = await handler.Handle(new TagPlayerCommand(id, user.UserId, participantId), ct);
             if (result is null) return Results.NotFound();
             return Results.NoContent();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
+        }
+        catch (InvalidOperationException)
+        {
+            return Results.Conflict();
+        }
+        catch (ArgumentException)
+        {
+            return Results.NotFound();
+        }
+    }
+
+    private static async Task<IResult> EndGame(
+        Guid id,
+        ClaimsPrincipal principal,
+        IUserResolver userResolver,
+        ICommandHandler<EndGameCommand, EndGameResult?> handler,
+        CancellationToken ct)
+    {
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        try
+        {
+            var result = await handler.Handle(new EndGameCommand(id, user.UserId), ct);
+            return result is null ? Results.NotFound() : Results.NoContent();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
+        }
+        catch (InvalidOperationException)
+        {
+            return Results.Conflict();
+        }
+    }
+
+    private static async Task<IResult> LeaveGame(
+        Guid id,
+        ClaimsPrincipal principal,
+        IUserResolver userResolver,
+        ICommandHandler<LeaveGameCommand, LeaveGameResult?> handler,
+        CancellationToken ct)
+    {
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        try
+        {
+            var result = await handler.Handle(new LeaveGameCommand(id, user.UserId), ct);
+            return result is null ? Results.NotFound() : Results.NoContent();
         }
         catch (UnauthorizedAccessException)
         {
