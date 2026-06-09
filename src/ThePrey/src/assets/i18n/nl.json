@@ -79,7 +79,7 @@
   },
   "SETTINGS": {
     "TITLE": "INSTELLINGEN",
-    "BACK": "← TERUG",
+    "BACK": "TERUG",
     "CALLSIGN_LABEL": "ROEPNAAM",
     "CALLSIGN_PLACEHOLDER": "jouw roepnaam",
     "CALLSIGN_HINT": "3–30 tekens · letters · cijfers · spaties · - _ & $ # @",
@@ -108,7 +108,7 @@
     "TAG": "// NIEUWE OPERATIE",
     "TITLE": "NIEUWE OPERATIE",
     "SUBTITLE": "CONFIGUREER MISSIE PARAMETERS",
-    "BACK": "← TERUG",
+    "BACK": "TERUG",
     "DURATION_LABEL": "MISSIONDUUR",
     "HUNTER_DELAY_LABEL": "VRIJLATING JAGER",
     "ENDGAME_LABEL": "EINDFASE DUUR",
@@ -125,7 +125,7 @@
     "TAG": "// LOBBY",
     "TITLE": "LOBBY",
     "SUBTITLE": "WACHTEND OP AGENTEN",
-    "BACK": "← TERUG",
+    "BACK": "TERUG",
     "GAME_CODE": "OPERATIECODE",
     "PLAYERS": "AGENTEN",
     "ROLE_HUNTER": "JAGER",
@@ -144,7 +144,7 @@
     "TAG": "// OPERATIE DEELNEMEN",
     "TITLE": "TOEGANGSCODE",
     "SUBTITLE": "VOER DE 4-CIJFERIGE CODE IN DIE DE SPELHOST HEEFT GEDEELD",
-    "BACK": "← TERUG",
+    "BACK": "TERUG",
     "OPERATION_ID": "OPERATIE-ID",
     "CODE_LABEL": "TOEGANGSCODE",
     "OPERATIVE": "AGENT",
@@ -173,6 +173,6 @@
     "GPS_UNAVAILABLE_MSG": "Geen GPS-fix. Ga naar de open lucht en zorg dat locatie aanstaat.",
     "REPORTING_DEGRADED_TITLE": "POSITIE WORDT NIET BIJGEWERKT",
     "REPORTING_DEGRADED_MSG": "Geen verbinding met de commandopost. Je positie wordt niet gedeeld — controleer je verbinding.",
-    "BACK": "← TERUG"
+    "BACK": "TERUG"
   }
 }

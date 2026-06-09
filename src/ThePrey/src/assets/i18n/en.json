@@ -79,7 +79,7 @@
   },
   "SETTINGS": {
     "TITLE": "SETTINGS",
-    "BACK": "← BACK",
+    "BACK": "BACK",
     "CALLSIGN_LABEL": "CALL SIGN",
     "CALLSIGN_PLACEHOLDER": "your call sign",
     "CALLSIGN_HINT": "3–30 characters · letters · numbers · spaces · - _ & $ # @",
@@ -108,7 +108,7 @@
     "TAG": "// NEW OPERATION",
     "TITLE": "NEW OPERATION",
     "SUBTITLE": "CONFIGURE MISSION PARAMETERS",
-    "BACK": "← BACK",
+    "BACK": "BACK",
     "DURATION_LABEL": "MISSION DURATION",
     "HUNTER_DELAY_LABEL": "HUNTER RELEASE DELAY",
     "ENDGAME_LABEL": "FINAL STAGE DURATION",
@@ -125,7 +125,7 @@
     "TAG": "// LOBBY",
     "TITLE": "LOBBY",
     "SUBTITLE": "AWAITING OPERATIVES",
-    "BACK": "← BACK",
+    "BACK": "BACK",
     "GAME_CODE": "OPERATION CODE",
     "PLAYERS": "OPERATIVES",
     "ROLE_HUNTER": "HUNTER",
@@ -144,7 +144,7 @@
     "TAG": "// JOIN OPERATION",
     "TITLE": "ACCESS CODE",
     "SUBTITLE": "ENTER THE 4-DIGIT CODE PROVIDED BY THE GAME HOST",
-    "BACK": "← BACK",
+    "BACK": "BACK",
     "OPERATION_ID": "OPERATION ID",
     "CODE_LABEL": "ACCESS CODE",
     "OPERATIVE": "OPERATIVE",
@@ -173,6 +173,6 @@
     "GPS_UNAVAILABLE_MSG": "Can't get a GPS fix. Move to open sky and make sure location is switched on.",
     "REPORTING_DEGRADED_TITLE": "POSITION NOT UPDATING",
     "REPORTING_DEGRADED_MSG": "Can't reach command. Your position isn't being shared — check your connection.",
-    "BACK": "← BACK"
+    "BACK": "BACK"
   }
 }
