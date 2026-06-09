@@ -30,6 +30,14 @@ interface LastFix {
 }
 
 /**
+ * Why location reporting is not working, surfaced to the UI so the player understands
+ * a broken-looking game instead of seeing a silently empty map.
+ *  - `denied`: the OS location permission was refused/revoked — the user must grant it.
+ *  - `unavailable`: location is enabled but no fix can be obtained (no signal, GPS off).
+ */
+export type GpsErrorKind = 'denied' | 'unavailable';
+
+/**
  * Single source of truth for background location broadcasting during an active game.
  *
  * Lifecycle:
@@ -56,6 +64,14 @@ export class GameLocationService {
   private readonly trackingSignal = signal(false);
   /** Readonly boolean signal: true while a tracking session is active. */
   readonly isTracking = this.trackingSignal.asReadonly();
+
+  private readonly gpsErrorSignal = signal<GpsErrorKind | null>(null);
+  /**
+   * Readonly signal describing why the device cannot produce a location fix, or `null`
+   * when GPS is healthy. Pages surface this so a denied permission or lost signal is
+   * visible instead of an empty map. Cleared as soon as a valid fix arrives.
+   */
+  readonly gpsError = this.gpsErrorSignal.asReadonly();
 
   private nativeWatcherId: string | null = null;
   private webWatchId: string | null = null;
@@ -87,6 +103,7 @@ export class GameLocationService {
     this.gameEndTime = gameEndTime;
     this.lastIntervalSeconds = DEFAULT_INTERVAL_SECONDS;
     this.lastFix = null;
+    this.gpsErrorSignal.set(null);
 
     await Preferences.set({ key: PREF_GAME_ID, value: gameId });
     await Preferences.set({ key: PREF_END_TIME, value: gameEndTime.toISOString() });
@@ -97,7 +114,13 @@ export class GameLocationService {
       this.nativeWatcherId = await BackgroundGeolocation.addWatcher(
         { backgroundTitle, backgroundMessage, requestPermissions: true, stale: false, distanceFilter: 0 },
         (position, error) => {
-          if (error || !position) return;
+          if (error) {
+            // The plugin reports a denied/disabled permission as code 'NOT_AUTHORIZED'.
+            this.gpsErrorSignal.set(error.code === 'NOT_AUTHORIZED' ? 'denied' : 'unavailable');
+            return;
+          }
+          if (!position) return;
+          this.gpsErrorSignal.set(null);
           this.lastFix = {
             latitude: position.latitude,
             longitude: position.longitude,
@@ -110,7 +133,12 @@ export class GameLocationService {
       this.webWatchId = await Geolocation.watchPosition(
         { enableHighAccuracy: true, maximumAge: 5_000 },
         (position, err) => {
-          if (err || !position) return;
+          if (err) {
+            this.gpsErrorSignal.set(this.classifyWebGpsError(err));
+            return;
+          }
+          if (!position) return;
+          this.gpsErrorSignal.set(null);
           this.lastFix = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -148,9 +176,16 @@ export class GameLocationService {
     this.gameEndTime = null;
     this.lastFix = null;
     this.trackingSignal.set(false);
+    this.gpsErrorSignal.set(null);
 
     await Preferences.remove({ key: PREF_GAME_ID });
     await Preferences.remove({ key: PREF_END_TIME });
+  }
+
+  /** Map a web Geolocation error to our coarse error kind (code 1 = PERMISSION_DENIED). */
+  private classifyWebGpsError(err: unknown): GpsErrorKind {
+    const code = (err as { code?: number } | null)?.code;
+    return code === 1 ? 'denied' : 'unavailable';
   }
 
   private scheduleNextPost(delaySeconds: number): void {

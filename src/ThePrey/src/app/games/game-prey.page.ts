@@ -34,6 +34,8 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly trackingInactive = signal(false);
   /** Live tracking state from the singleton service (true while broadcasting). */
   readonly isTracking = this.locationService.isTracking;
+  /** Why background location reporting can't get a fix (denied/unavailable), or null. */
+  readonly gpsError = this.locationService.gpsError;
 
   private gameId!: string;
   private token!: string;

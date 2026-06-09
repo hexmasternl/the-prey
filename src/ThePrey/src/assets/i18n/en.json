@@ -162,6 +162,12 @@
     "ROLE_PREY": "PREY",
     "TRACKING_ACTIVE": "LIVE",
     "TRACKING_INACTIVE": "LOCATION REPORTING INACTIVE",
+    "GPS_DENIED_TITLE": "LOCATION BLOCKED",
+    "GPS_DENIED_MSG": "Location permission is denied. Enable location access for The Prey to stay in the game.",
+    "GPS_UNAVAILABLE_TITLE": "NO LOCATION FIX",
+    "GPS_UNAVAILABLE_MSG": "Can't get a GPS fix. Move to open sky and make sure location is switched on.",
+    "REPORTING_DEGRADED_TITLE": "POSITION NOT UPDATING",
+    "REPORTING_DEGRADED_MSG": "Can't reach command. Your position isn't being shared — check your connection.",
     "BACK": "← BACK"
   }
 }

@@ -162,6 +162,12 @@
     "ROLE_PREY": "PROOI",
     "TRACKING_ACTIVE": "ACTIEF",
     "TRACKING_INACTIVE": "LOCATIE DOORGEVEN INACTIEF",
+    "GPS_DENIED_TITLE": "LOCATIE GEBLOKKEERD",
+    "GPS_DENIED_MSG": "Locatietoegang is geweigerd. Geef The Prey toegang tot je locatie om in het spel te blijven.",
+    "GPS_UNAVAILABLE_TITLE": "GEEN GPS-SIGNAAL",
+    "GPS_UNAVAILABLE_MSG": "Geen GPS-fix. Ga naar de open lucht en zorg dat locatie aanstaat.",
+    "REPORTING_DEGRADED_TITLE": "POSITIE WORDT NIET BIJGEWERKT",
+    "REPORTING_DEGRADED_MSG": "Geen verbinding met de commandopost. Je positie wordt niet gedeeld — controleer je verbinding.",
     "BACK": "← TERUG"
   }
 }

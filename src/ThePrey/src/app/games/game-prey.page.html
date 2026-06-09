@@ -13,6 +13,21 @@
   </div>
   }
 
+  <!-- Location permission / availability error (background reporting) -->
+  @if (gpsError(); as err) {
+  <div class="alert-banner alert-warn">
+    <span class="alert-icon">▲</span>
+    <div>
+      <div class="alert-title">
+        {{ (err === 'denied' ? 'GAME_PROGRESS.GPS_DENIED_TITLE' : 'GAME_PROGRESS.GPS_UNAVAILABLE_TITLE') | translate }}
+      </div>
+      <div class="alert-msg">
+        {{ (err === 'denied' ? 'GAME_PROGRESS.GPS_DENIED_MSG' : 'GAME_PROGRESS.GPS_UNAVAILABLE_MSG') | translate }}
+      </div>
+    </div>
+  </div>
+  }
+
   <!-- Tracking-inactive warning (non-blocking) -->
   @if (trackingInactive()) {
   <div class="alert-banner alert-warn track-warn">
