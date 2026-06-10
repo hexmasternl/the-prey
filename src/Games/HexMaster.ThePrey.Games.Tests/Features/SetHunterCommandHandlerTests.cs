@@ -24,7 +24,7 @@ public sealed class SetHunterCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldSwapRoles_WhenCallerIsHunterAndTargetIsPrey()
+    public async Task Handle_ShouldChangeHunterUserId_WhenCallerIsHunterAndTargetIsPrey()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Now);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
@@ -32,8 +32,8 @@ public sealed class SetHunterCommandHandlerTests
         var result = await _handler.Handle(new SetHunterCommand(game.Id, hunterId, preyIds[0]), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.Equal(preyIds[0], result!.Game.Hunter!.UserId);
-        Assert.Contains(result.Game.Preys, p => p.UserId == hunterId);
+        Assert.Equal(preyIds[0], result!.Game.HunterUserId);
+        Assert.Contains(result.Game.Preys, id => id == hunterId);
         Assert.Equal(GameStatus.InProgress.ToString(), result.Game.Status);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
     }
