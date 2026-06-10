@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -39,8 +41,15 @@ public static class Extensions
     private const string DefaultAuthority = "https://theprey.eu.auth0.com/";
     private const string DefaultAudience = "https://api.theprey.nl";
 
+    // Name of the environment variable that, when present, points at the Azure App Configuration
+    // store to load connection values and settings from. Set in the cloud container apps; absent
+    // locally (where configuration comes from the Aspire AppHost / user secrets).
+    private const string AppConfigurationHostnameVariable = "AppConfigurationHostname";
+
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
+        builder.AddAzureAppConfiguration();
+
         builder.ConfigureOpenTelemetry();
 
         builder.AddDefaultHealthChecks();
@@ -63,6 +72,36 @@ public static class Extensions
         // });
 
         builder.Services.AddDaprClient();
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds Azure App Configuration as a configuration source when the
+    /// <c>AppConfigurationHostname</c> environment variable is set (cloud environments). Connection
+    /// values such as the Web PubSub and Service Bus endpoints live in the store; secrets are stored
+    /// in Key Vault and resolved through Key Vault references using the app's managed identity.
+    /// Does nothing locally, where the env var is absent and config comes from the Aspire AppHost.
+    /// </summary>
+    public static TBuilder AddAzureAppConfiguration<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
+        var hostname = builder.Configuration[AppConfigurationHostnameVariable];
+        if (string.IsNullOrWhiteSpace(hostname))
+            return builder;
+
+        var endpoint = hostname.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            ? hostname
+            : $"https://{hostname}";
+
+        var credential = new global::Azure.Identity.DefaultAzureCredential();
+
+        builder.Configuration.AddAzureAppConfiguration(options =>
+        {
+            options
+                .Connect(new Uri(endpoint), credential)
+                .Select(KeyFilter.Any, LabelFilter.Null)
+                .ConfigureKeyVault(keyVault => keyVault.SetCredential(credential));
+        });
 
         return builder;
     }

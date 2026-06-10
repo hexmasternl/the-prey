@@ -1,16 +1,17 @@
-name: Games
+name: Notifications
 
 on:
   push:
     branches: [main]
     paths:
-      - 'src/Games/**'
+      - 'src/Notifications/**'
       - 'src/Core/**'
       - 'src/Shared/**'
+      - 'src/Users/HexMaster.ThePrey.Users.Integration/**'
       - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
-      - 'infra/games/**'
+      - 'infra/notifications/**'
       - 'infra/modules/**'
-      - '.github/workflows/games.yml'
+      - '.github/workflows/notifications.yml'
   workflow_dispatch:
     inputs:
       imageTag:
@@ -20,20 +21,21 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'src/Games/**'
+      - 'src/Notifications/**'
       - 'src/Core/**'
       - 'src/Shared/**'
+      - 'src/Users/HexMaster.ThePrey.Users.Integration/**'
       - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
-      - 'infra/games/**'
+      - 'infra/notifications/**'
       - 'infra/modules/**'
-      - '.github/workflows/games.yml'
+      - '.github/workflows/notifications.yml'
 
 permissions:
   id-token: write
   contents: read
 
 concurrency:
-  group: games-${{ github.ref }}
+  group: notifications-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -67,8 +69,8 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      - name: Run Games tests
-        run: dotnet test src/Games/HexMaster.ThePrey.Games.Tests/HexMaster.ThePrey.Games.Tests.csproj --configuration Release
+      - name: Run Notifications tests
+        run: dotnet test src/Notifications/HexMaster.ThePrey.Notifications.Tests/HexMaster.ThePrey.Notifications.Tests.csproj --configuration Release
 
   publish:
     name: Publish Container
@@ -104,9 +106,9 @@ jobs:
       - name: Log in to ACR
         run: az acr login --name "${{ secrets.ACR_HOSTNAME }}"
 
-      - name: Publish API container
+      - name: Publish container
         run: |
-          dotnet publish src/Games/HexMaster.ThePrey.Games.Api/HexMaster.ThePrey.Games.Api.csproj \
+          dotnet publish src/Notifications/HexMaster.ThePrey.Notifications.Api/HexMaster.ThePrey.Notifications.Api.csproj \
             --configuration Release \
             --os linux \
             --arch x64 \
@@ -133,19 +135,18 @@ jobs:
           subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
 
       - name: Bicep build (lint)
-        run: az bicep build --file infra/games/main.bicep
+        run: az bicep build --file infra/notifications/main.bicep
 
-      - name: Deploy Games
+      - name: Deploy Notifications
         run: |
           az deployment sub create \
-            --name theprey-games-prod \
+            --name theprey-notifications-prod \
             --location westeurope \
-            --template-file infra/games/main.bicep \
-            --parameters infra/games/prod.bicepparam \
+            --template-file infra/notifications/main.bicep \
+            --parameters infra/notifications/prod.bicepparam \
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
-              registryServer="${{ secrets.ACR_HOSTNAME }}" \
-              pgAdminPassword="${{ secrets.POSTGRES_ADMIN_PASSWORD }}"
+              registryServer="${{ secrets.ACR_HOSTNAME }}"
 
   release:
     name: Tag & Release

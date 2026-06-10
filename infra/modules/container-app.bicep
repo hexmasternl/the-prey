@@ -77,6 +77,11 @@ var baseEnvVars = [
     value: appConfig.properties.endpoint
   }
   {
+    // Consumed by ServiceDefaults.AddAzureAppConfiguration to load the App Configuration store.
+    name: 'AppConfigurationHostname'
+    value: appConfig.properties.endpoint
+  }
+  {
     name: 'Cors__AllowedOrigins'
     value: corsAllowedOrigins
   }

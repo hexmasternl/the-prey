@@ -122,6 +122,40 @@ module redis 'modules/redis.bicep' = {
   }
 }
 
+// Service Bus namespace + Dapr pub/sub component ('pubsub') on the ACA environment. Used by the
+// Games sweep (producer) and the Notifications module (consumer) for cross-module integration events.
+module serviceBus 'modules/service-bus.bicep' = {
+  name: 'serviceBus'
+  scope: rg
+  params: {
+    name: 'theprey-${environmentName}-sb-${uniqueSuffix}'
+    location: location
+    containerAppsEnvironmentName: acaEnv.outputs.name
+  }
+}
+
+// Azure Web PubSub — shared real-time backplane (one group per game). Services mint client access
+// tokens and broadcast to it via managed identity.
+module webPubSub 'modules/web-pubsub.bicep' = {
+  name: 'webPubSub'
+  scope: rg
+  params: {
+    name: 'theprey-${environmentName}-wps-${uniqueSuffix}'
+    location: location
+  }
+}
+
+// Publish shared connection endpoints into App Configuration so services read them centrally.
+module appConfigValues 'modules/app-config-values.bicep' = {
+  name: 'appConfigValues'
+  scope: rg
+  params: {
+    appConfigName: appConfig.outputs.name
+    webPubSubEndpoint: webPubSub.outputs.endpoint
+    serviceBusEndpoint: serviceBus.outputs.endpoint
+  }
+}
+
 // Outputs consumed by service Bicep templates and GitHub Actions workflows
 output resourceGroupName string = rg.name
 output containerAppsEnvironmentId string = acaEnv.outputs.id
@@ -139,5 +173,9 @@ output acrPullIdentityClientId string = acrPullIdentity.outputs.clientId
 output redisName string = redis.outputs.name
 output redisHostName string = redis.outputs.hostName
 output daprStateStoreComponentName string = redis.outputs.daprComponentName
+output serviceBusNamespaceName string = serviceBus.outputs.name
+output daprPubSubComponentName string = serviceBus.outputs.daprComponentName
+output webPubSubName string = webPubSub.outputs.name
+output webPubSubEndpoint string = webPubSub.outputs.endpoint
 #disable-next-line outputs-should-not-contain-secrets
 output appInsightsConnectionString string = appInsights.outputs.connectionString

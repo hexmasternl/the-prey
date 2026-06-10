@@ -20,6 +20,7 @@ param landingZone {
   applicationInsights: string
   appConfig: string
   keyVault: string
+  webPubSub: string
 }
 
 
@@ -76,6 +77,18 @@ module usersStorage '../modules/storage-tables.bicep' = {
     location: location
     principalId: usersApi.outputs.principalId
     tableName: 'users'
+  }
+}
+
+// Grant the API's managed identity read access to App Configuration + Key Vault and Web PubSub access.
+module serviceAccess '../modules/service-access.bicep' = {
+  name: 'usersServiceAccess'
+  scope: resourceGroup(landingZone.resourceGroup)
+  params: {
+    principalId: usersApi.outputs.principalId
+    appConfigName: landingZone.appConfig
+    keyVaultName: landingZone.keyVault
+    webPubSubName: landingZone.webPubSub
   }
 }
 

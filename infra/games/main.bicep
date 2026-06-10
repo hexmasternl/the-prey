@@ -24,6 +24,7 @@ param landingZone {
   appConfig: string
   keyVault: string
   storageQueueAccount: string
+  webPubSub: string
 }
 
 @description('PostgreSQL administrator login')
@@ -96,6 +97,18 @@ module gamesData 'modules/games-data.bicep' = {
     environmentName: environmentName
     pgAdminLogin: pgAdminLogin
     pgAdminPassword: pgAdminPassword
+  }
+}
+
+// Grant the API's managed identity read access to App Configuration + Key Vault and Web PubSub access.
+module serviceAccess '../modules/service-access.bicep' = {
+  name: 'gamesServiceAccess'
+  scope: resourceGroup(landingZone.resourceGroup)
+  params: {
+    principalId: gamesApi.outputs.principalId
+    appConfigName: landingZone.appConfig
+    keyVaultName: landingZone.keyVault
+    webPubSubName: landingZone.webPubSub
   }
 }
 

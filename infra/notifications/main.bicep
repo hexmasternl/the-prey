@@ -1,6 +1,6 @@
 targetScope = 'subscription'
 
-@description('Primary Azure region for all PlayFields resources')
+@description('Primary Azure region for all Notifications resources')
 param location string = 'westeurope'
 
 @description('Environment discriminator')
@@ -23,12 +23,8 @@ param landingZone {
   webPubSub: string
 }
 
-
-var rgName = 'rg-theprey-playfields-${environmentName}'
-var playfieldsImage = '${registryServer}/theprey/playfields-api:${imageTag}'
-var storageAccountName = uniqueString(rgName)
-// Table service URI for passwordless (managed-identity) access; matches the Aspire 'playfields-tables' connection.
-var playfieldsTablesEndpoint = 'https://${storageAccountName}.table.${environment().suffixes.storage}/'
+var rgName = 'rg-theprey-notifications-${environmentName}'
+var notificationsImage = '${registryServer}/theprey/notifications-api:${imageTag}'
 
 resource rg 'Microsoft.Resources/resourceGroups@2024-07-01' = {
   name: rgName
@@ -45,52 +41,37 @@ resource acrPullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
   scope: resourceGroup(landingZone.resourceGroup)
 }
 
-// PlayFields API container app (principalId needed for storage role assignment)
-module playfieldsApi '../modules/container-app.bicep' = {
-  name: 'playfieldsApi'
+// Notifications API container app. Dapr-enabled so its sidecar can subscribe to the 'pubsub'
+// component (Service Bus) registered on the ACA environment by the landing zone, and invoke the
+// Games API for membership checks. The Web PubSub endpoint is read from App Configuration
+// (ConnectionStrings:webpubsub) and accessed with the app's managed identity.
+module notificationsApi '../modules/container-app.bicep' = {
+  name: 'notificationsApi'
   scope: rg
   params: {
-    name: 'theprey-playfields-api-${environmentName}'
+    name: 'theprey-notifications-api-${environmentName}'
     location: location
     containerAppsEnvironmentId: acaEnv.id
     registryServer: registryServer
     acrPullIdentityId: acrPullIdentity.id
-    image: playfieldsImage
+    image: notificationsImage
     landingZone: landingZone
     enableDapr: true
-    daprAppId: 'hexmaster-theprey-playfields-api'
-    additionalEnvVars: [
-      {
-        name: 'ConnectionStrings__playfields-tables'
-        value: playfieldsTablesEndpoint
-      }
-    ]
-  }
-}
-
-// Table storage with a 'playfields' table and Storage Table Data Contributor for the API's managed identity
-module playfieldsStorage '../modules/storage-tables.bicep' = {
-  name: 'playfieldsStorage'
-  scope: rg
-  params: {
-    name: storageAccountName
-    location: location
-    principalId: playfieldsApi.outputs.principalId
-    tableName: 'playfields'
+    daprAppId: 'hexmaster-theprey-notifications-api'
+    minReplicas: 1
   }
 }
 
 // Grant the API's managed identity read access to App Configuration + Key Vault and Web PubSub access.
 module serviceAccess '../modules/service-access.bicep' = {
-  name: 'playfieldsServiceAccess'
+  name: 'notificationsServiceAccess'
   scope: resourceGroup(landingZone.resourceGroup)
   params: {
-    principalId: playfieldsApi.outputs.principalId
+    principalId: notificationsApi.outputs.principalId
     appConfigName: landingZone.appConfig
     keyVaultName: landingZone.keyVault
     webPubSubName: landingZone.webPubSub
   }
 }
 
-output playfieldsApiFqdn string = playfieldsApi.outputs.fqdn
-output storageAccountName string = playfieldsStorage.outputs.name
+output notificationsApiFqdn string = notificationsApi.outputs.fqdn

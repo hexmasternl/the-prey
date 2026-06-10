@@ -63,12 +63,13 @@ resource managedCertificate 'Microsoft.App/managedEnvironments/managedCertificat
 var usersApp = 'theprey-users-api-${environmentName}'
 var playFieldsApp = 'theprey-playfields-api-${environmentName}'
 var gamesApp = 'theprey-games-api-${environmentName}'
+var notificationsApp = 'theprey-notifications-api-${environmentName}'
 
 // Managed gateway that mirrors the YARP routing configured in the Aspire AppHost:
-//   /users/{**catch-all}      -> users API
-//   /playfields/{**catch-all} -> playfields API
-//   /games/{**catch-all}      -> games API
-//   /game-engine/{**catch-all} -> games API
+//   /users/{**catch-all}         -> users API
+//   /playfields/{**catch-all}    -> playfields API
+//   /games/{**catch-all}         -> games API
+//   /notifications/{**catch-all} -> notifications API
 // No prefixRewrite: the backend APIs map their endpoints under the same prefix
 // (MapGroup("/users"), MapGroup("/playfields"), ...), so the path is forwarded as-is,
 // matching YARP's default (non-stripping) behaviour.
@@ -120,6 +121,21 @@ resource gateway 'Microsoft.App/managedEnvironments/httpRouteConfigs@2026-01-01'
         targets: [
           {
             containerApp: gamesApp
+          }
+        ]
+      }
+      {
+        description: 'Notifications API'
+        routes: [
+          {
+            match: {
+              prefix: '/notifications'
+            }
+          }
+        ]
+        targets: [
+          {
+            containerApp: notificationsApp
           }
         ]
       }
