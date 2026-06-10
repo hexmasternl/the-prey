@@ -23,7 +23,7 @@ public sealed class JoinGameCommandHandlerTests
         var result = await _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), game.GameCode, "Alice", null), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.Single(result!.Game.Lobby);
+        Assert.Single(result!.Game.Participants);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _eventBus.Verify(b => b.PublishAsync(game.Id, "lobby-updated", It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -85,7 +85,7 @@ public sealed class JoinGameCommandHandlerTests
     public async Task Handle_ShouldThrowLobbyFull_WhenLobbyIsAtCapacity()
     {
         var game = GameFaker.LobbyGame();
-        for (var i = game.Lobby.Count; i < Game.MaxLobbySize; i++)
+        for (var i = game.Participants.Count; i < Game.MaxLobbySize; i++)
             game.JoinLobby(GameFaker.Player());
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
