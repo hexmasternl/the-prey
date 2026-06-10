@@ -10,4 +10,9 @@ public static class IntegrationEventTopics
     public const string PlayerStatusChanged = "player-status-changed";
     public const string PlayerPenalized = "player-penalized";
     public const string GameEnded = "game-ended";
+
+    // Envelope topics: carry an in-process game/lobby event (its name + payload) across the service
+    // boundary so the Notifications module can fan it out to clients verbatim.
+    public const string GameNotification = "game-notification";
+    public const string LobbyNotification = "lobby-notification";
 }

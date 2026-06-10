@@ -1,59 +1,89 @@
-import { Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
-import { SseStream } from '../core/sse-stream';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { WebPubSubStream } from '../core/web-pubsub-stream';
 
-export type GameEventType = 'state-changed' | 'participant-located' | 'participant-status-changed' | 'game-ended';
+// ── Lobby events ────────────────────────────────────────────────────────────
+// All lobby events carry a full GameDto as their `data`.
+export type LobbyEventType =
+  | 'lobby-updated'
+  | 'settings-updated'
+  | 'ready-updated'
+  | 'hunter-designated'
+  | 'hunter-changed'
+  | 'game-started';
 
-export interface StateChangedPayload { gameId: string; newState: string; }
-export interface ParticipantLocatedPayload { gameId: string; userId: string; participantRole: string; latitude: number; longitude: number; participantState: string; }
+// ── In-game events ───────────────────────────────────────────────────────────
+export type GameEventType =
+  | 'state-changed'
+  | 'player-location-updated'
+  | 'player-status-changed'
+  | 'participant-status-changed'
+  | 'player-penalized'
+  | 'game-ended';
+
+export type AnyEventType = LobbyEventType | GameEventType;
+
+export interface StateChangedPayload         { gameId: string; newState: string; }
+export interface PlayerLocationUpdatedPayload { gameId: string; userId: string; latitude: number; longitude: number; participantState: string; }
+export interface PlayerStatusChangedPayload  { gameId: string; userId: string; role: string; newState: string; }
 export interface ParticipantStatusChangedPayload { gameId: string; participantId: string; participantRole: string; newState: string; }
-export interface GameEndedPayload { gameId: string; }
+export interface PlayerPenalizedPayload      { gameId: string; userId: string; penaltyEndsAt: string; reason: string; }
+export interface GameEndedPayload            { gameId: string; outcome?: string; survivorCount?: number; }
 
-type EventPayloadMap = {
-  'state-changed': StateChangedPayload;
-  'participant-located': ParticipantLocatedPayload;
-  'participant-status-changed': ParticipantStatusChangedPayload;
-  'game-ended': GameEndedPayload;
-};
-
-type HandlerMap = { [K in GameEventType]?: (payload: EventPayloadMap[K]) => void };
-
-const GAME_EVENT_TYPES: readonly GameEventType[] = ['state-changed', 'participant-located', 'participant-status-changed', 'game-ended'];
+type HandlerMap = Map<string, (payload: unknown) => void>;
 
 /**
- * In-game SSE stream (/games/{id}/stream). Reconnection, token refresh, heartbeat watchdog
- * and app-resume recovery live in {@link SseStream}; this service adds typed event dispatch.
+ * Typed real-time event dispatcher backed by Azure Web PubSub.
+ *
+ * Drop-in replacement for the old SSE-based `GameStreamService`. The public API
+ * (`connect`, `on`, `onReconnected`, `disconnect`) is identical so pages need
+ * minimal changes. The transport is now a WebSocket managed by the
+ * `@azure/web-pubsub-client` SDK, which auto-reconnects and re-negotiates a
+ * fresh access URL on every reconnect attempt.
+ *
+ * Event envelope from the server:
+ *   `{ "type": "<event-name>", "data": { ...payload... } }`
+ *
+ * The service dispatches `data` to the registered handler for `type`.
  */
 @Injectable({ providedIn: 'root' })
 export class GameStreamService {
-  private stream: SseStream | null = null;
-  private handlers: HandlerMap = {};
+  private readonly http = inject(HttpClient);
+
+  private stream: WebPubSubStream | null = null;
+  private handlers: HandlerMap = new Map();
   private reconnectedHandler: (() => void) | null = null;
 
   /**
-   * Opens the stream. `getToken` is invoked for every (re)connect attempt so reconnects never
-   * reuse an expired JWT (the token rides in the URL and is fixed for a connection's lifetime).
+   * Opens the Web PubSub WebSocket for the given game. The negotiate endpoint is
+   * called automatically (and re-called on every SDK reconnect) so the access URL
+   * is always fresh.
    */
-  connect(gameId: string, getToken: () => Promise<string>): void {
+  connect(gameId: string): void {
     this.disconnect();
-    this.stream = new SseStream({
-      buildUrl: (token) => `${environment.apiUrl}/games/${gameId}/stream?token=${encodeURIComponent(token)}`,
-      events: GAME_EVENT_TYPES,
-      getToken,
-      onEvent: (type, data) => this.dispatch(type as GameEventType, data),
-      onReconnected: () => this.reconnectedHandler?.(),
-      probeStatusOnError: true,
+    this.stream = new WebPubSubStream({
+      gameId,
+      http: this.http,
+      onMessage: (envelope) => this.dispatch(envelope.type, envelope.data),
+      onConnected: () => {
+        console.info(`[GameStream] connected — gameId=${gameId}`);
+      },
+      onReconnected: () => {
+        console.info(`[GameStream] reconnected — gameId=${gameId}; triggering missed-event recovery`);
+        this.reconnectedHandler?.();
+      },
       log: (msg) => console.info(`[GameStream] ${msg}`),
       logError: (msg, ...args) => console.error(`[GameStream] ${msg}`, ...args),
     });
     void this.stream.start();
   }
 
-  on<K extends GameEventType>(eventType: K, handler: (payload: EventPayloadMap[K]) => void): void {
-    (this.handlers as Record<string, unknown>)[eventType] = handler;
+  /** Register a handler for a specific event type. */
+  on<T>(eventType: string, handler: (payload: T) => void): void {
+    this.handlers.set(eventType, handler as (p: unknown) => void);
   }
 
-  /** Registers a callback fired after the stream re-opens following a drop — refetch state there. */
+  /** Register a callback fired after the WebSocket re-opens following a drop. */
   onReconnected(handler: () => void): void {
     this.reconnectedHandler = handler;
   }
@@ -61,18 +91,17 @@ export class GameStreamService {
   disconnect(): void {
     this.stream?.stop();
     this.stream = null;
-    this.handlers = {};
+    this.handlers.clear();
     this.reconnectedHandler = null;
   }
 
-  private dispatch(type: GameEventType, data: string): void {
-    const handler = this.handlers[type];
+  private dispatch(type: string, data: unknown): void {
+    const handler = this.handlers.get(type);
     if (!handler) return;
     try {
-      const payload = JSON.parse(data);
-      (handler as (p: unknown) => void)(payload);
-    } catch {
-      // malformed event — ignore
+      handler(data);
+    } catch (err) {
+      console.error(`[GameStream] handler for '${type}' threw`, err);
     }
   }
 }

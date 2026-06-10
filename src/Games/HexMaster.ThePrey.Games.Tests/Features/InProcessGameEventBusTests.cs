@@ -1,10 +1,12 @@
 using HexMaster.ThePrey.Games.Notifications;
+using HexMaster.ThePrey.IntegrationEvents;
+using Moq;
 
 namespace HexMaster.ThePrey.Games.Tests.Features;
 
 public sealed class InProcessGameEventBusTests
 {
-    private readonly InProcessGameEventBus _bus = new();
+    private readonly InProcessGameEventBus _bus = new(Mock.Of<IIntegrationEventPublisher>());
 
     [Fact]
     public async Task PublishAsync_ShouldDeliverEvent_ToSubscriber()

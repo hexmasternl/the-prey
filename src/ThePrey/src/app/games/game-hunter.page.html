@@ -1,4 +1,8 @@
 <ion-content [fullscreen]="true" class="hunter-view">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <!-- Surroundings safety warning modal -->
   <ion-modal [isOpen]="showSurroundingsWarning()" [backdropDismiss]="false">
     <ng-template>

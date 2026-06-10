@@ -1,184 +1,129 @@
+import { TestBed } from '@angular/core/testing';
+import { HttpClient } from '@angular/common/http';
 import { GameStreamService } from './game-stream.service';
-import { environment } from '../../environments/environment';
+import * as WebPubSubStreamModule from '../core/web-pubsub-stream';
 
-/** Minimal EventSource stand-in so we can drive events and inspect connections in tests. */
-class FakeEventSource {
-  static instances: FakeEventSource[] = [];
-  readonly listeners = new Map<string, (e: MessageEvent) => void>();
-  onerror: ((e: Event) => void) | null = null;
-  onopen: ((e: Event) => void) | null = null;
-  closed = false;
+/** Lightweight stand-in that captures callbacks without opening a real WebSocket. */
+class FakeWebPubSubStream {
+  started = false;
+  stopped = false;
 
-  constructor(public readonly url: string) {
-    FakeEventSource.instances.push(this);
+  private messageHandler?: (envelope: { type: string; data: unknown }) => void;
+  private reconnectedHandler?: () => void;
+  private connectedHandler?: () => void;
+
+  constructor(public options: WebPubSubStreamModule.WebPubSubStreamOptions) {
+    this.messageHandler = options.onMessage;
+    this.connectedHandler = options.onConnected;
+    this.reconnectedHandler = options.onReconnected;
   }
 
-  addEventListener(type: string, cb: (e: MessageEvent) => void): void {
-    this.listeners.set(type, cb);
+  async start(): Promise<void> {
+    this.started = true;
+    this.connectedHandler?.();
   }
 
-  close(): void {
-    this.closed = true;
+  stop(): void {
+    this.stopped = true;
   }
 
-  emit(type: string, data: string): void {
-    this.listeners.get(type)?.({ data } as MessageEvent);
+  /** Test helper: simulate a group-message arriving from the server. */
+  emit(type: string, data: unknown): void {
+    this.messageHandler?.({ type, data });
   }
 
-  open(): void {
-    this.onopen?.(new Event('open'));
+  /** Test helper: simulate the SDK reconnecting after a drop. */
+  simulateReconnect(): void {
+    this.reconnectedHandler?.();
   }
-
-  fail(): void {
-    this.onerror?.(new Event('error'));
-  }
-}
-
-/**
- * Connection opening is async (a fresh token is fetched per attempt), so tests must let the
- * microtask queue drain before the EventSource exists. Promise hops are unaffected by
- * jasmine.clock(), which only fakes timers.
- */
-async function flushMicrotasks(): Promise<void> {
-  for (let i = 0; i < 10; i++) await Promise.resolve();
 }
 
 describe('GameStreamService', () => {
   let service: GameStreamService;
-  let originalEventSource: typeof EventSource;
-  const getToken = () => Promise.resolve('tok-abc');
+  let lastFakeStream: FakeWebPubSubStream;
 
   beforeEach(() => {
-    originalEventSource = (globalThis as { EventSource: typeof EventSource }).EventSource;
-    (globalThis as unknown as { EventSource: unknown }).EventSource = FakeEventSource;
-    FakeEventSource.instances = [];
-    // The diagnostic status probe fetches the stream URL after a failure — stub it out so
-    // tests never make real network calls.
-    spyOn(globalThis, 'fetch').and.resolveTo(new Response(null, { status: 403, statusText: 'Forbidden' }));
-    service = new GameStreamService();
+    TestBed.configureTestingModule({
+      providers: [
+        GameStreamService,
+        { provide: HttpClient, useValue: {} },
+      ],
+    });
+
+    // Intercept WebPubSubStream construction so no real WebSocket is created.
+    spyOn(WebPubSubStreamModule, 'WebPubSubStream').and.callFake((opts: WebPubSubStreamModule.WebPubSubStreamOptions) => {
+      lastFakeStream = new FakeWebPubSubStream(opts);
+      return lastFakeStream as unknown as WebPubSubStreamModule.WebPubSubStream;
+    });
+
+    service = TestBed.inject(GameStreamService);
   });
 
   afterEach(() => {
     service.disconnect();
-    (globalThis as unknown as { EventSource: unknown }).EventSource = originalEventSource;
   });
 
-  it('opens the stream with a freshly fetched JWT in the query string', async () => {
-    service.connect('game-1', getToken);
-    await flushMicrotasks();
+  it('starts the stream on connect()', async () => {
+    service.connect('game-1');
+    await Promise.resolve(); // let start() settle
 
-    expect(FakeEventSource.instances.length).toBe(1);
-    expect(FakeEventSource.instances[0].url)
-      .toBe(`${environment.apiUrl}/games/game-1/stream?token=tok-abc`);
+    expect(lastFakeStream.started).toBeTrue();
   });
 
-  it('dispatches parsed payloads to the registered handler', async () => {
+  it('dispatches received messages to registered handlers', async () => {
     const received: unknown[] = [];
-    service.connect('game-1', getToken);
-    service.on('state-changed', (p) => received.push(p));
-    await flushMicrotasks();
+    service.connect('game-1');
+    service.on<{ gameId: string; newState: string }>('state-changed', (p) => received.push(p));
+    await Promise.resolve();
 
-    FakeEventSource.instances[0].emit('state-changed', JSON.stringify({ gameId: 'game-1', newState: 'InProgress' }));
+    lastFakeStream.emit('state-changed', { gameId: 'game-1', newState: 'InProgress' });
 
     expect(received).toEqual([{ gameId: 'game-1', newState: 'InProgress' }]);
   });
 
-  it('ignores malformed event data without throwing', async () => {
-    service.connect('game-1', getToken);
-    service.on('game-ended', () => fail('handler should not be called for malformed data'));
-    await flushMicrotasks();
+  it('does not call handlers for unregistered event types', async () => {
+    const called = jasmine.createSpy('handler');
+    service.connect('game-1');
+    service.on('player-location-updated', called);
+    await Promise.resolve();
 
-    expect(() => FakeEventSource.instances[0].emit('game-ended', '{not json')).not.toThrow();
+    // Emit an event that has no handler registered
+    lastFakeStream.emit('state-changed', { gameId: 'game-1' });
+
+    expect(called).not.toHaveBeenCalled();
   });
 
-  it('reconnects with a fresh token after a connection error', async () => {
-    jasmine.clock().install();
-    try {
-      let calls = 0;
-      service.connect('game-1', () => Promise.resolve(`tok-${++calls}`));
-      await flushMicrotasks();
-      expect(FakeEventSource.instances.length).toBe(1);
+  it('fires onReconnected after a stream reconnect', async () => {
+    let reconnects = 0;
+    service.connect('game-1');
+    service.onReconnected(() => reconnects++);
+    await Promise.resolve();
 
-      FakeEventSource.instances[0].fail();
-      expect(FakeEventSource.instances[0].closed).toBeTrue();
+    lastFakeStream.simulateReconnect();
 
-      // First retry is scheduled ~1s out and must fetch a NEW token, not reuse the old one.
-      // (The exact counter value is not asserted — the diagnostic probe also consumes one.)
-      jasmine.clock().tick(1000);
-      await flushMicrotasks();
-      expect(FakeEventSource.instances.length).toBe(2);
-      expect(FakeEventSource.instances[1].url).not.toContain('token=tok-1');
-    } finally {
-      jasmine.clock().uninstall();
-    }
+    expect(reconnects).toBe(1);
   });
 
-  it('fires onReconnected after the stream re-opens following a drop', async () => {
-    jasmine.clock().install();
-    try {
-      let reconnected = 0;
-      service.connect('game-1', getToken);
-      service.onReconnected(() => reconnected++);
-      await flushMicrotasks();
+  it('stops the stream and clears handlers on disconnect()', async () => {
+    const handler = jasmine.createSpy('handler');
+    service.connect('game-1');
+    service.on('game-ended', handler);
+    await Promise.resolve();
 
-      FakeEventSource.instances[0].open();
-      expect(reconnected).toBe(0); // first open is not a reconnect
+    service.disconnect();
 
-      FakeEventSource.instances[0].fail();
-      jasmine.clock().tick(1000);
-      await flushMicrotasks();
+    expect(lastFakeStream.stopped).toBeTrue();
 
-      FakeEventSource.instances[1].open();
-      expect(reconnected).toBe(1);
-    } finally {
-      jasmine.clock().uninstall();
-    }
+    // After disconnect, no more handler calls
+    lastFakeStream.emit('game-ended', { gameId: 'game-1' });
+    expect(handler).not.toHaveBeenCalled();
   });
 
-  it('reconnects when no event or heartbeat arrives within the staleness window', async () => {
-    jasmine.clock().install();
-    // The watchdog compares Date.now() timestamps; mockDate makes tick() advance them too.
-    jasmine.clock().mockDate();
-    try {
-      service.connect('game-1', getToken);
-      await flushMicrotasks();
-      const first = FakeEventSource.instances[0];
-      first.open();
+  it('does not throw when a handler throws', async () => {
+    service.connect('game-1');
+    service.on('game-ended', () => { throw new Error('handler error'); });
+    await Promise.resolve();
 
-      // Heartbeats keep the watchdog quiet…
-      jasmine.clock().tick(40_000);
-      first.emit('heartbeat', '{}');
-      jasmine.clock().tick(40_000);
-      first.emit('heartbeat', '{}');
-      expect(FakeEventSource.instances.length).toBe(1);
-
-      // …silence beyond the staleness window forces a reconnect.
-      jasmine.clock().tick(50_000);
-      await flushMicrotasks();
-      expect(first.closed).toBeTrue();
-      expect(FakeEventSource.instances.length).toBe(2);
-    } finally {
-      jasmine.clock().uninstall();
-    }
-  });
-
-  it('closes the connection and stops reconnecting on disconnect', async () => {
-    jasmine.clock().install();
-    try {
-      service.connect('game-1', getToken);
-      await flushMicrotasks();
-      const source = FakeEventSource.instances[0];
-
-      service.disconnect();
-      expect(source.closed).toBeTrue();
-
-      // A late error must not schedule a reconnect after disconnect.
-      source.fail();
-      jasmine.clock().tick(60_000);
-      await flushMicrotasks();
-      expect(FakeEventSource.instances.length).toBe(1);
-    } finally {
-      jasmine.clock().uninstall();
-    }
+    expect(() => lastFakeStream.emit('game-ended', {})).not.toThrow();
   });
 });

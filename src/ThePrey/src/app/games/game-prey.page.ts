@@ -11,16 +11,19 @@ import {
   IonCheckbox,
   IonLabel,
   IonItem,
+  IonRefresher,
+  IonRefresherContent,
+  RefresherCustomEvent,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
-import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '@auth0/auth0-angular';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GameStatusDto, GamesService } from './games.service';
-import { GameStreamService } from './game-stream.service';
+import { GameStreamService, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
 
 @Component({
@@ -38,6 +41,8 @@ import { GameLocationService } from './game-location.service';
     IonCheckbox,
     IonLabel,
     IonItem,
+    IonRefresher,
+    IonRefresherContent,
     TranslatePipe,
   ],
 })
@@ -86,6 +91,8 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   /** Capacitor Geolocation watch — used only for the on-screen map marker. */
   private mapWatchId: string | null = null;
   private currentUserId: string | null = null;
+  /** Guard: prevent duplicate game-ended handling. */
+  private gameEndedHandled = false;
 
   // -------------------------------------------------------------------------
   // Lifecycle
@@ -304,40 +311,65 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   // -------------------------------------------------------------------------
-  // SSE stream
+  // Pull-to-refresh
+  // -------------------------------------------------------------------------
+
+  /** Pull-to-refresh: fetch the latest game status and apply it immediately. */
+  async handleRefresh(event: RefresherCustomEvent): Promise<void> {
+    try {
+      const status = await this.gamesService.getGameStatus(this.gameId);
+      this.applyStatus(status);
+    } catch {
+      // Silently ignore — the poll timer will retry shortly
+    } finally {
+      await event.target.complete();
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Web PubSub real-time stream
   // -------------------------------------------------------------------------
 
   private connectStream(): void {
-    // Token provider (not a one-shot token) so every reconnect uses a fresh JWT.
-    this.streamService.connect(this.gameId, () => firstValueFrom(this.auth.getAccessTokenSilently()));
+    this.streamService.connect(this.gameId);
 
-    // Status changes (tagged/out, preys left) may have been missed while the stream was
-    // down — refresh the snapshot immediately instead of waiting for the next poll tick.
+    // WebSocket reconnected after a drop — refresh the snapshot immediately instead
+    // of waiting for the next poll tick to catch missed status-change events.
     this.streamService.onReconnected(() => {
       this.clearPoll();
       void this.pollStatus();
     });
 
-    this.streamService.on('participant-located', (payload) => {
-      if (payload.participantRole === 'Prey' && payload.participantState) {
-        this.participantStates.set(payload.userId, payload.participantState);
-      }
-    });
-
-    this.streamService.on('participant-status-changed', (payload) => {
-      this.participantStates.set(payload.participantId, payload.newState);
+    // Status changes arrive from either event name — treat them identically.
+    const onStatusChanged = (userId: string, newState: string): void => {
+      this.participantStates.set(userId, newState);
 
       // Recalculate preys-remaining count
       const activeCount = [...this.participantStates.values()].filter(s => s === 'Active' || s === 'Passive').length;
       this.preysLeft.set(activeCount);
 
       // React when our own state changes
-      if (payload.participantId === this.currentUserId) {
-        if (payload.newState === 'Tagged') {
+      if (userId === this.currentUserId) {
+        if (newState === 'Tagged') {
           this.handleGameOver('You have been tagged. Game over for you.');
-        } else if (payload.newState === 'Out') {
+        } else if (newState === 'Out') {
           this.handleGameOver('You left the area for too long. You are out.');
         }
+      }
+    };
+
+    this.streamService.on<PlayerStatusChangedPayload>('player-status-changed', (payload) => {
+      onStatusChanged(payload.userId, payload.newState);
+    });
+
+    this.streamService.on<ParticipantStatusChangedPayload>('participant-status-changed', (payload) => {
+      onStatusChanged(payload.participantId, payload.newState);
+    });
+
+    // Own penalty notification
+    this.streamService.on<PlayerPenalizedPayload>('player-penalized', (payload) => {
+      if (payload.userId === this.currentUserId) {
+        this.hasActivePenalty.set(true);
       }
     });
 
@@ -346,10 +378,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     });
 
     this.streamService.on('game-ended', () => {
-      this.clearPoll();
-      this.streamService.disconnect();
-      void this.locationService.stop();
-      this.router.navigate(['/home'], { replaceUrl: true });
+      this.handleGameEnded();
     });
   }
 
@@ -359,6 +388,16 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     void this.locationService.stop();
     this.stopMapWatch();
     this.gameOverMessage.set(message);
+  }
+
+  /** Idempotent: safe to call from both Web PubSub events and the poll path. */
+  private handleGameEnded(): void {
+    if (this.gameEndedHandled) return;
+    this.gameEndedHandled = true;
+    this.clearPoll();
+    this.streamService.disconnect();
+    void this.locationService.stop();
+    this.router.navigate(['/home'], { replaceUrl: true });
   }
 
   // -------------------------------------------------------------------------

@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
+using HexMaster.ThePrey.IntegrationEvents;
+using HexMaster.ThePrey.IntegrationEvents.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -11,14 +13,21 @@ namespace HexMaster.ThePrey.Games.Notifications;
 /// In-process event bus for lobby state changes. Each game gets an unbounded channel;
 /// subscribers read all events via <see cref="Subscribe"/>. Channels are created lazily on first
 /// subscribe and torn down by the SSE endpoint when the client disconnects.
+///
+/// Every published event is also bridged to an integration event so the Notifications module can fan
+/// it out to lobby clients over Web PubSub.
 /// </summary>
 public sealed class InProcessLobbyEventBus : ILobbyEventBus
 {
     private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, Channel<LobbyEvent>>> _subscribers = new();
+    private readonly IIntegrationEventPublisher _integrationPublisher;
     private readonly ILogger<InProcessLobbyEventBus> _logger;
 
-    public InProcessLobbyEventBus(ILogger<InProcessLobbyEventBus>? logger = null)
-        => _logger = logger ?? NullLogger<InProcessLobbyEventBus>.Instance;
+    public InProcessLobbyEventBus(IIntegrationEventPublisher integrationPublisher, ILogger<InProcessLobbyEventBus>? logger = null)
+    {
+        _integrationPublisher = integrationPublisher;
+        _logger = logger ?? NullLogger<InProcessLobbyEventBus>.Instance;
+    }
 
     public IAsyncEnumerable<LobbyEvent> Subscribe(Guid gameId)
     {
@@ -32,7 +41,7 @@ public sealed class InProcessLobbyEventBus : ILobbyEventBus
         return ReadSubscription(gameId, subscriberId, channel.Reader);
     }
 
-    public ValueTask PublishAsync(Guid gameId, string eventType, GameDto payload, CancellationToken ct = default)
+    public async ValueTask PublishAsync(Guid gameId, string eventType, GameDto payload, CancellationToken ct = default)
     {
         if (_subscribers.TryGetValue(gameId, out var gameSubscribers) && !gameSubscribers.IsEmpty)
         {
@@ -46,20 +55,21 @@ public sealed class InProcessLobbyEventBus : ILobbyEventBus
                     RemoveSubscriber(gameId, kvp.Key);
             }
 
-            _logger.LogInformation(
+            _logger.LogDebug(
                 "Lobby event '{EventType}' for game {GameId} queued to {Delivered} subscriber(s)",
                 eventType, gameId, delivered);
         }
-        else
-        {
-            // Classic cause of "events don't arrive on the client": the server published but no
-            // SSE connection is currently subscribed to this game (never connected, or already dropped).
-            _logger.LogWarning(
-                "Lobby event '{EventType}' for game {GameId} had no subscribers; nothing delivered",
-                eventType, gameId);
-        }
 
-        return ValueTask.CompletedTask;
+        // Bridge to Web PubSub via an integration event (best-effort).
+        try
+        {
+            await _integrationPublisher.PublishAsync(
+                new LobbyNotificationIntegrationEvent(gameId, eventType, payload), ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to bridge lobby event '{EventType}' for game {GameId} to Web PubSub.", eventType, gameId);
+        }
     }
 
     public void Complete(Guid gameId)

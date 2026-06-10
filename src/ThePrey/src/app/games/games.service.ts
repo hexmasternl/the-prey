@@ -207,8 +207,4 @@ export class GamesService {
       this.http.post<void>(`${this.apiBase}/${gameId}/participants/${participantId}/tag`, {})
     );
   }
-
-  lobbyStreamUrl(gameId: string, token: string): string {
-    return `${this.apiBase}/${gameId}/lobby/stream?token=${encodeURIComponent(token)}`;
-  }
 }

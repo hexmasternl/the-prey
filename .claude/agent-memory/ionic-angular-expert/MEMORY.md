@@ -1,2 +1,3 @@
-- [Game Lobby Page](project-game-lobby.md) — SSE lobby, owner/player branching, route at games/:id/lobby
+- [Game Lobby Page](project-game-lobby.md) — Web PubSub lobby, owner/player branching, route at games/:id/lobby
+- [Real-time Transport](project-realtime-transport.md) — SSE replaced with Azure Web PubSub; WebPubSubStream + GameStreamService, event envelope shape, negotiate endpoint
 - [Game Location Service](project-game-location.md) — native Android foreground service for prey GPS broadcasting, Capacitor plugin + Angular service fallback
