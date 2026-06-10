@@ -17,6 +17,7 @@ public sealed class EligibilityEvaluatorTests
         {
             var id = Guid.NewGuid();
             game.JoinLobby(GameParticipant.Create(id, $"Player{i}", null));
+            game.SetReady(id);
             ids.Add(id);
         }
         game.Start(ids[0], StartedAt);
