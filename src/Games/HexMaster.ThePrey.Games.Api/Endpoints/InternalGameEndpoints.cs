@@ -11,10 +11,11 @@ public static class InternalGameEndpoints
             .WithTags("InternalGames");
 
         // Membership check used by the Notifications module before issuing a Web PubSub access token.
+        // Always returns 200 with an explicit { isMember } flag so callers can distinguish a real
+        // "not a member" answer from a 404 (this endpoint not deployed / route missing).
         group.MapGet("/{gameId:guid}/members/{userId:guid}", IsMember)
             .WithName("IsGameMember")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces<GameMembershipResponse>(StatusCodes.Status200OK)
             .AllowAnonymous();
 
         return app;
@@ -24,11 +25,21 @@ public static class InternalGameEndpoints
         Guid gameId,
         Guid userId,
         IGameRepository games,
+        ILoggerFactory loggerFactory,
         CancellationToken ct)
     {
+        var logger = loggerFactory.CreateLogger("InternalGameEndpoints");
+
         var game = await games.GetByIdAsync(gameId, ct);
-        return game is not null && game.IsVisibleTo(userId)
-            ? Results.NoContent()
-            : Results.NotFound();
+        var isMember = game is not null && game.IsVisibleTo(userId);
+
+        logger.LogInformation(
+            "Membership check for user {UserId} on game {GameId}: gameFound={GameFound}, isMember={IsMember}.",
+            userId, gameId, game is not null, isMember);
+
+        return Results.Ok(new GameMembershipResponse(isMember));
     }
 }
+
+/// <summary>Result of an internal game-membership check.</summary>
+public sealed record GameMembershipResponse(bool IsMember);

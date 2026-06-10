@@ -9,8 +9,10 @@ using ThePrey.Aspire.ServiceDefaults;
 namespace HexMaster.ThePrey.Notifications.Api.Integration;
 
 /// <summary>
-/// Resolves game membership by invoking the Games module over Dapr service invocation. A 2xx response
-/// means the user is the owner or a participant; a 404 means they are not a member.
+/// Resolves game membership by invoking the Games module over Dapr service invocation. The Games
+/// endpoint always answers 200 with an explicit <c>isMember</c> flag; a 404 therefore means the
+/// endpoint itself is missing (e.g. the Games service has not been deployed with it), which is
+/// surfaced as a distinct error rather than silently treated as "not a member".
 /// </summary>
 public sealed class GameMembershipProvider : IGameMembershipProvider
 {
@@ -42,17 +44,25 @@ public sealed class GameMembershipProvider : IGameMembershipProvider
                 GamesAppId,
                 $"internal/games/{gameId}/members/{userId}");
 
-            // See PlayfieldInfoProvider: this HttpRequestMessage overload is the only mockable one.
+            // See PlayfieldInfoProvider: this overload is the only mockable one.
 #pragma warning disable CS0618
-            await _dapr.InvokeMethodAsync(request, ct);
+            var response = await _dapr.InvokeMethodAsync<GameMembershipResult>(request, ct);
 #pragma warning restore CS0618
 
-            RecordResult(activity, start, isMember: true);
-            return true;
+            var isMember = response?.IsMember ?? false;
+            RecordResult(activity, start, isMember);
+            return isMember;
         }
         catch (InvocationException ex) when (ex.Response?.StatusCode == HttpStatusCode.NotFound)
         {
-            RecordResult(activity, start, isMember: false);
+            // The membership route is not present on the Games service — almost always a deployment
+            // gap (Games not redeployed with the internal endpoint). Fail closed, but make it loud.
+            activity?.SetTag("membership.endpoint_missing", true);
+            activity?.SetStatus(ActivityStatusCode.Error, "Games membership endpoint returned 404.");
+            _metrics.RecordMembershipCheck(false, Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+            _logger.LogError(
+                "Games membership endpoint returned 404 for game {GameId}. Ensure the Games service is deployed with the internal members endpoint.",
+                gameId);
             return false;
         }
         catch (Exception ex)
@@ -73,4 +83,6 @@ public sealed class GameMembershipProvider : IGameMembershipProvider
             "Membership check resolved {Result} in {ElapsedMs:F0}ms.",
             isMember ? "member" : "non-member", elapsedMs);
     }
+
+    private sealed record GameMembershipResult(bool IsMember);
 }
