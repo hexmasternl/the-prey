@@ -24,8 +24,8 @@ internal static class GameFaker
             enablePreyBoundaryPenalties,
             enableHunterBoundaryPenalty);
 
-    internal static LobbyPlayer Player(Guid? userId = null, string? displayName = null, string? profilePictureUrl = null) =>
-        LobbyPlayer.Create(userId ?? Guid.NewGuid(), displayName ?? _faker.Name.FullName(), profilePictureUrl);
+    internal static GameParticipant Player(Guid? userId = null, string? displayName = null, string? profilePictureUrl = null) =>
+        GameParticipant.Create(userId ?? Guid.NewGuid(), displayName ?? _faker.Name.FullName(), profilePictureUrl);
 
     internal static string ValidGameCode() =>
         _faker.Random.Int(0, (int)Math.Pow(10, Game.GameCodeLength) - 1).ToString("D" + Game.GameCodeLength);
