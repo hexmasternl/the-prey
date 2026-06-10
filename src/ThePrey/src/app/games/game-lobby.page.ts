@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonButton,
@@ -140,6 +141,11 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       // Crucially, refreshGame also detects a game that started while we were disconnected
       // (the missed `game-started` event) and runs the same navigation.
       onReconnected: () => void this.refreshGame(),
+      // The server may be REJECTING the stream (readyState=2 right away) because the game is
+      // no longer streamable — started, completed or cleaned up. A plain GET reveals that:
+      // refreshGame navigates into the game or out of the lobby accordingly.
+      onDisconnected: () => void this.refreshGame(),
+      probeStatusOnError: true,
       log: (msg) => this.streamLog(msg),
       logError: (msg, ...args) => this.streamError(msg, ...args),
     });
@@ -230,10 +236,25 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       if (game.status === 'InProgress') {
         this.streamLog('refresh found the game already in progress (missed game-started) — entering game');
         this.enterStartedGame(game);
+      } else if (game.status === 'Completed') {
+        this.streamLog('refresh found the game completed — leaving lobby');
+        await this.leaveDeadLobby();
       }
-    } catch {
-      // best effort
+    } catch (err) {
+      // A vanished game (cleaned up server-side) leaves nothing to wait for — the stream
+      // will keep getting rejected forever. Anything else is transient: stay and retry.
+      if (err instanceof HttpErrorResponse && (err.status === 404 || err.status === 410)) {
+        this.streamLog(`refresh got ${err.status} — game no longer exists, leaving lobby`);
+        await this.leaveDeadLobby();
+      }
     }
+  }
+
+  /** The game can never resume from here (completed or deleted) — stop streaming and go home. */
+  private async leaveDeadLobby(): Promise<void> {
+    this.closeStream();
+    await this.showError('GAME_LOBBY.GAME_GONE');
+    this.router.navigate(['/home'], { replaceUrl: true });
   }
 
   async handleRefresh(event: RefresherCustomEvent): Promise<void> {

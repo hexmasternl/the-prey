@@ -619,15 +619,17 @@ public static class GameEndpoints
             return;
         }
 
-        // Only participants of the game may subscribe to its lobby events (mirrors the
-        // in-game stream). Prevents any authenticated user from spying on a lobby they are
-        // not part of.
+        // Only the owner and players who joined the lobby may subscribe to its events, so no
+        // authenticated stranger can spy on a lobby. This must be IsVisibleTo, not
+        // IsParticipant: participants only exist once the game starts, so IsParticipant
+        // rejected every lobby subscriber with 403 while the game was still in the lobby —
+        // the exact phase this stream exists for.
         var game = await gameRepository.GetByIdAsync(id, ct);
-        if (game is null || !game.IsParticipant(user.UserId))
+        if (game is null || !game.IsVisibleTo(user.UserId))
         {
             logger.LogWarning(
-                "Lobby stream for game {GameId} rejected for user {UserId}: gameExists={GameExists}, isParticipant={IsParticipant} (403)",
-                id, user.UserId, game is not null, game is not null && game.IsParticipant(user.UserId));
+                "Lobby stream for game {GameId} rejected for user {UserId}: gameExists={GameExists}, isVisible={IsVisible} (403)",
+                id, user.UserId, game is not null, game is not null && game.IsVisibleTo(user.UserId));
             httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }

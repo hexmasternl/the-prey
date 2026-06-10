@@ -42,6 +42,7 @@ export class GameStreamService {
       getToken,
       onEvent: (type, data) => this.dispatch(type as GameEventType, data),
       onReconnected: () => this.reconnectedHandler?.(),
+      probeStatusOnError: true,
       log: (msg) => console.info(`[GameStream] ${msg}`),
       logError: (msg, ...args) => console.error(`[GameStream] ${msg}`, ...args),
     });

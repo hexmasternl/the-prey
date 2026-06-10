@@ -30,6 +30,19 @@ export interface SseStreamOptions {
   onEvent: (type: string, data: string) => void;
   /** Called after a successful re-open following a drop — refetch missed state here. */
   onReconnected?: () => void;
+  /**
+   * Called after each failed connection attempt, with the number of consecutive failures.
+   * Use it to refresh state out-of-band while the stream is down — the server may be
+   * rejecting the stream for a reason a plain GET can reveal (game ended, removed, …).
+   */
+  onDisconnected?: (consecutiveFailures: number) => void;
+  /**
+   * When true, a failed attempt triggers a one-off `fetch` of the stream URL purely to log
+   * the HTTP status. EventSource never exposes why a connection failed (readyState=2 only
+   * says "the server responded with something unusable"), which makes 401-vs-403-vs-404
+   * undebuggable on a device without this.
+   */
+  probeStatusOnError?: boolean;
   log?: (message: string) => void;
   logError?: (message: string, ...args: unknown[]) => void;
 }
@@ -49,6 +62,8 @@ export class SseStream {
   private lastActivityAt = 0;
   private hadDrop = false;
   private running = false;
+  private consecutiveFailures = 0;
+  private probing = false;
   /** Invalidates callbacks from superseded connections (stop() or a newer open). */
   private generation = 0;
 
@@ -108,7 +123,11 @@ export class SseStream {
       token = await this.options.getToken();
     } catch (err) {
       this.logError('token acquisition failed — retrying with backoff', err);
-      if (this.running && gen === this.generation) this.scheduleReconnect();
+      if (this.running && gen === this.generation) {
+        this.consecutiveFailures++;
+        this.scheduleReconnect();
+        this.options.onDisconnected?.(this.consecutiveFailures);
+      }
       return;
     }
     if (!this.running || gen !== this.generation) return;
@@ -121,6 +140,7 @@ export class SseStream {
       if (gen !== this.generation) return;
       this.lastActivityAt = Date.now();
       this.backoffMs = INITIAL_BACKOFF_MS;
+      this.consecutiveFailures = 0;
       this.log('connection open');
       if (this.hadDrop) {
         this.hadDrop = false;
@@ -144,12 +164,47 @@ export class SseStream {
       if (gen !== this.generation) return;
       // Never rely on EventSource's own retry: it reuses the stale token and gives up for
       // good on non-200 responses. Close and run our own reconnect with a fresh token.
+      // readyState hints at the failure mode: 2 (CLOSED) immediately after connecting means
+      // the server RESPONDED but with a non-200 status or wrong content type; 0 (CONNECTING)
+      // means a network-level failure (unreachable, DNS, TLS).
       this.logError(`stream error (readyState=${es.readyState}) — scheduling reconnect`);
       this.hadDrop = true;
+      this.consecutiveFailures++;
       es.close();
       if (this.source === es) this.source = null;
+      if (this.options.probeStatusOnError) void this.probeStatus();
       this.scheduleReconnect();
+      this.options.onDisconnected?.(this.consecutiveFailures);
     };
+  }
+
+  /**
+   * Fetches the stream URL once and logs the HTTP status, then aborts. EventSource hides the
+   * response entirely, so without this a rejected stream (401 expired token, 403 no longer a
+   * participant, 404 game gone) is indistinguishable from a flaky network on a device.
+   */
+  private async probeStatus(): Promise<void> {
+    if (this.probing) return;
+    this.probing = true;
+    try {
+      const token = await this.options.getToken();
+      const controller = new AbortController();
+      try {
+        const response = await fetch(this.options.buildUrl(token), {
+          headers: { Accept: 'text/event-stream' },
+          signal: controller.signal,
+        });
+        this.logError(
+          `probe: server responded ${response.status} ${response.statusText} ` +
+          `(content-type=${response.headers.get('content-type') ?? '<none>'})`);
+      } finally {
+        controller.abort();
+      }
+    } catch (err) {
+      this.logError('probe: request failed at network level (server unreachable, TLS or CORS)', err);
+    } finally {
+      this.probing = false;
+    }
   }
 
   private checkStaleness(): void {
