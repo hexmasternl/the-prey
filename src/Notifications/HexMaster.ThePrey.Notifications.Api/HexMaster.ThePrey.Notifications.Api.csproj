@@ -25,7 +25,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Aspire\ThePrey.Aspire.ServiceDefaults\ThePrey.Aspire.ServiceDefaults.csproj" />
     <ProjectReference Include="..\..\Shared\HexMaster.ThePrey.IntegrationEvents\HexMaster.ThePrey.IntegrationEvents.csproj" />
-    <ProjectReference Include="..\..\Users\HexMaster.ThePrey.Users.Integration\HexMaster.ThePrey.Users.Integration.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Notifications\HexMaster.ThePrey.Notifications.csproj" />
     <ProjectReference Include="..\HexMaster.ThePrey.Notifications.Abstractions\HexMaster.ThePrey.Notifications.Abstractions.csproj" />
   </ItemGroup>

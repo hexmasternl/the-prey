@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
+using ThePrey.Aspire.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,12 @@ builder.Services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.Authenticatio
         }
     };
 });
+
+// Web PubSub client bound to the "games" hub — used to mint short-lived, group-scoped client access
+// URLs so a game's members can open a Web PubSub WebSocket and join that game's group.
+builder.AddAzureWebPubSubServiceClient(
+    AspireConstants.Resources.WebPubSub,
+    settings => settings.HubName = AspireConstants.Resources.WebPubSubHub);
 
 builder.Services.AddGamesModule();
 builder.AddGamesPostgres();

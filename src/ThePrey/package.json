@@ -23,7 +23,6 @@
     "@angular/platform-browser-dynamic": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@auth0/auth0-angular": "^2.9.0",
-    "@azure/web-pubsub-client": "^1.0.4",
     "@capacitor-community/background-geolocation": "^1.2.26",
     "@capacitor/android": "^8.4.0",
     "@capacitor/app": "^8.1.0",

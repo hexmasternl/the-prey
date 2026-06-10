@@ -68,6 +68,7 @@ var playFieldsApi = builder.AddProject<Projects.HexMaster_ThePrey_PlayFields_Api
 var gamesApi = builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireConstants.Resources.GamesApi)
     .WithReference(gamesDatabase)
     .WithReference(rabbitmq)
+    .WithReference(webPubSub)
     .WithDaprSidecar(opts =>
     {
         opts.WithReference(stateStore);

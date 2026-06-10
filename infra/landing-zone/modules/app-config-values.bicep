@@ -37,7 +37,7 @@ resource serviceBusConnection 'Microsoft.AppConfiguration/configurationStores/ke
 
 // Authoritative CORS allow-list for all APIs. App Configuration loads AFTER environment variables,
 // so this is the effective value at runtime — it must include every browser/WebView origin
-// (notably http://localhost:8100, the Ionic dev server, which calls the Notifications negotiate endpoint).
+// (notably http://localhost:8100, the Ionic dev server, which calls the Games Web PubSub token endpoint).
 resource corsAllowedOriginsSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2025-08-01-preview' = {
   parent: appConfig
   name: 'Cors:AllowedOrigins'

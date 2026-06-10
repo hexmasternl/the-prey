@@ -37,9 +37,9 @@ type HandlerMap = Map<string, (payload: unknown) => void>;
  *
  * Drop-in replacement for the old SSE-based `GameStreamService`. The public API
  * (`connect`, `on`, `onReconnected`, `disconnect`) is identical so pages need
- * minimal changes. The transport is now a WebSocket managed by the
- * `@azure/web-pubsub-client` SDK, which auto-reconnects and re-negotiates a
- * fresh access URL on every reconnect attempt.
+ * minimal changes. The transport is a native browser WebSocket (see
+ * `WebPubSubStream`), which requests a fresh group-scoped access URL from the
+ * Games API on every (re)connect and joins the game's group after connecting.
  *
  * Event envelope from the server:
  *   `{ "type": "<event-name>", "data": { ...payload... } }`
@@ -55,9 +55,9 @@ export class GameStreamService {
   private reconnectedHandler: (() => void) | null = null;
 
   /**
-   * Opens the Web PubSub WebSocket for the given game. The negotiate endpoint is
-   * called automatically (and re-called on every SDK reconnect) so the access URL
-   * is always fresh.
+   * Opens the Web PubSub WebSocket for the given game. The Games API token endpoint
+   * is called automatically (and re-called on every reconnect) so the access URL is
+   * always fresh.
    */
   connect(gameId: string): void {
     this.disconnect();

@@ -1,7 +1,10 @@
+using System.Diagnostics;
 using System.Security.Claims;
+using Azure.Messaging.WebPubSub;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
+using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.EndGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
@@ -42,6 +45,19 @@ public static class GameEndpoints
     /// connection and reconnects.
     /// </summary>
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(15);
+
+    /// <summary>
+    /// Lifetime of a minted Web PubSub client access token. The client re-requests a fresh token on
+    /// every (re)connect, so this only needs to comfortably outlast a single connection attempt.
+    /// </summary>
+    private static readonly TimeSpan NotificationsTokenLifetime = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// Activity source for spans emitted by these endpoints. Created from the public Games meter/source
+    /// name (the module's internal <c>GameActivitySource</c> is not visible across the assembly boundary);
+    /// it is registered for export in <c>Program.cs</c> via <c>AddSource</c>.
+    /// </summary>
+    private static readonly ActivitySource ActivitySource = new(GameObservabilityConstants.ActivitySourceName);
 
     public static IEndpointRouteBuilder MapGameEndpoints(this IEndpointRouteBuilder app)
     {
@@ -94,6 +110,12 @@ public static class GameEndpoints
             .WithName("GetGameState")
             .Produces<GameStateDto>()
             .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id:guid}/notifications/token", GetNotificationsToken)
+            .WithName("GetGameNotificationsToken")
+            .Produces<GameNotificationConnectionDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
 
         group.MapGet("/", ListGames)
             .WithName("ListGames")
@@ -345,6 +367,68 @@ public static class GameEndpoints
 
         var state = await handler.Handle(new GetGameStateQuery(id, user.UserId), ct);
         return state is not null ? Results.Ok(state) : Results.NotFound();
+    }
+
+    /// <summary>
+    /// Validates that the caller is a member of the game (owner or participant) and, if so, mints a
+    /// short-lived, group-scoped Web PubSub client access URL. The returned URL embeds the access token
+    /// and the role that lets the client join only this game's group, so the client opens a native
+    /// WebSocket to it and subscribes to the <c>{gameId}</c> group to receive the game's real-time events.
+    /// </summary>
+    private static async Task<IResult> GetNotificationsToken(
+        Guid id,
+        ClaimsPrincipal principal,
+        IUserResolver userResolver,
+        IGameRepository gameRepository,
+        WebPubSubServiceClient webPubSubClient,
+        ILoggerFactory loggerFactory,
+        CancellationToken ct)
+    {
+        var logger = loggerFactory.CreateLogger("GameEndpoints.NotificationsToken");
+
+        using var activity = ActivitySource.StartActivity("Games.NotificationsToken");
+        activity?.SetTag("game.id", id);
+
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        activity?.SetTag("user.id", user.UserId);
+
+        var game = await gameRepository.GetByIdAsync(id, ct);
+        if (game is null || !game.IsVisibleTo(user.UserId))
+        {
+            activity?.SetTag("notifications.outcome", "forbidden");
+            logger.LogWarning(
+                "Web PubSub token for game {GameId} denied for user {UserId}: gameExists={GameExists} (403)",
+                id, user.UserId, game is not null);
+            return Results.Forbid();
+        }
+
+        try
+        {
+            // Grant only the join/leave role scoped to this game's group; the client subscribes to it
+            // explicitly after connecting. No groups are pre-joined, so the token cannot be used to
+            // listen in on any other game.
+            var roles = new[] { $"webpubsub.joinLeaveGroup.{id}" };
+            var uri = webPubSubClient.GetClientAccessUri(
+                expiresAfter: NotificationsTokenLifetime,
+                userId: subjectId,
+                roles: roles,
+                groups: null);
+
+            activity?.SetTag("notifications.outcome", "granted");
+            logger.LogInformation("Issued Web PubSub access for user {UserId} on game {GameId}.", user.UserId, id);
+            return Results.Ok(new GameNotificationConnectionDto(uri.AbsoluteUri));
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.AddException(ex);
+            logger.LogError(ex, "Failed to mint Web PubSub access for user {UserId} on game {GameId}.", user.UserId, id);
+            throw;
+        }
     }
 
     private static async Task<IResult> ListGames(
