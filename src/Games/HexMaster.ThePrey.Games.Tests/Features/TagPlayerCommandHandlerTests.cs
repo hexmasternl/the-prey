@@ -31,7 +31,7 @@ public sealed class TagPlayerCommandHandlerTests
             new TagPlayerCommand(game.Id, hunterId, preyIds[0]), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.Equal(PlayerState.Tagged, game.Preys.Single(p => p.UserId == preyIds[0]).State);
+        Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyIds[0]).State);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _eventBus.Verify(b => b.PublishAsync(
             game.Id,
