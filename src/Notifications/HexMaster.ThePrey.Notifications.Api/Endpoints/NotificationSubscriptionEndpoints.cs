@@ -32,8 +32,11 @@ public static class NotificationSubscriptionEndpoints
         app.MapPost($"/notifications/events/{topic}", async (
                 TEvent integrationEvent,
                 IWebPubSubBroadcaster broadcaster,
+                ILoggerFactory loggerFactory,
                 CancellationToken ct) =>
             {
+                loggerFactory.CreateLogger("Notifications.Subscription")
+                    .LogDebug("Received '{Topic}' for game {GameId} from pub/sub.", topic, integrationEvent.GameId);
                 await broadcaster.SendToGameAsync(integrationEvent.GameId, integrationEvent.Topic, integrationEvent, ct);
                 return Results.Ok();
             })
@@ -54,13 +57,14 @@ public static class NotificationSubscriptionEndpoints
         app.MapPost($"/notifications/events/{topic}", async (
                 TEvent integrationEvent,
                 IWebPubSubBroadcaster broadcaster,
+                ILoggerFactory loggerFactory,
                 CancellationToken ct) =>
             {
-                await broadcaster.SendToGameAsync(
-                    gameIdSelector(integrationEvent),
-                    nameSelector(integrationEvent),
-                    payloadSelector(integrationEvent),
-                    ct);
+                var gameId = gameIdSelector(integrationEvent);
+                var name = nameSelector(integrationEvent);
+                loggerFactory.CreateLogger("Notifications.Subscription")
+                    .LogDebug("Received envelope '{Topic}' (inner '{Name}') for game {GameId} from pub/sub.", topic, name, gameId);
+                await broadcaster.SendToGameAsync(gameId, name, payloadSelector(integrationEvent), ct);
                 return Results.Ok();
             })
             .WithTopic(DaprIntegrationEventPublisher.PubSubName, topic)
