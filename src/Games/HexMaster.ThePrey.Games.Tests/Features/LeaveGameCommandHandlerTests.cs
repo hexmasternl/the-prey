@@ -67,7 +67,7 @@ public sealed class LeaveGameCommandHandlerTests
 
         Assert.NotNull(result);
         Assert.Equal(GameStatus.Lobby, game.Status);
-        Assert.DoesNotContain(game.Lobby, p => p.UserId == nonOwner);
+        Assert.DoesNotContain(game.Participants, p => p.UserId == nonOwner);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, "lobby-updated",
             It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -130,7 +130,7 @@ public sealed class LeaveGameCommandHandlerTests
 
         Assert.NotNull(result);
         Assert.Equal(GameStatus.InProgress, game.Status);
-        var prey = game.Preys.Single(p => p.UserId == preyId);
+        var prey = game.Participants.Single(p => p.UserId == preyId);
         Assert.Equal(PlayerState.Out, prey.State);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _eventBus.Verify(b => b.PublishAsync(game.Id,
