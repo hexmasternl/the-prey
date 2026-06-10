@@ -25,6 +25,34 @@ public sealed class InProcessGameEventBusTests
     }
 
     [Fact]
+    public async Task PublishAsync_ShouldDeliverEvent_ToAllSubscribers()
+    {
+        // Regression: a single shared channel made subscribers compete for events, so in a game
+        // with multiple participants each event reached only one of them.
+        var gameId = Guid.NewGuid();
+        var expected = new GameEndedEvent(gameId, "PreysWin", 1);
+
+        var subscriptionA = _bus.Subscribe(gameId);
+        var subscriptionB = _bus.Subscribe(gameId);
+
+        await _bus.PublishAsync(gameId, expected);
+        _bus.Complete(gameId);
+
+        var receivedA = new List<GameEvent>();
+        await foreach (var evt in subscriptionA)
+            receivedA.Add(evt);
+
+        var receivedB = new List<GameEvent>();
+        await foreach (var evt in subscriptionB)
+            receivedB.Add(evt);
+
+        Assert.Single(receivedA);
+        Assert.Single(receivedB);
+        Assert.Equal(expected, receivedA[0]);
+        Assert.Equal(expected, receivedB[0]);
+    }
+
+    [Fact]
     public async Task PublishAsync_ShouldNotDeliverEvent_ToDifferentGameSubscriber()
     {
         var gameA = Guid.NewGuid();

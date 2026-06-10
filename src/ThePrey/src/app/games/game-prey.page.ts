@@ -40,7 +40,6 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly reportingDegraded = this.locationService.reportingDegraded;
 
   private gameId!: string;
-  private token!: string;
   private map!: L.Map;
   private playerMarker: L.CircleMarker | null = null;
   private playfieldPolygon: L.Polygon | null = null;
@@ -58,7 +57,6 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   async ngOnInit(): Promise<void> {
     this.gameId = this.route.snapshot.paramMap.get('id') ?? '';
-    this.token  = await firstValueFrom(this.auth.getAccessTokenSilently());
 
     const user = await firstValueFrom(this.auth.user$);
     this.currentUserId = user?.sub ?? null;
@@ -239,7 +237,15 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   // -------------------------------------------------------------------------
 
   private connectStream(): void {
-    this.streamService.connect(this.gameId, this.token);
+    // Token provider (not a one-shot token) so every reconnect uses a fresh JWT.
+    this.streamService.connect(this.gameId, () => firstValueFrom(this.auth.getAccessTokenSilently()));
+
+    // Status changes (tagged/out, preys left) may have been missed while the stream was
+    // down — refresh the snapshot immediately instead of waiting for the next poll tick.
+    this.streamService.onReconnected(() => {
+      this.clearPoll();
+      void this.pollStatus();
+    });
 
     this.streamService.on('participant-located', (payload) => {
       if (payload.participantRole === 'Prey' && payload.participantState) {

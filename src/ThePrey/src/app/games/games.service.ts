@@ -208,7 +208,7 @@ export class GamesService {
     );
   }
 
-  connectLobbyStream(gameId: string, token: string): EventSource {
-    return new EventSource(`${this.apiBase}/${gameId}/lobby/stream?token=${encodeURIComponent(token)}`);
+  lobbyStreamUrl(gameId: string, token: string): string {
+    return `${this.apiBase}/${gameId}/lobby/stream?token=${encodeURIComponent(token)}`;
   }
 }

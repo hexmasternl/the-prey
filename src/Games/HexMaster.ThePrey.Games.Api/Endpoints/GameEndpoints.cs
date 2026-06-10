@@ -35,6 +35,14 @@ public static class GameEndpoints
     private static readonly System.Text.Json.JsonSerializerOptions SseJsonOptions =
         new(System.Text.Json.JsonSerializerDefaults.Web);
 
+    /// <summary>
+    /// Cadence of the SSE `heartbeat` events. Must stay well under typical proxy/NAT idle timeouts
+    /// (Azure Container Apps ingress and mobile carrier NATs drop quiet connections after minutes
+    /// of silence), and the client watchdog treats ~3× this interval without any event as a dead
+    /// connection and reconnects.
+    /// </summary>
+    private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(15);
+
     public static IEndpointRouteBuilder MapGameEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/games")
@@ -638,8 +646,14 @@ public static class GameEndpoints
         var eventCount = 0;
         try
         {
-            await foreach (var evt in eventBus.Subscribe(id).WithCancellation(ct))
+            await foreach (var evt in WithHeartbeats(eventBus.Subscribe(id), HeartbeatInterval, ct))
             {
+                if (evt is null)
+                {
+                    await WriteHeartbeat(httpContext.Response, ct);
+                    continue;
+                }
+
                 // The bus broadcasts one payload to every subscriber, so IsOwnerPlayer — which is per
                 // recipient — is stamped here, where this connection's user is known.
                 var payload = evt.Payload with { IsOwnerPlayer = evt.Payload.OwnerUserId == user.UserId };
@@ -672,9 +686,12 @@ public static class GameEndpoints
         IUserResolver userResolver,
         IGameRepository gameRepository,
         IGameEventBus eventBus,
+        ILoggerFactory loggerFactory,
         HttpContext httpContext,
         CancellationToken ct)
     {
+        var logger = loggerFactory.CreateLogger("GameEndpoints.GameStream");
+
         var subjectId = principal.FindFirstValue("sub");
         if (subjectId is null)
         {
@@ -691,6 +708,9 @@ public static class GameEndpoints
         var game = await gameRepository.GetByIdAsync(id, ct);
         if (game is null || !game.IsParticipant(user.UserId))
         {
+            logger.LogWarning(
+                "Game stream for game {GameId} rejected for user {UserId}: gameExists={GameExists} (403)",
+                id, user.UserId, game is not null);
             httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }
@@ -701,24 +721,95 @@ public static class GameEndpoints
         httpContext.Response.Headers.CacheControl = "no-cache";
         httpContext.Response.Headers.Append("X-Accel-Buffering", "no");
 
-        await foreach (var evt in eventBus.Subscribe(id).WithCancellation(ct))
+        // Flush an initial comment so the client's EventSource fires `onopen` immediately rather than
+        // only on the first real event, and to defeat intermediary response buffering.
+        await httpContext.Response.WriteAsync(": connected\n\n", ct);
+        await httpContext.Response.Body.FlushAsync(ct);
+        logger.LogInformation("Game stream opened for game {GameId}, user {UserId}", id, user.UserId);
+
+        var eventCount = 0;
+        try
         {
-            // Prey location events go only to the hunter; skip for prey subscribers.
-            if (evt is ParticipantLocatedEvent { ParticipantRole: "Prey" } && !isHunter)
-                continue;
-
-            var json = System.Text.Json.JsonSerializer.Serialize(evt, evt.GetType());
-            await httpContext.Response.WriteAsync($"event: {evt.EventType}\ndata: {json}\n\n", ct);
-            await httpContext.Response.Body.FlushAsync(ct);
-
-            if (evt is GameEndedEvent)
+            await foreach (var evt in WithHeartbeats(eventBus.Subscribe(id), HeartbeatInterval, ct))
             {
-                eventBus.Complete(id);
-                break;
+                if (evt is null)
+                {
+                    await WriteHeartbeat(httpContext.Response, ct);
+                    continue;
+                }
+
+                // Prey location events go only to the hunter; skip for prey subscribers.
+                if (evt is ParticipantLocatedEvent { ParticipantRole: "Prey" } && !isHunter)
+                    continue;
+
+                var json = System.Text.Json.JsonSerializer.Serialize(evt, evt.GetType());
+                await httpContext.Response.WriteAsync($"event: {evt.EventType}\ndata: {json}\n\n", ct);
+                await httpContext.Response.Body.FlushAsync(ct);
+                eventCount++;
+
+                if (evt is GameEndedEvent)
+                {
+                    // Every subscriber receives its own copy of game-ended (per-subscriber channels)
+                    // before Complete tears the bus down, so this is safe to call from any of them.
+                    eventBus.Complete(id);
+                    break;
+                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal: the client disconnected (navigated away / app backgrounded).
+            logger.LogInformation("Game stream cancelled for game {GameId}, user {UserId}", id, user.UserId);
+        }
+        finally
+        {
+            logger.LogInformation(
+                "Game stream closed for game {GameId}, user {UserId} after {EventCount} event(s)",
+                id, user.UserId, eventCount);
         }
         // participant-status-changed events are broadcast to all connected participants (hunters and preys)
         // via the default pass-through above — no filtering needed.
+    }
+
+    private static async Task WriteHeartbeat(HttpResponse response, CancellationToken ct)
+    {
+        // A named event (not an SSE comment) because EventSource never surfaces comments to JS,
+        // and the client needs to observe heartbeats to run its staleness watchdog.
+        await response.WriteAsync("event: heartbeat\ndata: {}\n\n", ct);
+        await response.Body.FlushAsync(ct);
+    }
+
+    /// <summary>
+    /// Yields the source events as they arrive, interleaved with <c>null</c> ticks whenever
+    /// <paramref name="interval"/> elapses without one. The SSE endpoints turn those ticks into
+    /// `heartbeat` events, which (1) keep idle connections alive through proxies/NATs that drop
+    /// quiet streams, (2) give the client a signal to detect a dead connection and reconnect, and
+    /// (3) make the server notice disconnected clients — the failed heartbeat write cancels the
+    /// request and tears the subscription down instead of leaking it until the next real event.
+    /// </summary>
+    private static async IAsyncEnumerable<T?> WithHeartbeats<T>(
+        IAsyncEnumerable<T> source,
+        TimeSpan interval,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct) where T : class
+    {
+        await using var enumerator = source.GetAsyncEnumerator(ct);
+        var moveNext = enumerator.MoveNextAsync().AsTask();
+        while (true)
+        {
+            var completed = await Task.WhenAny(moveNext, Task.Delay(interval, ct));
+            if (completed == moveNext)
+            {
+                if (!await moveNext)
+                    yield break;
+                yield return enumerator.Current;
+                moveNext = enumerator.MoveNextAsync().AsTask();
+            }
+            else
+            {
+                ct.ThrowIfCancellationRequested();
+                yield return null;
+            }
+        }
     }
 
     private static IResult ValidationProblem(Exception ex)

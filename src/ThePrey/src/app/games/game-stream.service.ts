@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
+import { SseStream } from '../core/sse-stream';
 
 export type GameEventType = 'state-changed' | 'participant-located' | 'participant-status-changed' | 'game-ended';
 
@@ -17,80 +18,60 @@ type EventPayloadMap = {
 
 type HandlerMap = { [K in GameEventType]?: (payload: EventPayloadMap[K]) => void };
 
+const GAME_EVENT_TYPES: readonly GameEventType[] = ['state-changed', 'participant-located', 'participant-status-changed', 'game-ended'];
+
+/**
+ * In-game SSE stream (/games/{id}/stream). Reconnection, token refresh, heartbeat watchdog
+ * and app-resume recovery live in {@link SseStream}; this service adds typed event dispatch.
+ */
 @Injectable({ providedIn: 'root' })
 export class GameStreamService {
-  private source: EventSource | null = null;
+  private stream: SseStream | null = null;
   private handlers: HandlerMap = {};
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private reconnectDelay = 1000;
-  private gameId: string | null = null;
-  private token: string | null = null;
+  private reconnectedHandler: (() => void) | null = null;
 
-  connect(gameId: string, token: string): void {
-    this.gameId = gameId;
-    this.token = token;
-    this.reconnectDelay = 1000;
-    this.openConnection();
+  /**
+   * Opens the stream. `getToken` is invoked for every (re)connect attempt so reconnects never
+   * reuse an expired JWT (the token rides in the URL and is fixed for a connection's lifetime).
+   */
+  connect(gameId: string, getToken: () => Promise<string>): void {
+    this.disconnect();
+    this.stream = new SseStream({
+      buildUrl: (token) => `${environment.apiUrl}/games/${gameId}/stream?token=${encodeURIComponent(token)}`,
+      events: GAME_EVENT_TYPES,
+      getToken,
+      onEvent: (type, data) => this.dispatch(type as GameEventType, data),
+      onReconnected: () => this.reconnectedHandler?.(),
+      log: (msg) => console.info(`[GameStream] ${msg}`),
+      logError: (msg, ...args) => console.error(`[GameStream] ${msg}`, ...args),
+    });
+    void this.stream.start();
   }
 
   on<K extends GameEventType>(eventType: K, handler: (payload: EventPayloadMap[K]) => void): void {
     (this.handlers as Record<string, unknown>)[eventType] = handler;
   }
 
+  /** Registers a callback fired after the stream re-opens following a drop — refetch state there. */
+  onReconnected(handler: () => void): void {
+    this.reconnectedHandler = handler;
+  }
+
   disconnect(): void {
-    this.clearReconnect();
-    if (this.source) {
-      this.source.close();
-      this.source = null;
-    }
+    this.stream?.stop();
+    this.stream = null;
     this.handlers = {};
-    this.gameId = null;
-    this.token = null;
+    this.reconnectedHandler = null;
   }
 
-  private openConnection(): void {
-    if (!this.gameId || !this.token) return;
-
-    // EventSource cannot send an Authorization header, so the JWT is passed as a query
-    // parameter and validated server-side (JwtBearer OnMessageReceived). Without this the
-    // authenticated /stream endpoint always responds 401 and the live game never connects.
-    const url = `${environment.apiUrl}/games/${this.gameId}/stream?token=${encodeURIComponent(this.token)}`;
-    this.source = new EventSource(url);
-
-    const eventTypes: GameEventType[] = ['state-changed', 'participant-located', 'participant-status-changed', 'game-ended'];
-    for (const type of eventTypes) {
-      this.source.addEventListener(type, (e: MessageEvent) => {
-        const handler = this.handlers[type];
-        if (handler) {
-          try {
-            const payload = JSON.parse(e.data);
-            (handler as (p: unknown) => void)(payload);
-          } catch { /* malformed event — ignore */ }
-        }
-      });
-    }
-
-    this.source.onerror = () => {
-      this.source?.close();
-      this.source = null;
-      if (this.gameId) {
-        this.scheduleReconnect();
-      }
-    };
-  }
-
-  private scheduleReconnect(): void {
-    this.clearReconnect();
-    this.reconnectTimer = setTimeout(() => {
-      this.openConnection();
-      this.reconnectDelay = Math.min(this.reconnectDelay * 2, 30000);
-    }, this.reconnectDelay);
-  }
-
-  private clearReconnect(): void {
-    if (this.reconnectTimer !== null) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
+  private dispatch(type: GameEventType, data: string): void {
+    const handler = this.handlers[type];
+    if (!handler) return;
+    try {
+      const payload = JSON.parse(data);
+      (handler as (p: unknown) => void)(payload);
+    } catch {
+      // malformed event — ignore
     }
   }
 }

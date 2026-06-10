@@ -58,12 +58,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
   async ngOnInit(): Promise<void> {
     this.gameId = this.route.snapshot.paramMap.get('id') ?? '';
-    const token = await firstValueFrom(this.auth.getAccessTokenSilently());
 
     this.initMap();
     this.startGps();
     await this.pollStatus();
-    this.connectStream(token);
+    this.connectStream();
   }
 
   /**
@@ -302,8 +301,16 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     }, 1000);
   }
 
-  private connectStream(token: string): void {
-    this.streamService.connect(this.gameId, token);
+  private connectStream(): void {
+    // Token provider (not a one-shot token) so every reconnect uses a fresh JWT.
+    this.streamService.connect(this.gameId, () => firstValueFrom(this.auth.getAccessTokenSilently()));
+
+    // Prey locations broadcast over SSE may have been missed while the stream was down —
+    // refresh the status snapshot immediately instead of waiting for the next poll tick.
+    this.streamService.onReconnected(() => {
+      this.clearPoll();
+      void this.pollStatus();
+    });
 
     this.streamService.on('participant-located', (payload) => {
       if (payload.participantRole === 'Prey') {

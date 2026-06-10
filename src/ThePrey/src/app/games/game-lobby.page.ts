@@ -27,6 +27,7 @@ import { firstValueFrom } from 'rxjs';
 import { GameConfigurationDto, GameDto, GamesService } from './games.service';
 import { GameLocationService } from './game-location.service';
 import { UserStateService } from '../users/user-state.service';
+import { SseStream } from '../core/sse-stream';
 
 /**
  * Base of the Android App Link for joining a game. Tapping
@@ -68,7 +69,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   readonly game = signal<GameDto | null>(null);
   readonly isLoading = signal(true);
-  private eventSource: EventSource | null = null;
+  private stream: SseStream | null = null;
 
   // Config signals — initialised from game on load, kept in sync via SSE
   readonly gameDuration = signal(60);
@@ -129,64 +130,45 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   private async connectStream(): Promise<void> {
     const gameId = this.gameId();
     this.streamLog(`connecting — gameId=${gameId}`);
-    try {
-      const token = await firstValueFrom(this.authService.getAccessTokenSilently());
-      this.streamLog(`access token acquired — present=${!!token} length=${token?.length ?? 0}`);
-
-      const es = this.gamesService.connectLobbyStream(gameId, token);
-      this.eventSource = es;
-      this.streamLog(`EventSource created — url=${this.redactToken(es.url)} readyState=${es.readyState}`);
-
-      es.onopen = () => this.streamLog(`onopen — connection established, readyState=${es.readyState}`);
-
-      es.addEventListener('lobby-updated', (e: MessageEvent) => this.onLobbyEvent(e));
-      es.addEventListener('settings-updated', (e: MessageEvent) => this.onLobbyEvent(e));
-      es.addEventListener('ready-updated', (e: MessageEvent) => this.onLobbyEvent(e));
-      es.addEventListener('hunter-designated', (e: MessageEvent) => this.onLobbyEvent(e));
-      es.addEventListener('hunter-changed', (e: MessageEvent) => this.onLobbyEvent(e));
-      es.addEventListener('game-started', (e: MessageEvent) => this.onGameStarted(e));
-
-      // Default (unnamed) SSE messages won't trigger the named listeners above. Logging them
-      // surfaces events arriving under an unexpected/missing event name — a common reason
-      // "events don't arrive" on the client even though the server is sending them.
-      es.onmessage = (e: MessageEvent) =>
-        this.streamLog(`onmessage (unnamed event) — data=${this.previewData(e.data)}`);
-
-      es.onerror = () => {
-        // readyState: 0=CONNECTING (retrying), 1=OPEN, 2=CLOSED (gave up). This tells us whether
-        // the connection never opened, dropped and is retrying, or was closed for good.
-        this.streamError(`onerror — readyState=${es.readyState} (0=connecting,1=open,2=closed)`);
-        this.refreshGame();
-      };
-    } catch (err) {
-      // SSE is best-effort; polling fallback via onerror
-      this.streamError('connect failed before EventSource was established', err);
-    }
+    this.stream = new SseStream({
+      buildUrl: (token) => this.gamesService.lobbyStreamUrl(gameId, token),
+      events: ['lobby-updated', 'settings-updated', 'ready-updated', 'hunter-designated', 'hunter-changed', 'game-started'],
+      getToken: () => firstValueFrom(this.authService.getAccessTokenSilently()),
+      onEvent: (type, data) =>
+        type === 'game-started' ? this.onGameStarted(data) : this.onLobbyEvent(type, data),
+      // The stream was down for a while — refetch the game so missed events can't strand us.
+      // Crucially, refreshGame also detects a game that started while we were disconnected
+      // (the missed `game-started` event) and runs the same navigation.
+      onReconnected: () => void this.refreshGame(),
+      log: (msg) => this.streamLog(msg),
+      logError: (msg, ...args) => this.streamError(msg, ...args),
+    });
+    await this.stream.start();
   }
 
-  private onLobbyEvent(event: MessageEvent): void {
-    this.streamLog(`event '${event.type}' received — data=${this.previewData(event.data)}`);
+  private onLobbyEvent(type: string, data: string): void {
+    this.streamLog(`event '${type}' received — data=${this.previewData(data)}`);
     try {
-      const data = JSON.parse(event.data);
-      if (data?.payload) {
-        this.game.set(data.payload);
-        this.syncConfigFromGame(data.payload);
-        this.streamLog(`event '${event.type}' applied to game state`);
+      const parsed = JSON.parse(data);
+      if (parsed?.payload) {
+        this.game.set(parsed.payload);
+        this.syncConfigFromGame(parsed.payload);
+        this.streamLog(`event '${type}' applied to game state`);
       } else {
-        this.streamError(`event '${event.type}' had no 'payload' field — keys=[${Object.keys(data ?? {}).join(', ')}]`);
+        this.streamError(`event '${type}' had no 'payload' field — keys=[${Object.keys(parsed ?? {}).join(', ')}]`);
       }
     } catch (err) {
-      this.streamError(`event '${event.type}' failed to parse`, err);
+      this.streamError(`event '${type}' failed to parse`, err);
     }
   }
 
-  private onGameStarted(event: MessageEvent): void {
-    this.streamLog(`event 'game-started' received — data=${this.previewData(event.data)}`);
+  private onGameStarted(data: string): void {
+    this.streamLog(`event 'game-started' received — data=${this.previewData(data)}`);
     try {
-      const data = JSON.parse(event.data);
-      const game: GameDto | null = data?.payload ?? null;
+      const parsed = JSON.parse(data);
+      const game: GameDto | null = parsed?.payload ?? null;
       if (!game) {
-        this.streamError(`event 'game-started' had no 'payload' field — keys=[${Object.keys(data ?? {}).join(', ')}]`);
+        this.streamError(`event 'game-started' had no 'payload' field — keys=[${Object.keys(parsed ?? {}).join(', ')}]`);
         return;
       }
 
@@ -195,38 +177,48 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       // (status === 'InProgress') so a stale or mis-routed event can't pull players into an
       // in-game view prematurely. Keep the stream open if the state hasn't changed yet.
       this.game.set(game);
+      this.syncConfigFromGame(game);
       if (game.status !== 'InProgress') {
         this.streamError(`event 'game-started' carried unexpected status '${game.status}' (expected 'InProgress') — not navigating`);
         return;
       }
 
-      const uid = this.currentUserId();
-      this.closeStream();
-
-      const isHunter = game.hunter?.userId === uid;
-      const isPrey = game.preys.some(p => p.userId === uid);
-      this.streamLog(`game-started — uid=${uid} isHunter=${isHunter} isPrey=${isPrey}`);
-
-      // Start background location tracking before navigating so reporting begins the
-      // moment the game starts. The in-game page's ionViewWillEnter is a no-op when a
-      // session for this game is already active (idempotent start).
-      if (isHunter || isPrey) {
-        const startedAt = game.startedAt ? new Date(game.startedAt) : new Date();
-        const endTime = new Date(startedAt.getTime() + game.configuration.gameDuration * 60_000);
-        void this.locationService.start(game.id, endTime);
-      }
-
-      if (isHunter) {
-        this.streamLog(`navigating to hunt view for game ${game.id}`);
-        this.router.navigate(['/games', game.id, 'hunt'], { replaceUrl: true });
-      } else if (isPrey) {
-        this.streamLog(`navigating to play view for game ${game.id}`);
-        this.router.navigate(['/games', game.id, 'play'], { replaceUrl: true });
-      } else {
-        this.streamError(`game-started but current user ${uid} is neither hunter nor prey — staying put`);
-      }
+      this.enterStartedGame(game);
     } catch (err) {
       this.streamError("event 'game-started' failed to parse", err);
+    }
+  }
+
+  /**
+   * The game is verified InProgress — stop the lobby stream, start location tracking and
+   * route the player to their role's view. Reached via the `game-started` event or via a
+   * post-reconnect refresh that discovered the game started while we were disconnected.
+   */
+  private enterStartedGame(game: GameDto): void {
+    const uid = this.currentUserId();
+    this.closeStream();
+
+    const isHunter = game.hunter?.userId === uid;
+    const isPrey = game.preys.some(p => p.userId === uid);
+    this.streamLog(`game in progress — uid=${uid} isHunter=${isHunter} isPrey=${isPrey}`);
+
+    // Start background location tracking before navigating so reporting begins the
+    // moment the game starts. The in-game page's ionViewWillEnter is a no-op when a
+    // session for this game is already active (idempotent start).
+    if (isHunter || isPrey) {
+      const startedAt = game.startedAt ? new Date(game.startedAt) : new Date();
+      const endTime = new Date(startedAt.getTime() + game.configuration.gameDuration * 60_000);
+      void this.locationService.start(game.id, endTime);
+    }
+
+    if (isHunter) {
+      this.streamLog(`navigating to hunt view for game ${game.id}`);
+      this.router.navigate(['/games', game.id, 'hunt'], { replaceUrl: true });
+    } else if (isPrey) {
+      this.streamLog(`navigating to play view for game ${game.id}`);
+      this.router.navigate(['/games', game.id, 'play'], { replaceUrl: true });
+    } else {
+      this.streamError(`game in progress but current user ${uid} is neither hunter nor prey — staying put`);
     }
   }
 
@@ -235,6 +227,10 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       const game = await this.gamesService.getGame(this.gameId());
       this.game.set(game);
       this.syncConfigFromGame(game);
+      if (game.status === 'InProgress') {
+        this.streamLog('refresh found the game already in progress (missed game-started) — entering game');
+        this.enterStartedGame(game);
+      }
     } catch {
       // best effort
     }
@@ -246,11 +242,8 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   }
 
   private closeStream(): void {
-    if (this.eventSource) {
-      this.streamLog(`closing stream — readyState=${this.eventSource.readyState}`);
-    }
-    this.eventSource?.close();
-    this.eventSource = null;
+    this.stream?.stop();
+    this.stream = null;
   }
 
   // ── SSE diagnostics ──────────────────────────────────────────
@@ -264,11 +257,6 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   private streamError(message: string, ...args: unknown[]): void {
     console.error(`${this.streamTag} ${message}`, ...args);
-  }
-
-  /** Redacts the JWT in the SSE URL so it never lands in logs. */
-  private redactToken(url: string): string {
-    return url.replace(/token=[^&]+/i, 'token=<redacted>');
   }
 
   /** A bounded preview of raw event data so logcat lines stay readable. */
