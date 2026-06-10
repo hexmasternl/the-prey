@@ -41,6 +41,7 @@ param jobCommand array = []
 
 var rgName = 'rg-theprey-games-${environmentName}'
 var gamesImage = '${registryServer}/theprey/games-api:${imageTag}'
+var gameEngineImage = '${registryServer}/theprey/game-engine:${imageTag}'
 var pgServerName = 'theprey-games-pg-${environmentName}'
 var pgConnectionString = 'Host=${pgServerName}.postgres.database.azure.com;Database=games;Username=${pgAdminLogin};Password=${pgAdminPassword};SslMode=Require'
 
@@ -124,7 +125,7 @@ module gamesData 'modules/games-data.bicep' = {
     location: location
     pgLocation: pgLocation
     environmentName: environmentName
-    gamesImage: gamesImage
+    gameEngineImage: gameEngineImage
     registryServer: registryServer
     containerAppsEnvironmentId: acaEnv.id
     acrPullIdentityId: acrPullIdentity.id

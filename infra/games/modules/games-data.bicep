@@ -7,8 +7,8 @@ param pgLocation string
 @description('Environment discriminator')
 param environmentName string
 
-@description('Container image reference including tag (the Games API image, reused by the job)')
-param gamesImage string
+@description('Container image reference including tag for the Game Engine worker run by the job')
+param gameEngineImage string
 
 @description('ACR server hostname')
 param registryServer string
@@ -37,7 +37,7 @@ param appInsightsConnectionString string
 @description('App Configuration store endpoint for the job')
 param appConfigEndpoint string
 
-@description('Container Apps Job command override (default: the API entrypoint)')
+@description('Container Apps Job command override (default: the engine image entrypoint)')
 param jobCommand array = []
 
 @description('Name of the landing-zone storage account hosting the trigger queue')
@@ -106,9 +106,9 @@ resource gamesDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024
   }
 }
 
-// Container Apps Job — reuses the Games API image with a configurable command.
-// NOTE: API version must be 2024-10-02-preview or later (GA in 2025-01-01) for the
-// scale rule `identity` property below to be honored. Older versions (e.g. 2024-03-01)
+// Container Apps Job — runs the dedicated Game Engine worker image, triggered by the
+// game-start queue. NOTE: API version must be 2024-10-02-preview or later (GA in 2025-01-01)
+// for the scale rule `identity` property below to be honored. Older versions (e.g. 2024-03-01)
 // silently strip it, leaving the KEDA queue scaler unauthenticated so the job never triggers.
 resource gamesJob 'Microsoft.App/jobs@2025-01-01' = {
   name: 'theprey-games-job-${environmentName}'
@@ -123,14 +123,19 @@ resource gamesJob 'Microsoft.App/jobs@2025-01-01' = {
     environmentId: containerAppsEnvironmentId
     configuration: {
       triggerType: 'Event'
-      replicaTimeout: 300
+      // The engine runs for the full game session (up to GameDuration), so the replica must
+      // live that long. 2 hours is the supported ceiling; the engine exits early via
+      // IHostApplicationLifetime.StopApplication when the game actually ends.
+      replicaTimeout: 7200
       replicaRetryLimit: 0
       eventTriggerConfig: {
         parallelism: 1
         replicaCompletionCount: 1
         scale: {
           minExecutions: 0
-          maxExecutions: 1
+          // Each execution runs one full game for up to replicaTimeout, so allow several
+          // concurrent games — KEDA starts one execution per queued game-start message.
+          maxExecutions: 10
           pollingInterval: 30
           rules: [
             {
@@ -170,7 +175,7 @@ resource gamesJob 'Microsoft.App/jobs@2025-01-01' = {
       containers: [
         {
           name: 'games-job'
-          image: gamesImage
+          image: gameEngineImage
           command: empty(jobCommand) ? null : jobCommand
           resources: {
             cpu: json('0.25')

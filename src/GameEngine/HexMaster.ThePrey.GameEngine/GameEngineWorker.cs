@@ -13,17 +13,20 @@ internal sealed class GameEngineWorker : BackgroundService
     private readonly QueueServiceClient _queueServiceClient;
     private readonly GameLocationChecker _locationChecker;
     private readonly string _queueName;
+    private readonly IHostApplicationLifetime _appLifetime;
     private readonly ILogger<GameEngineWorker> _logger;
 
     public GameEngineWorker(
         QueueServiceClient queueServiceClient,
         GameLocationChecker locationChecker,
         IConfiguration configuration,
+        IHostApplicationLifetime appLifetime,
         ILogger<GameEngineWorker> logger)
     {
         _queueServiceClient = queueServiceClient;
         _locationChecker = locationChecker;
         _queueName = configuration["GameEngine:QueueName"] ?? AspireConstants.Queues.GameStart;
+        _appLifetime = appLifetime;
         _logger = logger;
     }
 
@@ -63,7 +66,17 @@ internal sealed class GameEngineWorker : BackgroundService
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             activity?.AddException(ex);
             _logger.LogError(ex, "Game engine encountered an unhandled error");
+            // Non-zero exit so the Container Apps Job execution is marked Failed.
+            Environment.ExitCode = 1;
             throw;
+        }
+        finally
+        {
+            // This worker runs as a Container Apps Job: it processes a single game and must
+            // exit. A completed BackgroundService does not stop the Generic Host on its own,
+            // so without this the replica would idle until replicaTimeout and be marked Failed.
+            // Stopping here lets the execution complete as soon as the game ends.
+            _appLifetime.StopApplication();
         }
     }
 

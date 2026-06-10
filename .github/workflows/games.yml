@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'src/Games/**'
+      - 'src/GameEngine/**'
       - 'src/Core/**'
       - 'src/Shared/**'
       - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
@@ -21,6 +22,7 @@ on:
     branches: [main]
     paths:
       - 'src/Games/**'
+      - 'src/GameEngine/**'
       - 'src/Core/**'
       - 'src/Shared/**'
       - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
@@ -104,9 +106,22 @@ jobs:
       - name: Log in to ACR
         run: az acr login --name "${{ secrets.ACR_HOSTNAME }}"
 
-      - name: Publish container
+      - name: Publish API container
         run: |
           dotnet publish src/Games/HexMaster.ThePrey.Games.Api/HexMaster.ThePrey.Games.Api.csproj \
+            --configuration Release \
+            --os linux \
+            --arch x64 \
+            /t:PublishContainer \
+            /p:ContainerRegistry=${{ secrets.ACR_HOSTNAME }} \
+            /p:ContainerImageTag=${{ steps.resolve-tag.outputs.imageTag }} \
+            /p:Version=${{ needs.version.outputs.semVer }} \
+            /p:AssemblyVersion=${{ needs.version.outputs.semVer }} \
+            /p:InformationalVersion=${{ needs.version.outputs.semVer }}
+
+      - name: Publish game engine container
+        run: |
+          dotnet publish src/GameEngine/HexMaster.ThePrey.GameEngine/HexMaster.ThePrey.GameEngine.csproj \
             --configuration Release \
             --os linux \
             --arch x64 \
