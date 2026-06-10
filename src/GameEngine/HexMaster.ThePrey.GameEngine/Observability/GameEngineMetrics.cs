@@ -15,7 +15,8 @@ internal sealed class GameEngineMetrics : IGameEngineMetrics
     private readonly Counter<long> _locationsBroadcasted;
     private readonly Counter<long> _cyclesExecuted;
 
-    internal GameEngineMetrics(IMeterFactory meterFactory)
+    // Public for DI: resolved via AddSingleton<IGameEngineMetrics, GameEngineMetrics>().
+    public GameEngineMetrics(IMeterFactory meterFactory)
     {
         var meter = meterFactory.Create(MeterName);
 
