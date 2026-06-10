@@ -17,10 +17,24 @@ public sealed class QueryHandlerTests
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
         var handler = new GetGameQueryHandler(_repository.Object);
 
-        var result = await handler.Handle(new GetGameQuery(game.Id), CancellationToken.None);
+        var result = await handler.Handle(new GetGameQuery(game.Id, game.OwnerUserId), CancellationToken.None);
 
         Assert.NotNull(result);
         Assert.Equal(game.Id, result!.Id);
+        Assert.True(result.IsOwnerPlayer);
+    }
+
+    [Fact]
+    public async Task GetGame_ShouldNotFlagOwnerPlayer_WhenCallerIsNotOwner()
+    {
+        var game = GameFaker.LobbyGame();
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        var handler = new GetGameQueryHandler(_repository.Object);
+
+        var result = await handler.Handle(new GetGameQuery(game.Id, Guid.NewGuid()), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsOwnerPlayer);
     }
 
     [Fact]
@@ -29,7 +43,7 @@ public sealed class QueryHandlerTests
         _repository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Game?)null);
         var handler = new GetGameQueryHandler(_repository.Object);
 
-        var result = await handler.Handle(new GetGameQuery(Guid.NewGuid()), CancellationToken.None);
+        var result = await handler.Handle(new GetGameQuery(Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None);
 
         Assert.Null(result);
     }

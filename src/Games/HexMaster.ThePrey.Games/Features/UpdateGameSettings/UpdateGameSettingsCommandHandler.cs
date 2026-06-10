@@ -47,7 +47,7 @@ public sealed class UpdateGameSettingsCommandHandler : ICommandHandler<UpdateGam
             await _games.UpdateAsync(game, ct);
             await _eventBus.PublishAsync(game.Id, "settings-updated", game.ToDto(), ct);
 
-            return new UpdateGameSettingsResult(game.ToDto());
+            return new UpdateGameSettingsResult(game.ToDto(command.OwnerUserId));
         }
         catch (Exception ex)
         {

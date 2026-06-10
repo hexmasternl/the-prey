@@ -60,6 +60,6 @@ public sealed class StartGameCommandHandler : ICommandHandler<StartGameCommand, 
         await _eventBus.PublishAsync(game.Id, new StateChangedEvent(game.Id, "InProgress"), ct);
         await _lobbyEventBus.PublishAsync(game.Id, "game-started", game.ToDto(), ct);
 
-        return new StartGameResult(game.ToDto());
+        return new StartGameResult(game.ToDto(command.RequestingUserId));
     }
 }

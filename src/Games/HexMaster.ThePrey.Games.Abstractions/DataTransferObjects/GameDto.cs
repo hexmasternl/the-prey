@@ -1,6 +1,10 @@
 namespace HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 
-/// <summary>The full state of a game, including its lobby and — once started — its hunter and preys.</summary>
+/// <summary>
+/// The full state of a game, including its lobby and — once started — its hunter and preys.
+/// <see cref="IsOwnerPlayer"/> and <see cref="IsReadyToStart"/> are computed from the requesting
+/// caller's perspective so the client never has to re-derive ownership or start-eligibility locally.
+/// </summary>
 public sealed record GameDto(
     Guid Id,
     string GameCode,
@@ -17,7 +21,9 @@ public sealed record GameDto(
     DateTimeOffset? EndsAt,
     DateTimeOffset CleanUpAfter,
     string Outcome,
-    DateTimeOffset? CompletedAt);
+    DateTimeOffset? CompletedAt,
+    bool IsOwnerPlayer,
+    bool IsReadyToStart);
 
 /// <summary>A condensed view of a game for list results.</summary>
 public sealed record GameSummaryDto(

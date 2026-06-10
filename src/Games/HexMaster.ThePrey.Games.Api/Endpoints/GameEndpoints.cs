@@ -26,6 +26,14 @@ namespace HexMaster.ThePrey.Games.Api.Endpoints;
 
 public static class GameEndpoints
 {
+    /// <summary>
+    /// camelCase options for the SSE payloads so the JSON keys match the web/Minimal-API response
+    /// contract the Angular client consumes (e.g. <c>payload</c>, <c>isOwnerPlayer</c>). The default
+    /// serializer would emit PascalCase, which the client cannot read.
+    /// </summary>
+    private static readonly System.Text.Json.JsonSerializerOptions SseJsonOptions =
+        new(System.Text.Json.JsonSerializerDefaults.Web);
+
     public static IEndpointRouteBuilder MapGameEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/games")
@@ -310,7 +318,7 @@ public static class GameEndpoints
         var user = await userResolver.ResolveUser(subjectId, ct);
         if (user is null) return Results.Unauthorized();
 
-        var game = await handler.Handle(new GetGameQuery(id), ct);
+        var game = await handler.Handle(new GetGameQuery(id, user.UserId), ct);
         return game is not null ? Results.Ok(game) : Results.NotFound();
     }
 
@@ -613,7 +621,11 @@ public static class GameEndpoints
 
         await foreach (var evt in eventBus.Subscribe(id).WithCancellation(ct))
         {
-            var json = System.Text.Json.JsonSerializer.Serialize(evt);
+            // The bus broadcasts one payload to every subscriber, so IsOwnerPlayer — which is per
+            // recipient — is stamped here, where this connection's user is known.
+            var payload = evt.Payload with { IsOwnerPlayer = evt.Payload.OwnerUserId == user.UserId };
+            var personalized = evt with { Payload = payload };
+            var json = System.Text.Json.JsonSerializer.Serialize(personalized, SseJsonOptions);
             await httpContext.Response.WriteAsync($"event: {evt.EventType}\ndata: {json}\n\n", ct);
             await httpContext.Response.Body.FlushAsync(ct);
         }

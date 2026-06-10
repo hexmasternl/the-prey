@@ -53,7 +53,7 @@ public sealed class CreateGameCommandHandler : ICommandHandler<CreateGameCommand
 
             activity?.SetTag("game.id", game.Id);
 
-            return new CreateGameResult(game.ToDto());
+            return new CreateGameResult(game.ToDto(command.OwnerUserId));
         }
         catch (Exception ex)
         {

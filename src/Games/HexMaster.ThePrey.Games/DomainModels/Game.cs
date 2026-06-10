@@ -195,6 +195,20 @@ public sealed class Game
     }
 
     /// <summary>
+    /// Whether every precondition of <see cref="Start"/> is currently met: the game is still in the
+    /// lobby, has at least <see cref="MinimumPlayersToStart"/> players, has a designated hunter who is a
+    /// lobby member, and every non-owner player has readied up. The host is excluded from the readiness
+    /// gate because the host never readies (see <see cref="SetReady"/>). This is the single source of
+    /// truth the API surfaces to the owner's client so it can enable the Start control.
+    /// </summary>
+    public bool IsReadyToStart =>
+        Status == GameStatus.Lobby
+        && _lobby.Count >= MinimumPlayersToStart
+        && DesignatedHunterUserId is { } hunterId
+        && _lobby.Any(p => p.UserId == hunterId)
+        && _lobby.All(p => p.UserId == OwnerUserId || p.IsReady);
+
+    /// <summary>
     /// Starts the game: designates the hunter, turns every other lobby member into a prey, records the
     /// start time, and transitions to InProgress.
     /// </summary>

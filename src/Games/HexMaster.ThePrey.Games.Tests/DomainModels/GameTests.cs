@@ -131,6 +131,30 @@ public sealed class GameTests
     }
 
     [Fact]
+    public void IsReadyToStart_ShouldBeFalse_UntilHunterDesignatedAndAllReady()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids, markReady: false);
+        Assert.False(game.IsReadyToStart); // no hunter, nobody ready
+
+        game.DesignateHunter(ids[0]);
+        game.SetReady(ids[0]);
+        game.SetReady(ids[1]);
+        Assert.False(game.IsReadyToStart); // ids[2] still not ready
+
+        game.SetReady(ids[2]);
+        Assert.True(game.IsReadyToStart);
+    }
+
+    [Fact]
+    public void IsReadyToStart_ShouldBeFalse_WhenFewerThanTwoPlayers()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(1, out var ids);
+        game.DesignateHunter(ids[0]);
+
+        Assert.False(game.IsReadyToStart);
+    }
+
+    [Fact]
     public void RecordLocation_ShouldAppendHistory_WithoutSettingCurrentLocation()
     {
         var game = GameFaker.StartedGame(out _, out var preyIds, Start);

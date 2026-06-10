@@ -38,7 +38,7 @@ public sealed class JoinGameCommandHandler : ICommandHandler<JoinGameCommand, Jo
             await _games.UpdateAsync(game, ct);
             await _eventBus.PublishAsync(game.Id, "lobby-updated", game.ToDto(), ct);
 
-            return new JoinGameResult(game.ToDto());
+            return new JoinGameResult(game.ToDto(command.UserId));
         }
         catch (Exception ex)
         {

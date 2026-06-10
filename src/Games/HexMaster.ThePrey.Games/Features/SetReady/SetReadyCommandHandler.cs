@@ -37,7 +37,7 @@ public sealed class SetReadyCommandHandler : ICommandHandler<SetReadyCommand, Se
             await _games.UpdateAsync(game, ct);
             await _eventBus.PublishAsync(game.Id, "ready-updated", game.ToDto(), ct);
 
-            return new SetReadyResult(game.ToDto());
+            return new SetReadyResult(game.ToDto(command.UserId));
         }
         catch (Exception ex)
         {

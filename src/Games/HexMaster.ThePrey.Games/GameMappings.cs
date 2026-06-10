@@ -51,7 +51,13 @@ internal static class GameMappings
     }
 
 
-    internal static GameDto ToDto(this Game game) =>
+    /// <summary>
+    /// Maps a game to its DTO from <paramref name="currentUserId"/>'s perspective. When the caller is
+    /// known, <see cref="GameDto.IsOwnerPlayer"/> reflects whether they own the game; for broadcast
+    /// payloads (audience not yet known) pass null and let the SSE endpoint re-stamp it per subscriber.
+    /// <see cref="GameDto.IsReadyToStart"/> is caller-independent game state and is always accurate.
+    /// </summary>
+    internal static GameDto ToDto(this Game game, Guid? currentUserId = null) =>
         new(
             game.Id,
             game.GameCode,
@@ -73,7 +79,9 @@ internal static class GameMappings
             game.EndsAt,
             game.CleanUpAfter,
             game.Outcome.ToString(),
-            game.CompletedAt);
+            game.CompletedAt,
+            currentUserId is { } uid && game.OwnerUserId == uid,
+            game.IsReadyToStart);
 
     internal static GameEndedEvent ToGameEndedEvent(this Game game) =>
         new(

@@ -62,7 +62,7 @@ public sealed class SetHunterCommandHandler : ICommandHandler<SetHunterCommand, 
                 return null;
             }
 
-            return new SetHunterResult(game.ToDto());
+            return new SetHunterResult(game.ToDto(command.CallerUserId));
         }
         catch (Exception ex)
         {

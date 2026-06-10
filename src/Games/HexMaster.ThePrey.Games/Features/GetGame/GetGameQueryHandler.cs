@@ -14,6 +14,6 @@ public sealed class GetGameQueryHandler : IQueryHandler<GetGameQuery, GameDto?>
         ArgumentNullException.ThrowIfNull(query);
 
         var game = await _games.GetByIdAsync(query.GameId, ct);
-        return game?.ToDto();
+        return game?.ToDto(query.RequestingUserId);
     }
 }

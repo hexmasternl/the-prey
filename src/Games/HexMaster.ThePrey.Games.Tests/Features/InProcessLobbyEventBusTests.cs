@@ -68,5 +68,7 @@ public sealed class InProcessLobbyEventBusTests
             null,
             DateTimeOffset.UtcNow,
             "Unknown",
-            null);
+            null,
+            false,
+            false);
 }

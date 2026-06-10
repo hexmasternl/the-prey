@@ -37,7 +37,7 @@ public sealed class RemoveLobbyPlayerCommandHandler : ICommandHandler<RemoveLobb
             await _games.UpdateAsync(game, ct);
             await _eventBus.PublishAsync(game.Id, "lobby-updated", game.ToDto(), ct);
 
-            return new RemoveLobbyPlayerResult(game.ToDto());
+            return new RemoveLobbyPlayerResult(game.ToDto(command.OwnerUserId));
         }
         catch (Exception ex)
         {
