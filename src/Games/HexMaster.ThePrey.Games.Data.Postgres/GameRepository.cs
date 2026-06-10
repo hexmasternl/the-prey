@@ -36,7 +36,7 @@ public sealed class GameRepository : IGameRepository
 
     public async Task<Game?> GetByIdAsync(Guid id, CancellationToken ct)
     {
-        // The lobby, participants, and their value objects/history are owned types and load automatically.
+        // Participants and their value objects/history are owned types and load automatically.
         return await _db.Games.FirstOrDefaultAsync(g => g.Id == id, ct);
     }
 
@@ -44,14 +44,15 @@ public sealed class GameRepository : IGameRepository
     {
         ArgumentNullException.ThrowIfNull(game);
         // The aggregate is loaded and tracked within the same scoped context, so change tracking
-        // picks up lobby/participant/history mutations; persist them.
+        // picks up participant/history mutations; persist them.
         await _db.SaveChangesAsync(ct);
     }
 
     public async Task<IReadOnlyList<Game>> ListForUserAsync(Guid userId, CancellationToken ct)
     {
         return await _db.Games
-            .Where(g => g.OwnerUserId == userId || g.Lobby.Any(p => p.UserId == userId))
+            .Where(g => g.OwnerUserId == userId
+                     || EF.Property<ICollection<GameParticipant>>(g, "_participants").Any(p => p.UserId == userId))
             .ToListAsync(ct);
     }
 
@@ -63,7 +64,6 @@ public sealed class GameRepository : IGameRepository
         return await _db.Games
             .Where(g => g.Status == GameStatus.InProgress
                      && (g.OwnerUserId == userId
-                         || g.Lobby.Any(p => p.UserId == userId)
                          || EF.Property<ICollection<GameParticipant>>(g, "_participants")
                               .Any(p => p.UserId == userId)))
             .FirstOrDefaultAsync(ct);
