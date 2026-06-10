@@ -59,6 +59,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly hasActivePenalty = signal(false);
   readonly gpsAlert        = signal<string | null>(null);
   readonly gameOverMessage  = signal<string | null>(null);
+  /** Seconds until the next status poll, ticked down every second for the HUD. */
+  readonly pingCountdown   = signal(30);
+  /** Collapsed by default: only the remaining game time shows until the HUD is tapped. */
+  readonly hudExpanded     = signal(false);
   /** True when background location reporting could not be (re)started for this game. */
   readonly trackingInactive = signal(false);
   /** Live tracking state from the singleton service (true while broadcasting). */
@@ -74,6 +78,8 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private playfieldPolygon: L.Polygon | null = null;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private durationTimer: ReturnType<typeof setInterval> | null = null;
+  private pingIntervalTimer: ReturnType<typeof setInterval> | null = null;
+  pollIntervalSeconds = 30;
   /** Local participant state map keyed by userId */
   private participantStates = new Map<string, string>();
 
@@ -125,9 +131,14 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     await this.ensureTracking();
   }
 
+  toggleHud(): void {
+    this.hudExpanded.update(v => !v);
+  }
+
   ngOnDestroy(): void {
     this.clearPoll();
     this.clearDurationTimer();
+    this.clearPingInterval();
     this.streamService.disconnect();
     // NOTE: intentionally do NOT stop location tracking here — the service must keep
     // broadcasting while the game is in progress even if the player leaves this page.
@@ -238,8 +249,9 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
       // The native Android service manages its own interval autonomously —
       // we only use nextPingDuration here to pace the Angular-side UI poll.
-      const intervalMs = (status.nextPingDuration || 30) * 1_000;
-      this.pollTimer = setTimeout(() => this.pollStatus(), intervalMs);
+      this.pollIntervalSeconds = status.nextPingDuration || 30;
+      this.startPingCountdown(this.pollIntervalSeconds);
+      this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1_000);
     } catch {
       // Retry with a safe default on network error
       this.pollTimer = setTimeout(() => this.pollStatus(), 30_000);
@@ -367,6 +379,22 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     if (this.durationTimer !== null) {
       clearInterval(this.durationTimer);
       this.durationTimer = null;
+    }
+  }
+
+  /** Tick the next-update countdown down once per second until the next poll resyncs it. */
+  private startPingCountdown(seconds: number): void {
+    this.clearPingInterval();
+    this.pingCountdown.set(seconds);
+    this.pingIntervalTimer = setInterval(() => {
+      this.pingCountdown.set(Math.max(0, this.pingCountdown() - 1));
+    }, 1000);
+  }
+
+  private clearPingInterval(): void {
+    if (this.pingIntervalTimer !== null) {
+      clearInterval(this.pingIntervalTimer);
+      this.pingIntervalTimer = null;
     }
   }
 }

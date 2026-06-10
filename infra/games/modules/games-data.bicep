@@ -218,6 +218,10 @@ resource gamesJob 'Microsoft.App/jobs@2025-01-01' = {
               name: 'GamesApi__Url'
               value: gamesApiBaseUrl
             }
+            {
+              name: 'GameEngine__EngineKey'
+              secretRef: 'engine-key'
+            }
           ]
         }
       ]

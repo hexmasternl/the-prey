@@ -75,23 +75,40 @@
   </div>
   }
 
-  <!-- HUD bar -->
-  <div class="hud-bar">
-    <div class="hud-cell">
-      <div class="hud-label">TIME</div>
-      <div class="hud-value">{{ timeRemaining() }}</div>
+  <!-- Collapsible HUD panel: shows remaining game time only until tapped -->
+  <div class="hud-panel" [class.expanded]="hudExpanded()">
+    @if (hudExpanded()) {
+    <div class="hud-grid">
+      <div class="hud-cell">
+        <div class="hud-label">PREY</div>
+        <div class="hud-value">{{ preysLeft() }}</div>
+      </div>
+      <div class="hud-cell" [class.hud-penalty]="hasActivePenalty()">
+        <div class="hud-label">PENALTY</div>
+        <div class="hud-value">{{ hasActivePenalty() ? 'ACTIVE' : '—' }}</div>
+      </div>
+      <div class="hud-cell" [class.hud-link-on]="isTracking()">
+        <div class="hud-label">LINK</div>
+        <div class="hud-value">{{ isTracking() ? 'LIVE' : 'OFF' }}</div>
+      </div>
     </div>
-    <div class="hud-cell">
-      <div class="hud-label">PREY</div>
-      <div class="hud-value">{{ preysLeft() }}</div>
+    }
+
+    <!-- Always visible: total remaining game time + expand/collapse handle -->
+    <div class="hud-time-row" (click)="toggleHud()">
+      <span class="hud-label">TIME</span>
+      <span class="hud-time-value">{{ timeRemaining() }}</span>
+      <span class="hud-caret">{{ hudExpanded() ? '▾' : '▴' }}</span>
     </div>
-    <div class="hud-cell" [class.hud-penalty]="hasActivePenalty()">
-      <div class="hud-label">PENALTY</div>
-      <div class="hud-value">{{ hasActivePenalty() ? 'ACTIVE' : '—' }}</div>
+
+    @if (hudExpanded()) {
+    <div class="hud-ping-row">
+      <span class="hud-ping-label">NEXT UPDATE</span>
+      <div class="hud-ping-bar-wrap">
+        <div class="hud-ping-bar" [style.width.%]="(pingCountdown() / (pollIntervalSeconds || 30)) * 100"></div>
+      </div>
+      <span class="hud-ping-value">{{ pingCountdown() }}s</span>
     </div>
-    <div class="hud-cell" [class.hud-link-on]="isTracking()">
-      <div class="hud-label">LINK</div>
-      <div class="hud-value">{{ isTracking() ? 'LIVE' : 'OFF' }}</div>
-    </div>
+    }
   </div>
 </ion-content>

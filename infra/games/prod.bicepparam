@@ -18,3 +18,5 @@ param imageTag = '1.0.0'
 param registryServer = ''
 param pgAdminLogin = 'thepreyadmin'
 param pgAdminPassword = ''
+// Supplied at deploy time from the GAME_ENGINE_KEY GitHub secret — never commit a real value.
+param engineKey = ''

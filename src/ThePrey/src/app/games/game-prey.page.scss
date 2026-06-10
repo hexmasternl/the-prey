@@ -61,26 +61,66 @@
   }
 }
 
-.hud-bar {
+.hud-panel {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 10;
-  display: flex;
-  background: rgba(12, 14, 12, 0.88);
+  background: rgba(12, 14, 12, 0.92);
   border-top: 1px solid var(--line);
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding: 0 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  font-family: 'PT Mono', 'Courier New', monospace;
+}
+
+/* Always-visible row: remaining game time + expand/collapse handle */
+.hud-time-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 4px;
+  cursor: pointer;
+  user-select: none;
+
+  .hud-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-soft);
+    text-transform: uppercase;
+  }
+
+  .hud-time-value {
+    flex: 1;
+    font-size: 22px;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+
+  .hud-caret {
+    font-size: 12px;
+    color: var(--text-soft);
+  }
+}
+
+/* Secondary HUD cells, shown above the time row when expanded */
+.hud-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 10px;
 }
 
 .hud-cell {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px 8px 10px;
+  background: rgba(12, 14, 12, 0.7);
+  padding: 10px 8px;
   border-right: 1px solid var(--line);
-  font-family: 'PT Mono', 'Courier New', monospace;
 
   &:last-child {
     border-right: none;
@@ -95,7 +135,7 @@
   }
 
   .hud-value {
-    font-size: 20px;
+    font-size: 18px;
     color: var(--text);
     line-height: 1;
   }
@@ -107,9 +147,52 @@
 
   /* LINK cell: green + glow when location reporting is live, dim when off. */
   &.hud-link-on .hud-value {
-    color: #64ff00;
+    color: var(--signal);
     text-shadow: 0 0 10px rgba(100, 255, 0, 0.4);
   }
+}
+
+/* Next-update countdown, shown at the bottom when expanded */
+.hud-ping-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: rgba(12, 14, 12, 0.7);
+  padding: 8px 14px;
+  margin-bottom: 10px;
+}
+
+.hud-ping-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-soft);
+  text-transform: uppercase;
+}
+
+.hud-ping-bar-wrap {
+  flex: 1;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hud-ping-bar {
+  height: 100%;
+  background: var(--signal);
+  box-shadow: 0 0 6px rgba(100, 255, 0, 0.5);
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+.hud-ping-value {
+  font-size: 16px;
+  color: var(--signal);
+  text-shadow: 0 0 8px rgba(100, 255, 0, 0.4);
+  min-width: 36px;
+  text-align: right;
 }
 
 /* Tracking-inactive warning reuses the .alert-banner.alert-warn styling. */

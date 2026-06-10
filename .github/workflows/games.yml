@@ -157,7 +157,8 @@ jobs:
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
               registryServer="${{ secrets.ACR_HOSTNAME }}" \
-              pgAdminPassword="${{ secrets.POSTGRES_ADMIN_PASSWORD }}"
+              pgAdminPassword="${{ secrets.POSTGRES_ADMIN_PASSWORD }}" \
+              engineKey="${{ secrets.GAME_ENGINE_KEY }}"
 
   release:
     name: Tag & Release
