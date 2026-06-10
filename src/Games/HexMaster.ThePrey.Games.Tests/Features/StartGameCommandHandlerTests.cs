@@ -47,7 +47,7 @@ public sealed class StartGameCommandHandlerTests
 
         Assert.NotNull(result);
         Assert.Equal(GameStatus.InProgress.ToString(), result!.Game.Status);
-        Assert.Equal(ids[0], result.Game.Hunter!.UserId);
+        Assert.Equal(ids[0], result.Game.HunterUserId);
         Assert.Equal(2, result.Game.Preys.Count);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _metrics.Verify(m => m.RecordGameStarted(), Times.Once);
