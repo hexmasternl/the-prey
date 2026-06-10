@@ -33,6 +33,10 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
         builder.Property(g => g.Outcome).HasConversion<int>().HasDefaultValue(GameOutcome.Undecided);
 
         // Computed, behaviour-only members must not be mapped.
+        // Participants is the public read-only accessor over the "_participants" backing-field
+        // navigation (mapped below). Without this Ignore, EF's conventions discover it as a second
+        // navigation to the owned GameParticipant type and the model fails to build at startup.
+        builder.Ignore(g => g.Participants);
         builder.Ignore(g => g.Preys);
         builder.Ignore(g => g.ScheduledEndAt);
 

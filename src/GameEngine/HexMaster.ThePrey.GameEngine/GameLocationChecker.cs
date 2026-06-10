@@ -18,7 +18,9 @@ internal sealed class GameLocationChecker
     private readonly Dictionary<Guid, DateTimeOffset> _lastBroadcastTimes = new();
     private int _cycleNumber;
 
-    internal GameLocationChecker(
+    // Must be public: it is resolved from the DI container via AddSingleton<GameLocationChecker>(),
+    // and Microsoft.Extensions.DependencyInjection only selects public constructors.
+    public GameLocationChecker(
         IDbContextFactory<GamesDbContext> dbContextFactory,
         IHttpClientFactory httpClientFactory,
         IGameEngineMetrics metrics,
