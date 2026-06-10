@@ -20,6 +20,9 @@ param enableApiCustomDomain bool = false
 @description('Resource ID of an existing certificate for the custom domain (empty = free managed certificate).')
 param apiCustomDomainCertificateId string = ''
 
+@description('Comma-separated CORS allowed origins shared by all APIs (stored in App Configuration). Must include the Ionic dev server (http://localhost:8100) and Capacitor WebView origins.')
+param corsAllowedOrigins string = 'http://localhost:8100,https://localhost,capacitor://localhost,https://theprey.nl,https://www.theprey.nl'
+
 var rgName = 'rg-theprey-landing-${environmentName}'
 var prefix = 'theprey-${environmentName}'
 
@@ -153,6 +156,7 @@ module appConfigValues 'modules/app-config-values.bicep' = {
     appConfigName: appConfig.outputs.name
     webPubSubEndpoint: webPubSub.outputs.endpoint
     serviceBusEndpoint: serviceBus.outputs.endpoint
+    corsAllowedOrigins: corsAllowedOrigins
   }
 }
 

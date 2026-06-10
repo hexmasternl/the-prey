@@ -12,15 +12,29 @@ var stateStore = builder
 // RabbitMQ backs the Dapr pub/sub component for local development (Azure Service Bus is used in the
 // cloud via a Bicep-provisioned Dapr component). Fixed credentials + host port keep the static
 // component YAML (components/pubsub.yaml) connection string valid.
-var rabbitUser = builder.AddParameter("rabbitmq-username", "guest");
-var rabbitPassword = builder.AddParameter("rabbitmq-password", "guest", secret: true);
-var rabbitmq = builder
-    .AddRabbitMQ(AspireConstants.Resources.RabbitMq, rabbitUser, rabbitPassword, port: 5672)
-    .WithLifetime(ContainerLifetime.Persistent);
+var rabbitMqUsername = builder.AddParameter("rabbitmq-username", secret: true);
+var rabbitMqPassword = builder.AddParameter("rabbitmq-password", secret: true);
+var rabbitmq = builder.AddRabbitMQ("messaging", rabbitMqUsername, rabbitMqPassword, port: 5672);
+rabbitmq.WithManagementPlugin(port: 15672);
+var rabbitMqConnectionString = ReferenceExpression.Create(
+    $"amqp://{rabbitMqUsername.Resource}:{rabbitMqPassword.Resource}@{rabbitmq.GetEndpoint("tcp").Property(EndpointProperty.HostAndPort)}");
 
-var pubSub = builder.AddDaprPubSub(
-    AspireConstants.Resources.DaprPubSub,
-    new DaprComponentOptions { LocalPath = "components/pubsub.yaml" });
+var pubSub = builder.AddDaprComponent(AspireConstants.DaprComponents.PubSub, "pubsub.rabbitmq")
+    .WithMetadata(
+        "connectionString",
+        rabbitMqConnectionString
+    )
+    // Keep parameter-backed secret metadata so the toolkit emits the local env
+    // secret store required for value-provider-backed component metadata.
+    .WithMetadata(
+        "username",
+        rabbitMqUsername.Resource
+    )
+    .WithMetadata(
+        "password",
+        rabbitMqPassword.Resource
+    )
+    .WaitFor(rabbitmq);
 
 // Azure Web PubSub fans real-time game events out to clients (one group per game). There is no local
 // emulator, so for local development supply a connection string via user secrets / configuration under
@@ -28,7 +42,7 @@ var pubSub = builder.AddDaprPubSub(
 var webPubSub = builder.AddAzureWebPubSub(AspireConstants.Resources.WebPubSub);
 
 var storage = builder.AddAzureStorage(AspireConstants.Resources.Storage)
-    .RunAsEmulator(azurite =>        azurite.WithLifetime(ContainerLifetime.Persistent));
+    .RunAsEmulator(azurite => azurite.WithLifetime(ContainerLifetime.Persistent));
 var usersTables = storage.AddTables(AspireConstants.Resources.UsersTables);
 var playFieldsTables = storage.AddTables(AspireConstants.Resources.PlayFieldsTables);
 

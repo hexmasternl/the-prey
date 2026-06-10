@@ -7,6 +7,9 @@ param webPubSubEndpoint string
 @description('Service Bus fully-qualified namespace (<name>.servicebus.windows.net)')
 param serviceBusEndpoint string
 
+@description('Comma-separated CORS allowed origins consumed by every API via AddDefaultCors (config key Cors:AllowedOrigins). Includes the Ionic dev server and Capacitor WebView origins.')
+param corsAllowedOrigins string = 'http://localhost:8100,https://localhost,capacitor://localhost,https://theprey.nl,https://www.theprey.nl'
+
 resource appConfig 'Microsoft.AppConfiguration/configurationStores@2025-08-01-preview' existing = {
   name: appConfigName
 }
@@ -29,5 +32,16 @@ resource serviceBusConnection 'Microsoft.AppConfiguration/configurationStores/ke
   name: 'ConnectionStrings:servicebus'
   properties: {
     value: serviceBusEndpoint
+  }
+}
+
+// Authoritative CORS allow-list for all APIs. App Configuration loads AFTER environment variables,
+// so this is the effective value at runtime — it must include every browser/WebView origin
+// (notably http://localhost:8100, the Ionic dev server, which calls the Notifications negotiate endpoint).
+resource corsAllowedOriginsSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2025-08-01-preview' = {
+  parent: appConfig
+  name: 'Cors:AllowedOrigins'
+  properties: {
+    value: corsAllowedOrigins
   }
 }
