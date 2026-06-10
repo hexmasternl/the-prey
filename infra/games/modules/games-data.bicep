@@ -173,6 +173,10 @@ resource gamesJob 'Microsoft.App/jobs@2025-01-01' = {
           name: 'appinsights-connection-string'
           value: appInsightsConnectionString
         }
+        {
+          name: 'engine-key'
+          value: engineKey
+        }
       ]
     }
     template: {
