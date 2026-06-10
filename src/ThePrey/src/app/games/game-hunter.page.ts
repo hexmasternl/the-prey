@@ -1,6 +1,18 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonModal,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonFooter,
+  IonButton,
+  IonCheckbox,
+  IonLabel,
+  IonItem,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
 import * as L from 'leaflet';
 import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
@@ -14,7 +26,19 @@ import { GameLocationService } from './game-location.service';
   selector: 'app-game-hunter',
   templateUrl: 'game-hunter.page.html',
   styleUrls: ['game-hunter.page.scss'],
-  imports: [IonContent, TranslatePipe],
+  imports: [
+    IonContent,
+    IonModal,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonFooter,
+    IonButton,
+    IonCheckbox,
+    IonLabel,
+    IonItem,
+    TranslatePipe,
+  ],
 })
 export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly route = inject(ActivatedRoute);
@@ -23,6 +47,9 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly streamService = inject(GameStreamService);
   private readonly locationService = inject(GameLocationService);
   private readonly auth = inject(AuthService);
+
+  readonly showSurroundingsWarning = signal(false);
+  readonly warningAcknowledged = signal(false);
 
   readonly timeRemaining = signal('--:--');
   readonly preysLeft = signal(0);
@@ -56,8 +83,22 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private autoFollow = true;
   private selfLatLng: L.LatLng | null = null;
 
+  dismissSurroundingsWarning(): void {
+    localStorage.setItem('surroundings-warning', this.gameId);
+    this.showSurroundingsWarning.set(false);
+  }
+
+  private checkSurroundingsWarning(): void {
+    const seen = localStorage.getItem('surroundings-warning');
+    if (seen !== this.gameId) {
+      this.showSurroundingsWarning.set(true);
+    }
+  }
+
   async ngOnInit(): Promise<void> {
     this.gameId = this.route.snapshot.paramMap.get('id') ?? '';
+
+    this.checkSurroundingsWarning();
 
     this.initMap();
     this.startGps();

@@ -179,5 +179,14 @@
     "REPORTING_DEGRADED_TITLE": "POSITION NOT UPDATING",
     "REPORTING_DEGRADED_MSG": "Can't reach command. Your position isn't being shared — check your connection.",
     "BACK": "BACK"
+  },
+  "SURROUNDINGS_WARNING": {
+    "TITLE": "SAFETY BRIEFING",
+    "HEADING": "STAY AWARE OF YOUR SURROUNDINGS",
+    "BODY_1": "This operation takes place in public spaces — on streets, in parks, and around traffic.",
+    "BODY_2": "You must always remain aware of your surroundings, other people, cyclists, and vehicles — even when focused on the game.",
+    "BODY_3": "No game objective is worth risking your safety or the safety of others.",
+    "ACKNOWLEDGE": "I HAVE READ THIS BRIEFING AND AGREE TO STAY ALERT AT ALL TIMES",
+    "CONTINUE": "CONFIRM AND ENTER FIELD"
   }
 }

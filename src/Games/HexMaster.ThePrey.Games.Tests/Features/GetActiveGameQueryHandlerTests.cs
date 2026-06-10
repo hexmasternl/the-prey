@@ -21,15 +21,15 @@ public sealed class GetActiveGameQueryHandlerTests
     public async Task Handle_ShouldReturnNull_WhenNoInProgressGame()
     {
         var userId = Guid.NewGuid();
-        var lobbyGame = GameFaker.LobbyGame(ownerId: userId);
 
         _repositoryMock
-            .Setup(r => r.ListForUserAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([lobbyGame]);
+            .Setup(r => r.GetActiveGameForUserAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Game?)null);
 
         var result = await _sut.Handle(new GetActiveGameQuery(userId), CancellationToken.None);
 
         Assert.Null(result);
+        _playfieldsMock.Verify(p => p.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -38,8 +38,8 @@ public sealed class GetActiveGameQueryHandlerTests
         var userId = Guid.NewGuid();
 
         _repositoryMock
-            .Setup(r => r.ListForUserAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([]);
+            .Setup(r => r.GetActiveGameForUserAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Game?)null);
 
         var result = await _sut.Handle(new GetActiveGameQuery(userId), CancellationToken.None);
 
@@ -56,8 +56,8 @@ public sealed class GetActiveGameQueryHandlerTests
         var playfieldInfo = new PlayfieldInfo("Arena", [new GpsCoordinateDto(0, 0), new GpsCoordinateDto(1, 0), new GpsCoordinateDto(1, 1)]);
 
         _repositoryMock
-            .Setup(r => r.ListForUserAsync(hunterId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([game]);
+            .Setup(r => r.GetActiveGameForUserAsync(hunterId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(game);
 
         _playfieldsMock
             .Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>()))
@@ -76,8 +76,8 @@ public sealed class GetActiveGameQueryHandlerTests
         var game = GameFaker.StartedGame(out var hunterId, out _, DateTimeOffset.UtcNow.AddMinutes(-5));
 
         _repositoryMock
-            .Setup(r => r.ListForUserAsync(hunterId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([game]);
+            .Setup(r => r.GetActiveGameForUserAsync(hunterId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(game);
 
         _playfieldsMock
             .Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>()))
@@ -89,24 +89,23 @@ public sealed class GetActiveGameQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldPickInProgressGame_WhenMultipleGamesExist()
+    public async Task Handle_ShouldReturnGameStatus_WhenUserIsParticipantNotOwner()
     {
-        var userId = Guid.NewGuid();
-        var lobbyGame = GameFaker.LobbyGame(ownerId: userId);
-        var startedGame = GameFaker.StartedGame(out var hunterId, out _, DateTimeOffset.UtcNow.AddMinutes(-1));
+        var game = GameFaker.StartedGame(out _, out var preyIds, DateTimeOffset.UtcNow.AddMinutes(-3));
+        var preyId = preyIds[0];
 
         _repositoryMock
-            .Setup(r => r.ListForUserAsync(hunterId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([lobbyGame, startedGame]);
+            .Setup(r => r.GetActiveGameForUserAsync(preyId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(game);
 
         _playfieldsMock
-            .Setup(p => p.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((PlayfieldInfo?)null);
 
-        var result = await _sut.Handle(new GetActiveGameQuery(hunterId), CancellationToken.None);
+        var result = await _sut.Handle(new GetActiveGameQuery(preyId), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.Equal(startedGame.Id, result!.GameId);
+        Assert.Equal(game.Id, result!.GameId);
     }
 
     [Fact]

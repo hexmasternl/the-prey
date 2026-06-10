@@ -55,6 +55,20 @@ public sealed class GameRepository : IGameRepository
             .ToListAsync(ct);
     }
 
+    public async Task<Game?> GetActiveGameForUserAsync(Guid userId, CancellationToken ct)
+    {
+        var participantGameIds = _db.Set<GameParticipant>()
+            .Where(p => p.UserId == userId)
+            .Select(p => EF.Property<Guid>(p, "GameId"));
+
+        return await _db.Games
+            .Where(g => g.Status == GameStatus.InProgress
+                     && (g.OwnerUserId == userId
+                         || g.Lobby.Any(p => p.UserId == userId)
+                         || participantGameIds.Contains(g.Id)))
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<IReadOnlyList<Game>> GetAllInProgressAsync(CancellationToken ct)
         => await _db.Games.Where(g => g.Status == GameStatus.InProgress).ToListAsync(ct);
 

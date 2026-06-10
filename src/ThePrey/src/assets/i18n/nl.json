@@ -179,5 +179,14 @@
     "REPORTING_DEGRADED_TITLE": "POSITIE WORDT NIET BIJGEWERKT",
     "REPORTING_DEGRADED_MSG": "Geen verbinding met de commandopost. Je positie wordt niet gedeeld — controleer je verbinding.",
     "BACK": "TERUG"
+  },
+  "SURROUNDINGS_WARNING": {
+    "TITLE": "VEILIGHEIDSBRIEFING",
+    "HEADING": "BLIJF ALERT OP JE OMGEVING",
+    "BODY_1": "Deze operatie vindt plaats op openbare locaties — op straat, in parken en in de buurt van verkeer.",
+    "BODY_2": "Je moet altijd alert blijven op je omgeving, andere mensen, fietsers en voertuigen — ook wanneer je gefocust bent op het spel.",
+    "BODY_3": "Geen speeldoelstelling is het waard om je eigen veiligheid of die van anderen op het spel te zetten.",
+    "ACKNOWLEDGE": "IK HEB DEZE BRIEFING GELEZEN EN GA AKKOORD OM ALTIJD ALERT TE BLIJVEN",
+    "CONTINUE": "BEVESTIGEN EN HET VELD IN"
   }
 }

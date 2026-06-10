@@ -25,8 +25,7 @@ public sealed class GetActiveGameQueryHandler : IQueryHandler<GetActiveGameQuery
 
         try
         {
-            var games = await _games.ListForUserAsync(query.UserId, ct);
-            var active = games.FirstOrDefault(g => g.Status == GameStatus.InProgress);
+            var active = await _games.GetActiveGameForUserAsync(query.UserId, ct);
 
             activity?.SetTag("game.active", active is not null);
 

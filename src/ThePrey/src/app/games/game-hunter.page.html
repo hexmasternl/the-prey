@@ -1,4 +1,30 @@
 <ion-content [fullscreen]="true" class="hunter-view">
+  <!-- Surroundings safety warning modal -->
+  <ion-modal [isOpen]="showSurroundingsWarning()" [backdropDismiss]="false">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ 'SURROUNDINGS_WARNING.TITLE' | translate }}</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding surroundings-warning-modal">
+        <h2>{{ 'SURROUNDINGS_WARNING.HEADING' | translate }}</h2>
+        <p>{{ 'SURROUNDINGS_WARNING.BODY_1' | translate }}</p>
+        <p>{{ 'SURROUNDINGS_WARNING.BODY_2' | translate }}</p>
+        <p>{{ 'SURROUNDINGS_WARNING.BODY_3' | translate }}</p>
+      </ion-content>
+      <ion-footer class="ion-padding">
+        <ion-item lines="none">
+          <ion-checkbox slot="start" (ionChange)="warningAcknowledged.set($any($event).detail.checked)"></ion-checkbox>
+          <ion-label class="ion-text-wrap">{{ 'SURROUNDINGS_WARNING.ACKNOWLEDGE' | translate }}</ion-label>
+        </ion-item>
+        <ion-button expand="block" [disabled]="!warningAcknowledged()" (click)="dismissSurroundingsWarning()">
+          {{ 'SURROUNDINGS_WARNING.CONTINUE' | translate }}
+        </ion-button>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+
   <!-- Full-screen map -->
   <div id="map" class="map-container"></div>
 
