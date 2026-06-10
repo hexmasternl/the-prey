@@ -21,6 +21,7 @@ using HexMaster.ThePrey.Games.Features.UpdateGameSettings;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Users.Integration;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace HexMaster.ThePrey.Games.Api.Endpoints;
 
@@ -589,18 +590,23 @@ public static class GameEndpoints
         IUserResolver userResolver,
         IGameRepository gameRepository,
         ILobbyEventBus eventBus,
+        ILoggerFactory loggerFactory,
         HttpContext httpContext,
         CancellationToken ct)
     {
+        var logger = loggerFactory.CreateLogger("GameEndpoints.LobbyStream");
+
         var subjectId = principal.FindFirstValue("sub");
         if (subjectId is null)
         {
+            logger.LogWarning("Lobby stream for game {GameId} rejected: no 'sub' claim (401)", id);
             httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return;
         }
         var user = await userResolver.ResolveUser(subjectId, ct);
         if (user is null)
         {
+            logger.LogWarning("Lobby stream for game {GameId} rejected: subject {SubjectId} did not resolve to a user (401)", id, subjectId);
             httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return;
         }
@@ -611,6 +617,9 @@ public static class GameEndpoints
         var game = await gameRepository.GetByIdAsync(id, ct);
         if (game is null || !game.IsParticipant(user.UserId))
         {
+            logger.LogWarning(
+                "Lobby stream for game {GameId} rejected for user {UserId}: gameExists={GameExists}, isParticipant={IsParticipant} (403)",
+                id, user.UserId, game is not null, game is not null && game.IsParticipant(user.UserId));
             httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }
@@ -619,15 +628,41 @@ public static class GameEndpoints
         httpContext.Response.Headers.CacheControl = "no-cache";
         httpContext.Response.Headers.Append("X-Accel-Buffering", "no");
 
-        await foreach (var evt in eventBus.Subscribe(id).WithCancellation(ct))
+        // Flush an initial comment so the client's EventSource fires `onopen` immediately rather than
+        // only on the first real event. This makes "did the connection actually open?" observable on
+        // the device, and defeats intermediary response buffering that would otherwise hold the stream.
+        await httpContext.Response.WriteAsync(": connected\n\n", ct);
+        await httpContext.Response.Body.FlushAsync(ct);
+        logger.LogInformation("Lobby stream opened for game {GameId}, user {UserId}", id, user.UserId);
+
+        var eventCount = 0;
+        try
         {
-            // The bus broadcasts one payload to every subscriber, so IsOwnerPlayer — which is per
-            // recipient — is stamped here, where this connection's user is known.
-            var payload = evt.Payload with { IsOwnerPlayer = evt.Payload.OwnerUserId == user.UserId };
-            var personalized = evt with { Payload = payload };
-            var json = System.Text.Json.JsonSerializer.Serialize(personalized, SseJsonOptions);
-            await httpContext.Response.WriteAsync($"event: {evt.EventType}\ndata: {json}\n\n", ct);
-            await httpContext.Response.Body.FlushAsync(ct);
+            await foreach (var evt in eventBus.Subscribe(id).WithCancellation(ct))
+            {
+                // The bus broadcasts one payload to every subscriber, so IsOwnerPlayer — which is per
+                // recipient — is stamped here, where this connection's user is known.
+                var payload = evt.Payload with { IsOwnerPlayer = evt.Payload.OwnerUserId == user.UserId };
+                var personalized = evt with { Payload = payload };
+                var json = System.Text.Json.JsonSerializer.Serialize(personalized, SseJsonOptions);
+                await httpContext.Response.WriteAsync($"event: {evt.EventType}\ndata: {json}\n\n", ct);
+                await httpContext.Response.Body.FlushAsync(ct);
+                eventCount++;
+                logger.LogInformation(
+                    "Lobby stream wrote event '{EventType}' to user {UserId} for game {GameId}",
+                    evt.EventType, user.UserId, id);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal: the client disconnected (navigated away / app backgrounded).
+            logger.LogInformation("Lobby stream cancelled for game {GameId}, user {UserId}", id, user.UserId);
+        }
+        finally
+        {
+            logger.LogInformation(
+                "Lobby stream closed for game {GameId}, user {UserId} after {EventCount} event(s)",
+                id, user.UserId, eventCount);
         }
     }
 
