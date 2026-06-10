@@ -57,15 +57,15 @@ public sealed class GameRepository : IGameRepository
 
     public async Task<Game?> GetActiveGameForUserAsync(Guid userId, CancellationToken ct)
     {
-        var participantGameIds = _db.Set<GameParticipant>()
-            .Where(p => p.UserId == userId)
-            .Select(p => EF.Property<Guid>(p, "GameId"));
-
+        // Participants are an owned collection mapped via the aggregate's "_participants" backing field
+        // (see GameEntityTypeConfiguration). It has no DbSet — owned types are queried through their owner —
+        // so reach it inside the predicate with EF.Property, which EF Core translates to a SQL subquery.
         return await _db.Games
             .Where(g => g.Status == GameStatus.InProgress
                      && (g.OwnerUserId == userId
                          || g.Lobby.Any(p => p.UserId == userId)
-                         || participantGameIds.Contains(g.Id)))
+                         || EF.Property<ICollection<GameParticipant>>(g, "_participants")
+                              .Any(p => p.UserId == userId)))
             .FirstOrDefaultAsync(ct);
     }
 
