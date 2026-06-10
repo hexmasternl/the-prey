@@ -161,9 +161,8 @@ public sealed class GameOutcomeTests
             original.Status,
             original.Configuration,
             original.StartedAt,
-            original.Lobby,
             [],
-            original.DesignatedHunterUserId,
+            original.HunterUserId,
             original.CreatedAt,
             original.EndsAt,
             original.CleanUpAfter,
@@ -186,7 +185,6 @@ public sealed class GameOutcomeTests
             game.Status,
             game.Configuration,
             game.StartedAt,
-            game.Lobby,
             []);
 
         Assert.Equal(GameOutcome.Undecided, rehydrated.Outcome);
