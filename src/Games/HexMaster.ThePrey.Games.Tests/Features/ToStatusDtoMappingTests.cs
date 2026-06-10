@@ -16,8 +16,8 @@ public sealed class ToStatusDtoMappingTests
         var startedAt = DateTimeOffset.UtcNow.AddMinutes(-55);
         var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
 
-        var repoMock = new Moq.Mock<IGameRepository>();
-        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        var repoMock = new Mock<IGameRepository>();
+        var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
 
         repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
         playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
@@ -36,8 +36,8 @@ public sealed class ToStatusDtoMappingTests
         var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5); // 5 minutes in, not in final stage
         var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
 
-        var repoMock = new Moq.Mock<IGameRepository>();
-        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        var repoMock = new Mock<IGameRepository>();
+        var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
 
         repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
         playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
@@ -62,8 +62,8 @@ public sealed class ToStatusDtoMappingTests
         game.SetReady(secondPlayer);
         game.Start(playerId, DateTimeOffset.UtcNow.AddMinutes(-5));
 
-        var repoMock = new Moq.Mock<IGameRepository>();
-        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        var repoMock = new Mock<IGameRepository>();
+        var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
 
         repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
         playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
@@ -72,8 +72,8 @@ public sealed class ToStatusDtoMappingTests
         var result = await handler.Handle(new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQuery(game.Id, playerId), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.NotNull(result!.Hunter);
-        Assert.Equal(expectedCallsign, result.Hunter!.Callsign);
+        var hunterStatus = result!.Participants.Single(p => p.UserId == playerId);
+        Assert.Equal(expectedCallsign, hunterStatus.Callsign);
     }
 
     [Fact]
@@ -81,8 +81,8 @@ public sealed class ToStatusDtoMappingTests
     {
         var game = GameFaker.StartedGame(out var hunterId, out _, DateTimeOffset.UtcNow.AddMinutes(-5));
 
-        var repoMock = new Moq.Mock<IGameRepository>();
-        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        var repoMock = new Mock<IGameRepository>();
+        var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
 
         repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
         playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
@@ -91,8 +91,8 @@ public sealed class ToStatusDtoMappingTests
         var result = await handler.Handle(new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQuery(game.Id, hunterId), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.NotNull(result!.Hunter);
-        Assert.Null(result.Hunter!.LastKnownLocation);
+        var hunterStatus = result!.Participants.Single(p => p.UserId == hunterId);
+        Assert.Null(hunterStatus.LastKnownLocation);
     }
 
     [Fact]
@@ -100,8 +100,8 @@ public sealed class ToStatusDtoMappingTests
     {
         var game = GameFaker.StartedGame(out var hunterId, out _, DateTimeOffset.UtcNow.AddMinutes(-5));
 
-        var repoMock = new Moq.Mock<IGameRepository>();
-        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        var repoMock = new Mock<IGameRepository>();
+        var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
         repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
         playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
 
@@ -109,7 +109,8 @@ public sealed class ToStatusDtoMappingTests
         var result = await handler.Handle(new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQuery(game.Id, hunterId), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.Equal("Active", result!.Hunter!.State);
+        var hunterStatus = result!.Participants.Single(p => p.UserId == hunterId);
+        Assert.Equal("Active", hunterStatus.State);
     }
 
     [Fact]
@@ -120,8 +121,8 @@ public sealed class ToStatusDtoMappingTests
         var preyId = preyIds[0];
         game.TagParticipant(hunterId, preyId);
 
-        var repoMock = new Moq.Mock<IGameRepository>();
-        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        var repoMock = new Mock<IGameRepository>();
+        var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
         repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
         playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
 
@@ -129,7 +130,7 @@ public sealed class ToStatusDtoMappingTests
         var result = await handler.Handle(new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQuery(game.Id, hunterId), CancellationToken.None);
 
         Assert.NotNull(result);
-        var taggedPrey = result!.Preys.Single(p => p.UserId == preyId);
+        var taggedPrey = result!.Participants.Single(p => p.UserId == preyId);
         Assert.Equal("Tagged", taggedPrey.State);
     }
 
@@ -146,8 +147,8 @@ public sealed class ToStatusDtoMappingTests
         game.RecordLocation(preyIds[1], GpsCoordinate.Create(52.0, 5.0), startedAt);
         game.ApplyTimeoutTransitions(startedAt.AddMinutes(8)); // → Out
 
-        var repoMock = new Moq.Mock<IGameRepository>();
-        var playfieldsMock = new Moq.Mock<IPlayfieldInfoProvider>();
+        var repoMock = new Mock<IGameRepository>();
+        var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
         repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
         playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
 
