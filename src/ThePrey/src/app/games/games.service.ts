@@ -34,29 +34,29 @@ export interface GameDto {
   ownerUserId: string;
   status: string;
   configuration: GameConfigurationDto;
-  lobby: LobbyPlayerDto[];
-  hunter: ParticipantDto | null;
-  preys: ParticipantDto[];
+  participants: ParticipantDto[];
+  hunterUserId: string | null;
+  preys: string[];
   startedAt: string | null;
-  designatedHunterUserId: string | null;
+  createdAt: string;
+  endsAt: string | null;
+  cleanUpAfter: string;
+  outcome: string;
+  completedAt: string | null;
   /** True when the requesting user owns this game. Computed server-side per caller. */
   isOwnerPlayer: boolean;
   /** True when every precondition to start the game is met (enough players, hunter set, all ready). */
   isReadyToStart: boolean;
 }
 
-export interface LobbyPlayerDto {
+export interface ParticipantDto {
   userId: string;
   displayName: string;
   profilePictureUrl: string | null;
   isReady: boolean;
-  designatedHunter: boolean;
-}
-
-export interface ParticipantDto {
-  userId: string;
-  displayName: string;
-  role: string;
+  state: string;
+  lastKnownLocation: { latitude: number; longitude: number } | null;
+  hasActivePenalty: boolean;
 }
 
 export interface GpsCoordinateDto {
@@ -76,8 +76,8 @@ export interface GameStatusDto {
   gameId: string;
   playfieldName: string;
   playfieldCoordinates: GpsCoordinateDto[];
-  hunter: GameParticipantStatusDto | null;
-  preys: GameParticipantStatusDto[];
+  hunterUserId: string | null;
+  participants: GameParticipantStatusDto[];
   gameDurationLeft: number;
   nextPingDuration: number;
   isEndgame: boolean;

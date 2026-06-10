@@ -96,7 +96,7 @@ export class HomePage implements OnInit, OnDestroy {
     const game = this.activeGame();
     if (!game) return;
     const userId = this.userState.profile()?.userId;
-    const isHunter = game.hunter?.userId === userId;
+    const isHunter = game.hunterUserId === userId;
     this.router.navigate(['/games', game.id, isHunter ? 'hunt' : 'play']);
   }
 

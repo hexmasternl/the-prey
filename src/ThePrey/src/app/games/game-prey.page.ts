@@ -247,12 +247,13 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     this.timeRemaining.set(`${mins}:${secs}`);
     this.preysLeft.set(status.preysLeft);
 
-    const me = status.preys.find(p => p.userId === this.currentUserId)
-      ?? (status.hunter?.userId === this.currentUserId ? status.hunter : null);
+    const preys = status.participants.filter(p => p.userId !== status.hunterUserId);
+
+    const me = status.participants.find(p => p.userId === this.currentUserId) ?? null;
     this.hasActivePenalty.set(me?.hasActivePenalty ?? false);
 
     // Seed local state map from snapshot
-    for (const prey of status.preys) {
+    for (const prey of preys) {
       this.participantStates.set(prey.userId, prey.state);
     }
 

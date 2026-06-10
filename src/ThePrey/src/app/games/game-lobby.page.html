@@ -206,7 +206,7 @@
 
     <!-- Operatives -->
     <div class="section-header">
-      {{ 'GAME_LOBBY.PLAYERS' | translate }} ({{ g.lobby.length }})
+      {{ 'GAME_LOBBY.PLAYERS' | translate }} ({{ g.participants.length }})
     </div>
 
     @if (isOwner()) {
@@ -214,7 +214,7 @@
     }
 
     <div class="operatives-block">
-      @for (player of g.lobby; track player.userId) {
+      @for (player of g.participants; track player.userId) {
       <div
         class="operative-row"
         [class.operative-row--clickable]="isOwner()"
@@ -227,7 +227,7 @@
             }
           </div>
           <div class="operative-meta">
-            @if (player.designatedHunter) {
+            @if (player.userId === g.hunterUserId) {
             <span class="badge badge--hunter"
               >{{ 'GAME_LOBBY.ROLE_HUNTER' | translate }}</span
             >
@@ -244,7 +244,7 @@
         </div>
 
         <div class="operative-end">
-          @if (player.designatedHunter) {
+          @if (player.userId === g.hunterUserId) {
           <ion-icon name="checkmark-circle" class="hunter-icon"></ion-icon>
           } @if (isOwner() && !isCurrentUser(player.userId)) {
           <ion-button

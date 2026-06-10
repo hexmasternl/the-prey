@@ -87,7 +87,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
 
   /** The host sees a Start button once at least one other operative has joined (2+ total). */
-  readonly canShowStart = computed(() => this.isOwner() && (this.game()?.lobby.length ?? 0) >= 2);
+  readonly canShowStart = computed(() => this.isOwner() && (this.game()?.participants.length ?? 0) >= 2);
 
   /**
    * Whether the game may be started. The server computes this (enough players, a designated hunter,
@@ -204,8 +204,8 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     const uid = this.currentUserId();
     this.closeStream();
 
-    const isHunter = game.hunter?.userId === uid;
-    const isPrey = game.preys.some(p => p.userId === uid);
+    const isHunter = game.hunterUserId === uid;
+    const isPrey = game.preys.includes(uid);
     this.streamLog(`game in progress — uid=${uid} isHunter=${isHunter} isPrey=${isPrey}`);
 
     // Start background location tracking before navigating so reporting begins the
@@ -369,11 +369,11 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   async startGame(): Promise<void> {
     const g = this.game();
-    if (!g || !this.isOwner() || !g.designatedHunterUserId) return;
+    if (!g || !this.isOwner() || !g.hunterUserId) return;
     try {
       // The owner is a participant too, so the resulting `game-started` SSE event drives
       // navigation for everyone (owner included) via onGameStarted — no manual nav here.
-      const game = await this.gamesService.startGame(this.gameId(), g.designatedHunterUserId);
+      const game = await this.gamesService.startGame(this.gameId(), g.hunterUserId);
       this.game.set(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
@@ -394,7 +394,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   }
 
   isReady(userId: string): boolean {
-    return this.game()?.lobby.find(p => p.userId === userId)?.isReady ?? false;
+    return this.game()?.participants.find(p => p.userId === userId)?.isReady ?? false;
   }
 
   async shareGame(): Promise<void> {

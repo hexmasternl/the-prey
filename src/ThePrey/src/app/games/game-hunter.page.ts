@@ -262,17 +262,20 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.timeRemaining.set(`${mins}:${secs}`);
     this.preysLeft.set(status.preysLeft);
 
-    const me = status.hunter;
+    const hunter = status.participants.find(p => p.userId === status.hunterUserId) ?? null;
+    const preys = status.participants.filter(p => p.userId !== status.hunterUserId);
+
+    const me = hunter;
     this.hasActivePenalty.set(me?.hasActivePenalty ?? false);
 
     // Seed the local state map from the status snapshot
-    for (const prey of status.preys) {
+    for (const prey of preys) {
       this.participantStates.set(prey.userId, prey.state);
     }
-    this.updateTaggablePrey(status.preys);
+    this.updateTaggablePrey(preys);
 
     this.drawPlayfield(status.playfieldCoordinates);
-    this.updatePreyBlips(status);
+    this.updatePreyBlips(preys);
     this.updateNearestDistance();
   }
 
@@ -294,8 +297,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.map.fitBounds(this.playfieldPolygon.getBounds());
   }
 
-  private updatePreyBlips(status: GameStatusDto): void {
-    for (const prey of status.preys) {
+  private updatePreyBlips(preys: GameParticipantStatusDto[]): void {
+    for (const prey of preys) {
       if (!prey.lastKnownLocation) continue;
       this.upsertPreyBlip(prey.userId, prey.lastKnownLocation.latitude, prey.lastKnownLocation.longitude, prey.state);
     }
