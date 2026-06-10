@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace HexMaster.ThePrey.Games.Data.Postgres.Configurations;
 
 /// <summary>
-/// Maps the <see cref="Game"/> aggregate to the relational schema. The lobby and participants are owned
-/// collections (their own tables); each participant's current location is an owned value object mapped to
+/// Maps the <see cref="Game"/> aggregate to the relational schema. Participants are a single owned
+/// collection (their own table); each participant's current location is an owned value object mapped to
 /// inline columns; the penalty and location history are owned collections serialised into JSON columns,
 /// since they are only ever loaded as part of the aggregate and never queried in SQL.
 /// </summary>
@@ -28,12 +28,11 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
         builder.Property(g => g.EndsAt);
         builder.Property(g => g.CleanUpAfter);
         builder.HasIndex(g => g.CleanUpAfter).HasDatabaseName("IX_Games_CleanUpAfter");
-        builder.Property(g => g.DesignatedHunterUserId);
+        builder.Property(g => g.HunterUserId).HasColumnName("HunterUserId");
         builder.Property(g => g.CompletedAt);
         builder.Property(g => g.Outcome).HasConversion<int>().HasDefaultValue(GameOutcome.Undecided);
 
         // Computed, behaviour-only members must not be mapped.
-        builder.Ignore(g => g.Hunter);
         builder.Ignore(g => g.Preys);
         builder.Ignore(g => g.ScheduledEndAt);
 
@@ -49,33 +48,19 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
         });
         builder.Navigation(g => g.Configuration).IsRequired();
 
-        // Lobby — relational so membership can be filtered in SQL (see GameRepository.ListForUserAsync).
-        builder.OwnsMany(g => g.Lobby, lobby =>
-        {
-            lobby.ToTable("LobbyPlayers");
-            lobby.WithOwner().HasForeignKey("GameId");
-            lobby.HasKey("GameId", "UserId");
-            // UserId is a client-supplied key. Without this, EF's convention marks a Guid key as
-            // store-generated (ValueGeneratedOnAdd) and then uses "is the key set?" to decide
-            // add-vs-update: a populated UserId looks like an existing row, so adding a player to a
-            // tracked game emits UPDATE (0 rows) instead of INSERT and throws a concurrency error.
-            lobby.Property(p => p.UserId).ValueGeneratedNever();
-            lobby.Property(p => p.DisplayName).HasMaxLength(256);
-            lobby.Property(p => p.ProfilePictureUrl);
-            lobby.Property(p => p.IsReady).HasColumnName("IsReady").HasDefaultValue(false);
-        });
-        builder.Navigation(g => g.Lobby).UsePropertyAccessMode(PropertyAccessMode.Field);
-
-        // Participants — owned collection, accessed via the aggregate's backing field.
+        // Participants — single owned collection, accessed via the aggregate's backing field.
+        // DisplayName, ProfilePictureUrl, IsReady are now stored here (absorbed from the old LobbyPlayers table).
         builder.OwnsMany<GameParticipant>("_participants", participants =>
         {
             participants.ToTable("GameParticipants");
             participants.WithOwner().HasForeignKey("GameId");
             participants.HasKey("GameId", "UserId");
-            // Client-supplied key — see the LobbyPlayers note above; ValueGeneratedNever keeps EF
-            // from treating an added participant on a tracked game as an UPDATE instead of an INSERT.
+            // Client-supplied key — ValueGeneratedNever keeps EF from treating an added participant
+            // on a tracked game as an UPDATE instead of an INSERT.
             participants.Property(p => p.UserId).ValueGeneratedNever();
-            participants.Property(p => p.Role).HasConversion<string>().HasMaxLength(16);
+            participants.Property(p => p.DisplayName).HasMaxLength(256).IsRequired();
+            participants.Property(p => p.ProfilePictureUrl).IsRequired(false);
+            participants.Property(p => p.IsReady).HasColumnName("IsReady").HasDefaultValue(false);
             participants.Property(p => p.State).HasConversion<string>().HasMaxLength(16).HasDefaultValue(PlayerState.Active);
             participants.Property(p => p.LastLocationAt).IsRequired(false);
 
