@@ -22,8 +22,8 @@ import { AuthService } from '@auth0/auth0-angular';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { TranslatePipe } from '@ngx-translate/core';
-import { GameStatusDto, GamesService } from './games.service';
-import { GameStreamService, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload } from './game-stream.service';
+import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
+import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
 
 @Component({
@@ -80,6 +80,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private gameId!: string;
   private map!: L.Map;
   private playerMarker: L.CircleMarker | null = null;
+  /** Markers for every other player (hunter = red, other preys = grey), keyed by userId. */
+  private otherMarkers = new Map<string, L.CircleMarker>();
+  /** The hunter's userId, captured from the status snapshot — used to colour blips. */
+  private hunterUserId: string | null = null;
   private playfieldPolygon: L.Polygon | null = null;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private durationTimer: ReturnType<typeof setInterval> | null = null;
@@ -277,6 +281,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private applyStatus(status: GameStatusDto): void {
     this.secondsRemaining.set(status.gameDurationLeft);
     this.preysLeft.set(status.preysLeft);
+    this.hunterUserId = status.hunterUserId;
 
     const preys = status.participants.filter(p => p.userId !== status.hunterUserId);
 
@@ -289,6 +294,43 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     }
 
     this.drawPlayfield(status.playfieldCoordinates);
+    this.updateOtherBlips(status.participants);
+  }
+
+  /**
+   * Plot every player except ourselves from the status snapshot. Our own position is
+   * drawn in green by the GPS watch (`startMapWatch`); the hunter is red and every
+   * other prey is grey. Players without a last-known location are skipped.
+   */
+  private updateOtherBlips(participants: GameParticipantStatusDto[]): void {
+    for (const p of participants) {
+      if (p.userId === this.currentUserId) continue;
+      if (!p.lastKnownLocation) continue;
+      this.participantStates.set(p.userId, p.state);
+      this.upsertOtherBlip(p.userId, p.lastKnownLocation.latitude, p.lastKnownLocation.longitude, p.state);
+    }
+  }
+
+  /** Create or move a player blip, colouring it by role (hunter vs. other prey). */
+  private upsertOtherBlip(userId: string, lat: number, lng: number, state: string): void {
+    const latlng: L.LatLngExpression = [lat, lng];
+    const options = this.blipOptionsFor(userId, state);
+    const existing = this.otherMarkers.get(userId);
+    if (existing) {
+      existing.setLatLng(latlng);
+      existing.setStyle(options);
+    } else {
+      this.otherMarkers.set(userId, L.circleMarker(latlng, options).addTo(this.map));
+    }
+  }
+
+  /** Hunter → red; other preys → grey (dimmed once Tagged/Out). */
+  private blipOptionsFor(userId: string, state: string): L.CircleMarkerOptions {
+    if (userId === this.hunterUserId) {
+      return { radius: 7, color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9, weight: 2 };
+    }
+    const isInactive = state === 'Tagged' || state === 'Out';
+    return { radius: 6, color: '#888888', fillColor: '#888888', fillOpacity: isInactive ? 0.4 : 0.8, weight: 2 };
   }
 
   private drawPlayfield(coords: { latitude: number; longitude: number }[]): void {
@@ -340,9 +382,24 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       void this.pollStatus();
     });
 
+    // Live location pushes from the sweep (~every 30 s). Our own marker is driven by
+    // the GPS watch, so skip self; everyone else is (re)plotted with their role colour.
+    this.streamService.on<PlayerLocationUpdatedPayload>('player-location-updated', (payload) => {
+      if (payload.userId === this.currentUserId) return;
+      const state = payload.participantState ?? this.participantStates.get(payload.userId) ?? 'Active';
+      this.participantStates.set(payload.userId, state);
+      this.upsertOtherBlip(payload.userId, payload.latitude, payload.longitude, state);
+    });
+
     // Status changes arrive from either event name — treat them identically.
     const onStatusChanged = (userId: string, newState: string): void => {
       this.participantStates.set(userId, newState);
+
+      // Recolour the player's blip to reflect the new state (e.g. dim once Tagged/Out).
+      const marker = this.otherMarkers.get(userId);
+      if (marker) {
+        marker.setStyle(this.blipOptionsFor(userId, newState));
+      }
 
       // Recalculate preys-remaining count
       const activeCount = [...this.participantStates.values()].filter(s => s === 'Active' || s === 'Passive').length;
