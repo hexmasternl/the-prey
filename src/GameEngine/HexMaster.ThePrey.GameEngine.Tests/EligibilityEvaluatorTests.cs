@@ -16,7 +16,7 @@ public sealed class EligibilityEvaluatorTests
         for (var i = 0; i < playerCount; i++)
         {
             var id = Guid.NewGuid();
-            game.JoinLobby(LobbyPlayer.Create(id, $"Player{i}", null));
+            game.JoinLobby(GameParticipant.Create(id, $"Player{i}", null));
             ids.Add(id);
         }
         game.Start(ids[0], StartedAt);
@@ -41,7 +41,7 @@ public sealed class EligibilityEvaluatorTests
         var game = CreateStartedGame();
         var now = StartedAt.AddSeconds(35);
 
-        var hunter = game.Hunter!;
+        var hunter = game.Participants.Single(p => p.UserId == game.HunterUserId!.Value);
         var lastBroadcasts = new Dictionary<Guid, DateTimeOffset>
         {
             [hunter.UserId] = now.AddSeconds(-10) // only 10s ago, interval is 30s
@@ -58,7 +58,7 @@ public sealed class EligibilityEvaluatorTests
         var game = CreateStartedGame();
         var now = StartedAt.AddSeconds(60);
 
-        var hunter = game.Hunter!;
+        var hunter = game.Participants.Single(p => p.UserId == game.HunterUserId!.Value);
         var lastBroadcasts = new Dictionary<Guid, DateTimeOffset>
         {
             [hunter.UserId] = now.AddSeconds(-30) // exactly 30s ago, interval is 30s
@@ -76,7 +76,7 @@ public sealed class EligibilityEvaluatorTests
         var now = StartedAt.AddSeconds(60);
 
         // Apply a penalty to a prey (penalty reporting interval is 10s instead of 30s)
-        var prey = game.Preys[0];
+        var prey = game.Participants.First(p => p.UserId != game.HunterUserId);
         game.ApplyPenalty(prey.UserId, now.AddSeconds(60));
 
         var lastBroadcasts = new Dictionary<Guid, DateTimeOffset>
@@ -96,7 +96,7 @@ public sealed class EligibilityEvaluatorTests
         var game = CreateStartedGame();
         var now = StartedAt.AddMinutes(52); // 2 min into final stage, interval is 10s
 
-        var prey = game.Preys[0];
+        var prey = game.Participants.First(p => p.UserId != game.HunterUserId);
         var lastBroadcasts = new Dictionary<Guid, DateTimeOffset>
         {
             [prey.UserId] = now.AddSeconds(-15) // 15s ago; due at 10s interval
@@ -113,7 +113,7 @@ public sealed class EligibilityEvaluatorTests
         var game = CreateStartedGame();
         var now = StartedAt.AddMinutes(52);
 
-        var prey = game.Preys[0];
+        var prey = game.Participants.First(p => p.UserId != game.HunterUserId);
         var lastBroadcasts = new Dictionary<Guid, DateTimeOffset>
         {
             [prey.UserId] = now.AddSeconds(-5) // only 5s ago, interval is 10s
