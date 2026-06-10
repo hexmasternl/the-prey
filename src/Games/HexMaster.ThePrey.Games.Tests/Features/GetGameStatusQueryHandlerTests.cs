@@ -46,10 +46,6 @@ public sealed class GetGameStatusQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldThrow_WhenGameIsNotInProgress()
     {
-        // A game that has started participants but is somehow NOT in InProgress would be unusual,
-        // but we can test by verifying the handler returns null when the game is in Lobby state
-        // and the user is not a participant (lobby players aren't participants until game starts).
-        // To hit the InProgress check, we need a completed game — use a started game and complete it.
         var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
         var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
         game.Complete(DateTimeOffset.UtcNow);
@@ -84,9 +80,8 @@ public sealed class GetGameStatusQueryHandlerTests
         Assert.Equal(game.Id, result!.GameId);
         Assert.Equal("Test Field", result.PlayfieldName);
         Assert.Equal(3, result.PlayfieldCoordinates.Count);
-        Assert.NotNull(result.Hunter);
-        Assert.Equal(hunterId, result.Hunter!.UserId);
-        Assert.Equal(preyIds.Count, result.Preys.Count);
+        Assert.Equal(hunterId, result.HunterUserId);
+        Assert.Equal(game.Participants.Count, result.Participants.Count);
         Assert.True(result.GameDurationLeft > 0);
         Assert.False(result.IsEndgame);
     }
@@ -121,7 +116,6 @@ public sealed class GetGameStatusQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldSetGameDurationLeftToZero_WhenGameExpired()
     {
-        // Start game 200 minutes ago (well past any configured duration)
         var startedAt = DateTimeOffset.UtcNow.AddMinutes(-200);
         var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
 
@@ -142,7 +136,7 @@ public sealed class GetGameStatusQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnPreyStatus_WhenPreyQueriesGame()
     {
-        var game = GameFaker.StartedGame(out _, out var preyIds, DateTimeOffset.UtcNow.AddMinutes(-5));
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, DateTimeOffset.UtcNow.AddMinutes(-5));
         var preyId = preyIds[0];
 
         _repositoryMock
@@ -157,7 +151,8 @@ public sealed class GetGameStatusQueryHandlerTests
 
         Assert.NotNull(result);
         Assert.Equal(game.Id, result!.GameId);
-        Assert.NotNull(result.Hunter);
+        Assert.Equal(hunterId, result.HunterUserId);
+        Assert.NotEmpty(result.Participants);
     }
 
     [Fact]
@@ -179,8 +174,8 @@ public sealed class GetGameStatusQueryHandlerTests
         var result = await _sut.Handle(new GetGameStatusQuery(game.Id, preyId), CancellationToken.None);
 
         Assert.NotNull(result);
-        var prey = result!.Preys.Single(p => p.UserId == preyId);
-        Assert.True(prey.HasActivePenalty);
+        var preyStatus = result!.Participants.Single(p => p.UserId == preyId);
+        Assert.True(preyStatus.HasActivePenalty);
     }
 
     [Fact]
@@ -200,6 +195,7 @@ public sealed class GetGameStatusQueryHandlerTests
         var result = await _sut.Handle(new GetGameStatusQuery(game.Id, hunterId), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.False(result!.Hunter!.HasActivePenalty);
+        var hunterStatus = result!.Participants.Single(p => p.UserId == hunterId);
+        Assert.False(hunterStatus.HasActivePenalty);
     }
 }
