@@ -33,7 +33,7 @@ public sealed class JoinGameCommandHandler : ICommandHandler<JoinGameCommand, Jo
             if (!string.Equals(command.JoinCode, game.GameCode, StringComparison.Ordinal))
                 throw new InvalidJoinCodeException();
 
-            game.JoinLobby(LobbyPlayer.Create(command.UserId, command.DisplayName, command.ProfilePictureUrl));
+            game.JoinLobby(GameParticipant.Create(command.UserId, command.DisplayName, command.ProfilePictureUrl));
 
             await _games.UpdateAsync(game, ct);
             await _eventBus.PublishAsync(game.Id, "lobby-updated", game.ToDto(), ct);
