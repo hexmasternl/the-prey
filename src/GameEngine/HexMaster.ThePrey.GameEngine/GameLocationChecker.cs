@@ -176,9 +176,7 @@ internal sealed class GameLocationChecker
 
         try
         {
-            var allParticipants = new List<GameParticipant>();
-            if (game.Hunter is not null) allParticipants.Add(game.Hunter);
-            allParticipants.AddRange(game.Preys);
+            var allParticipants = game.Participants.ToList();
 
             var locationUpdates = new List<ParticipantLocationPayload>();
             foreach (var participant in allParticipants)
