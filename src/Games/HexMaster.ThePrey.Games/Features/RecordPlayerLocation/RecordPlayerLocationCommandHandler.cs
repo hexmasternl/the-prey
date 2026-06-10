@@ -48,20 +48,27 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
 
         _metrics.RecordLocationRecorded();
 
-        if (game.Hunter?.UserId == command.UserId)
-        {
-            await _eventBus.PublishAsync(game.Id,
-                new ParticipantLocatedEvent(game.Id, command.UserId, "Hunter", command.Latitude, command.Longitude, "Active"), ct);
-        }
-        else if (game.Preys.FirstOrDefault(p => p.UserId == command.UserId) is { } prey)
-        {
-            await _eventBus.PublishAsync(game.Id,
-                new ParticipantLocatedEvent(game.Id, command.UserId, "Prey", command.Latitude, command.Longitude, prey.State.ToString()), ct);
+        var isHunter = game.HunterUserId == command.UserId;
+        var participantRole = isHunter ? "Hunter" : "Prey";
 
-            if (previousState == DomainModels.PlayerState.Passive && prey.State == DomainModels.PlayerState.Active)
+        if (isHunter)
+        {
+            await _eventBus.PublishAsync(game.Id,
+                new ParticipantLocatedEvent(game.Id, command.UserId, participantRole, command.Latitude, command.Longitude, "Active"), ct);
+        }
+        else
+        {
+            var prey = game.Participants.FirstOrDefault(p => p.UserId == command.UserId);
+            if (prey is not null)
             {
                 await _eventBus.PublishAsync(game.Id,
-                    new ParticipantStatusChangedEvent(game.Id, command.UserId, "Prey", "Active"), ct);
+                    new ParticipantLocatedEvent(game.Id, command.UserId, participantRole, command.Latitude, command.Longitude, prey.State.ToString()), ct);
+
+                if (previousState == PlayerState.Passive && prey.State == PlayerState.Active)
+                {
+                    await _eventBus.PublishAsync(game.Id,
+                        new ParticipantStatusChangedEvent(game.Id, command.UserId, participantRole, "Active"), ct);
+                }
             }
         }
 
