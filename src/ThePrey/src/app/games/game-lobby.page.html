@@ -274,6 +274,21 @@
         }} } @else { {{ 'GAME_LOBBY.READY' | translate }} }
       </ion-button>
     </div>
+    } @else if (canShowStart()) {
+    <div class="deploy-zone">
+      <ion-button
+        expand="block"
+        class="start-btn"
+        color="primary"
+        [disabled]="!canStart()"
+        (click)="startGame()"
+      >
+        {{ 'GAME_LOBBY.START' | translate }}
+      </ion-button>
+      @if (!canStart()) {
+      <p class="start-hint">{{ 'GAME_LOBBY.START_HINT' | translate }}</p>
+      }
+    </div>
     }
   </div>
   }

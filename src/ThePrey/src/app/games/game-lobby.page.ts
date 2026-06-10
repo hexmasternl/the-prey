@@ -87,6 +87,26 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
 
+  /** Lobby members other than the host — the players whose ready state gates the start. */
+  private readonly otherPlayers = computed(() => {
+    const g = this.game();
+    return g ? g.lobby.filter(p => p.userId !== g.ownerUserId) : [];
+  });
+
+  /** The host sees a Start button once at least one other operative has joined (2+ total). */
+  readonly canShowStart = computed(() => this.isOwner() && (this.game()?.lobby.length ?? 0) >= 2);
+
+  /**
+   * Start is enabled only when a hunter has been designated and every non-host operative has
+   * marked themselves ready. The backend enforces the same rules; this just mirrors them in the UI.
+   */
+  readonly canStart = computed(() => {
+    const g = this.game();
+    if (!g || !g.designatedHunterUserId) return false;
+    const others = this.otherPlayers();
+    return others.length > 0 && others.every(p => p.isReady);
+  });
+
   readonly canShare = computed(
     () =>
       Capacitor.isNativePlatform() ||
@@ -273,6 +293,19 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     if (!this.isOwner()) return;
     try {
       const game = await this.gamesService.removePlayer(this.gameId(), userId);
+      this.game.set(game);
+    } catch {
+      await this.showError('GAME_LOBBY.ACTION_ERROR');
+    }
+  }
+
+  async startGame(): Promise<void> {
+    const g = this.game();
+    if (!g || !this.isOwner() || !g.designatedHunterUserId) return;
+    try {
+      // The owner is a participant too, so the resulting `game-started` SSE event drives
+      // navigation for everyone (owner included) via onGameStarted — no manual nav here.
+      const game = await this.gamesService.startGame(this.gameId(), g.designatedHunterUserId);
       this.game.set(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');

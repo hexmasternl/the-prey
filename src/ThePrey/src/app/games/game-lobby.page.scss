@@ -346,7 +346,8 @@ ion-header ion-toolbar {
   margin-top: 20px;
 }
 
-.ready-btn {
+.ready-btn,
+.start-btn {
   --border-radius: 2px;
   font-family: var(--tp-head);
   font-size: 14px;
@@ -356,6 +357,17 @@ ion-header ion-toolbar {
   &:not([disabled]) {
     animation: deploy-pulse 2.5s ease-in-out infinite;
   }
+}
+
+.start-hint {
+  font-family: var(--tp-body);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--tp-text-soft);
+  text-transform: uppercase;
+  line-height: 1.4;
+  text-align: center;
+  margin: 8px 0 0;
 }
 
 // ── Keyframes ────────────────────────────────────────────────
