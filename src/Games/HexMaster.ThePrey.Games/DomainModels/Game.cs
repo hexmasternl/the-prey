@@ -209,6 +209,11 @@ public sealed class Game
         if (_lobby.All(p => p.UserId != hunterUserId))
             throw new InvalidOperationException("The designated hunter must be a member of the lobby.");
 
+        // Every operative except the host must have readied up. The host never readies (SetReady is a
+        // no-op for the owner), so they are excluded from this gate.
+        if (_lobby.Any(p => p.UserId != OwnerUserId && !p.IsReady))
+            throw new InvalidOperationException("All players must be ready before the game can start.");
+
         _participants.Clear();
         foreach (var player in _lobby)
         {

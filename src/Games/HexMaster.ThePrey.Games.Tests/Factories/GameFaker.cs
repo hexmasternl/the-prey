@@ -37,8 +37,12 @@ internal static class GameFaker
         GameConfiguration? configuration = null) =>
         Game.Create(ownerId ?? Guid.NewGuid(), playfieldId ?? Guid.NewGuid(), gameCode ?? ValidGameCode(), configuration ?? ValidConfiguration());
 
-    /// <summary>A lobby game pre-filled with <paramref name="playerCount"/> players; returns their ids in join order.</summary>
-    internal static Game LobbyGameWithPlayers(int playerCount, out IReadOnlyList<Guid> playerIds, GameConfiguration? configuration = null)
+    /// <summary>
+    /// A lobby game pre-filled with <paramref name="playerCount"/> players; returns their ids in join order.
+    /// By default every player is readied up so the game satisfies <see cref="Game.Start"/>'s readiness gate;
+    /// pass <paramref name="markReady"/> = false to leave them un-readied (e.g. to test that gate).
+    /// </summary>
+    internal static Game LobbyGameWithPlayers(int playerCount, out IReadOnlyList<Guid> playerIds, GameConfiguration? configuration = null, bool markReady = true)
     {
         var game = LobbyGame(configuration: configuration);
         var ids = new List<Guid>();
@@ -46,6 +50,8 @@ internal static class GameFaker
         {
             var id = Guid.NewGuid();
             game.JoinLobby(Player(id));
+            if (markReady)
+                game.SetReady(id);
             ids.Add(id);
         }
 

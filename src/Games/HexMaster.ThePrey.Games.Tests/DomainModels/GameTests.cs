@@ -119,6 +119,18 @@ public sealed class GameTests
     }
 
     [Fact]
+    public void Start_ShouldThrow_WhenANonOwnerPlayerIsNotReady()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids, markReady: false);
+        // Only two of the three players ready up; the third blocks the start.
+        game.SetReady(ids[0]);
+        game.SetReady(ids[1]);
+
+        Assert.Throws<InvalidOperationException>(() => game.Start(ids[0], Start));
+        Assert.Equal(GameStatus.Lobby, game.Status);
+    }
+
+    [Fact]
     public void RecordLocation_ShouldAppendHistory_WithoutSettingCurrentLocation()
     {
         var game = GameFaker.StartedGame(out _, out var preyIds, Start);

@@ -58,6 +58,8 @@ public sealed class ToStatusDtoMappingTests
         game.JoinLobby(GameFaker.Player(playerId, expectedCallsign));
         var secondPlayer = Guid.NewGuid();
         game.JoinLobby(GameFaker.Player(secondPlayer));
+        game.SetReady(playerId);
+        game.SetReady(secondPlayer);
         game.Start(playerId, DateTimeOffset.UtcNow.AddMinutes(-5));
 
         var repoMock = new Moq.Mock<IGameRepository>();

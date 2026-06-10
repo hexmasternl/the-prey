@@ -65,6 +65,23 @@ public sealed class StartGameCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldThrowAndNotTriggerEngine_WhenAPlayerIsNotReady()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids, markReady: false);
+        game.SetReady(ids[0]);
+        game.SetReady(ids[1]); // ids[2] never readies up
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None));
+
+        Assert.Equal(GameStatus.Lobby, game.Status);
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+        _engineTrigger.Verify(t => t.TriggerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        _metrics.Verify(m => m.RecordGameStarted(), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnNull_WhenGameNotFound()
     {
         _repository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Game?)null);
