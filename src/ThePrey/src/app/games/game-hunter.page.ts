@@ -17,6 +17,8 @@ import {
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
+import { App } from '@capacitor/app';
+import type { PluginListenerHandle } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -93,6 +95,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private selfLatLng: L.LatLng | null = null;
   /** Guard: prevent duplicate game-ended handling */
   private gameEndedHandled = false;
+  /** Capacitor App foreground/background listener — drives resume resync. */
+  private resumeListener: PluginListenerHandle | null = null;
 
   dismissSurroundingsWarning(): void {
     localStorage.setItem('surroundings-warning', this.gameId);
@@ -116,6 +120,32 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     await this.pollStatus();
     this.startDurationTimer();
     this.connectStream();
+    void this.registerResumeListener();
+  }
+
+  /**
+   * Web PubSub delivers nothing while the app is backgrounded or the tab is hidden,
+   * and a socket suspended in the background can be left silently half-open (its
+   * `onclose` never fires, so the stream's own reconnect never kicks in). When the
+   * app returns to the foreground we therefore both re-establish the realtime channel
+   * and re-fetch the status to reconcile anything missed while away. The Capacitor App
+   * plugin fires `appStateChange` on native resume and on web via document visibility.
+   */
+  private async registerResumeListener(): Promise<void> {
+    this.resumeListener = await App.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        this.resyncOnResume();
+      }
+    });
+  }
+
+  private resyncOnResume(): void {
+    if (this.gameEndedHandled) return;
+    // Reconnect the realtime channel (handles the silently-dead-socket case)…
+    this.connectStream();
+    // …and force an immediate status refresh to catch events missed while suspended.
+    this.clearPoll();
+    void this.pollStatus();
   }
 
   /**
@@ -132,6 +162,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.clearPingInterval();
     this.clearDurationTimer();
     this.streamService.disconnect();
+    void this.resumeListener?.remove();
+    this.resumeListener = null;
     // NOTE: intentionally do NOT stop location tracking here — the service must keep
     // broadcasting while the game is in progress even if the player leaves this page.
     if (this.watchId !== null) {
