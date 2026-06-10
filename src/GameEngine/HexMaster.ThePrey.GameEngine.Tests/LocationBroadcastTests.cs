@@ -16,12 +16,12 @@ public sealed class LocationBroadcastTests
 
         var playerId = Guid.NewGuid();
         var secondId = Guid.NewGuid();
-        game.JoinLobby(LobbyPlayer.Create(playerId, "Hunter", null));
-        game.JoinLobby(LobbyPlayer.Create(secondId, "Prey", null));
+        game.JoinLobby(GameParticipant.Create(playerId, "Hunter", null));
+        game.JoinLobby(GameParticipant.Create(secondId, "Prey", null));
         game.Start(playerId, StartedAt);
 
         // Hunter has no location history — simulate what engine would do
-        var hunter = game.Hunter!;
+        var hunter = game.Participants.Single(p => p.UserId == playerId);
         Assert.Empty(hunter.Locations);
 
         var mostRecent = hunter.Locations
@@ -39,8 +39,8 @@ public sealed class LocationBroadcastTests
 
         var hunterId = Guid.NewGuid();
         var preyId = Guid.NewGuid();
-        game.JoinLobby(LobbyPlayer.Create(hunterId, "Hunter", null));
-        game.JoinLobby(LobbyPlayer.Create(preyId, "Prey", null));
+        game.JoinLobby(GameParticipant.Create(hunterId, "Hunter", null));
+        game.JoinLobby(GameParticipant.Create(preyId, "Prey", null));
         game.Start(hunterId, StartedAt);
 
         var earlier = StartedAt.AddSeconds(20);
@@ -49,7 +49,7 @@ public sealed class LocationBroadcastTests
         game.RecordLocation(hunterId, new GpsCoordinate(52.0, 4.0), earlier);
         game.RecordLocation(hunterId, new GpsCoordinate(52.1, 4.1), later);
 
-        var hunter = game.Hunter!;
+        var hunter = game.Participants.Single(p => p.UserId == hunterId);
         var mostRecent = hunter.Locations
             .OrderByDescending(l => l.RecordedAt)
             .First();
@@ -67,11 +67,11 @@ public sealed class LocationBroadcastTests
 
         var hunterId = Guid.NewGuid();
         var preyId = Guid.NewGuid();
-        game.JoinLobby(LobbyPlayer.Create(hunterId, "Hunter", null));
-        game.JoinLobby(LobbyPlayer.Create(preyId, "Prey", null));
+        game.JoinLobby(GameParticipant.Create(hunterId, "Hunter", null));
+        game.JoinLobby(GameParticipant.Create(preyId, "Prey", null));
         game.Start(hunterId, StartedAt);
 
-        var hunter = game.Hunter!;
+        var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.Null(hunter.Location);
 
         var coord = new GpsCoordinate(52.5, 5.0);
@@ -91,13 +91,13 @@ public sealed class LocationBroadcastTests
 
         var hunterId = Guid.NewGuid();
         var preyId = Guid.NewGuid();
-        game.JoinLobby(LobbyPlayer.Create(hunterId, "Hunter", null));
-        game.JoinLobby(LobbyPlayer.Create(preyId, "Prey", null));
+        game.JoinLobby(GameParticipant.Create(hunterId, "Hunter", null));
+        game.JoinLobby(GameParticipant.Create(preyId, "Prey", null));
         game.Start(hunterId, StartedAt);
 
         game.RecordLocation(hunterId, new GpsCoordinate(52.0, 4.0), StartedAt.AddSeconds(30));
 
-        var hunter = game.Hunter!;
+        var hunter = game.Participants.Single(p => p.UserId == hunterId);
         // Location should remain null after RecordLocation since we removed the assignment
         Assert.Null(hunter.Location);
         Assert.Single(hunter.Locations);
