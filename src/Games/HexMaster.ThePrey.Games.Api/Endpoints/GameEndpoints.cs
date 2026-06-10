@@ -717,7 +717,7 @@ public static class GameEndpoints
             return;
         }
 
-        var isHunter = game.Hunter?.UserId == user.UserId;
+        var isHunter = game.HunterUserId == user.UserId;
 
         httpContext.Response.ContentType = "text/event-stream";
         httpContext.Response.Headers.CacheControl = "no-cache";
