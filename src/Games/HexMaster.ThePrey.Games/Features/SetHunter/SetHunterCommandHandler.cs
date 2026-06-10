@@ -48,7 +48,7 @@ public sealed class SetHunterCommandHandler : ICommandHandler<SetHunterCommand, 
             else if (game.Status == GameStatus.InProgress)
             {
                 // In-progress: only the current hunter may pass the role
-                if (game.Hunter is null || game.Hunter.UserId != command.CallerUserId)
+                if (game.HunterUserId is null || game.HunterUserId != command.CallerUserId)
                     return null;
 
                 game.SetHunter(command.NewHunterUserId);
