@@ -1,0 +1,9 @@
+# Keep build artifacts and local tooling out of the Docker build context.
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/.idea/
+**/*.user
+.git/
+.github/

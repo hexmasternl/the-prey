@@ -121,16 +121,13 @@ jobs:
 
       - name: Publish game engine container
         run: |
-          dotnet publish src/GameEngine/HexMaster.ThePrey.GameEngine/HexMaster.ThePrey.GameEngine.csproj \
-            --configuration Release \
-            --os linux \
-            --arch x64 \
-            /t:PublishContainer \
-            /p:ContainerRegistry=${{ secrets.ACR_HOSTNAME }} \
-            /p:ContainerImageTag=${{ steps.resolve-tag.outputs.imageTag }} \
-            /p:Version=${{ needs.version.outputs.semVer }} \
-            /p:AssemblyVersion=${{ needs.version.outputs.semVer }} \
-            /p:InformationalVersion=${{ needs.version.outputs.semVer }}
+          IMAGE="${{ secrets.ACR_HOSTNAME }}/theprey/game-engine:${{ steps.resolve-tag.outputs.imageTag }}"
+          docker build \
+            --file src/GameEngine/HexMaster.ThePrey.GameEngine/Dockerfile \
+            --build-arg VERSION=${{ needs.version.outputs.semVer }} \
+            --tag "$IMAGE" \
+            .
+          docker push "$IMAGE"
 
   deploy:
     name: Deploy

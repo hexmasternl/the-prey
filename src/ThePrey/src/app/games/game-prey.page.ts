@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent,
@@ -52,7 +52,9 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly showSurroundingsWarning = signal(false);
   readonly warningAcknowledged = signal(false);
 
-  readonly timeRemaining   = signal('--:--');
+  /** Seconds left in the game, resynced from the server each poll and ticked down locally every second. */
+  readonly secondsRemaining = signal<number | null>(null);
+  readonly timeRemaining   = computed(() => this.formatDuration(this.secondsRemaining()));
   readonly preysLeft       = signal(0);
   readonly hasActivePenalty = signal(false);
   readonly gpsAlert        = signal<string | null>(null);
@@ -71,6 +73,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private playerMarker: L.CircleMarker | null = null;
   private playfieldPolygon: L.Polygon | null = null;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
+  private durationTimer: ReturnType<typeof setInterval> | null = null;
   /** Local participant state map keyed by userId */
   private participantStates = new Map<string, string>();
 
@@ -108,6 +111,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     this.startMapWatch();
 
     await this.pollStatus();
+    this.startDurationTimer();
     this.connectStream();
   }
 
@@ -123,6 +127,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   ngOnDestroy(): void {
     this.clearPoll();
+    this.clearDurationTimer();
     this.streamService.disconnect();
     // NOTE: intentionally do NOT stop location tracking here — the service must keep
     // broadcasting while the game is in progress even if the player leaves this page.
@@ -242,9 +247,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   private applyStatus(status: GameStatusDto): void {
-    const mins = Math.floor(status.gameDurationLeft / 60).toString().padStart(2, '0');
-    const secs = (status.gameDurationLeft % 60).toString().padStart(2, '0');
-    this.timeRemaining.set(`${mins}:${secs}`);
+    this.secondsRemaining.set(status.gameDurationLeft);
     this.preysLeft.set(status.preysLeft);
 
     const preys = status.participants.filter(p => p.userId !== status.hunterUserId);
@@ -340,6 +343,30 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     if (this.pollTimer !== null) {
       clearTimeout(this.pollTimer);
       this.pollTimer = null;
+    }
+  }
+
+  private formatDuration(seconds: number | null): string {
+    if (seconds === null) return '--:--';
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  }
+
+  /** Tick the game-duration clock down once per second between server resyncs. */
+  private startDurationTimer(): void {
+    this.clearDurationTimer();
+    this.durationTimer = setInterval(() => {
+      const s = this.secondsRemaining();
+      if (s === null) return;
+      this.secondsRemaining.set(Math.max(0, s - 1));
+    }, 1000);
+  }
+
+  private clearDurationTimer(): void {
+    if (this.durationTimer !== null) {
+      clearInterval(this.durationTimer);
+      this.durationTimer = null;
     }
   }
 }

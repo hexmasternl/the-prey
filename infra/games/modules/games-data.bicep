@@ -30,6 +30,10 @@ param pgAdminPassword string
 @secure()
 param pgConnectionString string
 
+@description('Shared HMAC key used by the engine to sign internal calls to the Games API. Must match the key configured on the Games API.')
+@secure()
+param engineKey string
+
 @description('Application Insights connection string for the job')
 @secure()
 param appInsightsConnectionString string

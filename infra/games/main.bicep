@@ -36,6 +36,10 @@ param pgAdminLogin string = 'thepreyadmin'
 @secure()
 param pgAdminPassword string
 
+@description('Shared HMAC key used by the Games API (verifier) and Game Engine job (signer) to sign internal location-update / complete calls. Must be identical on both sides.')
+@secure()
+param engineKey string
+
 @description('Container Apps Job command override (default: the API entrypoint)')
 param jobCommand array = []
 
@@ -95,11 +99,19 @@ module gamesApi '../modules/container-app.bicep' = {
         name: 'pg-connection-string'
         value: pgConnectionString
       }
+      {
+        name: 'engine-key'
+        value: engineKey
+      }
     ]
     additionalEnvVars: [
       {
         name: 'ConnectionStrings__Games'
         secretRef: 'pg-connection-string'
+      }
+      {
+        name: 'GameEngine__EngineKey'
+        secretRef: 'engine-key'
       }
       {
         name: 'AZURE_CLIENT_ID'
@@ -131,6 +143,7 @@ module gamesData 'modules/games-data.bicep' = {
     acrPullIdentityId: acrPullIdentity.id
     pgAdminLogin: pgAdminLogin
     pgAdminPassword: pgAdminPassword
+    engineKey: engineKey
     pgConnectionString: pgConnectionString
     appInsightsConnectionString: appInsights.properties.ConnectionString
     appConfigEndpoint: appConfig.properties.endpoint
