@@ -51,7 +51,7 @@ public sealed class CreateGameCommandHandlerTests
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        var player = Assert.Single(result.Game.Lobby);
+        var player = Assert.Single(result.Game.Participants);
         Assert.Equal(command.OwnerUserId, player.UserId);
         Assert.Equal("The Creator", player.DisplayName);
     }
