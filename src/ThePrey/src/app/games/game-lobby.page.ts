@@ -127,44 +127,74 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   }
 
   private async connectStream(): Promise<void> {
+    const gameId = this.gameId();
+    this.streamLog(`connecting — gameId=${gameId}`);
     try {
       const token = await firstValueFrom(this.authService.getAccessTokenSilently());
-      const es = this.gamesService.connectLobbyStream(this.gameId(), token);
+      this.streamLog(`access token acquired — present=${!!token} length=${token?.length ?? 0}`);
+
+      const es = this.gamesService.connectLobbyStream(gameId, token);
       this.eventSource = es;
+      this.streamLog(`EventSource created — url=${this.redactToken(es.url)} readyState=${es.readyState}`);
+
+      es.onopen = () => this.streamLog(`onopen — connection established, readyState=${es.readyState}`);
+
       es.addEventListener('lobby-updated', (e: MessageEvent) => this.onLobbyEvent(e));
       es.addEventListener('settings-updated', (e: MessageEvent) => this.onLobbyEvent(e));
       es.addEventListener('ready-updated', (e: MessageEvent) => this.onLobbyEvent(e));
       es.addEventListener('hunter-designated', (e: MessageEvent) => this.onLobbyEvent(e));
       es.addEventListener('hunter-changed', (e: MessageEvent) => this.onLobbyEvent(e));
       es.addEventListener('game-started', (e: MessageEvent) => this.onGameStarted(e));
-      es.onerror = () => this.refreshGame();
-    } catch {
+
+      // Default (unnamed) SSE messages won't trigger the named listeners above. Logging them
+      // surfaces events arriving under an unexpected/missing event name — a common reason
+      // "events don't arrive" on the client even though the server is sending them.
+      es.onmessage = (e: MessageEvent) =>
+        this.streamLog(`onmessage (unnamed event) — data=${this.previewData(e.data)}`);
+
+      es.onerror = () => {
+        // readyState: 0=CONNECTING (retrying), 1=OPEN, 2=CLOSED (gave up). This tells us whether
+        // the connection never opened, dropped and is retrying, or was closed for good.
+        this.streamError(`onerror — readyState=${es.readyState} (0=connecting,1=open,2=closed)`);
+        this.refreshGame();
+      };
+    } catch (err) {
       // SSE is best-effort; polling fallback via onerror
+      this.streamError('connect failed before EventSource was established', err);
     }
   }
 
   private onLobbyEvent(event: MessageEvent): void {
+    this.streamLog(`event '${event.type}' received — data=${this.previewData(event.data)}`);
     try {
       const data = JSON.parse(event.data);
       if (data?.payload) {
         this.game.set(data.payload);
         this.syncConfigFromGame(data.payload);
+        this.streamLog(`event '${event.type}' applied to game state`);
+      } else {
+        this.streamError(`event '${event.type}' had no 'payload' field — keys=[${Object.keys(data ?? {}).join(', ')}]`);
       }
-    } catch {
-      // ignore parse errors
+    } catch (err) {
+      this.streamError(`event '${event.type}' failed to parse`, err);
     }
   }
 
   private onGameStarted(event: MessageEvent): void {
+    this.streamLog(`event 'game-started' received — data=${this.previewData(event.data)}`);
     try {
       const data = JSON.parse(event.data);
       const game: GameDto | null = data?.payload ?? null;
-      if (!game) return;
+      if (!game) {
+        this.streamError(`event 'game-started' had no 'payload' field — keys=[${Object.keys(data ?? {}).join(', ')}]`);
+        return;
+      }
       const uid = this.currentUserId();
       this.closeStream();
 
       const isHunter = game.hunter?.userId === uid;
       const isPrey = game.preys.some(p => p.userId === uid);
+      this.streamLog(`game-started — uid=${uid} isHunter=${isHunter} isPrey=${isPrey}`);
 
       // Start background location tracking before navigating so reporting begins the
       // moment the game starts. The in-game page's ionViewWillEnter is a no-op when a
@@ -176,12 +206,16 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       }
 
       if (isHunter) {
+        this.streamLog(`navigating to hunt view for game ${game.id}`);
         this.router.navigate(['/games', game.id, 'hunt'], { replaceUrl: true });
       } else if (isPrey) {
+        this.streamLog(`navigating to play view for game ${game.id}`);
         this.router.navigate(['/games', game.id, 'play'], { replaceUrl: true });
+      } else {
+        this.streamError(`game-started but current user ${uid} is neither hunter nor prey — staying put`);
       }
-    } catch {
-      // ignore parse errors
+    } catch (err) {
+      this.streamError("event 'game-started' failed to parse", err);
     }
   }
 
@@ -201,8 +235,36 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   }
 
   private closeStream(): void {
+    if (this.eventSource) {
+      this.streamLog(`closing stream — readyState=${this.eventSource.readyState}`);
+    }
     this.eventSource?.close();
     this.eventSource = null;
+  }
+
+  // ── SSE diagnostics ──────────────────────────────────────────
+  // Tagged so logs are easy to filter on-device, e.g. `adb logcat | grep LobbyStream`
+  // (Capacitor forwards the WebView console to logcat) or in Chrome remote devtools.
+  private readonly streamTag = '[LobbyStream]';
+
+  private streamLog(message: string, ...args: unknown[]): void {
+    console.info(`${this.streamTag} ${message}`, ...args);
+  }
+
+  private streamError(message: string, ...args: unknown[]): void {
+    console.error(`${this.streamTag} ${message}`, ...args);
+  }
+
+  /** Redacts the JWT in the SSE URL so it never lands in logs. */
+  private redactToken(url: string): string {
+    return url.replace(/token=[^&]+/i, 'token=<redacted>');
+  }
+
+  /** A bounded preview of raw event data so logcat lines stay readable. */
+  private previewData(data: unknown): string {
+    const text = typeof data === 'string' ? data : JSON.stringify(data);
+    if (text == null) return '<empty>';
+    return text.length > 300 ? `${text.slice(0, 300)}…(${text.length} chars)` : text;
   }
 
   private syncConfigFromGame(g: GameDto): void {
