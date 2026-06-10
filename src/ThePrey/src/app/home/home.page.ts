@@ -7,7 +7,14 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonButton, IonContent, IonSpinner } from '@ionic/angular/standalone';
+import {
+  IonButton,
+  IonContent,
+  IonRefresher,
+  IonRefresherContent,
+  IonSpinner,
+  RefresherCustomEvent,
+} from '@ionic/angular/standalone';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
@@ -23,7 +30,14 @@ import { GameDto, GamesService } from '../games/games.service';
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonButton, IonContent, IonSpinner, TranslatePipe],
+  imports: [
+    IonButton,
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
+    IonSpinner,
+    TranslatePipe,
+  ],
 })
 export class HomePage implements OnInit, OnDestroy {
   /** Last known position, formatted to 4 decimals; null until the first GPS fix. */
@@ -32,6 +46,9 @@ export class HomePage implements OnInit, OnDestroy {
 
   readonly activeGame = signal<GameDto | null>(null);
   readonly activeGameId = computed(() => this.activeGame()?.id ?? null);
+
+  /** False until the first /games/active request resolves; gates the Play Now button. */
+  readonly activeGameLoaded = signal(false);
 
   readonly callsignChars = computed(() =>
     (this.userState.profile()?.callsign ?? '')
@@ -88,8 +105,21 @@ export class HomePage implements OnInit, OnDestroy {
   };
 
   private async checkActiveGame(): Promise<void> {
-    const active = await this.gamesService.getActiveGame();
-    this.activeGame.set(active);
+    try {
+      const active = await this.gamesService.getActiveGame();
+      this.activeGame.set(active);
+    } finally {
+      this.activeGameLoaded.set(true);
+    }
+  }
+
+  /** Pull-to-refresh handler: re-fetch the active game, then dismiss the refresher. */
+  async handleRefresh(event: RefresherCustomEvent): Promise<void> {
+    try {
+      await this.checkActiveGame();
+    } finally {
+      await event.target.complete();
+    }
   }
 
   goToActiveGame(): void {

@@ -1,4 +1,8 @@
-<ion-content [fullscreen]="true" [scrollY]="false">
+<ion-content [fullscreen]="true" [scrollY]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="hero">
     <!-- Corner brackets -->
     <span class="br tl"></span>
@@ -31,7 +35,7 @@
             {{ 'HOME.PLAYING' | translate }}
           </ion-button>
         }
-        <ion-button expand="block" color="primary" [disabled]="activeGameId() !== null" (click)="goToPlay()">
+        <ion-button expand="block" color="primary" [disabled]="!activeGameLoaded() || activeGameId() !== null" (click)="goToPlay()">
           {{ 'HOME.PLAY_NOW' | translate }}
         </ion-button>
 
