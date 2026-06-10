@@ -14,9 +14,10 @@ public sealed class PlayerStateTests
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
 
-        Assert.Equal(PlayerState.Active, game.Hunter!.State);
+        var hunter = game.Participants.Single(p => p.UserId == hunterId);
+        Assert.Equal(PlayerState.Active, hunter.State);
         foreach (var id in preyIds)
-            Assert.Equal(PlayerState.Active, game.Preys.Single(p => p.UserId == id).State);
+            Assert.Equal(PlayerState.Active, game.Participants.Single(p => p.UserId == id).State);
     }
 
     [Fact]
@@ -25,7 +26,7 @@ public sealed class PlayerStateTests
         var game = GameFaker.StartedGame(out _, out var preyIds, Start);
 
         foreach (var id in preyIds)
-            Assert.Null(game.Preys.Single(p => p.UserId == id).LastLocationAt);
+            Assert.Null(game.Participants.Single(p => p.UserId == id).LastLocationAt);
     }
 
     // ── 2.x ─ RecordLocation state transitions ─────────────────────────────
@@ -40,8 +41,8 @@ public sealed class PlayerStateTests
         var previous = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
 
         Assert.Equal(PlayerState.Active, previous);
-        Assert.Equal(PlayerState.Active, game.Preys.Single(p => p.UserId == preyId).State);
-        Assert.Equal(Start.AddMinutes(1), game.Preys.Single(p => p.UserId == preyId).LastLocationAt);
+        Assert.Equal(PlayerState.Active, game.Participants.Single(p => p.UserId == preyId).State);
+        Assert.Equal(Start.AddMinutes(1), game.Participants.Single(p => p.UserId == preyId).LastLocationAt);
     }
 
     [Fact]
@@ -55,12 +56,12 @@ public sealed class PlayerStateTests
         game.RecordLocation(preyId, coord, Start);
         // Manually advance time to 6 min (beyond 5-min passive threshold) via timeout transition
         game.ApplyTimeoutTransitions(Start.AddMinutes(6));
-        Assert.Equal(PlayerState.Passive, game.Preys.Single(p => p.UserId == preyId).State);
+        Assert.Equal(PlayerState.Passive, game.Participants.Single(p => p.UserId == preyId).State);
 
         // Record again: should return Passive (previous) and set Active
         var previous = game.RecordLocation(preyId, coord, Start.AddMinutes(7));
         Assert.Equal(PlayerState.Passive, previous);
-        Assert.Equal(PlayerState.Active, game.Preys.Single(p => p.UserId == preyId).State);
+        Assert.Equal(PlayerState.Active, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
     [Fact]
@@ -73,12 +74,12 @@ public sealed class PlayerStateTests
         game.RecordLocation(preyId, coord, Start);
         // Advance 8 min → Out
         game.ApplyTimeoutTransitions(Start.AddMinutes(8));
-        Assert.Equal(PlayerState.Out, game.Preys.Single(p => p.UserId == preyId).State);
+        Assert.Equal(PlayerState.Out, game.Participants.Single(p => p.UserId == preyId).State);
 
         // Record should be a no-op on state
         var previous = game.RecordLocation(preyId, coord, Start.AddMinutes(9));
         Assert.Equal(PlayerState.Out, previous);
-        Assert.Equal(PlayerState.Out, game.Preys.Single(p => p.UserId == preyId).State);
+        Assert.Equal(PlayerState.Out, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
     [Fact]
@@ -90,11 +91,11 @@ public sealed class PlayerStateTests
 
         game.RecordLocation(preyId, coord, Start);
         game.TagParticipant(hunterId, preyId);
-        Assert.Equal(PlayerState.Tagged, game.Preys.Single(p => p.UserId == preyId).State);
+        Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
 
         var previous = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
         Assert.Equal(PlayerState.Tagged, previous);
-        Assert.Equal(PlayerState.Tagged, game.Preys.Single(p => p.UserId == preyId).State);
+        Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
     // ── 3.x ─ ApplyTimeoutTransitions ─────────────────────────────────────
@@ -151,7 +152,7 @@ public sealed class PlayerStateTests
         var changes = game.ApplyTimeoutTransitions(Start.AddMinutes(10));
 
         Assert.Empty(changes);
-        Assert.Equal(PlayerState.Tagged, game.Preys.Single(p => p.UserId == preyId).State);
+        Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
     [Fact]
@@ -174,7 +175,7 @@ public sealed class PlayerStateTests
 
         game.TagParticipant(hunterId, preyIds[0]);
 
-        Assert.Equal(PlayerState.Tagged, game.Preys.Single(p => p.UserId == preyIds[0]).State);
+        Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyIds[0]).State);
     }
 
     [Fact]
@@ -184,11 +185,11 @@ public sealed class PlayerStateTests
         var preyId = preyIds[0];
         game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Start);
         game.ApplyTimeoutTransitions(Start.AddMinutes(6));
-        Assert.Equal(PlayerState.Passive, game.Preys.Single(p => p.UserId == preyId).State);
+        Assert.Equal(PlayerState.Passive, game.Participants.Single(p => p.UserId == preyId).State);
 
         game.TagParticipant(hunterId, preyId);
 
-        Assert.Equal(PlayerState.Tagged, game.Preys.Single(p => p.UserId == preyId).State);
+        Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
     [Fact]
