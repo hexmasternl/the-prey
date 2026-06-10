@@ -1,8 +1,9 @@
 namespace HexMaster.ThePrey.Games.DomainModels;
 
 /// <summary>
-/// A player taking part in a running game, in the role of either the hunter or a prey. Carries the
-/// player's current location, the penalties applied to them, and their reported location history.
+/// A player who has joined a game. Before it starts they are in the lobby (IsReady flag);
+/// once it starts they become an active participant. Role (hunter vs prey) is derived from
+/// <see cref="Game.HunterUserId"/> — not stored here.
 /// A child entity of the <see cref="Game"/> aggregate — created and mutated only through the aggregate root.
 /// </summary>
 public sealed class GameParticipant
@@ -11,7 +12,9 @@ public sealed class GameParticipant
     private readonly List<LocationReading> _locations = [];
 
     public Guid UserId { get; private set; }
-    public ParticipantRole Role { get; private set; }
+    public string DisplayName { get; private set; } = default!;
+    public string? ProfilePictureUrl { get; private set; }
+    public bool IsReady { get; private set; }
     public PlayerState State { get; private set; } = PlayerState.Active;
     public DateTimeOffset? LastLocationAt { get; private set; }
     public GpsCoordinate? Location { get; private set; }
@@ -20,15 +23,20 @@ public sealed class GameParticipant
 
     private GameParticipant() { }
 
-    internal static GameParticipant Create(Guid userId, ParticipantRole role)
+    /// <summary>Creates a new participant from display info. State=Active, IsReady=false.</summary>
+    public static GameParticipant Create(Guid userId, string displayName, string? profilePictureUrl = null)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("A participant requires a non-empty user identifier.", nameof(userId));
 
+        ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
+
         return new GameParticipant
         {
             UserId = userId,
-            Role = role,
+            DisplayName = displayName,
+            ProfilePictureUrl = string.IsNullOrWhiteSpace(profilePictureUrl) ? null : profilePictureUrl,
+            IsReady = false,
             State = PlayerState.Active
         };
     }
@@ -36,7 +44,9 @@ public sealed class GameParticipant
     /// <summary>Reconstructs a previously-persisted participant. Intended only for data adapters.</summary>
     public static GameParticipant Rehydrate(
         Guid userId,
-        ParticipantRole role,
+        string displayName,
+        string? profilePictureUrl,
+        bool isReady,
         GpsCoordinate? location,
         IEnumerable<Penalty> penalties,
         IEnumerable<LocationReading> locations,
@@ -46,7 +56,9 @@ public sealed class GameParticipant
         var participant = new GameParticipant
         {
             UserId = userId,
-            Role = role,
+            DisplayName = displayName,
+            ProfilePictureUrl = profilePictureUrl,
+            IsReady = isReady,
             Location = location,
             State = state,
             LastLocationAt = lastLocationAt
@@ -56,7 +68,8 @@ public sealed class GameParticipant
         return participant;
     }
 
-    internal void ChangeRole(ParticipantRole role) => Role = role;
+    /// <summary>Sets the ready flag. Called by the aggregate.</summary>
+    internal void SetReady(bool isReady) => IsReady = isReady;
 
     /// <summary>
     /// Activates the participant and records the location timestamp. No-op when already Out or Tagged.

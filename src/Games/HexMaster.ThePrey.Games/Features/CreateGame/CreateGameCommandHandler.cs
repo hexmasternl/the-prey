@@ -44,7 +44,7 @@ public sealed class CreateGameCommandHandler : ICommandHandler<CreateGameCommand
                 command.EnablePreyBoundaryPenalties,
                 command.EnableHunterBoundaryPenalty);
 
-            var creator = LobbyPlayer.Create(command.OwnerUserId, command.DisplayName, command.ProfilePictureUrl);
+            var creator = GameParticipant.Create(command.OwnerUserId, command.DisplayName, command.ProfilePictureUrl);
 
             var game = await PersistWithUniqueCodeAsync(command, configuration, creator, activity, ct);
 
@@ -63,14 +63,10 @@ public sealed class CreateGameCommandHandler : ICommandHandler<CreateGameCommand
         }
     }
 
-    /// <summary>
-    /// Persists the game under a freshly generated code, regenerating on a code collision
-    /// up to <see cref="MaxGameCodeAttempts"/> times.
-    /// </summary>
     private async Task<Game> PersistWithUniqueCodeAsync(
         CreateGameCommand command,
         GameConfiguration configuration,
-        LobbyPlayer creator,
+        GameParticipant creator,
         Activity? activity,
         CancellationToken ct)
     {
@@ -94,7 +90,6 @@ public sealed class CreateGameCommandHandler : ICommandHandler<CreateGameCommand
         }
     }
 
-    /// <summary>A cryptographically random code of exactly <see cref="Game.GameCodeLength"/> decimal digits.</summary>
     private static string GenerateGameCode()
     {
         var exclusiveUpperBound = (int)Math.Pow(10, Game.GameCodeLength);

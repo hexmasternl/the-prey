@@ -1,16 +1,16 @@
 namespace HexMaster.ThePrey.Games.DomainModels;
 
 /// <summary>
-/// A game of The Prey: a round played by a lobby of players inside a play field, with one hunter
-/// chasing the preys. The aggregate root — it owns its lobby, participants, configuration, and
-/// enforces every game invariant through behaviour.
+/// A game of The Prey: a round played by a set of players inside a play field, with one hunter
+/// chasing the preys. The aggregate root — it owns its participants, configuration, and enforces
+/// every game invariant through behaviour.
 /// </summary>
 public sealed class Game
 {
-    /// <summary>Minimum lobby size required to start: one hunter plus at least one prey.</summary>
+    /// <summary>Minimum participants required to start: one hunter plus at least one prey.</summary>
     public const int MinimumPlayersToStart = 2;
 
-    /// <summary>Maximum number of players a lobby can hold.</summary>
+    /// <summary>Maximum number of players that can join.</summary>
     public const int MaxLobbySize = 16;
 
     /// <summary>Length of the shareable game code: exactly this many decimal digits.</summary>
@@ -22,7 +22,6 @@ public sealed class Game
     /// <summary>Reporting interval, in seconds, that applies while a participant has an active penalty.</summary>
     public const int PenaltyReportingIntervalSeconds = 10;
 
-    private readonly List<LobbyPlayer> _lobby = [];
     private readonly List<GameParticipant> _participants = [];
 
     public Guid Id { get; private set; }
@@ -41,21 +40,25 @@ public sealed class Game
     public DateTimeOffset? CompletedAt { get; private set; }
     public GameOutcome Outcome { get; private set; }
 
-    /// <summary>The lobby player pre-designated as the hunter before the game starts; null until designated.</summary>
-    public Guid? DesignatedHunterUserId { get; private set; }
+    /// <summary>
+    /// The current hunter's UserId. In Lobby state this is the pre-designated hunter (null until designated).
+    /// In InProgress state this is the active hunter.
+    /// </summary>
+    public Guid? HunterUserId { get; private set; }
 
-    public IReadOnlyList<LobbyPlayer> Lobby => _lobby.AsReadOnly();
+    /// <summary>All participants (lobby members and in-progress players share this single collection).</summary>
+    public IReadOnlyList<GameParticipant> Participants => _participants.AsReadOnly();
 
-    /// <summary>The single hunter, or null before the game has started.</summary>
-    public GameParticipant? Hunter => _participants.SingleOrDefault(p => p.Role == ParticipantRole.Hunter);
-
-    /// <summary>The preys, empty before the game has started.</summary>
-    public IReadOnlyList<GameParticipant> Preys =>
-        _participants.Where(p => p.Role == ParticipantRole.Prey).ToList().AsReadOnly();
+    /// <summary>
+    /// Derived list of prey UserIds: every participant except the hunter.
+    /// Only meaningful when <see cref="Status"/> is InProgress.
+    /// </summary>
+    public IReadOnlyList<Guid> Preys =>
+        _participants.Where(p => p.UserId != HunterUserId).Select(p => p.UserId).ToList();
 
     private Game() { }
 
-    /// <summary>Creates a new game in the Lobby state with an empty lobby.</summary>
+    /// <summary>Creates a new game in the Lobby state with an empty participants list.</summary>
     public static Game Create(Guid ownerUserId, Guid playfieldId, string gameCode, GameConfiguration configuration)
     {
         if (ownerUserId == Guid.Empty)
@@ -90,9 +93,8 @@ public sealed class Game
         GameStatus status,
         GameConfiguration configuration,
         DateTimeOffset? startedAt,
-        IEnumerable<LobbyPlayer> lobby,
         IEnumerable<GameParticipant> participants,
-        Guid? designatedHunterUserId = null,
+        Guid? hunterUserId = null,
         DateTimeOffset createdAt = default,
         DateTimeOffset? endsAt = null,
         DateTimeOffset cleanUpAfter = default,
@@ -110,65 +112,64 @@ public sealed class Game
             Status = status,
             Configuration = configuration,
             StartedAt = startedAt,
-            DesignatedHunterUserId = designatedHunterUserId,
+            HunterUserId = hunterUserId,
             CreatedAt = createdAt,
             EndsAt = endsAt,
             CleanUpAfter = cleanUpAfter,
             CompletedAt = completedAt,
             Outcome = outcome
         };
-        game._lobby.AddRange(lobby);
         game._participants.AddRange(participants);
         return game;
     }
 
-    /// <summary>Adds a player to the lobby. Only allowed before the game starts; rejects duplicates and a full lobby.</summary>
-    public void JoinLobby(LobbyPlayer player)
+    /// <summary>Adds a player to the participants list. Only allowed before the game starts; rejects duplicates and a full lobby.</summary>
+    public void JoinLobby(GameParticipant participant)
     {
-        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(participant);
 
         if (Status != GameStatus.Lobby)
             throw new GameNotJoinableException();
 
-        if (_lobby.Any(p => p.UserId == player.UserId))
+        if (_participants.Any(p => p.UserId == participant.UserId))
             throw new PlayerAlreadyInLobbyException();
 
-        if (_lobby.Count >= MaxLobbySize)
+        if (_participants.Count >= MaxLobbySize)
             throw new LobbyFullException(MaxLobbySize);
 
-        _lobby.Add(player);
+        _participants.Add(participant);
     }
 
     /// <summary>
-    /// Pre-designates a lobby member as the hunter before the game starts.
-    /// Only allowed while in Lobby state; the user must already be in the lobby.
+    /// Pre-designates a participant as the hunter before the game starts.
+    /// Only allowed while in Lobby state; the user must already be a participant.
     /// </summary>
     public void DesignateHunter(Guid userId)
     {
         if (Status != GameStatus.Lobby)
             throw new InvalidOperationException("Hunter can only be designated while the game is in the lobby.");
-        if (_lobby.All(p => p.UserId != userId))
-            throw new ArgumentException("The designated hunter must be a member of the lobby.", nameof(userId));
-        DesignatedHunterUserId = userId;
+        if (_participants.All(p => p.UserId != userId))
+            throw new ArgumentException("The designated hunter must be a participant.", nameof(userId));
+        HunterUserId = userId;
     }
 
     /// <summary>
-    /// Removes a player from the lobby. Only allowed while in Lobby state.
-    /// Clears the designated hunter if the removed player was designated.
+    /// Removes a player from the participants list. Only allowed while in Lobby state.
+    /// Clears the hunter designation if the removed player was designated.
     /// </summary>
     public void RemoveLobbyPlayer(Guid userId)
     {
         if (Status != GameStatus.Lobby)
             throw new InvalidOperationException("Players can only be removed while the game is in the lobby.");
-        var player = _lobby.FirstOrDefault(p => p.UserId == userId)
+        var player = _participants.FirstOrDefault(p => p.UserId == userId)
             ?? throw new ArgumentException("This player is not in the lobby.", nameof(userId));
-        _lobby.Remove(player);
-        if (DesignatedHunterUserId == userId)
-            DesignatedHunterUserId = null;
+        _participants.Remove(player);
+        if (HunterUserId == userId)
+            HunterUserId = null;
     }
 
     /// <summary>
-    /// Updates game settings and resets the ready flag for all non-owner lobby members.
+    /// Updates game settings and resets the ready flag for all non-owner participants.
     /// Only allowed while in Lobby state.
     /// </summary>
     public void UpdateSettings(GameConfiguration config)
@@ -177,89 +178,80 @@ public sealed class Game
         if (Status != GameStatus.Lobby)
             throw new InvalidOperationException("Settings can only be updated while the game is in the lobby.");
         Configuration = config;
-        for (var i = 0; i < _lobby.Count; i++)
-            if (_lobby[i].UserId != OwnerUserId)
-                _lobby[i] = _lobby[i].WithReady(false);
+        foreach (var p in _participants.Where(p => p.UserId != OwnerUserId))
+            p.SetReady(false);
     }
 
     /// <summary>
-    /// Marks a lobby player as ready. No-op for the owner. Throws if the user is not in the lobby.
+    /// Marks a participant as ready. No-op for the owner. Throws if the user is not a participant.
     /// </summary>
     public void SetReady(Guid userId)
     {
         if (userId == OwnerUserId) return;
-        var idx = _lobby.FindIndex(p => p.UserId == userId);
-        if (idx == -1)
-            throw new ArgumentException("This player is not in the lobby.", nameof(userId));
-        _lobby[idx] = _lobby[idx].WithReady(true);
+        var participant = FindParticipant(userId)
+            ?? throw new ArgumentException("This player is not in the lobby.", nameof(userId));
+        participant.SetReady(true);
     }
 
     /// <summary>
     /// Whether every precondition of <see cref="Start"/> is currently met: the game is still in the
     /// lobby, has at least <see cref="MinimumPlayersToStart"/> players, has a designated hunter who is a
-    /// lobby member, and every non-owner player has readied up. The host is excluded from the readiness
-    /// gate because the host never readies (see <see cref="SetReady"/>). This is the single source of
-    /// truth the API surfaces to the owner's client so it can enable the Start control.
+    /// participant, and every non-owner player has readied up.
     /// </summary>
     public bool IsReadyToStart =>
         Status == GameStatus.Lobby
-        && _lobby.Count >= MinimumPlayersToStart
-        && DesignatedHunterUserId is { } hunterId
-        && _lobby.Any(p => p.UserId == hunterId)
-        && _lobby.All(p => p.UserId == OwnerUserId || p.IsReady);
+        && _participants.Count >= MinimumPlayersToStart
+        && HunterUserId is { } hunterId
+        && _participants.Any(p => p.UserId == hunterId)
+        && _participants.All(p => p.UserId == OwnerUserId || p.IsReady);
 
     /// <summary>
-    /// Starts the game: designates the hunter, turns every other lobby member into a prey, records the
-    /// start time, and transitions to InProgress.
+    /// Starts the game. Does NOT recreate participants — the existing participants (lobby members)
+    /// become the in-progress roster. Sets the hunter, records timing, and transitions to InProgress.
     /// </summary>
     public void Start(Guid hunterUserId, DateTimeOffset startedAt)
     {
         if (Status != GameStatus.Lobby)
             throw new InvalidOperationException("Only a game in the lobby can be started.");
 
-        if (_lobby.Count < MinimumPlayersToStart)
+        if (_participants.Count < MinimumPlayersToStart)
             throw new InvalidOperationException($"A game requires at least {MinimumPlayersToStart} players to start.");
 
-        if (_lobby.All(p => p.UserId != hunterUserId))
-            throw new InvalidOperationException("The designated hunter must be a member of the lobby.");
+        if (_participants.All(p => p.UserId != hunterUserId))
+            throw new InvalidOperationException("The designated hunter must be a participant.");
 
-        // Every operative except the host must have readied up. The host never readies (SetReady is a
-        // no-op for the owner), so they are excluded from this gate.
-        if (_lobby.Any(p => p.UserId != OwnerUserId && !p.IsReady))
+        if (_participants.Any(p => p.UserId != OwnerUserId && !p.IsReady))
             throw new InvalidOperationException("All players must be ready before the game can start.");
 
-        _participants.Clear();
-        foreach (var player in _lobby)
-        {
-            var role = player.UserId == hunterUserId ? ParticipantRole.Hunter : ParticipantRole.Prey;
-            _participants.Add(GameParticipant.Create(player.UserId, role));
-        }
-
+        HunterUserId = hunterUserId;
         StartedAt = startedAt;
         EndsAt = startedAt.AddMinutes(Configuration.GameDuration);
         Status = GameStatus.InProgress;
     }
 
     /// <summary>
-    /// Reassigns the hunter role to an existing prey of an in-progress game; the former hunter
-    /// becomes a prey. The game stays InProgress.
+    /// Reassigns the hunter role to an existing prey of an in-progress game.
+    /// The game stays InProgress; the previous hunter becomes a prey (derived, no role field).
     /// </summary>
     public void SetHunter(Guid newHunterUserId)
     {
         if (Status != GameStatus.InProgress)
             throw new InvalidOperationException("The hunter can only be changed while the game is in progress.");
 
-        var currentHunter = Hunter
-            ?? throw new InvalidOperationException("An in-progress game must have a hunter.");
+        if (HunterUserId is null)
+            throw new InvalidOperationException("An in-progress game must have a hunter.");
 
-        if (currentHunter.UserId == newHunterUserId)
+        if (HunterUserId == newHunterUserId)
             throw new ArgumentException("This player is already the hunter.", nameof(newHunterUserId));
 
-        var newHunter = _participants.FirstOrDefault(p => p.UserId == newHunterUserId && p.Role == ParticipantRole.Prey)
-            ?? throw new ArgumentException("The new hunter must be an existing prey of the game.", nameof(newHunterUserId));
+        // New hunter must be an existing participant who is currently a prey (not the hunter).
+        if (_participants.All(p => p.UserId != newHunterUserId))
+            throw new ArgumentException("The new hunter must be an existing prey of the game.", nameof(newHunterUserId));
 
-        currentHunter.ChangeRole(ParticipantRole.Prey);
-        newHunter.ChangeRole(ParticipantRole.Hunter);
+        if (newHunterUserId == HunterUserId)
+            throw new ArgumentException("The new hunter must be an existing prey of the game.", nameof(newHunterUserId));
+
+        HunterUserId = newHunterUserId;
     }
 
     /// <summary>
@@ -287,7 +279,7 @@ public sealed class Game
     public IReadOnlyList<(Guid UserId, PlayerState NewState)> ApplyTimeoutTransitions(DateTimeOffset now)
     {
         var changes = new List<(Guid, PlayerState)>();
-        foreach (var participant in _participants.Where(p => p.Role == ParticipantRole.Prey))
+        foreach (var participant in _participants.Where(p => p.UserId != HunterUserId))
         {
             if (participant.TryTransitionByTimeout(now, out var newState))
                 changes.Add((participant.UserId, newState));
@@ -296,18 +288,19 @@ public sealed class Game
     }
 
     /// <summary>
-    /// Marks a prey participant as Tagged. The caller must be the hunter; the target must exist
-    /// as a prey in Active or Passive state; the game must be InProgress.
+    /// Marks a prey participant as Tagged. The caller must be the hunter; the target must be a prey
+    /// in Active or Passive state; the game must be InProgress.
     /// </summary>
     public void TagParticipant(Guid callerId, Guid targetUserId)
     {
         if (Status != GameStatus.InProgress)
             throw new InvalidOperationException("Players can only be tagged while the game is in progress.");
 
-        if (Hunter?.UserId != callerId)
+        if (HunterUserId != callerId)
             throw new UnauthorizedAccessException("Only the hunter can tag preys.");
 
-        var target = _participants.FirstOrDefault(p => p.UserId == targetUserId && p.Role == ParticipantRole.Prey)
+        // Target must be a participant and must NOT be the hunter.
+        var target = _participants.FirstOrDefault(p => p.UserId == targetUserId && p.UserId != HunterUserId)
             ?? throw new ArgumentException("The target participant is not a prey of this game.", nameof(targetUserId));
 
         target.Tag();
@@ -360,7 +353,7 @@ public sealed class Game
     /// </summary>
     private GameOutcome ComputeOutcome()
     {
-        var preys = _participants.Where(p => p.Role == ParticipantRole.Prey).ToList();
+        var preys = _participants.Where(p => p.UserId != HunterUserId).ToList();
         if (preys.Count == 0) return GameOutcome.Undecided;
 
         return preys.All(p => p.State is PlayerState.Tagged or PlayerState.Out)
@@ -380,7 +373,7 @@ public sealed class Game
         var participant = FindParticipant(userId)
             ?? throw new ArgumentException("This user is not a participant of the game.", nameof(userId));
 
-        if (participant.Role != ParticipantRole.Prey)
+        if (participant.UserId == HunterUserId)
             throw new InvalidOperationException("Only a prey participant can forfeit.");
 
         participant.ForfeitOut();
@@ -410,9 +403,7 @@ public sealed class Game
     }
 
     /// <summary>
-    /// The interval, in seconds, at which the given participant must report its location at <paramref name="now"/>:
-    /// 10 seconds while penalised (takes precedence), otherwise the final-stage interval during the final stage,
-    /// otherwise the default interval.
+    /// The interval, in seconds, at which the given participant must report its location at <paramref name="now"/>.
     /// </summary>
     public int ReportingIntervalFor(Guid userId, DateTimeOffset now)
     {
@@ -425,8 +416,7 @@ public sealed class Game
     }
 
     /// <summary>
-    /// The regular (penalty-agnostic) reporting interval, in seconds, at <paramref name="now"/>:
-    /// the final-stage interval during the final stage, otherwise the default interval.
+    /// The regular (penalty-agnostic) reporting interval, in seconds, at <paramref name="now"/>.
     /// </summary>
     public int RegularReportingIntervalAt(DateTimeOffset now) =>
         IsInFinalStage(now)
@@ -434,8 +424,7 @@ public sealed class Game
             : Configuration.DefaultLocationInterval;
 
     /// <summary>
-    /// The moment the given participant's active penalty expires, or null when no penalty is active
-    /// at <paramref name="now"/>. When multiple penalties overlap, the latest expiry wins.
+    /// The moment the given participant's active penalty expires, or null when no penalty is active.
     /// </summary>
     public DateTimeOffset? ActivePenaltyEndsAtFor(Guid userId, DateTimeOffset now)
     {
@@ -445,12 +434,12 @@ public sealed class Game
         return participant.ActivePenaltyEndsAt(now);
     }
 
-    /// <summary>True when the given user is the hunter or one of the preys.</summary>
+    /// <summary>True when the given user is a participant of the game.</summary>
     public bool IsParticipant(Guid userId) => _participants.Any(p => p.UserId == userId);
 
-    /// <summary>True when the given user owns the game or has joined its lobby.</summary>
+    /// <summary>True when the given user owns the game or is a participant.</summary>
     public bool IsVisibleTo(Guid userId) =>
-        OwnerUserId == userId || _lobby.Any(p => p.UserId == userId);
+        OwnerUserId == userId || IsParticipant(userId);
 
     private GameParticipant? FindParticipant(Guid userId) =>
         _participants.FirstOrDefault(p => p.UserId == userId);

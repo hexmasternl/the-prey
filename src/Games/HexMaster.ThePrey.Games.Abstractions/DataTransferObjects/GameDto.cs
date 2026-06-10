@@ -1,9 +1,10 @@
 namespace HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 
 /// <summary>
-/// The full state of a game, including its lobby and — once started — its hunter and preys.
-/// <see cref="IsOwnerPlayer"/> and <see cref="IsReadyToStart"/> are computed from the requesting
-/// caller's perspective so the client never has to re-derive ownership or start-eligibility locally.
+/// The full state of a game, with a single unified participants list.
+/// <see cref="HunterUserId"/> identifies the hunter within that list.
+/// <see cref="Preys"/> is a derived list of every participant's UserId except the hunter.
+/// <see cref="IsOwnerPlayer"/> and <see cref="IsReadyToStart"/> are caller-perspective flags.
 /// </summary>
 public sealed record GameDto(
     Guid Id,
@@ -12,11 +13,10 @@ public sealed record GameDto(
     Guid OwnerUserId,
     string Status,
     GameConfigurationDto Configuration,
-    IReadOnlyList<LobbyPlayerDto> Lobby,
-    ParticipantDto? Hunter,
-    IReadOnlyList<ParticipantDto> Preys,
+    IReadOnlyList<ParticipantDto> Participants,
+    Guid? HunterUserId,
+    IReadOnlyList<Guid> Preys,
     DateTimeOffset? StartedAt,
-    Guid? DesignatedHunterUserId,
     DateTimeOffset CreatedAt,
     DateTimeOffset? EndsAt,
     DateTimeOffset CleanUpAfter,
@@ -45,4 +45,3 @@ public sealed record RecordLocationResponse(
     int NextLocationIntervalSeconds,
     int? PenaltyIntervalSeconds = null,
     DateTimeOffset? PenaltyEndsAt = null);
-
