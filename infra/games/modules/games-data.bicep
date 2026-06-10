@@ -106,8 +106,11 @@ resource gamesDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024
   }
 }
 
-// Container Apps Job — reuses the Games API image with a configurable command
-resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
+// Container Apps Job — reuses the Games API image with a configurable command.
+// NOTE: API version must be 2024-10-02-preview or later (GA in 2025-01-01) for the
+// scale rule `identity` property below to be honored. Older versions (e.g. 2024-03-01)
+// silently strip it, leaving the KEDA queue scaler unauthenticated so the job never triggers.
+resource gamesJob 'Microsoft.App/jobs@2025-01-01' = {
   name: 'theprey-games-job-${environmentName}'
   location: location
   identity: {
@@ -133,9 +136,8 @@ resource gamesJob 'Microsoft.App/jobs@2024-03-01' = {
             {
               name: 'gamestart-queue'
               type: 'azure-queue'
-              // Job scale rules support managed-identity auth at the API level (2024-03-01);
-              // the Bicep type for JobScaleRule is stale and omits the `identity` property.
-              #disable-next-line BCP037
+              // Managed-identity auth for the KEDA queue scaler. Requires jobs API
+              // 2024-10-02-preview+ (GA 2025-01-01) — see the resource declaration note.
               identity: queueIdentityResourceId
               metadata: {
                 accountName: storageAccountName
