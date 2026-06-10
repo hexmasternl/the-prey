@@ -78,7 +78,7 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
         }
         else
         {
-            if (!game.Lobby.Any(p => p.UserId == userId))
+            if (!game.IsParticipant(userId))
                 throw new ArgumentException("This user is not in the lobby.", nameof(userId));
 
             game.RemoveLobbyPlayer(userId);
@@ -92,7 +92,7 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
         if (!game.IsParticipant(userId))
             throw new UnauthorizedAccessException("This user is not a participant of the game.");
 
-        if (game.Hunter?.UserId == userId)
+        if (game.HunterUserId == userId)
         {
             // Hunter leaving an in-progress game ends it.
             game.EndByOwner(_timeProvider.GetUtcNow());
