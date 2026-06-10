@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+using CommunityToolkit.Aspire.Hosting.Dapr;
 using ThePrey.Aspire.ServiceDefaults;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -9,26 +9,31 @@ var stateStore = builder
     .AddDaprStateStore(AspireConstants.Resources.DaprStateStore)
     .WithMetadata("keyPrefix", "none");
 
+// RabbitMQ backs the Dapr pub/sub component for local development (Azure Service Bus is used in the
+// cloud via a Bicep-provisioned Dapr component). Fixed credentials + host port keep the static
+// component YAML (components/pubsub.yaml) connection string valid.
+var rabbitUser = builder.AddParameter("rabbitmq-username", "guest");
+var rabbitPassword = builder.AddParameter("rabbitmq-password", "guest", secret: true);
+var rabbitmq = builder
+    .AddRabbitMQ(AspireConstants.Resources.RabbitMq, rabbitUser, rabbitPassword, port: 5672)
+    .WithLifetime(ContainerLifetime.Persistent);
+
+var pubSub = builder.AddDaprPubSub(
+    AspireConstants.Resources.DaprPubSub,
+    new DaprComponentOptions { LocalPath = "components/pubsub.yaml" });
+
+// Azure Web PubSub fans real-time game events out to clients (one group per game). There is no local
+// emulator, so for local development supply a connection string via user secrets / configuration under
+// the "webpubsub" connection name; in the cloud it is provisioned.
+var webPubSub = builder.AddAzureWebPubSub(AspireConstants.Resources.WebPubSub);
+
 var storage = builder.AddAzureStorage(AspireConstants.Resources.Storage)
     .RunAsEmulator(azurite =>        azurite.WithLifetime(ContainerLifetime.Persistent));
 var usersTables = storage.AddTables(AspireConstants.Resources.UsersTables);
 var playFieldsTables = storage.AddTables(AspireConstants.Resources.PlayFieldsTables);
-var gameEngineQueue = storage.AddQueues(AspireConstants.Resources.GameEngineQueue);
 
 var postgres = builder.AddPostgres(AspireConstants.Resources.Postgres);
 var gamesDatabase = postgres.AddDatabase(AspireConstants.Resources.GamesDatabase);
-
-// Shared secret used by GameEngine (signer) and Games API (verifier) to HMAC-sign the
-// internal location-update calls. For local dev we seed an ephemeral value so Aspire resolves
-// the parameter without prompting and without a secret living in source. In CI/prod, supply it
-// explicitly via the `Parameters__engine_key` environment variable (or user secrets), which
-// takes precedence over this generated default.
-if (string.IsNullOrEmpty(builder.Configuration["Parameters:engine-key"]))
-{
-    builder.Configuration["Parameters:engine-key"] =
-        Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-}
-var engineKey = builder.AddParameter("engine-key", secret: true);
 
 var usersApi = builder.AddProject<Projects.HexMaster_ThePrey_Users_Api>(AspireConstants.Resources.UsersApi)
     .WaitFor(usersTables)
@@ -48,21 +53,24 @@ var playFieldsApi = builder.AddProject<Projects.HexMaster_ThePrey_PlayFields_Api
 
 var gamesApi = builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireConstants.Resources.GamesApi)
     .WithReference(gamesDatabase)
-    .WithEnvironment("GameEngine__EngineKey", engineKey)
+    .WithReference(rabbitmq)
     .WithDaprSidecar(opts =>
     {
         opts.WithReference(stateStore);
+        opts.WithReference(pubSub);
     })
-    .WaitFor(gamesDatabase);
-
-var gameEngine = builder.AddProject<Projects.HexMaster_ThePrey_GameEngine>(AspireConstants.Resources.GameEngine)
-    .WithReference(gameEngineQueue)
-    .WithReference(gamesDatabase)
-    .WithReference(gamesApi)
-    .WithEnvironment("GameEngine__EngineKey", engineKey)
     .WaitFor(gamesDatabase)
-    .WaitFor(gameEngineQueue)
-    .WaitFor(gamesApi);
+    .WaitFor(rabbitmq);
+
+var notificationsApi = builder.AddProject<Projects.HexMaster_ThePrey_Notifications_Api>(AspireConstants.Resources.NotificationsApi)
+    .WithReference(webPubSub)
+    .WithReference(rabbitmq)
+    .WithReference(gamesApi)
+    .WithDaprSidecar(opts =>
+    {
+        opts.WithReference(pubSub);
+    })
+    .WaitFor(rabbitmq);
 
 var gateway = builder.AddYarp(AspireConstants.Resources.Gateway)
     .WithHttpEndpoint(port: 5000)
@@ -71,7 +79,7 @@ var gateway = builder.AddYarp(AspireConstants.Resources.Gateway)
         yarp.AddRoute("/users/{**catch-all}", usersApi);
         yarp.AddRoute("/playfields/{**catch-all}", playFieldsApi);
         yarp.AddRoute("/games/{**catch-all}", gamesApi);
-        yarp.AddRoute("/game-engine/{**catch-all}", gamesApi);
+        yarp.AddRoute("/notifications/{**catch-all}", notificationsApi);
     });
 
 

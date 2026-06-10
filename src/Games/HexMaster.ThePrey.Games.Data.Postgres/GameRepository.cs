@@ -72,6 +72,12 @@ public sealed class GameRepository : IGameRepository
     public async Task<IReadOnlyList<Game>> GetAllInProgressAsync(CancellationToken ct)
         => await _db.Games.Where(g => g.Status == GameStatus.InProgress).ToListAsync(ct);
 
+    public async Task<IReadOnlyList<Guid>> GetInProgressGameIdsAsync(CancellationToken ct)
+        => await _db.Games
+            .Where(g => g.Status == GameStatus.InProgress)
+            .Select(g => g.Id)
+            .ToListAsync(ct);
+
     public async Task<int> DeleteExpiredGamesAsync(DateTimeOffset cutoff, CancellationToken ct)
         => await _db.Games.Where(g => g.CleanUpAfter <= cutoff).ExecuteDeleteAsync(ct);
 }

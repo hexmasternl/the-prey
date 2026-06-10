@@ -22,18 +22,25 @@ namespace ThePrey.Aspire.ServiceDefaults
             public const string UsersTables = "users-tables";
             public const string DaprStateStore = "statestore";
             public const string Redis = "redis";
-            public const string GameEngineQueue = "game-engine-queue";
-            public const string GameEngine = "hexmaster-theprey-game-engine";
-        }
 
-        public static class Queues
-        {
             /// <summary>
-            /// Name of the storage queue the Games API writes to when a game starts and the
-            /// game engine job reads from / is KEDA-triggered by. Must match the queue provisioned
-            /// in the landing zone and the job's azure-queue scale rule.
+            /// The Dapr pub/sub component name. MUST match
+            /// <c>DaprIntegrationEventPublisher.PubSubName</c> and the cloud Dapr component.
+            /// Backed by RabbitMQ locally and Azure Service Bus in the cloud.
             /// </summary>
-            public const string GameStart = "gamestart";
+            public const string DaprPubSub = "pubsub";
+
+            /// <summary>The RabbitMQ broker that backs the Dapr pub/sub component for local development.</summary>
+            public const string RabbitMq = "rabbitmq";
+
+            /// <summary>The Notifications API — bridges integration events to Azure Web PubSub.</summary>
+            public const string NotificationsApi = "hexmaster-theprey-notifications-api";
+
+            /// <summary>The Azure Web PubSub resource used to fan out real-time events to clients.</summary>
+            public const string WebPubSub = "webpubsub";
+
+            /// <summary>The Web PubSub hub name clients connect to.</summary>
+            public const string WebPubSubHub = "games";
         }
 
     }

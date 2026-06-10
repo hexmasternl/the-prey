@@ -1,6 +1,8 @@
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.BackgroundServices;
+using HexMaster.ThePrey.Games.GameEngine;
+using HexMaster.ThePrey.IntegrationEvents;
 using HexMaster.ThePrey.Games.Features.TagPlayer;
 using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.EndGame;
@@ -16,9 +18,7 @@ using HexMaster.ThePrey.Games.Features.RemoveLobbyPlayer;
 using HexMaster.ThePrey.Games.Features.SetHunter;
 using HexMaster.ThePrey.Games.Features.SetReady;
 using HexMaster.ThePrey.Games.Features.StartGame;
-using HexMaster.ThePrey.Games.Features.CompleteGame;
 using HexMaster.ThePrey.Games.Features.UpdateGameSettings;
-using HexMaster.ThePrey.Games.Features.UpdateLocationBroadcast;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,18 +44,24 @@ public static class GamesModuleRegistration
         services.AddScoped<IQueryHandler<GetGameStatusQuery, GameStatusDto?>, GetGameStatusQueryHandler>();
 
         services.AddScoped<ICommandHandler<TagPlayerCommand, TagPlayerResult?>, TagPlayerCommandHandler>();
-        services.AddScoped<ICommandHandler<UpdateLocationBroadcastCommand, UpdateLocationBroadcastResult>, UpdateLocationBroadcastCommandHandler>();
         services.AddScoped<ICommandHandler<EndGameCommand, EndGameResult?>, EndGameCommandHandler>();
         services.AddScoped<ICommandHandler<LeaveGameCommand, LeaveGameResult?>, LeaveGameCommandHandler>();
-        services.AddScoped<ICommandHandler<CompleteGameCommand, CompleteGameResult>, CompleteGameCommandHandler>();
 
         services.AddSingleton<IGameMetrics, GameMetrics>();
         services.AddSingleton<ILobbyEventBus, InProcessLobbyEventBus>();
         services.AddSingleton<IGameEventBus, InProcessGameEventBus>();
-        services.AddSingleton<IGameEngineEventBus, InProcessGameEngineEventBus>();
+
+        // Shared game sweep (replaces the per-game GameEngine job and the PlayerStateMonitor).
+        services.AddMemoryCache();
+        services.AddSingleton(TimeProvider.System);
+        services.AddIntegrationEvents();
+        services.AddSingleton<IBoundaryChecker, RayCastingBoundaryChecker>();
+        services.AddSingleton<IPlayfieldBoundaryProvider, CachingPlayfieldBoundaryProvider>();
+        services.AddSingleton<IGameTickRunner, GameTickRunner>();
+        services.AddScoped<IGameSweepProcessor, GameSweepProcessor>();
 
         services.AddHostedService<GameCleanupService>();
-        services.AddHostedService<PlayerStateMonitor>();
+        services.AddHostedService<GameTickService>();
 
         return services;
     }

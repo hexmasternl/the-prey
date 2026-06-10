@@ -123,21 +123,6 @@ resource gateway 'Microsoft.App/managedEnvironments/httpRouteConfigs@2026-01-01'
           }
         ]
       }
-      {
-        description: 'Game Engine (routed to the Games API)'
-        routes: [
-          {
-            match: {
-              prefix: '/game-engine'
-            }
-          }
-        ]
-        targets: [
-          {
-            containerApp: gamesApp
-          }
-        ]
-      }
     ]
   }
 }

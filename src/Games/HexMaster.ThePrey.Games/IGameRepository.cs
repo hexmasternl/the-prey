@@ -16,8 +16,14 @@ public interface IGameRepository
     /// <summary>Returns the first InProgress game where the user is the owner, a lobby member, or a participant.</summary>
     Task<Game?> GetActiveGameForUserAsync(Guid userId, CancellationToken ct);
 
-    /// <summary>Returns all games currently in the InProgress state (used by the PlayerStateMonitor).</summary>
+    /// <summary>Returns all games currently in the InProgress state.</summary>
     Task<IReadOnlyList<Game>> GetAllInProgressAsync(CancellationToken ct);
+
+    /// <summary>
+    /// Returns the ids of all games currently in the InProgress state. Used by the sweep so each game
+    /// can be loaded on its own DbContext for safe parallel processing.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> GetInProgressGameIdsAsync(CancellationToken ct);
 
     /// <summary>Hard-deletes all games whose CleanUpAfter is at or before <paramref name="cutoff"/>. Returns the number of deleted rows.</summary>
     Task<int> DeleteExpiredGamesAsync(DateTimeOffset cutoff, CancellationToken ct);

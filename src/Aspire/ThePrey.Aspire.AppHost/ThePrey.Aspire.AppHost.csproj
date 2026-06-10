@@ -14,7 +14,9 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.4.2" />
+    <PackageReference Include="Aspire.Hosting.Azure.WebPubSub" Version="13.4.2" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.4.2" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.4.2" />
     <PackageReference Include="Aspire.Hosting.Yarp" Version="13.4.2" />
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.Dapr" Version="13.0.0" />
   </ItemGroup>
@@ -23,7 +25,7 @@
     <ProjectReference Include="..\..\Playfields\HexMaster.ThePrey.PlayFields.Api\HexMaster.ThePrey.PlayFields.Api.csproj" />
     <ProjectReference Include="..\..\Users\HexMaster.ThePrey.Users.Api\HexMaster.ThePrey.Users.Api.csproj" />
     <ProjectReference Include="..\..\Games\HexMaster.ThePrey.Games.Api\HexMaster.ThePrey.Games.Api.csproj" />
-    <ProjectReference Include="..\..\GameEngine\HexMaster.ThePrey.GameEngine\HexMaster.ThePrey.GameEngine.csproj" />
+    <ProjectReference Include="..\..\Notifications\HexMaster.ThePrey.Notifications.Api\HexMaster.ThePrey.Notifications.Api.csproj" />
   </ItemGroup>
 
 </Project>

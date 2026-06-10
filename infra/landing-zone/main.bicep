@@ -97,9 +97,9 @@ module storageQueues 'modules/storage-queues.bicep' = {
   params: {
     name: 'thepreylz${uniqueSuffix}sq'
     location: location
-    queueNames: [
-      'gamestart'
-    ]
+    // The game-start queue was retired when the per-game engine job was replaced by the in-API
+    // sweep; no queues are currently provisioned.
+    queueNames: []
   }
 }
 

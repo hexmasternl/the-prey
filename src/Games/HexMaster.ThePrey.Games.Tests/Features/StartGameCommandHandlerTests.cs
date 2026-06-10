@@ -16,7 +16,6 @@ public sealed class StartGameCommandHandlerTests
     private readonly Mock<IGameMetrics> _metrics = new();
     private readonly Mock<IGameEventBus> _eventBus = new();
     private readonly Mock<ILobbyEventBus> _lobbyEventBus = new();
-    private readonly Mock<IGameEngineTrigger> _engineTrigger = new();
     private readonly StartGameCommandHandler _handler;
 
     public StartGameCommandHandlerTests()
@@ -25,14 +24,11 @@ public sealed class StartGameCommandHandlerTests
             .Returns(ValueTask.CompletedTask);
         _lobbyEventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()))
             .Returns(ValueTask.CompletedTask);
-        _engineTrigger.Setup(t => t.TriggerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
         _handler = new StartGameCommandHandler(
             _repository.Object,
             _metrics.Object,
             _eventBus.Object,
             _lobbyEventBus.Object,
-            _engineTrigger.Object,
             new FixedTimeProvider(Now),
             Mock.Of<ILogger<StartGameCommandHandler>>());
     }
@@ -65,7 +61,7 @@ public sealed class StartGameCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldThrowAndNotTriggerEngine_WhenAPlayerIsNotReady()
+    public async Task Handle_ShouldThrowAndNotStart_WhenAPlayerIsNotReady()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids, markReady: false);
         game.SetReady(ids[0]);
@@ -77,7 +73,6 @@ public sealed class StartGameCommandHandlerTests
 
         Assert.Equal(GameStatus.Lobby, game.Status);
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
-        _engineTrigger.Verify(t => t.TriggerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
         _metrics.Verify(m => m.RecordGameStarted(), Times.Never);
     }
 
@@ -92,34 +87,20 @@ public sealed class StartGameCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldCallEngineTrigger_AfterGameIsPersisted()
+    public async Task Handle_ShouldRecordStarted_AfterGameIsPersisted()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
-        var persistCallOrder = new List<string>();
+        var callOrder = new List<string>();
         _repository.Setup(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()))
-            .Callback(() => persistCallOrder.Add("persist"))
+            .Callback(() => callOrder.Add("persist"))
             .Returns(Task.CompletedTask);
-        _engineTrigger.Setup(t => t.TriggerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .Callback(() => persistCallOrder.Add("trigger"))
-            .Returns(Task.CompletedTask);
+        _metrics.Setup(m => m.RecordGameStarted())
+            .Callback(() => callOrder.Add("metric"));
 
         await _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None);
 
-        _engineTrigger.Verify(t => t.TriggerAsync(game.Id, It.IsAny<CancellationToken>()), Times.Once);
-        Assert.Equal(["persist", "trigger"], persistCallOrder);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldPropagateException_WhenEngineTriggerFails()
-    {
-        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
-        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
-        _engineTrigger.Setup(t => t.TriggerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Queue unavailable"));
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None));
+        Assert.Equal(["persist", "metric"], callOrder);
     }
 }

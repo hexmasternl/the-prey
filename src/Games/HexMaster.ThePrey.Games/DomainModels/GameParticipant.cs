@@ -138,6 +138,27 @@ public sealed class GameParticipant
     }
 
     /// <summary>
+    /// Consumes the readings the sweep has not processed yet: marks every unchecked reading as
+    /// checked and returns the most recent one (or null when there is nothing new to process).
+    /// </summary>
+    internal LocationReading? TakeNewestUncheckedLocation()
+    {
+        LocationReading? newest = null;
+        for (var i = 0; i < _locations.Count; i++)
+        {
+            var reading = _locations[i];
+            if (reading.Checked) continue;
+
+            if (newest is null || reading.RecordedAt > newest.RecordedAt)
+                newest = reading;
+
+            _locations[i] = reading.MarkChecked();
+        }
+
+        return newest;
+    }
+
+    /// <summary>
     /// Updates the broadcasted location. Called exclusively by the game engine broadcast cycle
     /// after selecting the participant's most recent location from history.
     /// </summary>

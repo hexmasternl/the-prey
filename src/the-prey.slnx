@@ -20,13 +20,17 @@
     <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Data.TableStorage/HexMaster.ThePrey.PlayFields.Data.TableStorage.csproj" />
     <Project Path="Playfields/HexMaster.ThePrey.PlayFields.Tests/HexMaster.ThePrey.PlayFields.Tests.csproj" />
   </Folder>
-  <Folder Name="/GameEngine/">
-    <Project Path="GameEngine/HexMaster.ThePrey.GameEngine/HexMaster.ThePrey.GameEngine.csproj" />
-    <Project Path="GameEngine/HexMaster.ThePrey.GameEngine.Tests/HexMaster.ThePrey.GameEngine.Tests.csproj" />
-  </Folder>
   <Folder Name="/Shared/">
+    <Project Path="Shared/HexMaster.ThePrey.IntegrationEvents/HexMaster.ThePrey.IntegrationEvents.csproj" />
+    <Project Path="Shared/HexMaster.ThePrey.IntegrationEvents.Tests/HexMaster.ThePrey.IntegrationEvents.Tests.csproj" />
     <Project Path="Shared/ThePrey.Core.Tests/ThePrey.Core.Tests.csproj" Id="1b7069ce-b7da-4dc0-85f4-5a5591886938" />
     <Project Path="Shared/ThePrey.Core/ThePrey.Core.csproj" Id="e86fd50a-8670-4e66-9fe3-972dcab1dd24" />
+  </Folder>
+  <Folder Name="/Notifications/">
+    <Project Path="Notifications/HexMaster.ThePrey.Notifications/HexMaster.ThePrey.Notifications.csproj" />
+    <Project Path="Notifications/HexMaster.ThePrey.Notifications.Abstractions/HexMaster.ThePrey.Notifications.Abstractions.csproj" />
+    <Project Path="Notifications/HexMaster.ThePrey.Notifications.Api/HexMaster.ThePrey.Notifications.Api.csproj" />
+    <Project Path="Notifications/HexMaster.ThePrey.Notifications.Tests/HexMaster.ThePrey.Notifications.Tests.csproj" />
   </Folder>
   <Folder Name="/Users/">
     <Project Path="Users/HexMaster.ThePrey.Users.Abstractions/HexMaster.ThePrey.Users.Abstractions.csproj" />

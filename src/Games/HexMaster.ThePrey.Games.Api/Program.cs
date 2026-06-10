@@ -1,6 +1,5 @@
 using HexMaster.ThePrey.Games;
 using HexMaster.ThePrey.Games.Api.Endpoints;
-using HexMaster.ThePrey.Games.Api.Infrastructure;
 using HexMaster.ThePrey.Games.Api.Integration;
 using HexMaster.ThePrey.Games.Data.Postgres;
 using HexMaster.ThePrey.Games.Observability;
@@ -40,10 +39,8 @@ builder.Services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.Authenticatio
 
 builder.Services.AddGamesModule();
 builder.AddGamesPostgres();
-builder.AddAzureQueueServiceClient("game-engine-queue");
 builder.Services.AddUserResolver();
 builder.Services.AddScoped<IPlayfieldInfoProvider, PlayfieldInfoProvider>();
-builder.Services.AddScoped<IGameEngineTrigger, AzureQueueGameEngineTrigger>();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
@@ -75,6 +72,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGameEndpoints();
-app.MapGameEngineEndpoints();
+app.MapInternalGameEndpoints();
 
 app.Run();

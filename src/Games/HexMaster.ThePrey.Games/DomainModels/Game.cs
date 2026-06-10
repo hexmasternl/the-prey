@@ -318,6 +318,54 @@ public sealed class Game
         participant.ApplyPenalty(Penalty.Create(endsAt));
     }
 
+    /// <summary>
+    /// Applies a boundary-violation penalty to a participant, unless one is already active. This keeps
+    /// the "do not stack penalties while the player remains outside" rule inside the aggregate.
+    /// Returns true when a new penalty was applied. No-op (returns false) when the game is not in
+    /// progress or the participant already has an active penalty.
+    /// </summary>
+    public bool TryApplyBoundaryPenalty(Guid userId, DateTimeOffset endsAt, DateTimeOffset now)
+    {
+        if (Status != GameStatus.InProgress)
+            return false;
+
+        var participant = FindParticipant(userId);
+        if (participant is null || participant.HasActivePenalty(now))
+            return false;
+
+        participant.ApplyPenalty(Penalty.Create(endsAt));
+        return true;
+    }
+
+    /// <summary>
+    /// Refreshes each participant's broadcast ("last known") position from the most recent GPS reading
+    /// the sweep has not yet processed, marking those readings as checked. Returns the participants
+    /// whose position was refreshed so the caller can notify clients. Participants with no new readings
+    /// are left untouched.
+    /// </summary>
+    public IReadOnlyList<BroadcastUpdate> RefreshBroadcastLocations()
+    {
+        var updates = new List<BroadcastUpdate>();
+        foreach (var participant in _participants)
+        {
+            var newest = participant.TakeNewestUncheckedLocation();
+            if (newest is null) continue;
+
+            participant.UpdateBroadcastLocation(newest.Coordinate);
+            updates.Add(new BroadcastUpdate(
+                participant.UserId,
+                newest.Coordinate.Latitude,
+                newest.Coordinate.Longitude,
+                participant.State.ToString()));
+        }
+
+        return updates;
+    }
+
+    /// <summary>The number of prey who are still in play (neither Tagged nor Out) — the survivor count.</summary>
+    public int SurvivingPreyCount =>
+        _participants.Count(p => p.UserId != HunterUserId && p.State is not (PlayerState.Tagged or PlayerState.Out));
+
     /// <summary>Transitions an in-progress game to Completed and records the outcome.</summary>
     public void Complete(DateTimeOffset at)
     {
