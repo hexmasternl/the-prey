@@ -7,21 +7,27 @@ public sealed class LocationBroadcastTests
 {
     private static readonly DateTimeOffset StartedAt = new(2026, 6, 5, 10, 0, 0, TimeSpan.Zero);
 
+    private static (Game game, Guid hunterId, Guid preyId) CreateTwoPlayerGame()
+    {
+        var config = GameConfiguration.Create(60, 5, 10, 30, 10);
+        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
+        var hunterId = Guid.NewGuid();
+        var preyId = Guid.NewGuid();
+        game.JoinLobby(GameParticipant.Create(hunterId, "Hunter", null));
+        game.JoinLobby(GameParticipant.Create(preyId, "Prey", null));
+        game.SetReady(hunterId);
+        game.SetReady(preyId);
+        game.Start(hunterId, StartedAt);
+        return (game, hunterId, preyId);
+    }
+
     [Fact]
     public void Participant_WithNoLocationHistory_ShouldNotBeIncludedInUpdates()
     {
-        // A participant with an empty Locations list has nothing to broadcast
-        var config = GameConfiguration.Create(60, 5, 10, 30, 10);
-        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
-
-        var playerId = Guid.NewGuid();
-        var secondId = Guid.NewGuid();
-        game.JoinLobby(GameParticipant.Create(playerId, "Hunter", null));
-        game.JoinLobby(GameParticipant.Create(secondId, "Prey", null));
-        game.Start(playerId, StartedAt);
+        var (game, hunterId, _) = CreateTwoPlayerGame();
 
         // Hunter has no location history — simulate what engine would do
-        var hunter = game.Participants.Single(p => p.UserId == playerId);
+        var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.Empty(hunter.Locations);
 
         var mostRecent = hunter.Locations
@@ -34,14 +40,7 @@ public sealed class LocationBroadcastTests
     [Fact]
     public void Participant_WithLocationHistory_ShouldHaveMostRecentSelected()
     {
-        var config = GameConfiguration.Create(60, 5, 10, 30, 10);
-        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
-
-        var hunterId = Guid.NewGuid();
-        var preyId = Guid.NewGuid();
-        game.JoinLobby(GameParticipant.Create(hunterId, "Hunter", null));
-        game.JoinLobby(GameParticipant.Create(preyId, "Prey", null));
-        game.Start(hunterId, StartedAt);
+        var (game, hunterId, _) = CreateTwoPlayerGame();
 
         var earlier = StartedAt.AddSeconds(20);
         var later = StartedAt.AddSeconds(40);
@@ -62,14 +61,7 @@ public sealed class LocationBroadcastTests
     [Fact]
     public void UpdateBroadcastLocation_ShouldSetLocationProperty()
     {
-        var config = GameConfiguration.Create(60, 5, 10, 30, 10);
-        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
-
-        var hunterId = Guid.NewGuid();
-        var preyId = Guid.NewGuid();
-        game.JoinLobby(GameParticipant.Create(hunterId, "Hunter", null));
-        game.JoinLobby(GameParticipant.Create(preyId, "Prey", null));
-        game.Start(hunterId, StartedAt);
+        var (game, hunterId, _) = CreateTwoPlayerGame();
 
         var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.Null(hunter.Location);
@@ -86,14 +78,7 @@ public sealed class LocationBroadcastTests
     public void RecordLocation_ShouldNotUpdateLocation_AfterTask92Fix()
     {
         // Task 9.2: RecordLocation must NOT set Location — that is exclusively engine's job
-        var config = GameConfiguration.Create(60, 5, 10, 30, 10);
-        var game = Game.Create(Guid.NewGuid(), Guid.NewGuid(), "1234", config);
-
-        var hunterId = Guid.NewGuid();
-        var preyId = Guid.NewGuid();
-        game.JoinLobby(GameParticipant.Create(hunterId, "Hunter", null));
-        game.JoinLobby(GameParticipant.Create(preyId, "Prey", null));
-        game.Start(hunterId, StartedAt);
+        var (game, hunterId, _) = CreateTwoPlayerGame();
 
         game.RecordLocation(hunterId, new GpsCoordinate(52.0, 4.0), StartedAt.AddSeconds(30));
 
