@@ -81,7 +81,7 @@ public sealed class GameTimingTests
         var game = StartedGame(out _, out var preyId);
         game.ApplyPenalty(preyId, Start.AddMinutes(10));
 
-        var prey = game.Preys.Single(p => p.UserId == preyId);
+        var prey = game.Participants.Single(p => p.UserId == preyId);
         Assert.False(prey.HasActivePenalty(Start.AddMinutes(20)));
         Assert.True(prey.HasActivePenalty(Start.AddMinutes(5)));
     }
