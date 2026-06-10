@@ -193,6 +193,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     this.map = L.map('map', { zoomControl: false, attributionControl: false });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
     this.map.setView([52.0, 5.0], 15);
+    // ion-content[fullscreen] only sizes the #map container after this runs, so
+    // Leaflet caches a wrong (often zero) viewport. Recompute on the next tick so
+    // tiles and the playfield overlay lay out against the real container size.
+    setTimeout(() => this.map.invalidateSize(), 0);
   }
 
   /**
@@ -222,7 +226,12 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
             weight: 2,
           }).addTo(this.map);
         }
-        this.map.setView(latlng);
+        // Only follow the player until the playfield is framed; once the field is
+        // drawn we fitBounds to it and must not recenter on every GPS tick, or the
+        // overlay scrolls off-screen.
+        if (!this.playfieldPolygon) {
+          this.map.setView(latlng);
+        }
       }
     ).then((watchId) => {
       this.mapWatchId = watchId;
@@ -277,16 +286,21 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private drawPlayfield(coords: { latitude: number; longitude: number }[]): void {
     if (this.playfieldPolygon) return;
-    if (!coords.length) return;
+    if (coords.length < 3) return; // a polygon needs at least three vertices
 
     const latlngs = coords.map(c => [c.latitude, c.longitude] as L.LatLngExpression);
     this.playfieldPolygon = L.polygon(latlngs, {
-      color: '#64ff00',
-      fillColor: 'rgba(100,255,0,0.12)',
-      fillOpacity: 0.12,
-      weight: 2,
+      color: '#64ff00',     // opaque border
+      weight: 3,
+      opacity: 1,
+      fillColor: '#64ff00', // transparent fill: faint tint, map shows through
+      fillOpacity: 0.1,
     }).addTo(this.map);
-    this.map.fitBounds(this.playfieldPolygon.getBounds());
+
+    // Ensure the container size is current before framing the field, then keep
+    // the whole polygon in view (the GPS watch no longer recenters once it exists).
+    this.map.invalidateSize();
+    this.map.fitBounds(this.playfieldPolygon.getBounds(), { padding: [24, 24] });
   }
 
   // -------------------------------------------------------------------------

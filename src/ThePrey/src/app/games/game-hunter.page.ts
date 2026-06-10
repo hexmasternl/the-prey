@@ -16,6 +16,7 @@ import {
 import * as L from 'leaflet';
 import { AuthService } from '@auth0/auth0-angular';
 import { firstValueFrom } from 'rxjs';
+import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
@@ -81,7 +82,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private pingIntervalTimer: ReturnType<typeof setInterval> | null = null;
   private durationTimer: ReturnType<typeof setInterval> | null = null;
-  private watchId: number | null = null;
+  private watchId: string | null = null;
   pollIntervalSeconds = 30;
   private autoFollow = true;
   private selfLatLng: L.LatLng | null = null;
@@ -104,7 +105,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.checkSurroundingsWarning();
 
     this.initMap();
-    this.startGps();
+    void this.startGps();
     await this.pollStatus();
     this.startDurationTimer();
     this.connectStream();
@@ -127,7 +128,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     // NOTE: intentionally do NOT stop location tracking here — the service must keep
     // broadcasting while the game is in progress even if the player leaves this page.
     if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
+      Geolocation.clearWatch({ id: this.watchId });
       this.watchId = null;
     }
     if (this.map) {
@@ -208,45 +209,61 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
     // Disable auto-follow when user pans manually
     this.map.on('dragstart', () => { this.autoFollow = false; });
+
+    // Ionic sizes ion-content after this component initialises; Leaflet starts at
+    // 0×0 and won't load tiles until it is told to re-measure once on screen.
+    setTimeout(() => this.map.invalidateSize(), 150);
   }
 
-  private startGps(): void {
-    if (!navigator.geolocation) {
-      this.gpsAlert.set('Signal lost. Find open sky.');
-      return;
+  /**
+   * Watch position via the Capacitor Geolocation plugin (not navigator.geolocation,
+   * which bypasses the native permission flow and silently fails on device) to keep
+   * the on-screen hunter marker centred and the nearest-prey distance current.
+   */
+  private async startGps(): Promise<void> {
+    try {
+      await Geolocation.requestPermissions();
+    } catch {
+      // Permissions API may be unavailable (e.g. web) — try watching regardless.
     }
-    this.watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        this.gpsAlert.set(null);
-        const { latitude, longitude } = pos.coords;
-        const latlng = L.latLng(latitude, longitude);
-        this.selfLatLng = latlng;
 
-        if (this.selfMarker) {
-          this.selfMarker.setLatLng(latlng);
-        } else {
-          this.selfMarker = L.circleMarker(latlng, {
-            radius: 7,
-            color: '#64ff00',
-            fillColor: '#64ff00',
-            fillOpacity: 1,
-            weight: 2,
-          }).addTo(this.map);
+    try {
+      this.watchId = await Geolocation.watchPosition(
+        { enableHighAccuracy: true, maximumAge: 5000 },
+        (position, err) => {
+          if (err || !position) {
+            this.gpsAlert.set('Signal lost. Find open sky.');
+            if (this.selfMarker) {
+              this.selfMarker.remove();
+              this.selfMarker = null;
+            }
+            return;
+          }
+          this.gpsAlert.set(null);
+          const { latitude, longitude } = position.coords;
+          const latlng = L.latLng(latitude, longitude);
+          this.selfLatLng = latlng;
+
+          if (this.selfMarker) {
+            this.selfMarker.setLatLng(latlng);
+          } else {
+            this.selfMarker = L.circleMarker(latlng, {
+              radius: 7,
+              color: '#64ff00',
+              fillColor: '#64ff00',
+              fillOpacity: 1,
+              weight: 2,
+            }).addTo(this.map);
+          }
+          if (this.autoFollow) {
+            this.map.setView(latlng);
+          }
+          this.updateNearestDistance();
         }
-        if (this.autoFollow) {
-          this.map.setView(latlng);
-        }
-        this.updateNearestDistance();
-      },
-      () => {
-        this.gpsAlert.set('Signal lost. Find open sky.');
-        if (this.selfMarker) {
-          this.selfMarker.remove();
-          this.selfMarker = null;
-        }
-      },
-      { enableHighAccuracy: true, maximumAge: 5000 }
-    );
+      );
+    } catch {
+      this.gpsAlert.set('Signal lost. Find open sky.');
+    }
   }
 
   private async pollStatus(): Promise<void> {
