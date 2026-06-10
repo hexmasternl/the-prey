@@ -21,10 +21,10 @@ public sealed class GetGameStateQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnHunterDistance_WhenPlayerIsPrey()
     {
-        var game = GameFaker.StartedGame(out _, out var preyIds, Start);
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
         // Location is set by the engine broadcast cycle via UpdateBroadcastLocation, not RecordLocation
-        game.Hunter!.UpdateBroadcastLocation(GpsCoordinate.Create(52.0, 5.0));
-        game.Preys.Single(p => p.UserId == preyIds[0]).UpdateBroadcastLocation(GpsCoordinate.Create(52.001, 5.0));
+        game.Participants.Single(p => p.UserId == hunterId).UpdateBroadcastLocation(GpsCoordinate.Create(52.0, 5.0));
+        game.Participants.Single(p => p.UserId == preyIds[0]).UpdateBroadcastLocation(GpsCoordinate.Create(52.001, 5.0));
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         var state = await _handler.Handle(new GetGameStateQuery(game.Id, preyIds[0]), CancellationToken.None);
@@ -39,7 +39,7 @@ public sealed class GetGameStateQueryHandlerTests
     public async Task Handle_ShouldReturnNullDistance_WhenHunterHasNoLocation()
     {
         var game = GameFaker.StartedGame(out _, out var preyIds, Start);
-        game.Preys.Single(p => p.UserId == preyIds[0]).UpdateBroadcastLocation(GpsCoordinate.Create(52.001, 5.0));
+        game.Participants.Single(p => p.UserId == preyIds[0]).UpdateBroadcastLocation(GpsCoordinate.Create(52.001, 5.0));
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         var state = await _handler.Handle(new GetGameStateQuery(game.Id, preyIds[0]), CancellationToken.None);
@@ -53,8 +53,8 @@ public sealed class GetGameStateQueryHandlerTests
     public async Task Handle_ShouldReturnPreyLocations_WhenPlayerIsHunter()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start, playerCount: 4);
-        game.Preys.Single(p => p.UserId == preyIds[0]).UpdateBroadcastLocation(GpsCoordinate.Create(52.1, 5.1));
-        game.Preys.Single(p => p.UserId == preyIds[1]).UpdateBroadcastLocation(GpsCoordinate.Create(52.2, 5.2));
+        game.Participants.Single(p => p.UserId == preyIds[0]).UpdateBroadcastLocation(GpsCoordinate.Create(52.1, 5.1));
+        game.Participants.Single(p => p.UserId == preyIds[1]).UpdateBroadcastLocation(GpsCoordinate.Create(52.2, 5.2));
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         var state = await _handler.Handle(new GetGameStateQuery(game.Id, hunterId), CancellationToken.None);
