@@ -189,6 +189,17 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
         this.streamError(`event 'game-started' had no 'payload' field — keys=[${Object.keys(data ?? {}).join(', ')}]`);
         return;
       }
+
+      // Reflect the new state locally and confirm the game actually left the lobby before
+      // navigating away. The event name says "started", but we verify the payload agrees
+      // (status === 'InProgress') so a stale or mis-routed event can't pull players into an
+      // in-game view prematurely. Keep the stream open if the state hasn't changed yet.
+      this.game.set(game);
+      if (game.status !== 'InProgress') {
+        this.streamError(`event 'game-started' carried unexpected status '${game.status}' (expected 'InProgress') — not navigating`);
+        return;
+      }
+
       const uid = this.currentUserId();
       this.closeStream();
 
