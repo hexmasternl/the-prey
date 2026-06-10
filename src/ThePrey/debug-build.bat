@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-npx ionic build --prod
+call npx ionic build --prod
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 call npx cap sync android
