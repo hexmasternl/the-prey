@@ -79,33 +79,19 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   readonly gameId = computed(() => this.route.snapshot.paramMap.get('id') ?? '');
 
-  readonly isOwner = computed(() => {
-    const g = this.game();
-    const profile = this.userState.profile();
-    return g != null && profile != null ? g.ownerUserId === profile.userId : false;
-  });
+  /** Ownership is decided server-side (per caller) and surfaced on the DTO — no local derivation. */
+  readonly isOwner = computed(() => this.game()?.isOwnerPlayer ?? false);
 
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
-
-  /** Lobby members other than the host — the players whose ready state gates the start. */
-  private readonly otherPlayers = computed(() => {
-    const g = this.game();
-    return g ? g.lobby.filter(p => p.userId !== g.ownerUserId) : [];
-  });
 
   /** The host sees a Start button once at least one other operative has joined (2+ total). */
   readonly canShowStart = computed(() => this.isOwner() && (this.game()?.lobby.length ?? 0) >= 2);
 
   /**
-   * Start is enabled only when a hunter has been designated and every non-host operative has
-   * marked themselves ready. The backend enforces the same rules; this just mirrors them in the UI.
+   * Whether the game may be started. The server computes this (enough players, a designated hunter,
+   * and every non-host operative readied up) and exposes it on the DTO, so the client just reflects it.
    */
-  readonly canStart = computed(() => {
-    const g = this.game();
-    if (!g || !g.designatedHunterUserId) return false;
-    const others = this.otherPlayers();
-    return others.length > 0 && others.every(p => p.isReady);
-  });
+  readonly canStart = computed(() => this.game()?.isReadyToStart ?? false);
 
   readonly canShare = computed(
     () =>

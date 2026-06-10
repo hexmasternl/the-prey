@@ -39,6 +39,10 @@ export interface GameDto {
   preys: ParticipantDto[];
   startedAt: string | null;
   designatedHunterUserId: string | null;
+  /** True when the requesting user owns this game. Computed server-side per caller. */
+  isOwnerPlayer: boolean;
+  /** True when every precondition to start the game is met (enough players, hunter set, all ready). */
+  isReadyToStart: boolean;
 }
 
 export interface LobbyPlayerDto {
