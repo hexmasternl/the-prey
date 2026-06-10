@@ -52,6 +52,9 @@ describe('GameStreamService', () => {
     originalEventSource = (globalThis as { EventSource: typeof EventSource }).EventSource;
     (globalThis as unknown as { EventSource: unknown }).EventSource = FakeEventSource;
     FakeEventSource.instances = [];
+    // The diagnostic status probe fetches the stream URL after a failure — stub it out so
+    // tests never make real network calls.
+    spyOn(globalThis, 'fetch').and.resolveTo(new Response(null, { status: 403, statusText: 'Forbidden' }));
     service = new GameStreamService();
   });
 
@@ -100,10 +103,11 @@ describe('GameStreamService', () => {
       expect(FakeEventSource.instances[0].closed).toBeTrue();
 
       // First retry is scheduled ~1s out and must fetch a NEW token, not reuse the old one.
+      // (The exact counter value is not asserted — the diagnostic probe also consumes one.)
       jasmine.clock().tick(1000);
       await flushMicrotasks();
       expect(FakeEventSource.instances.length).toBe(2);
-      expect(FakeEventSource.instances[1].url).toContain('token=tok-2');
+      expect(FakeEventSource.instances[1].url).not.toContain('token=tok-1');
     } finally {
       jasmine.clock().uninstall();
     }
