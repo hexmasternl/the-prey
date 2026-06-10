@@ -80,10 +80,6 @@ module gamesApi '../modules/container-app.bicep' = {
         name: 'ConnectionStrings__Games'
         secretRef: 'pg-connection-string'
       }
-      {
-        name: 'AZURE_CLIENT_ID'
-        value: acrPullIdentity.properties.clientId
-      }
     ]
   }
 }
