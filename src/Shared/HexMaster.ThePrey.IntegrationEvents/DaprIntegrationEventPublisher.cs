@@ -12,7 +12,7 @@ public sealed class DaprIntegrationEventPublisher : IIntegrationEventPublisher
 {
     /// <summary>
     /// The Dapr pub/sub component name. MUST match the component registered in the Aspire AppHost
-    /// (<c>AspireConstants.Resources.DaprPubSub</c>) and the cloud Dapr component.
+    /// (<c>AspireConstants.DaprComponents.PubSub</c>) and the cloud Dapr component.
     /// </summary>
     public const string PubSubName = "pubsub";
 

@@ -23,13 +23,6 @@ namespace ThePrey.Aspire.ServiceDefaults
             public const string DaprStateStore = "statestore";
             public const string Redis = "redis";
 
-            /// <summary>
-            /// The Dapr pub/sub component name. MUST match
-            /// <c>DaprIntegrationEventPublisher.PubSubName</c> and the cloud Dapr component.
-            /// Backed by RabbitMQ locally and Azure Service Bus in the cloud.
-            /// </summary>
-            public const string DaprPubSub = "pubsub";
-
             /// <summary>The RabbitMQ broker that backs the Dapr pub/sub component for local development.</summary>
             public const string RabbitMq = "rabbitmq";
 
@@ -41,6 +34,15 @@ namespace ThePrey.Aspire.ServiceDefaults
 
             /// <summary>The Web PubSub hub name clients connect to.</summary>
             public const string WebPubSubHub = "games";
+        }
+
+        public static class DaprComponents
+        {
+            /// <summary>
+            /// The Dapr pub/sub component name. MUST match <c>DaprIntegrationEventPublisher.PubSubName</c>
+            /// and the cloud Dapr component. Backed by RabbitMQ locally and Azure Service Bus in the cloud.
+            /// </summary>
+            public const string PubSub = "pubsub";
         }
 
     }
