@@ -14,12 +14,8 @@ internal static class EligibilityEvaluator
         DateTimeOffset now,
         IReadOnlyDictionary<Guid, DateTimeOffset> lastBroadcastTimes)
     {
-        var allParticipants = new List<GameParticipant>();
-        if (game.Hunter is not null) allParticipants.Add(game.Hunter);
-        allParticipants.AddRange(game.Preys);
-
         var eligible = new List<GameParticipant>();
-        foreach (var participant in allParticipants)
+        foreach (var participant in game.Participants)
         {
             var intervalSeconds = game.ReportingIntervalFor(participant.UserId, now);
 
