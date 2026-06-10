@@ -86,6 +86,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private preyMarkers = new Map<string, L.CircleMarker>();
   /** Local participant state map keyed by userId */
   private participantStates = new Map<string, string>();
+  /** Cache of the latest prey DTOs (callsign + state) keyed by userId, for the tag list. */
+  private participantsById = new Map<string, GameParticipantStatusDto>();
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private pingIntervalTimer: ReturnType<typeof setInterval> | null = null;
   private durationTimer: ReturnType<typeof setInterval> | null = null;
@@ -342,19 +344,23 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     const me = hunter;
     this.hasActivePenalty.set(me?.hasActivePenalty ?? false);
 
-    // Seed the local state map from the status snapshot
+    // Seed the local state + participant caches from the status snapshot
     for (const prey of preys) {
       this.participantStates.set(prey.userId, prey.state);
+      this.participantsById.set(prey.userId, prey);
     }
-    this.updateTaggablePrey(preys);
+    this.recomputeTaggable();
 
     this.drawPlayfield(status.playfieldCoordinates);
     this.updatePreyBlips(preys);
     this.updateNearestDistance();
   }
 
-  private updateTaggablePrey(preys: GameParticipantStatusDto[]): void {
-    this.taggablePrey.set(preys.filter(p => p.state === 'Active' || p.state === 'Passive'));
+  /** Rebuild the taggable list (Active/Passive prey) from the participant cache. */
+  private recomputeTaggable(): void {
+    this.taggablePrey.set(
+      [...this.participantsById.values()].filter(p => p.state === 'Active' || p.state === 'Passive')
+    );
   }
 
   private drawPlayfield(coords: { latitude: number; longitude: number }[]): void {
@@ -475,10 +481,14 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       }
       const activeCount = [...this.participantStates.values()].filter(s => s === 'Active' || s === 'Passive').length;
       this.preysLeft.set(activeCount);
-      const taggable = [...this.participantStates.entries()]
-        .filter(([, s]) => s === 'Active' || s === 'Passive')
-        .map(([id]) => ({ userId: id } as GameParticipantStatusDto));
-      this.taggablePrey.set(taggable);
+      // Keep the participant cache's state current so the tag list keeps callsigns.
+      const cached = this.participantsById.get(userId);
+      if (cached) {
+        this.participantsById.set(userId, { ...cached, state: newState });
+      } else if (userId !== this.currentUserId) {
+        this.participantsById.set(userId, { userId, callsign: '', lastKnownLocation: null, hasActivePenalty: false, state: newState });
+      }
+      this.recomputeTaggable();
       this.updateNearestDistance();
     };
 

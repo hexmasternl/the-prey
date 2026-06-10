@@ -188,5 +188,13 @@
     "BODY_3": "No game objective is worth risking your safety or the safety of others.",
     "ACKNOWLEDGE": "I HAVE READ THIS BRIEFING AND AGREE TO STAY ALERT AT ALL TIMES",
     "CONTINUE": "CONFIRM AND ENTER FIELD"
+  },
+  "TAG_MODAL": {
+    "TITLE": "TAG PREY",
+    "INSTRUCTION": "Select a target to tag them out.",
+    "EMPTY": "No prey available to tag.",
+    "TAG_ACTION": "TAG",
+    "CANCEL": "CANCEL",
+    "BUTTON": "TAG"
   }
 }

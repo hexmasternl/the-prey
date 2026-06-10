@@ -188,5 +188,13 @@
     "BODY_3": "Geen speeldoelstelling is het waard om je eigen veiligheid of die van anderen op het spel te zetten.",
     "ACKNOWLEDGE": "IK HEB DEZE BRIEFING GELEZEN EN GA AKKOORD OM ALTIJD ALERT TE BLIJVEN",
     "CONTINUE": "BEVESTIGEN EN HET VELD IN"
+  },
+  "TAG_MODAL": {
+    "TITLE": "PROOI TAGGEN",
+    "INSTRUCTION": "Kies een doelwit om te taggen.",
+    "EMPTY": "Geen prooi beschikbaar om te taggen.",
+    "TAG_ACTION": "TAG",
+    "CANCEL": "ANNULEREN",
+    "BUTTON": "TAG"
   }
 }

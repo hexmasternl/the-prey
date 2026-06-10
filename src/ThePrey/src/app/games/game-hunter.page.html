@@ -29,6 +29,45 @@
     </ng-template>
   </ion-modal>
 
+  <!-- Tag prey modal -->
+  <ion-modal
+    [isOpen]="showTagModal()"
+    (didDismiss)="closeTagModal()"
+    class="tag-modal"
+    [breakpoints]="[0, 0.6, 0.9]"
+    [initialBreakpoint]="0.6"
+    [handle]="true">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ 'TAG_MODAL.TITLE' | translate }}</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="tag-modal-content">
+        <p class="tag-instruction">{{ 'TAG_MODAL.INSTRUCTION' | translate }}</p>
+        @if (taggablePrey().length === 0) {
+          <p class="tag-empty">{{ 'TAG_MODAL.EMPTY' | translate }}</p>
+        } @else {
+          <div class="tag-list">
+            @for (prey of taggablePrey(); track prey.userId) {
+              <button class="tag-row" [disabled]="tagInFlight()" (click)="confirmTag(prey)">
+                <span class="tag-dot"></span>
+                <span class="tag-callsign">{{ prey.callsign }}</span>
+                <span class="tag-row-state">{{ prey.state }}</span>
+                <span class="tag-row-action">{{ 'TAG_MODAL.TAG_ACTION' | translate }} ▸</span>
+              </button>
+            }
+          </div>
+        }
+      </ion-content>
+      <ion-footer class="ion-padding tag-modal-footer">
+        <ion-button expand="block" fill="outline" [disabled]="tagInFlight()" (click)="closeTagModal()">
+          {{ 'TAG_MODAL.CANCEL' | translate }}
+        </ion-button>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+
   <!-- Full-screen map -->
   <div id="map" class="map-container"></div>
 
@@ -94,6 +133,16 @@
 
   <!-- Re-center FAB -->
   <button class="recenter-fab" (click)="recenter()" aria-label="Re-center map">⊕</button>
+
+  <!-- Tag prey action -->
+  <button
+    class="tag-fab"
+    [disabled]="taggablePrey().length === 0"
+    (click)="openTagModal()"
+    aria-label="Tag prey">
+    <span class="tag-fab-icon">◎</span>
+    <span class="tag-fab-label">{{ 'TAG_MODAL.BUTTON' | translate }}</span>
+  </button>
 
   <!-- HUD panel -->
   <div class="hud-panel">

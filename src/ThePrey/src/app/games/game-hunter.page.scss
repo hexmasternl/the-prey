@@ -170,6 +170,142 @@
   padding: 0;
 }
 
+/* Tag prey FAB */
+.tag-fab {
+  position: absolute;
+  right: 14px;
+  bottom: 218px;
+  z-index: 12;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hunter);
+  background: rgba(40, 8, 6, 0.92);
+  color: var(--hunter);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 0 14px var(--hunter-glow);
+  animation: tag-pulse 1.6s ease-in-out infinite;
+
+  .tag-fab-icon { font-size: 20px; line-height: 1; }
+
+  .tag-fab-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    font-family: 'Special Elite', 'Courier New', monospace;
+  }
+
+  &:disabled {
+    border-color: var(--line);
+    color: var(--text-ghost);
+    background: rgba(12, 9, 9, 0.85);
+    box-shadow: none;
+    animation: none;
+    cursor: default;
+  }
+}
+
+@keyframes tag-pulse {
+  0%, 100% { box-shadow: 0 0 12px var(--hunter-glow); }
+  50% { box-shadow: 0 0 22px var(--hunter-glow); }
+}
+
+/* Tag prey modal */
+.tag-modal {
+  --background: var(--bg-base);
+}
+
+.tag-modal-content {
+  --background: var(--bg-base);
+  --color: var(--text);
+  font-family: 'PT Mono', 'Courier New', monospace;
+}
+
+.tag-instruction {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  padding: 14px 16px 6px;
+  margin: 0;
+}
+
+.tag-empty {
+  color: var(--text-ghost);
+  text-align: center;
+  padding: 32px 16px;
+  letter-spacing: 1px;
+}
+
+.tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 16px 16px;
+}
+
+.tag-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  background: rgba(12, 9, 9, 0.7);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--hunter);
+  border-radius: 3px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+
+  .tag-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--hunter);
+    box-shadow: 0 0 8px var(--hunter-glow);
+    flex: 0 0 auto;
+  }
+
+  .tag-callsign {
+    font-family: 'Special Elite', 'Courier New', monospace;
+    font-size: 16px;
+    color: var(--text);
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tag-row-state {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--text-ghost);
+    text-transform: uppercase;
+  }
+
+  .tag-row-action {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: var(--hunter);
+    text-shadow: 0 0 8px var(--hunter-glow);
+  }
+
+  &:disabled { opacity: 0.5; cursor: default; }
+  &:active { background: rgba(255, 47, 31, 0.12); }
+}
+
+.tag-modal-footer {
+  --background: var(--bg-base);
+  background: var(--bg-base);
+}
+
 /* HUD panel */
 .hud-panel {
   position: absolute;
