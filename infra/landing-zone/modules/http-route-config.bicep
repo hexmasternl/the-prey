@@ -124,21 +124,21 @@ resource gateway 'Microsoft.App/managedEnvironments/httpRouteConfigs@2026-01-01'
           }
         ]
       }
-      {
-        description: 'Notifications API'
-        routes: [
-          {
-            match: {
-              prefix: '/notifications'
-            }
-          }
-        ]
-        targets: [
-          {
-            containerApp: notificationsApp
-          }
-        ]
-      }
+      // {
+      //   description: 'Notifications API'
+      //   routes: [
+      //     {
+      //       match: {
+      //         prefix: '/notifications'
+      //       }
+      //     }
+      //   ]
+      //   targets: [
+      //     {
+      //       containerApp: notificationsApp
+      //     }
+      //   ]
+      // }
     ]
   }
 }
