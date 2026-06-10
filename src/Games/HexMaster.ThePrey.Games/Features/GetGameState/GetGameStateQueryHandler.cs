@@ -25,18 +25,21 @@ public sealed class GetGameStateQueryHandler : IQueryHandler<GetGameStateQuery, 
         activity?.SetTag("game.id", game.Id);
         activity?.SetTag("game.user_id", query.UserId);
 
-        var hunter = game.Hunter;
+        var hunter = game.HunterUserId is { } hid
+            ? game.Participants.FirstOrDefault(p => p.UserId == hid)
+            : null;
+
         if (hunter?.UserId == query.UserId)
         {
-            var preyLocations = game.Preys
-                .Where(p => p.Location is not null)
+            var preyLocations = game.Participants
+                .Where(p => p.UserId != game.HunterUserId && p.Location is not null)
                 .Select(p => new GpsCoordinateDto(p.Location!.Latitude, p.Location.Longitude))
                 .ToList();
 
             return new GameStateDto(null, preyLocations);
         }
 
-        var prey = game.Preys.FirstOrDefault(p => p.UserId == query.UserId);
+        var prey = game.Participants.FirstOrDefault(p => p.UserId == query.UserId && p.UserId != game.HunterUserId);
         if (prey is null)
             return null;
 
