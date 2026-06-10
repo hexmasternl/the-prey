@@ -10,6 +10,10 @@
 </ion-header>
 
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="tac-bg" aria-hidden="true">
     <div class="tac-bg__grid"></div>
     <div class="tac-bg__radar"></div>

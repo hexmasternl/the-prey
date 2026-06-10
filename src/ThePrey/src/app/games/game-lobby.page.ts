@@ -6,10 +6,13 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonRefresher,
+  IonRefresherContent,
   IonSelect,
   IonSelectOption,
   IonSpinner,
   IonToolbar,
+  RefresherCustomEvent,
   ToastController,
   ViewWillEnter,
   ViewWillLeave,
@@ -46,6 +49,8 @@ const GAME_JOIN_LINK_BASE = 'https://theprey.nl/games/join';
     IonButton,
     IonContent,
     IonIcon,
+    IonRefresher,
+    IonRefresherContent,
     IonSelect,
     IonSelectOption,
     IonSpinner,
@@ -182,6 +187,11 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     } catch {
       // best effort
     }
+  }
+
+  async handleRefresh(event: RefresherCustomEvent): Promise<void> {
+    await this.refreshGame();
+    await event.target.complete();
   }
 
   private closeStream(): void {
