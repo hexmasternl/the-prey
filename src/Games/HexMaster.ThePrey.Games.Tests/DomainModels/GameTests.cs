@@ -8,7 +8,7 @@ public sealed class GameTests
     private static readonly DateTimeOffset Start = new(2026, 6, 3, 12, 0, 0, TimeSpan.Zero);
 
     [Fact]
-    public void Create_ShouldStartInLobby_WithEmptyLobby()
+    public void Create_ShouldStartInLobby_WithEmptyParticipants()
     {
         var ownerId = Guid.NewGuid();
         var playfieldId = Guid.NewGuid();
@@ -20,8 +20,8 @@ public sealed class GameTests
         Assert.Equal(ownerId, game.OwnerUserId);
         Assert.Equal(playfieldId, game.PlayfieldId);
         Assert.Equal(GameStatus.Lobby, game.Status);
-        Assert.Empty(game.Lobby);
-        Assert.Null(game.Hunter);
+        Assert.Empty(game.Participants);
+        Assert.Null(game.HunterUserId);
         Assert.Empty(game.Preys);
         Assert.Null(game.StartedAt);
     }
@@ -45,7 +45,7 @@ public sealed class GameTests
 
         game.JoinLobby(GameFaker.Player());
 
-        Assert.Single(game.Lobby);
+        Assert.Single(game.Participants);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class GameTests
         game.JoinLobby(player);
 
         Assert.Throws<PlayerAlreadyInLobbyException>(() => game.JoinLobby(GameFaker.Player(player.UserId)));
-        Assert.Single(game.Lobby);
+        Assert.Single(game.Participants);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public sealed class GameTests
         var game = GameFaker.LobbyGameWithPlayers(Game.MaxLobbySize, out _);
 
         Assert.Throws<LobbyFullException>(() => game.JoinLobby(GameFaker.Player()));
-        Assert.Equal(Game.MaxLobbySize, game.Lobby.Count);
+        Assert.Equal(Game.MaxLobbySize, game.Participants.Count);
     }
 
     [Fact]
@@ -86,10 +86,9 @@ public sealed class GameTests
 
         Assert.Equal(GameStatus.InProgress, game.Status);
         Assert.Equal(Start, game.StartedAt);
-        Assert.NotNull(game.Hunter);
-        Assert.Equal(hunterId, game.Hunter!.UserId);
+        Assert.Equal(hunterId, game.HunterUserId);
         Assert.Equal(2, game.Preys.Count);
-        Assert.DoesNotContain(game.Preys, p => p.UserId == hunterId);
+        Assert.DoesNotContain(game.Preys, id => id == hunterId);
     }
 
     [Fact]
@@ -131,6 +130,19 @@ public sealed class GameTests
     }
 
     [Fact]
+    public void Start_ShouldKeepParticipants_NotRecreate()
+    {
+        // Participants from the lobby carry through to in-progress without being cleared.
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        Assert.Equal(3, game.Participants.Count);
+
+        game.Start(ids[0], Start);
+
+        Assert.Equal(3, game.Participants.Count);
+        Assert.All(ids, id => Assert.Contains(game.Participants, p => p.UserId == id));
+    }
+
+    [Fact]
     public void IsReadyToStart_ShouldBeFalse_UntilHunterDesignatedAndAllReady()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids, markReady: false);
@@ -163,7 +175,7 @@ public sealed class GameTests
 
         game.RecordLocation(preyId, coordinate, Start.AddSeconds(30));
 
-        var prey = game.Preys.Single(p => p.UserId == preyId);
+        var prey = game.Participants.Single(p => p.UserId == preyId);
         // Location is set exclusively by the game engine broadcast cycle, not by RecordLocation.
         Assert.Null(prey.Location);
         Assert.Single(prey.Locations);
@@ -247,7 +259,7 @@ public sealed class GameTests
 
         game.Forfeit(preyIds[0]);
 
-        var prey = game.Preys.Single(p => p.UserId == preyIds[0]);
+        var prey = game.Participants.Single(p => p.UserId == preyIds[0]);
         Assert.Equal(PlayerState.Out, prey.State);
     }
 
