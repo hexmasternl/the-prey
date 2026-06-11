@@ -460,8 +460,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     });
 
     // `player-location-updated` replaces the old `participant-located` event.
-    // Arrives ~every 30 s from the sweep; updates the prey blip on the map.
+    // Arrives ~every 30 s from the sweep; updates the prey blip on the map. Our own
+    // location is drawn in green by the GPS watch, so never plot the hunter's last-known
+    // location as a (red) prey blip.
     this.streamService.on<PlayerLocationUpdatedPayload>('player-location-updated', (payload) => {
+      if (payload.userId === this.currentUserId) return;
       const state = payload.participantState ?? this.participantStates.get(payload.userId) ?? 'Active';
       this.participantStates.set(payload.userId, state);
       this.upsertPreyBlip(payload.userId, payload.latitude, payload.longitude, state);

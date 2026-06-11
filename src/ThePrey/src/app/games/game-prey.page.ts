@@ -82,7 +82,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private gameId!: string;
   private map!: L.Map;
   private playerMarker: L.CircleMarker | null = null;
-  /** Markers for every other player (hunter = red, other preys = grey), keyed by userId. */
+  /** Markers for every other player (hunter = red, other preys = orange/grey), keyed by userId. */
   private otherMarkers = new Map<string, L.CircleMarker>();
   /** The hunter's userId, captured from the status snapshot — used to colour blips. */
   private hunterUserId: string | null = null;
@@ -357,13 +357,14 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     }
   }
 
-  /** Hunter → red; other preys → grey (dimmed once Tagged/Out). */
+  /** Hunter → red; other preys → orange (grey once Tagged/Out). */
   private blipOptionsFor(userId: string, state: string): L.CircleMarkerOptions {
     if (userId === this.hunterUserId) {
       return { radius: 7, color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9, weight: 2 };
     }
     const isInactive = state === 'Tagged' || state === 'Out';
-    return { radius: 6, color: '#888888', fillColor: '#888888', fillOpacity: isInactive ? 0.4 : 0.8, weight: 2 };
+    const colour = isInactive ? '#888888' : '#ff9500';
+    return { radius: 6, color: colour, fillColor: colour, fillOpacity: isInactive ? 0.4 : 0.9, weight: 2 };
   }
 
   private drawPlayfield(coords: { latitude: number; longitude: number }[]): void {
