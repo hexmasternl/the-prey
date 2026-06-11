@@ -1,4 +1,11 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent,
@@ -22,8 +29,18 @@ import type { PluginListenerHandle } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { TranslatePipe } from '@ngx-translate/core';
-import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
-import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload } from './game-stream.service';
+import {
+  GameParticipantStatusDto,
+  GameStatusDto,
+  GamesService,
+} from './games.service';
+import {
+  GameStreamService,
+  PlayerLocationUpdatedPayload,
+  PlayerStatusChangedPayload,
+  ParticipantStatusChangedPayload,
+  PlayerPenalizedPayload,
+} from './game-stream.service';
 import { GameLocationService } from './game-location.service';
 
 @Component({
@@ -61,7 +78,9 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
   /** Seconds left in the game, resynced from the server each poll and ticked down locally every second. */
   readonly secondsRemaining = signal<number | null>(null);
-  readonly timeRemaining = computed(() => this.formatDuration(this.secondsRemaining()));
+  readonly timeRemaining = computed(() =>
+    this.formatDuration(this.secondsRemaining()),
+  );
   readonly preysLeft = signal(0);
   readonly hasActivePenalty = signal(false);
   readonly nearestDistance = signal<string>('--');
@@ -134,11 +153,14 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
    * plugin fires `appStateChange` on native resume and on web via document visibility.
    */
   private async registerResumeListener(): Promise<void> {
-    this.resumeListener = await App.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) {
-        this.resyncOnResume();
-      }
-    });
+    this.resumeListener = await App.addListener(
+      'appStateChange',
+      ({ isActive }) => {
+        if (isActive) {
+          this.resyncOnResume();
+        }
+      },
+    );
   }
 
   private resyncOnResume(): void {
@@ -184,8 +206,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     }
 
     // 1. Recover from a persisted session (e.g. after the OS killed the app).
-    const storedId = (await Preferences.get({ key: 'game.tracking.gameId' })).value;
-    const storedEnd = (await Preferences.get({ key: 'game.tracking.gameEndTime' })).value;
+    const storedId = (await Preferences.get({ key: 'game.tracking.gameId' }))
+      .value;
+    const storedEnd = (
+      await Preferences.get({ key: 'game.tracking.gameEndTime' })
+    ).value;
     if (storedId === this.gameId && storedEnd) {
       const end = new Date(storedEnd);
       if (end.getTime() > Date.now()) {
@@ -199,7 +224,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     try {
       const game = await this.gamesService.getGame(this.gameId);
       if (game.startedAt) {
-        const end = new Date(new Date(game.startedAt).getTime() + game.configuration.gameDuration * 60_000);
+        const end = new Date(
+          new Date(game.startedAt).getTime() +
+            game.configuration.gameDuration * 60_000,
+        );
         if (end.getTime() > Date.now()) {
           await this.locationService.start(this.gameId, end);
           this.trackingInactive.set(false);
@@ -256,11 +284,15 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private initMap(): void {
     this.map = L.map('map', { zoomControl: false, attributionControl: false });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(
+      this.map,
+    );
     this.map.setView([52.0, 5.0], 15);
 
     // Disable auto-follow when user pans manually
-    this.map.on('dragstart', () => { this.autoFollow = false; });
+    this.map.on('dragstart', () => {
+      this.autoFollow = false;
+    });
 
     // Ionic sizes ion-content after this component initialises; Leaflet starts at
     // 0×0 and won't load tiles until it is told to re-measure once on screen.
@@ -311,7 +343,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
             this.map.setView(latlng);
           }
           this.updateNearestDistance();
-        }
+        },
       );
     } catch {
       this.gpsAlert.set('Signal lost. Find open sky.');
@@ -328,7 +360,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       this.applyStatus(status);
       this.pollIntervalSeconds = status.nextPingDuration || 30;
       this.startPingCountdown(this.pollIntervalSeconds);
-      this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1000);
+      this.pollTimer = setTimeout(
+        () => this.pollStatus(),
+        this.pollIntervalSeconds * 1000,
+      );
     } catch {
       this.pollTimer = setTimeout(() => this.pollStatus(), 30_000);
     }
@@ -338,8 +373,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.secondsRemaining.set(status.gameDurationLeft);
     this.preysLeft.set(status.preysLeft);
 
-    const hunter = status.participants.find(p => p.userId === status.hunterUserId) ?? null;
-    const preys = status.participants.filter(p => p.userId !== status.hunterUserId);
+    const hunter =
+      status.participants.find((p) => p.userId === status.hunterUserId) ?? null;
+    const preys = status.participants.filter(
+      (p) => p.userId !== status.hunterUserId,
+    );
 
     const me = hunter;
     this.hasActivePenalty.set(me?.hasActivePenalty ?? false);
@@ -359,18 +397,24 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   /** Rebuild the taggable list (Active/Passive prey) from the participant cache. */
   private recomputeTaggable(): void {
     this.taggablePrey.set(
-      [...this.participantsById.values()].filter(p => p.state === 'Active' || p.state === 'Passive')
+      [...this.participantsById.values()].filter(
+        (p) => p.state === 'Active' || p.state === 'Passive',
+      ),
     );
   }
 
-  private drawPlayfield(coords: { latitude: number; longitude: number }[]): void {
+  private drawPlayfield(
+    coords: { latitude: number; longitude: number }[],
+  ): void {
     if (this.playfieldPolygon) return;
     if (!coords.length) return;
 
-    const latlngs = coords.map(c => [c.latitude, c.longitude] as L.LatLngExpression);
+    const latlngs = coords.map(
+      (c) => [c.latitude, c.longitude] as L.LatLngExpression,
+    );
     this.playfieldPolygon = L.polygon(latlngs, {
       color: '#ff2f1f',
-      fillColor: 'rgba(255,47,31,0.10)',
+      fillColor: 'rgba(255,47,31,0.25)',
       fillOpacity: 0.1,
       weight: 2,
     }).addTo(this.map);
@@ -380,16 +424,38 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private updatePreyBlips(preys: GameParticipantStatusDto[]): void {
     for (const prey of preys) {
       if (!prey.lastKnownLocation) continue;
-      this.upsertPreyBlip(prey.userId, prey.lastKnownLocation.latitude, prey.lastKnownLocation.longitude, prey.state);
+      this.upsertPreyBlip(
+        prey.userId,
+        prey.lastKnownLocation.latitude,
+        prey.lastKnownLocation.longitude,
+        prey.state,
+      );
     }
   }
 
-  private upsertPreyBlip(userId: string, lat: number, lng: number, state: string): void {
+  private upsertPreyBlip(
+    userId: string,
+    lat: number,
+    lng: number,
+    state: string,
+  ): void {
     const latlng: L.LatLngExpression = [lat, lng];
     const isInactive = state === 'Tagged' || state === 'Out';
     const options: L.CircleMarkerOptions = isInactive
-      ? { radius: 6, color: '#888888', fillColor: '#888888', fillOpacity: 0.7, weight: 2 }
-      : { radius: 6, color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9, weight: 2 };
+      ? {
+          radius: 6,
+          color: '#888888',
+          fillColor: '#888888',
+          fillOpacity: 0.7,
+          weight: 2,
+        }
+      : {
+          radius: 6,
+          color: '#ff2f1f',
+          fillColor: '#ff2f1f',
+          fillOpacity: 0.9,
+          weight: 2,
+        };
 
     const existing = this.preyMarkers.get(userId);
     if (existing) {
@@ -413,12 +479,16 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       const d = this.selfLatLng.distanceTo(marker.getLatLng());
       if (d < minMetres) minMetres = d;
     }
-    this.nearestDistance.set(minMetres === Infinity ? '--' : `${Math.round(minMetres)}m`);
+    this.nearestDistance.set(
+      minMetres === Infinity ? '--' : `${Math.round(minMetres)}m`,
+    );
   }
 
   private formatDuration(seconds: number | null): string {
     if (seconds === null) return '--:--';
-    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const mins = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, '0');
     const secs = (seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
   }
@@ -463,13 +533,24 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     // Arrives ~every 30 s from the sweep; updates the prey blip on the map. Our own
     // location is drawn in green by the GPS watch, so never plot the hunter's last-known
     // location as a (red) prey blip.
-    this.streamService.on<PlayerLocationUpdatedPayload>('player-location-updated', (payload) => {
-      if (payload.userId === this.currentUserId) return;
-      const state = payload.participantState ?? this.participantStates.get(payload.userId) ?? 'Active';
-      this.participantStates.set(payload.userId, state);
-      this.upsertPreyBlip(payload.userId, payload.latitude, payload.longitude, state);
-      this.updateNearestDistance();
-    });
+    this.streamService.on<PlayerLocationUpdatedPayload>(
+      'player-location-updated',
+      (payload) => {
+        if (payload.userId === this.currentUserId) return;
+        const state =
+          payload.participantState ??
+          this.participantStates.get(payload.userId) ??
+          'Active';
+        this.participantStates.set(payload.userId, state);
+        this.upsertPreyBlip(
+          payload.userId,
+          payload.latitude,
+          payload.longitude,
+          state,
+        );
+        this.updateNearestDistance();
+      },
+    );
 
     // Status changes arrive from both event names — treat them identically.
     const onStatusChanged = (userId: string, newState: string): void => {
@@ -477,38 +558,56 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       const marker = this.preyMarkers.get(userId);
       if (marker) {
         const isInactive = newState === 'Tagged' || newState === 'Out';
-        marker.setStyle(isInactive
-          ? { color: '#888888', fillColor: '#888888', fillOpacity: 0.7 }
-          : { color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9 }
+        marker.setStyle(
+          isInactive
+            ? { color: '#888888', fillColor: '#888888', fillOpacity: 0.7 }
+            : { color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9 },
         );
       }
-      const activeCount = [...this.participantStates.values()].filter(s => s === 'Active' || s === 'Passive').length;
+      const activeCount = [...this.participantStates.values()].filter(
+        (s) => s === 'Active' || s === 'Passive',
+      ).length;
       this.preysLeft.set(activeCount);
       // Keep the participant cache's state current so the tag list keeps callsigns.
       const cached = this.participantsById.get(userId);
       if (cached) {
         this.participantsById.set(userId, { ...cached, state: newState });
       } else if (userId !== this.currentUserId) {
-        this.participantsById.set(userId, { userId, callsign: '', lastKnownLocation: null, hasActivePenalty: false, state: newState });
+        this.participantsById.set(userId, {
+          userId,
+          callsign: '',
+          lastKnownLocation: null,
+          hasActivePenalty: false,
+          state: newState,
+        });
       }
       this.recomputeTaggable();
       this.updateNearestDistance();
     };
 
-    this.streamService.on<PlayerStatusChangedPayload>('player-status-changed', (payload) => {
-      onStatusChanged(payload.userId, payload.newState);
-    });
+    this.streamService.on<PlayerStatusChangedPayload>(
+      'player-status-changed',
+      (payload) => {
+        onStatusChanged(payload.userId, payload.newState);
+      },
+    );
 
-    this.streamService.on<ParticipantStatusChangedPayload>('participant-status-changed', (payload) => {
-      onStatusChanged(payload.participantId, payload.newState);
-    });
+    this.streamService.on<ParticipantStatusChangedPayload>(
+      'participant-status-changed',
+      (payload) => {
+        onStatusChanged(payload.participantId, payload.newState);
+      },
+    );
 
     // Hunter penalty (e.g. for leaving the playfield)
-    this.streamService.on<PlayerPenalizedPayload>('player-penalized', (payload) => {
-      if (payload.userId === this.currentUserId) {
-        this.hasActivePenalty.set(true);
-      }
-    });
+    this.streamService.on<PlayerPenalizedPayload>(
+      'player-penalized',
+      (payload) => {
+        if (payload.userId === this.currentUserId) {
+          this.hasActivePenalty.set(true);
+        }
+      },
+    );
 
     this.streamService.on('state-changed', () => {
       // The next status poll will reflect the new state.
