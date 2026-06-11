@@ -134,7 +134,7 @@ public sealed class GameSweepProcessorTests
         var config = GameFaker.ValidConfiguration(enablePreyBoundaryPenalties: true);
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start, playerCount: 3, configuration: config);
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // outside the square
-        game.TagParticipant(hunterId, preyIds[0]);
+        game.TagParticipant(hunterId, preyIds[0], Start.AddMinutes(10));
         SetupGame(game);
 
         var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);

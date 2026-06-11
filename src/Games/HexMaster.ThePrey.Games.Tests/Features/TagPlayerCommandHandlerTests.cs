@@ -10,6 +10,9 @@ public sealed class TagPlayerCommandHandlerTests
 {
     private static readonly DateTimeOffset Start = new(2026, 6, 9, 12, 0, 0, TimeSpan.Zero);
 
+    // Default handler clock: well past the 5-minute hunter head-start delay.
+    private static readonly DateTimeOffset Now = Start.AddMinutes(10);
+
     private readonly Mock<IGameRepository> _repository = new();
     private readonly Mock<IGameEventBus> _eventBus = new();
     private readonly TagPlayerCommandHandler _handler;
@@ -18,7 +21,7 @@ public sealed class TagPlayerCommandHandlerTests
     {
         _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
             .Returns(ValueTask.CompletedTask);
-        _handler = new TagPlayerCommandHandler(_repository.Object, _eventBus.Object);
+        _handler = new TagPlayerCommandHandler(_repository.Object, _eventBus.Object, new FixedTimeProvider(Now));
     }
 
     [Fact]
@@ -76,11 +79,42 @@ public sealed class TagPlayerCommandHandlerTests
     public async Task Handle_ShouldThrowInvalidOperation_WhenTargetIsAlreadyTagged()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
-        game.TagParticipant(hunterId, preyIds[0]);
+        game.TagParticipant(hunterId, preyIds[0], Now);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyIds[0]), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperation_WhenTaggingBeforeHunterMayMoveAt()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        // Clock inside the 5-minute head-start delay.
+        var handler = new TagPlayerCommandHandler(
+            _repository.Object, _eventBus.Object, new FixedTimeProvider(Start.AddMinutes(4)));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyIds[0]), CancellationToken.None));
+
+        Assert.Equal(PlayerState.Active, game.Participants.Single(p => p.UserId == preyIds[0]).State);
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldTagPrey_WhenExactlyAtHunterMayMoveAt()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        var handler = new TagPlayerCommandHandler(
+            _repository.Object, _eventBus.Object, new FixedTimeProvider(game.HunterMayMoveAt!.Value));
+
+        var result = await handler.Handle(
+            new TagPlayerCommand(game.Id, hunterId, preyIds[0]), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyIds[0]).State);
     }
 
     [Fact]

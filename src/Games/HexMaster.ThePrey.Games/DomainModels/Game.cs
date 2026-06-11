@@ -25,6 +25,12 @@ public sealed class Game
     /// <summary>How long, in minutes, a boundary-violation penalty lasts.</summary>
     public const int PenaltyDurationMinutes = 5;
 
+    /// <summary>How far, in meters, the hunter may stray from their first measured location during the head-start delay.</summary>
+    public const int HunterDelayMovementThresholdMeters = 50;
+
+    /// <summary>How long, in minutes, the penalty for moving during the head-start delay lasts beyond <see cref="HunterMayMoveAt"/>.</summary>
+    public const int HunterDelayPenaltyMinutes = 10;
+
     private readonly List<GameParticipant> _participants = [];
 
     public Guid Id { get; private set; }
@@ -259,9 +265,13 @@ public sealed class Game
 
     /// <summary>
     /// Records a GPS location for a participant of an in-progress game and activates their state
-    /// (no-op when the participant is Out or Tagged). Returns the participant's previous state.
+    /// (no-op when the participant is Out or Tagged). When the reporter is the hunter and the
+    /// head-start delay is still running, the first reported coordinate is anchored and any later
+    /// report more than <see cref="HunterDelayMovementThresholdMeters"/> meters from that anchor
+    /// earns a single penalty lasting <see cref="HunterDelayPenaltyMinutes"/> minutes beyond
+    /// <see cref="HunterMayMoveAt"/>. The reading is always recorded, penalty or not.
     /// </summary>
-    public PlayerState RecordLocation(Guid userId, GpsCoordinate coordinate, DateTimeOffset at)
+    public RecordLocationOutcome RecordLocation(Guid userId, GpsCoordinate coordinate, DateTimeOffset at)
     {
         ArgumentNullException.ThrowIfNull(coordinate);
 
@@ -271,8 +281,37 @@ public sealed class Game
         var participant = FindParticipant(userId)
             ?? throw new InvalidOperationException("Only a participant of the game can record a location.");
 
+        var delayPenalty = TryApplyHunterDelayPenalty(participant, coordinate, at);
+
         participant.RecordLocation(LocationReading.Create(coordinate, at));
-        return participant.ActivateIfAllowed(at);
+        var previousState = participant.ActivateIfAllowed(at);
+        return new RecordLocationOutcome(previousState, delayPenalty);
+    }
+
+    /// <summary>
+    /// Anchors the hunter's first measured location during the head-start delay and penalises
+    /// movement beyond the threshold. At most one delay-violation penalty is applied per game.
+    /// Returns the applied penalty, or null when none was applied.
+    /// </summary>
+    private Penalty? TryApplyHunterDelayPenalty(GameParticipant participant, GpsCoordinate coordinate, DateTimeOffset at)
+    {
+        if (participant.UserId != HunterUserId || HunterMayMoveAt is not { } mayMoveAt || at >= mayMoveAt)
+            return null;
+
+        if (participant.DelayAnchorLocation is not { } anchor)
+        {
+            participant.AnchorDelayLocation(coordinate);
+            return null;
+        }
+
+        if (participant.DelayPenaltyApplied
+            || anchor.DistanceInMetersTo(coordinate) <= HunterDelayMovementThresholdMeters)
+            return null;
+
+        var penalty = Penalty.Create(mayMoveAt.AddMinutes(HunterDelayPenaltyMinutes));
+        participant.ApplyPenalty(penalty);
+        participant.MarkDelayPenaltyApplied();
+        return penalty;
     }
 
     /// <summary>
@@ -292,15 +331,19 @@ public sealed class Game
 
     /// <summary>
     /// Marks a prey participant as Tagged. The caller must be the hunter; the target must be a prey
-    /// in Active or Passive state; the game must be InProgress.
+    /// in Active or Passive state; the game must be InProgress and the hunter head-start delay
+    /// must have elapsed.
     /// </summary>
-    public void TagParticipant(Guid callerId, Guid targetUserId)
+    public void TagParticipant(Guid callerId, Guid targetUserId, DateTimeOffset now)
     {
         if (Status != GameStatus.InProgress)
             throw new InvalidOperationException("Players can only be tagged while the game is in progress.");
 
         if (HunterUserId != callerId)
             throw new UnauthorizedAccessException("Only the hunter can tag preys.");
+
+        if (!AreHuntersAllowedToMove(now))
+            throw new InvalidOperationException("The hunter cannot tag preys before the head-start delay has elapsed.");
 
         // Target must be a participant and must NOT be the hunter.
         var target = _participants.FirstOrDefault(p => p.UserId == targetUserId && p.UserId != HunterUserId)
@@ -462,14 +505,16 @@ public sealed class Game
         return now >= finalStageStart && now < end;
     }
 
-    /// <summary>True once the hunter head-start has elapsed (start time plus <c>HunterDelayTime</c> minutes).</summary>
-    public bool AreHuntersAllowedToMove(DateTimeOffset now)
-    {
-        if (StartedAt is not { } started)
-            return false;
+    /// <summary>
+    /// The moment the hunter head-start elapses (start time plus <c>HunterDelayTime</c> minutes),
+    /// or null while the game has not started.
+    /// </summary>
+    public DateTimeOffset? HunterMayMoveAt =>
+        StartedAt is { } started ? started.AddMinutes(Configuration.HunterDelayTime) : null;
 
-        return now >= started.AddMinutes(Configuration.HunterDelayTime);
-    }
+    /// <summary>True once the hunter head-start has elapsed (start time plus <c>HunterDelayTime</c> minutes).</summary>
+    public bool AreHuntersAllowedToMove(DateTimeOffset now) =>
+        HunterMayMoveAt is { } mayMoveAt && now >= mayMoveAt;
 
     /// <summary>
     /// The interval, in seconds, at which the given participant must report its location at <paramref name="now"/>.

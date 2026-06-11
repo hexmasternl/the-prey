@@ -39,6 +39,7 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
         builder.Ignore(g => g.Participants);
         builder.Ignore(g => g.Preys);
         builder.Ignore(g => g.ScheduledEndAt);
+        builder.Ignore(g => g.HunterMayMoveAt);
 
         builder.OwnsOne(g => g.Configuration, cfg =>
         {
@@ -73,6 +74,14 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
                 location.Property(c => c.Latitude).HasColumnName("Latitude");
                 location.Property(c => c.Longitude).HasColumnName("Longitude");
             });
+
+            participants.OwnsOne(p => p.DelayAnchorLocation, anchor =>
+            {
+                anchor.Property(c => c.Latitude).HasColumnName("DelayAnchorLatitude");
+                anchor.Property(c => c.Longitude).HasColumnName("DelayAnchorLongitude");
+            });
+
+            participants.Property(p => p.DelayPenaltyApplied).HasDefaultValue(false);
 
             // History is never queried in SQL — serialise each collection into a single jsonb column,
             // mapped from the aggregate's private backing fields. The read-only accessors are ignored.

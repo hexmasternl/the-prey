@@ -50,6 +50,26 @@ public sealed class ToStatusDtoMappingTests
     }
 
     [Fact]
+    public async Task Handle_ShouldReturnHunterMayMoveAt_AsStartPlusHunterDelayTime()
+    {
+        var config = GameFaker.ValidConfiguration(hunterDelayTime: 5);
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-2);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
+
+        var repoMock = new Mock<IGameRepository>();
+        var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
+
+        repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
+
+        var handler = new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQueryHandler(repoMock.Object, playfieldsMock.Object);
+        var result = await handler.Handle(new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQuery(game.Id, hunterId), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(startedAt.AddMinutes(5), result!.HunterMayMoveAt);
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnParticipantCallsign_FromLobbyDisplayName()
     {
         var game = GameFaker.LobbyGame();
@@ -119,7 +139,7 @@ public sealed class ToStatusDtoMappingTests
         var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, startedAt);
         var preyId = preyIds[0];
-        game.TagParticipant(hunterId, preyId);
+        game.TagParticipant(hunterId, preyId, startedAt.AddMinutes(10));
 
         var repoMock = new Mock<IGameRepository>();
         var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
@@ -142,7 +162,7 @@ public sealed class ToStatusDtoMappingTests
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, startedAt, playerCount: 4);
 
         // Tag one prey
-        game.TagParticipant(hunterId, preyIds[0]);
+        game.TagParticipant(hunterId, preyIds[0], startedAt.AddMinutes(10));
         // Set one to Out via timeout
         game.RecordLocation(preyIds[1], GpsCoordinate.Create(52.0, 5.0), startedAt);
         game.ApplyTimeoutTransitions(startedAt.AddMinutes(8)); // → Out

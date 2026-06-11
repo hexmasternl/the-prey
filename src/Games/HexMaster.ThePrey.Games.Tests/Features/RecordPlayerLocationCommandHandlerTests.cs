@@ -3,6 +3,8 @@ using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Games.Tests.Factories;
+using HexMaster.ThePrey.IntegrationEvents;
+using HexMaster.ThePrey.IntegrationEvents.Events;
 using Moq;
 
 namespace HexMaster.ThePrey.Games.Tests.Features;
@@ -16,14 +18,18 @@ public sealed class RecordPlayerLocationCommandHandlerTests
     private readonly Mock<IGameRepository> _repository = new();
     private readonly Mock<IGameMetrics> _metrics = new();
     private readonly Mock<IGameEventBus> _eventBus = new();
+    private readonly Mock<IIntegrationEventPublisher> _integrationEvents = new();
     private readonly RecordPlayerLocationCommandHandler _handler;
 
     public RecordPlayerLocationCommandHandlerTests()
     {
         _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
             .Returns(ValueTask.CompletedTask);
-        _handler = new RecordPlayerLocationCommandHandler(_repository.Object, _metrics.Object, _eventBus.Object, new FixedTimeProvider(Now));
+        _handler = CreateHandler(Now);
     }
+
+    private RecordPlayerLocationCommandHandler CreateHandler(DateTimeOffset now) =>
+        new(_repository.Object, _metrics.Object, _eventBus.Object, _integrationEvents.Object, new FixedTimeProvider(now));
 
     [Fact]
     public async Task Handle_ShouldRecordAndReturnNextInterval_WhenParticipantSubmits()
@@ -195,5 +201,43 @@ public sealed class RecordPlayerLocationCommandHandlerTests
             It.IsAny<Guid>(),
             It.IsAny<ParticipantStatusChangedEvent>(),
             It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPublishPlayerPenalized_WhenHunterMovesDuringDelay()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: GameFaker.ValidConfiguration());
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        // Clock inside the 5-minute head-start delay.
+        var handler = CreateHandler(Start.AddMinutes(1));
+
+        // First report anchors; second report ~111 m north violates the 50 m threshold.
+        await handler.Handle(new RecordPlayerLocationCommand(game.Id, hunterId, 52.1, 5.1, null), CancellationToken.None);
+        var result = await handler.Handle(new RecordPlayerLocationCommand(game.Id, hunterId, 52.101, 5.1, null), CancellationToken.None);
+
+        var expectedEndsAt = game.HunterMayMoveAt!.Value.AddMinutes(Game.HunterDelayPenaltyMinutes);
+        _integrationEvents.Verify(p => p.PublishAsync(
+            It.Is<PlayerPenalizedIntegrationEvent>(e =>
+                e.GameId == game.Id && e.UserId == hunterId && e.PenaltyEndsAt == expectedEndsAt && e.Reason == "moved-during-delay"),
+            It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(result);
+        Assert.True(result!.Response.Accepted);
+        Assert.Equal(Game.PenaltyReportingIntervalSeconds, result.Response.PenaltyIntervalSeconds);
+        Assert.Equal(expectedEndsAt, result.Response.PenaltyEndsAt);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotPublishPlayerPenalized_WhenHunterStaysWithinThresholdDuringDelay()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: GameFaker.ValidConfiguration());
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        var handler = CreateHandler(Start.AddMinutes(1));
+
+        // First report anchors; second report ~11 m north stays within the 50 m threshold.
+        await handler.Handle(new RecordPlayerLocationCommand(game.Id, hunterId, 52.1, 5.1, null), CancellationToken.None);
+        await handler.Handle(new RecordPlayerLocationCommand(game.Id, hunterId, 52.1001, 5.1, null), CancellationToken.None);
+
+        _integrationEvents.Verify(p => p.PublishAsync(
+            It.IsAny<PlayerPenalizedIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

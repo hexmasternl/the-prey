@@ -34,7 +34,8 @@ internal static class GameMappings
             gameDurationLeft,
             nextPingDuration,
             isEndgame,
-            preysLeft);
+            preysLeft,
+            game.HunterMayMoveAt);
     }
 
     private static int ComputeNextPingDuration(Game game, Guid userId, DateTimeOffset now)

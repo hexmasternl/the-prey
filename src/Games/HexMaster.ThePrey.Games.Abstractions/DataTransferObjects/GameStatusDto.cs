@@ -10,7 +10,8 @@ public sealed record GameStatusDto(
     int GameDurationLeft,
     int NextPingDuration,
     bool IsEndgame,
-    int PreysLeft);
+    int PreysLeft,
+    DateTimeOffset? HunterMayMoveAt);
 
 /// <summary>The status and last known location of a single game participant.</summary>
 public sealed record GameParticipantStatusDto(

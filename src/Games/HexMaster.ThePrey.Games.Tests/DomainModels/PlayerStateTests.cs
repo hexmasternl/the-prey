@@ -38,9 +38,9 @@ public sealed class PlayerStateTests
         var preyId = preyIds[0];
         var coord = GpsCoordinate.Create(52.1, 5.1);
 
-        var previous = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
+        var outcome = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
 
-        Assert.Equal(PlayerState.Active, previous);
+        Assert.Equal(PlayerState.Active, outcome.PreviousState);
         Assert.Equal(PlayerState.Active, game.Participants.Single(p => p.UserId == preyId).State);
         Assert.Equal(Start.AddMinutes(1), game.Participants.Single(p => p.UserId == preyId).LastLocationAt);
     }
@@ -59,8 +59,8 @@ public sealed class PlayerStateTests
         Assert.Equal(PlayerState.Passive, game.Participants.Single(p => p.UserId == preyId).State);
 
         // Record again: should return Passive (previous) and set Active
-        var previous = game.RecordLocation(preyId, coord, Start.AddMinutes(7));
-        Assert.Equal(PlayerState.Passive, previous);
+        var outcome = game.RecordLocation(preyId, coord, Start.AddMinutes(7));
+        Assert.Equal(PlayerState.Passive, outcome.PreviousState);
         Assert.Equal(PlayerState.Active, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
@@ -77,8 +77,8 @@ public sealed class PlayerStateTests
         Assert.Equal(PlayerState.Out, game.Participants.Single(p => p.UserId == preyId).State);
 
         // Record should be a no-op on state
-        var previous = game.RecordLocation(preyId, coord, Start.AddMinutes(9));
-        Assert.Equal(PlayerState.Out, previous);
+        var outcome = game.RecordLocation(preyId, coord, Start.AddMinutes(9));
+        Assert.Equal(PlayerState.Out, outcome.PreviousState);
         Assert.Equal(PlayerState.Out, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
@@ -90,11 +90,11 @@ public sealed class PlayerStateTests
         var coord = GpsCoordinate.Create(52.1, 5.1);
 
         game.RecordLocation(preyId, coord, Start);
-        game.TagParticipant(hunterId, preyId);
+        game.TagParticipant(hunterId, preyId, Start.AddMinutes(10));
         Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
 
-        var previous = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
-        Assert.Equal(PlayerState.Tagged, previous);
+        var outcome = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
+        Assert.Equal(PlayerState.Tagged, outcome.PreviousState);
         Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
@@ -147,7 +147,7 @@ public sealed class PlayerStateTests
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
         var preyId = preyIds[0];
         game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Start);
-        game.TagParticipant(hunterId, preyId);
+        game.TagParticipant(hunterId, preyId, Start.AddMinutes(10));
 
         var changes = game.ApplyTimeoutTransitions(Start.AddMinutes(10));
 
@@ -173,7 +173,7 @@ public sealed class PlayerStateTests
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
 
-        game.TagParticipant(hunterId, preyIds[0]);
+        game.TagParticipant(hunterId, preyIds[0], Start.AddMinutes(10));
 
         Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyIds[0]).State);
     }
@@ -187,7 +187,7 @@ public sealed class PlayerStateTests
         game.ApplyTimeoutTransitions(Start.AddMinutes(6));
         Assert.Equal(PlayerState.Passive, game.Participants.Single(p => p.UserId == preyId).State);
 
-        game.TagParticipant(hunterId, preyId);
+        game.TagParticipant(hunterId, preyId, Start.AddMinutes(10));
 
         Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
     }
@@ -198,17 +198,17 @@ public sealed class PlayerStateTests
         var game = GameFaker.StartedGame(out _, out var preyIds, Start);
 
         Assert.Throws<UnauthorizedAccessException>(() =>
-            game.TagParticipant(preyIds[0], preyIds[1]));
+            game.TagParticipant(preyIds[0], preyIds[1], Start.AddMinutes(10)));
     }
 
     [Fact]
     public void TagParticipant_ShouldThrow_WhenTargetIsAlreadyTagged()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
-        game.TagParticipant(hunterId, preyIds[0]);
+        game.TagParticipant(hunterId, preyIds[0], Start.AddMinutes(10));
 
         Assert.Throws<InvalidOperationException>(() =>
-            game.TagParticipant(hunterId, preyIds[0]));
+            game.TagParticipant(hunterId, preyIds[0], Start.AddMinutes(10)));
     }
 
     [Fact]
@@ -220,6 +220,6 @@ public sealed class PlayerStateTests
         game.ApplyTimeoutTransitions(Start.AddMinutes(8));
 
         Assert.Throws<InvalidOperationException>(() =>
-            game.TagParticipant(hunterId, preyId));
+            game.TagParticipant(hunterId, preyId, Start.AddMinutes(10)));
     }
 }

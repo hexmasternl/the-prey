@@ -18,6 +18,12 @@ public sealed class GameParticipant
     public PlayerState State { get; private set; } = PlayerState.Active;
     public DateTimeOffset? LastLocationAt { get; private set; }
     public GpsCoordinate? Location { get; private set; }
+
+    /// <summary>The hunter's first measured location during the head-start delay; null for preys and until the first report.</summary>
+    public GpsCoordinate? DelayAnchorLocation { get; private set; }
+
+    /// <summary>True once the single delay-violation penalty for this game has been applied.</summary>
+    public bool DelayPenaltyApplied { get; private set; }
     public IReadOnlyList<Penalty> Penalties => _penalties.AsReadOnly();
     public IReadOnlyList<LocationReading> Locations => _locations.AsReadOnly();
 
@@ -51,7 +57,9 @@ public sealed class GameParticipant
         IEnumerable<Penalty> penalties,
         IEnumerable<LocationReading> locations,
         PlayerState state = PlayerState.Active,
-        DateTimeOffset? lastLocationAt = null)
+        DateTimeOffset? lastLocationAt = null,
+        GpsCoordinate? delayAnchorLocation = null,
+        bool delayPenaltyApplied = false)
     {
         var participant = new GameParticipant
         {
@@ -61,7 +69,9 @@ public sealed class GameParticipant
             IsReady = isReady,
             Location = location,
             State = state,
-            LastLocationAt = lastLocationAt
+            LastLocationAt = lastLocationAt,
+            DelayAnchorLocation = delayAnchorLocation,
+            DelayPenaltyApplied = delayPenaltyApplied
         };
         participant._penalties.AddRange(penalties);
         participant._locations.AddRange(locations);
@@ -169,6 +179,16 @@ public sealed class GameParticipant
         ArgumentNullException.ThrowIfNull(coordinate);
         Location = coordinate;
     }
+
+    /// <summary>Anchors the head-start delay reference location. Set once; later calls are no-ops.</summary>
+    internal void AnchorDelayLocation(GpsCoordinate coordinate)
+    {
+        ArgumentNullException.ThrowIfNull(coordinate);
+        DelayAnchorLocation ??= coordinate;
+    }
+
+    /// <summary>Records that the single delay-violation penalty has been applied.</summary>
+    internal void MarkDelayPenaltyApplied() => DelayPenaltyApplied = true;
 
     internal void ApplyPenalty(Penalty penalty)
     {

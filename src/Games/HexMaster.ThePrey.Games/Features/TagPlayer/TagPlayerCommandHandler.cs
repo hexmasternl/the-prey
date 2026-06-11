@@ -9,11 +9,13 @@ public sealed class TagPlayerCommandHandler : ICommandHandler<TagPlayerCommand, 
 {
     private readonly IGameRepository _games;
     private readonly IGameEventBus _eventBus;
+    private readonly TimeProvider _timeProvider;
 
-    public TagPlayerCommandHandler(IGameRepository games, IGameEventBus eventBus)
+    public TagPlayerCommandHandler(IGameRepository games, IGameEventBus eventBus, TimeProvider timeProvider)
     {
         _games = games;
         _eventBus = eventBus;
+        _timeProvider = timeProvider;
     }
 
     public async Task<TagPlayerResult?> Handle(TagPlayerCommand command, CancellationToken ct)
@@ -30,7 +32,7 @@ public sealed class TagPlayerCommandHandler : ICommandHandler<TagPlayerCommand, 
 
         try
         {
-            game.TagParticipant(command.CallerId, command.TargetParticipantId);
+            game.TagParticipant(command.CallerId, command.TargetParticipantId, _timeProvider.GetUtcNow());
             await _games.UpdateAsync(game, ct);
 
             await _eventBus.PublishAsync(game.Id,
