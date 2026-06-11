@@ -95,6 +95,10 @@ export class GameLocationService {
   private lastFix: LastFix | null = null;
   private postTimer: ReturnType<typeof setTimeout> | null = null;
   private lastIntervalSeconds = DEFAULT_INTERVAL_SECONDS;
+  /** Wall-clock ms of the last post attempt; gates the reporting cadence. */
+  private lastPostAtMs = 0;
+  /** Guards against overlapping posts when the timer and a GPS-fix trigger coincide. */
+  private postInFlight = false;
 
   /**
    * Begin broadcasting the device location for `gameId` until `gameEndTime`.
@@ -118,6 +122,8 @@ export class GameLocationService {
     this.gameEndTime = gameEndTime;
     this.lastIntervalSeconds = DEFAULT_INTERVAL_SECONDS;
     this.lastFix = null;
+    this.lastPostAtMs = 0;
+    this.postInFlight = false;
     this.gpsErrorSignal.set(null);
     this.reportingDegradedSignal.set(false);
     this.consecutiveFailures = 0;
@@ -144,6 +150,10 @@ export class GameLocationService {
             accuracy: position.accuracy,
             time: position.time,
           };
+          // Drive reporting from the native fix stream. The foreground service wakes the
+          // JS bridge for every fix even while the screen is off / the app is in Doze,
+          // where the setTimeout cadence loop is frozen and would never post.
+          void this.maybePost('fix');
         },
       );
     } else {
@@ -162,6 +172,7 @@ export class GameLocationService {
             accuracy: position.coords.accuracy,
             time: position.timestamp,
           };
+          void this.maybePost('fix');
         },
       );
     }
@@ -192,6 +203,8 @@ export class GameLocationService {
     this.currentGameId = null;
     this.gameEndTime = null;
     this.lastFix = null;
+    this.lastPostAtMs = 0;
+    this.postInFlight = false;
     this.trackingSignal.set(false);
     this.gpsErrorSignal.set(null);
     this.reportingDegradedSignal.set(false);
@@ -208,15 +221,25 @@ export class GameLocationService {
   }
 
   private scheduleNextPost(delaySeconds: number): void {
-    this.postTimer = setTimeout(() => void this.postCycle(), delaySeconds * 1_000);
+    if (this.postTimer !== null) {
+      clearTimeout(this.postTimer);
+    }
+    this.postTimer = setTimeout(() => void this.maybePost('timer'), Math.max(0, delaySeconds) * 1_000);
   }
 
   /**
-   * One reporting cycle: enforce the end-time guard, post the latest fix, then schedule
-   * the next cycle using the backend-supplied interval (falling back to the last known
-   * interval, then 30 s). Never throws — a failed post simply reschedules.
+   * Single funnel for reporting, driven by two independent triggers:
+   *  - `'timer'`: the self-scheduling `setTimeout` cadence loop. Reliable in the
+   *    foreground (and on the web), but frozen by Android Doze when the screen is off.
+   *  - `'fix'`: every GPS fix delivered by the native foreground service. This keeps
+   *    reporting alive in the background precisely when the timer is frozen.
+   *
+   * Both funnel through the same end-time guard and interval gate, so the two triggers
+   * never double-post: a post only goes out once at least `lastIntervalSeconds` has
+   * elapsed since the previous attempt. The `'timer'` trigger owns re-arming the timer;
+   * a premature `'fix'` simply waits for the cadence window to open.
    */
-  private async postCycle(): Promise<void> {
+  private async maybePost(trigger: 'timer' | 'fix'): Promise<void> {
     if (!this.trackingSignal() || !this.currentGameId) {
       return;
     }
@@ -227,24 +250,60 @@ export class GameLocationService {
       return;
     }
 
-    const fix = this.lastFix;
-    if (!fix) {
-      // No GPS fix yet — try again on the next interval.
-      this.scheduleNextPost(this.lastIntervalSeconds);
+    // No GPS fix yet — nothing to send. The timer keeps retrying; a fix trigger just waits.
+    if (!this.lastFix) {
+      if (trigger === 'timer') {
+        this.scheduleNextPost(this.lastIntervalSeconds);
+      }
       return;
     }
 
-    let nextInterval = this.lastIntervalSeconds;
+    const dueInMs = this.lastPostAtMs + this.lastIntervalSeconds * 1_000 - Date.now();
+    if (dueInMs > 0) {
+      // Not due yet. Only the timer re-arms (for the remaining window); ignore early fixes.
+      if (trigger === 'timer') {
+        this.scheduleNextPost(dueInMs / 1_000);
+      }
+      return;
+    }
+
+    await this.post();
+
+    // Re-arm the cadence timer for the foreground / web case. In the background this timer
+    // may be frozen by Doze — the next native GPS fix calls maybePost('fix') and keeps
+    // reporting alive regardless.
+    if (this.trackingSignal()) {
+      this.scheduleNextPost(this.lastIntervalSeconds);
+    }
+  }
+
+  /**
+   * Post the latest fix once. Stamps `lastPostAtMs` up front (so the interval gate holds
+   * for both success and failure), and guards against overlapping calls when the timer
+   * and a GPS fix fire at the same moment. Never throws — a failed post is recorded as a
+   * degraded cycle and retried on the next trigger.
+   */
+  private async post(): Promise<void> {
+    if (this.postInFlight) {
+      return;
+    }
+    const fix = this.lastFix;
+    if (!fix) {
+      return;
+    }
+
+    this.postInFlight = true;
+    this.lastPostAtMs = Date.now();
     try {
       const recordedAt = new Date(fix.time ?? Date.now()).toISOString();
       const response = await this.games.recordLocation(
-        this.currentGameId,
+        this.currentGameId!,
         fix.latitude,
         fix.longitude,
         fix.accuracy,
         recordedAt,
       );
-      nextInterval =
+      const nextInterval =
         response.penaltyIntervalSeconds ?? response.nextLocationIntervalSeconds ?? this.lastIntervalSeconds;
       this.lastIntervalSeconds = nextInterval > 0 ? nextInterval : DEFAULT_INTERVAL_SECONDS;
       // Post succeeded — position is reaching the server again.
@@ -258,10 +317,8 @@ export class GameLocationService {
       if (this.consecutiveFailures >= REPORTING_FAILURE_THRESHOLD) {
         this.reportingDegradedSignal.set(true);
       }
-    }
-
-    if (this.trackingSignal()) {
-      this.scheduleNextPost(this.lastIntervalSeconds);
+    } finally {
+      this.postInFlight = false;
     }
   }
 }
