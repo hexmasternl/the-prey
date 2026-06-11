@@ -61,11 +61,13 @@ public sealed class GameRepository : IGameRepository
         // Participants are an owned collection mapped via the aggregate's "_participants" backing field
         // (see GameEntityTypeConfiguration). It has no DbSet — owned types are queried through their owner —
         // so reach it inside the predicate with EF.Property, which EF Core translates to a SQL subquery.
+        // "Active" is defined by timing columns rather than Status: the game has started and has not
+        // been completed yet.
         return await _db.Games
-            .Where(g => g.Status == GameStatus.InProgress
-                     && (g.OwnerUserId == userId
-                         || EF.Property<ICollection<GameParticipant>>(g, "_participants")
-                              .Any(p => p.UserId == userId)))
+            .Where(g => g.StartedAt != null
+                     && g.CompletedAt == null
+                     && EF.Property<ICollection<GameParticipant>>(g, "_participants")
+                          .Any(p => p.UserId == userId))
             .FirstOrDefaultAsync(ct);
     }
 

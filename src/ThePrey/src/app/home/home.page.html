@@ -32,12 +32,13 @@
       <div class="buttons">
         @if (activeGameId()) {
           <ion-button expand="block" color="danger" (click)="goToActiveGame()">
-            {{ 'HOME.PLAYING' | translate }}
+            {{ 'HOME.RESUME_GAME' | translate }}
+          </ion-button>
+        } @else {
+          <ion-button expand="block" color="primary" [disabled]="!activeGameLoaded()" (click)="goToPlay()">
+            {{ 'HOME.PLAY_NOW' | translate }}
           </ion-button>
         }
-        <ion-button expand="block" color="primary" [disabled]="!activeGameLoaded() || activeGameId() !== null" (click)="goToPlay()">
-          {{ 'HOME.PLAY_NOW' | translate }}
-        </ion-button>
 
         <ion-button
           expand="block"

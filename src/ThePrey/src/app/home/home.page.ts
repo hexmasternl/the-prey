@@ -24,7 +24,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { filter, take } from 'rxjs/operators';
 import { getCallbackUri } from '../auth.utils';
 import { UserStateService } from '../users/user-state.service';
-import { GameDto, GamesService } from '../games/games.service';
+import { GameStatusDto, GamesService } from '../games/games.service';
 
 @Component({
   selector: 'app-home',
@@ -44,8 +44,8 @@ export class HomePage implements OnInit, OnDestroy {
   lat: string | null = null;
   lon: string | null = null;
 
-  readonly activeGame = signal<GameDto | null>(null);
-  readonly activeGameId = computed(() => this.activeGame()?.id ?? null);
+  readonly activeGame = signal<GameStatusDto | null>(null);
+  readonly activeGameId = computed(() => this.activeGame()?.gameId ?? null);
 
   /** False until the first /games/active request resolves; gates the Play Now button. */
   readonly activeGameLoaded = signal(false);
@@ -127,7 +127,7 @@ export class HomePage implements OnInit, OnDestroy {
     if (!game) return;
     const userId = this.userState.profile()?.userId;
     const isHunter = game.hunterUserId === userId;
-    this.router.navigate(['/games', game.id, isHunter ? 'hunt' : 'play']);
+    this.router.navigate(['/games', game.gameId, isHunter ? 'hunt' : 'play']);
   }
 
   goToPlay(): void {

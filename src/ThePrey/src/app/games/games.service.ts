@@ -106,9 +106,10 @@ export class GamesService {
     return `${environment.apiUrl}/games`;
   }
 
-  getActiveGame(): Promise<GameDto | null> {
+  /** The active (started, not yet completed) game the user participates in, or null (404). */
+  getActiveGame(): Promise<GameStatusDto | null> {
     return firstValueFrom(
-      this.http.get<GameDto>(`${this.apiBase}/active`).pipe(
+      this.http.get<GameStatusDto>(`${this.apiBase}/active`).pipe(
         catchError(() => of(null))
       )
     );

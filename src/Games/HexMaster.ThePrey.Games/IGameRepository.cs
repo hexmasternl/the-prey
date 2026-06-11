@@ -13,7 +13,7 @@ public interface IGameRepository
     /// <summary>Returns the games owned by the given user plus the games whose lobby they have joined.</summary>
     Task<IReadOnlyList<Game>> ListForUserAsync(Guid userId, CancellationToken ct);
 
-    /// <summary>Returns the first InProgress game where the user is the owner, a lobby member, or a participant.</summary>
+    /// <summary>Returns the first started-but-not-completed game in which the user is a participant.</summary>
     Task<Game?> GetActiveGameForUserAsync(Guid userId, CancellationToken ct);
 
     /// <summary>Returns all games currently in the InProgress state.</summary>
