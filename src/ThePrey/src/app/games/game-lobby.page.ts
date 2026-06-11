@@ -109,7 +109,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     this.isLoading.set(true);
     try {
       const game = await this.gamesService.getGame(id);
-      this.game.set(game);
+      this.setGameState(game);
       this.syncConfigFromGame(game);
     } catch {
       await this.showError('GAME_LOBBY.LOAD_ERROR');
@@ -157,7 +157,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     // (not wrapped in a `.payload` property like the old SSE events were).
     const game = data as GameDto;
     if (game && typeof game === 'object' && 'id' in game) {
-      this.game.set(game);
+      this.setGameState(game);
       this.syncConfigFromGame(game);
       this.streamLog(`event '${type}' applied to game state`);
     } else {
@@ -175,7 +175,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
     // Reflect the new state locally and confirm the game actually left the lobby
     // before navigating. Keep the socket open if the status hasn't changed yet.
-    this.game.set(game);
+    this.setGameState(game);
     this.syncConfigFromGame(game);
     if (game.status !== 'InProgress') {
       this.streamError(`event 'game-started' carried unexpected status '${game.status}' (expected 'InProgress') — not navigating`);
@@ -221,7 +221,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   private async refreshGame(): Promise<void> {
     try {
       const game = await this.gamesService.getGame(this.gameId());
-      this.game.set(game);
+      this.setGameState(game);
       this.syncConfigFromGame(game);
       if (game.status === 'InProgress') {
         this.streamLog('refresh found the game already in progress (missed game-started) — entering game');
@@ -277,6 +277,16 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     this.endgameInterval.set(Math.round(g.configuration.finalLocationInterval / 60));
   }
 
+  private setGameState(game: GameDto): void {
+    const currentUserId = this.currentUserId();
+    const isOwnerPlayer =
+      game.isOwnerPlayer ||
+      this.game()?.isOwnerPlayer === true ||
+      (!!currentUserId && game.ownerUserId === currentUserId);
+
+    this.game.set(isOwnerPlayer === game.isOwnerPlayer ? game : { ...game, isOwnerPlayer });
+  }
+
   private buildConfig(g: GameDto): GameConfigurationDto {
     return {
       gameDuration: this.gameDuration(),
@@ -294,7 +304,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     if (!g || !this.isOwner()) return;
     try {
       const updated = await this.gamesService.updateConfig(this.gameId(), this.buildConfig(g));
-      this.game.set(updated);
+      this.setGameState(updated);
       this.syncConfigFromGame(updated);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
@@ -333,7 +343,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     if (!this.isOwner()) return;
     try {
       const game = await this.gamesService.setHunter(this.gameId(), userId);
-      this.game.set(game);
+      this.setGameState(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
     }
@@ -343,7 +353,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     if (!this.isOwner()) return;
     try {
       const game = await this.gamesService.removePlayer(this.gameId(), userId);
-      this.game.set(game);
+      this.setGameState(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
     }
@@ -356,7 +366,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       // The owner is a participant too, so the resulting `game-started` Web PubSub event
       // drives navigation for everyone (owner included) via onGameStarted — no manual nav here.
       const game = await this.gamesService.startGame(this.gameId(), g.hunterUserId);
-      this.game.set(game);
+      this.setGameState(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
     }
@@ -365,7 +375,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   async markReady(): Promise<void> {
     try {
       const game = await this.gamesService.setReady(this.gameId());
-      this.game.set(game);
+      this.setGameState(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
     }
