@@ -139,23 +139,25 @@ public sealed class GameParticipant
 
     /// <summary>
     /// Consumes the readings the sweep has not processed yet: marks every unchecked reading as
-    /// checked and returns the most recent one (or null when there is nothing new to process).
+    /// checked and returns them in chronological order (empty when there is nothing new to process).
     /// </summary>
-    internal LocationReading? TakeNewestUncheckedLocation()
+    internal IReadOnlyList<LocationReading> TakeUncheckedLocations()
     {
-        LocationReading? newest = null;
+        List<LocationReading>? taken = null;
         for (var i = 0; i < _locations.Count; i++)
         {
             var reading = _locations[i];
             if (reading.Checked) continue;
 
-            if (newest is null || reading.RecordedAt > newest.RecordedAt)
-                newest = reading;
-
+            (taken ??= []).Add(reading);
             _locations[i] = reading.MarkChecked();
         }
 
-        return newest;
+        if (taken is null)
+            return [];
+
+        taken.Sort((left, right) => left.RecordedAt.CompareTo(right.RecordedAt));
+        return taken;
     }
 
     /// <summary>

@@ -24,7 +24,7 @@ public sealed record GameConfiguration
     /// <summary>Enables a penalty for preys that leave the play-field boundary.</summary>
     public bool EnablePreyBoundaryPenalties { get; private init; }
 
-    /// <summary>Enables a penalty for hunters that move before <see cref="HunterDelayTime"/> has elapsed.</summary>
+    /// <summary>Enables a penalty for hunters that leave the play-field boundary.</summary>
     public bool EnableHunterBoundaryPenalty { get; private init; }
 
     private GameConfiguration() { }

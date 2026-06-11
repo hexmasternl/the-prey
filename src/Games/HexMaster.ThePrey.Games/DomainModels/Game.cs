@@ -22,6 +22,9 @@ public sealed class Game
     /// <summary>Reporting interval, in seconds, that applies while a participant has an active penalty.</summary>
     public const int PenaltyReportingIntervalSeconds = 10;
 
+    /// <summary>How long, in minutes, a boundary-violation penalty lasts.</summary>
+    public const int PenaltyDurationMinutes = 5;
+
     private readonly List<GameParticipant> _participants = [];
 
     public Guid Id { get; private set; }
@@ -319,47 +322,65 @@ public sealed class Game
     }
 
     /// <summary>
-    /// Applies a boundary-violation penalty to a participant, unless one is already active. This keeps
-    /// the "do not stack penalties while the player remains outside" rule inside the aggregate.
-    /// Returns true when a new penalty was applied. No-op (returns false) when the game is not in
-    /// progress or the participant already has an active penalty.
+    /// Applies a boundary-violation penalty, lasting <see cref="PenaltyDurationMinutes"/> minutes from
+    /// <paramref name="now"/>, to a participant. A new penalty is never applied while a previous one is
+    /// still active (the "do not stack penalties while the player remains outside" rule), and
+    /// participants who are out of the running (Tagged or Out) are never penalised. Returns the applied
+    /// penalty, or null when none was applied.
     /// </summary>
-    public bool TryApplyBoundaryPenalty(Guid userId, DateTimeOffset endsAt, DateTimeOffset now)
+    public Penalty? TryApplyBoundaryPenalty(Guid userId, DateTimeOffset now)
     {
         if (Status != GameStatus.InProgress)
-            return false;
+            return null;
 
         var participant = FindParticipant(userId);
-        if (participant is null || participant.HasActivePenalty(now))
-            return false;
+        if (participant is null
+            || participant.State is PlayerState.Tagged or PlayerState.Out
+            || participant.HasActivePenalty(now))
+            return null;
 
-        participant.ApplyPenalty(Penalty.Create(endsAt));
-        return true;
+        var penalty = Penalty.Create(now.AddMinutes(PenaltyDurationMinutes));
+        participant.ApplyPenalty(penalty);
+        return penalty;
     }
 
     /// <summary>
-    /// Refreshes each participant's broadcast ("last known") position from the most recent GPS reading
-    /// the sweep has not yet processed, marking those readings as checked. Returns the participants
-    /// whose position was refreshed so the caller can notify clients. Participants with no new readings
-    /// are left untouched.
+    /// Performs the location pass of a sweep tick: consumes each participant's unchecked GPS readings,
+    /// refreshes their broadcast ("last known") position from the most recent one, and reports every
+    /// consumed coordinate so the caller can assess boundary violations. Participants with an active
+    /// penalty are included on every sweep, even without new readings, so their last-known position
+    /// keeps being broadcast while the penalty lasts. Participants with nothing to report are omitted.
     /// </summary>
-    public IReadOnlyList<BroadcastUpdate> RefreshBroadcastLocations()
+    public IReadOnlyList<ParticipantLocationSweep> SweepLocations(DateTimeOffset now)
     {
-        var updates = new List<BroadcastUpdate>();
+        var sweeps = new List<ParticipantLocationSweep>();
         foreach (var participant in _participants)
         {
-            var newest = participant.TakeNewestUncheckedLocation();
-            if (newest is null) continue;
+            var consumed = participant.TakeUncheckedLocations();
+            if (consumed.Count > 0)
+                participant.UpdateBroadcastLocation(consumed[^1].Coordinate);
 
-            participant.UpdateBroadcastLocation(newest.Coordinate);
-            updates.Add(new BroadcastUpdate(
+            BroadcastUpdate? broadcast = null;
+            if (participant.Location is { } location
+                && (consumed.Count > 0 || participant.HasActivePenalty(now)))
+            {
+                broadcast = new BroadcastUpdate(
+                    participant.UserId,
+                    location.Latitude,
+                    location.Longitude,
+                    participant.State.ToString());
+            }
+
+            if (broadcast is null && consumed.Count == 0)
+                continue;
+
+            sweeps.Add(new ParticipantLocationSweep(
                 participant.UserId,
-                newest.Coordinate.Latitude,
-                newest.Coordinate.Longitude,
-                participant.State.ToString()));
+                broadcast,
+                consumed.Select(r => r.Coordinate).ToList()));
         }
 
-        return updates;
+        return sweeps;
     }
 
     /// <summary>The number of prey who are still in play (neither Tagged nor Out) — the survivor count.</summary>

@@ -99,13 +99,84 @@ public sealed class GameSweepProcessorTests
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // outside the square
         SetupGame(game);
 
-        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        var now = Start.AddMinutes(1);
+        var result = await _sut.ProcessAsync(game.Id, now, CancellationToken.None);
 
         Assert.Equal(1, result.Penalties);
-        Assert.True(game.Participants.Single(p => p.UserId == preyIds[0]).HasActivePenalty(Start.AddMinutes(1)));
+        var prey = game.Participants.Single(p => p.UserId == preyIds[0]);
+        Assert.True(prey.HasActivePenalty(now));
+        Assert.Equal(now.AddMinutes(Game.PenaltyDurationMinutes), prey.ActivePenaltyEndsAt(now));
         _publisher.Verify(p => p.PublishAsync(
             It.Is<PlayerPenalizedIntegrationEvent>(e => e.UserId == preyIds[0]),
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldPenalize_WhenAnyUncheckedReadingIsOutside()
+    {
+        var config = GameFaker.ValidConfiguration(enablePreyBoundaryPenalties: true);
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3, configuration: config);
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5));  // stepped outside
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(0, 0), Start.AddSeconds(15)); // back inside
+        SetupGame(game);
+
+        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+
+        Assert.Equal(1, result.Penalties);
+        // The broadcast position is still the newest reading, not the violating one.
+        var prey = game.Participants.Single(p => p.UserId == preyIds[0]);
+        Assert.Equal(GpsCoordinate.Create(0, 0), prey.Location);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldNotPenalize_WhenPreyIsTagged()
+    {
+        var config = GameFaker.ValidConfiguration(enablePreyBoundaryPenalties: true);
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start, playerCount: 3, configuration: config);
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // outside the square
+        game.TagParticipant(hunterId, preyIds[0]);
+        SetupGame(game);
+
+        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+
+        Assert.Equal(0, result.Penalties);
+        _publisher.Verify(p => p.PublishAsync(It.IsAny<PlayerPenalizedIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldRebroadcastPenalizedPrey_WhenNoNewReadings()
+    {
+        var config = GameFaker.ValidConfiguration(enablePreyBoundaryPenalties: true);
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3, configuration: config);
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // outside the square
+        SetupGame(game);
+
+        var first = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        var second = await _sut.ProcessAsync(game.Id, Start.AddMinutes(2), CancellationToken.None);
+
+        Assert.Equal(1, first.Penalties);
+        Assert.Equal(1, second.Broadcasts); // re-broadcast while the penalty is active, without new readings
+        Assert.Equal(0, second.Penalties);  // no stacking while the penalty is active
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<PlayerLocationUpdatedIntegrationEvent>(e => e.UserId == preyIds[0]),
+            It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldApplyNewPenalty_WhenPreviousExpiredAndStillOutside()
+    {
+        var config = GameFaker.ValidConfiguration(enablePreyBoundaryPenalties: true);
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3, configuration: config);
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // outside the square
+        SetupGame(game);
+
+        var first = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        // 6 minutes later the first penalty (5 min) has expired; the last-known position is still outside.
+        var afterExpiry = await _sut.ProcessAsync(game.Id, Start.AddMinutes(7), CancellationToken.None);
+
+        Assert.Equal(1, first.Penalties);
+        Assert.Equal(1, afterExpiry.Penalties);
+        _publisher.Verify(p => p.PublishAsync(It.IsAny<PlayerPenalizedIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
     [Fact]
