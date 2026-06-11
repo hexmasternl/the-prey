@@ -71,6 +71,10 @@
   <!-- Full-screen map -->
   <div id="map" class="map-container"></div>
 
+  <!-- Hunter head-start countdown (removed automatically when it reaches zero) -->
+  <app-hunter-delay-overlay [hunterMayMoveAt]="hunterMayMoveAt()" />
+
+
   <!-- Corner brackets -->
   <div class="cb tl"></div>
   <div class="cb tr"></div>
@@ -134,10 +138,10 @@
   <!-- Re-center FAB -->
   <button class="recenter-fab" (click)="recenter()" aria-label="Re-center map">⊕</button>
 
-  <!-- Tag prey action -->
+  <!-- Tag prey action — unavailable until the hunter head-start delay has passed -->
   <button
     class="tag-fab"
-    [disabled]="taggablePrey().length === 0"
+    [disabled]="hunterDelayActive() || taggablePrey().length === 0"
     (click)="openTagModal()"
     aria-label="Tag prey">
     <span class="tag-fab-icon">◎</span>

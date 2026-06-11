@@ -196,5 +196,9 @@
     "TAG_ACTION": "TAG",
     "CANCEL": "CANCEL",
     "BUTTON": "TAG"
+  },
+  "HUNTER_DELAY": {
+    "LABEL": "HUNTER RELEASE IN",
+    "HINT": "The hunter must stay put until the countdown ends."
   }
 }

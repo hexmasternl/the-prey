@@ -196,5 +196,9 @@
     "TAG_ACTION": "TAG",
     "CANCEL": "ANNULEREN",
     "BUTTON": "TAG"
+  },
+  "HUNTER_DELAY": {
+    "LABEL": "HUNTER LOS OVER",
+    "HINT": "De hunter moet blijven staan tot het aftellen voorbij is."
   }
 }

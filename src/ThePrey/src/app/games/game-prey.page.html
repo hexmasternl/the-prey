@@ -32,6 +32,10 @@
   <!-- Full-screen map -->
   <div id="map" class="map-container"></div>
 
+  <!-- Hunter head-start countdown (removed automatically when it reaches zero) -->
+  <app-hunter-delay-overlay [hunterMayMoveAt]="hunterMayMoveAt()" />
+
+
   <!-- GPS alert banner -->
   @if (gpsAlert()) {
   <div class="alert-banner alert-warn">

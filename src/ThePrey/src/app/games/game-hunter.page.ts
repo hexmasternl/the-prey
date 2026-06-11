@@ -42,6 +42,7 @@ import {
   PlayerPenalizedPayload,
 } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
+import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
 
 @Component({
   selector: 'app-game-hunter',
@@ -61,6 +62,7 @@ import { GameLocationService } from './game-location.service';
     IonRefresher,
     IonRefresherContent,
     TranslatePipe,
+    HunterDelayOverlayComponent,
   ],
 })
 export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
@@ -89,6 +91,15 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly showTagModal = signal(false);
   readonly taggablePrey = signal<GameParticipantStatusDto[]>([]);
   readonly tagInFlight = signal(false);
+  /** ISO timestamp at which the hunter may move, from the status poll; drives the countdown overlay. */
+  readonly hunterMayMoveAt = signal<string | null>(null);
+  /** Ticked every second by the duration timer so delay gating flips without a poll. */
+  private readonly nowTick = signal(Date.now());
+  /** True while the hunter head-start delay is still running — gates the Tag button. */
+  readonly hunterDelayActive = computed(() => {
+    const at = this.hunterMayMoveAt();
+    return at !== null && new Date(at).getTime() > this.nowTick();
+  });
   /** True when background location reporting could not be (re)started for this game. */
   readonly trackingInactive = signal(false);
   /** Live tracking state from the singleton service (true while broadcasting). */
@@ -372,6 +383,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private applyStatus(status: GameStatusDto): void {
     this.secondsRemaining.set(status.gameDurationLeft);
     this.preysLeft.set(status.preysLeft);
+    this.hunterMayMoveAt.set(status.hunterMayMoveAt ?? null);
 
     const hunter =
       status.participants.find((p) => p.userId === status.hunterUserId) ?? null;
@@ -497,6 +509,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private startDurationTimer(): void {
     this.clearDurationTimer();
     this.durationTimer = setInterval(() => {
+      this.nowTick.set(Date.now());
       const s = this.secondsRemaining();
       if (s === null) return;
       this.secondsRemaining.set(Math.max(0, s - 1));

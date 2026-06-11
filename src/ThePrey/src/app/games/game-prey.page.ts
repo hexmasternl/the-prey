@@ -27,6 +27,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
 import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
+import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
 
 @Component({
   selector: 'app-game-prey',
@@ -46,6 +47,7 @@ import { GameLocationService } from './game-location.service';
     IonRefresher,
     IonRefresherContent,
     TranslatePipe,
+    HunterDelayOverlayComponent,
   ],
 })
 export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
@@ -70,6 +72,8 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly pingCountdown   = signal(30);
   /** Collapsed by default: only the remaining game time shows until the HUD is tapped. */
   readonly hudExpanded     = signal(false);
+  /** ISO timestamp at which the hunter may move, from the status poll; drives the countdown overlay. */
+  readonly hunterMayMoveAt = signal<string | null>(null);
   /** True when background location reporting could not be (re)started for this game. */
   readonly trackingInactive = signal(false);
   /** Live tracking state from the singleton service (true while broadcasting). */
@@ -314,6 +318,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private applyStatus(status: GameStatusDto): void {
     this.secondsRemaining.set(status.gameDurationLeft);
     this.preysLeft.set(status.preysLeft);
+    this.hunterMayMoveAt.set(status.hunterMayMoveAt ?? null);
     this.hunterUserId = status.hunterUserId;
 
     const preys = status.participants.filter(p => p.userId !== status.hunterUserId);

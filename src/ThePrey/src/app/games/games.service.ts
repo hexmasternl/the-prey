@@ -82,6 +82,8 @@ export interface GameStatusDto {
   nextPingDuration: number;
   isEndgame: boolean;
   preysLeft: number;
+  /** ISO timestamp at which the hunter is allowed to move (start + hunter delay). */
+  hunterMayMoveAt: string | null;
 }
 
 /** Response to a POST /games/{id}/locations call. Mirrors the backend RecordLocationResponse. */
