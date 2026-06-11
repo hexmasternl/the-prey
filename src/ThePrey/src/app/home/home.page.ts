@@ -44,6 +44,13 @@ export class HomePage implements OnInit, OnDestroy {
   lat: string | null = null;
   lon: string | null = null;
 
+  /**
+   * True when the OS location permission was refused. The game is unplayable without
+   * GPS, so this blocks Play Now / Resume Game and surfaces a banner. Cleared again
+   * once a position fix arrives (the user granted permission after all).
+   */
+  readonly locationDenied = signal(false);
+
   readonly activeGame = signal<GameStatusDto | null>(null);
   readonly activeGameId = computed(() => this.activeGame()?.gameId ?? null);
 
@@ -87,19 +94,34 @@ export class HomePage implements OnInit, OnDestroy {
   private async startLocationWatch(): Promise<void> {
     try {
       const permission = await Geolocation.requestPermissions();
-      if (permission.location !== 'granted') return;
+      if (permission.location === 'denied') {
+        this.locationDenied.set(true);
+        return;
+      }
+    } catch {
+      // Permissions API unavailable (e.g. web) — let watchPosition surface a denial.
+    }
 
+    try {
       this.watchId = await Geolocation.watchPosition(
         { enableHighAccuracy: false, timeout: 10000 },
         this.onPosition,
       );
     } catch {
-      // Permission denied or unavailable — coords stay at fallback
+      // Location unavailable — coords stay at fallback
     }
   }
 
   private readonly onPosition: WatchPositionCallback = (position, err) => {
-    if (err || !position) return;
+    if (err) {
+      // Web reports a refused permission as GeolocationPositionError code 1.
+      if ((err as { code?: number }).code === 1) {
+        this.locationDenied.set(true);
+      }
+      return;
+    }
+    if (!position) return;
+    this.locationDenied.set(false);
     this.lat = position.coords.latitude.toFixed(4);
     this.lon = position.coords.longitude.toFixed(4);
   };

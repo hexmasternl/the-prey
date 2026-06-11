@@ -23,7 +23,9 @@
     "COORDS_SIGNAL_LOCK": "{{lat}}° N // {{lon}}° E // SIGNAL LOCK",
     "UPLINK_FAILED_TITLE": "TACTICAL UPLINK SEVERED",
     "UPLINK_FAILED_BODY": "Command server unreachable. Your operative file could not be retrieved. Check your signal and re-enter the field.",
-    "UPLINK_RETRY": "RETRY"
+    "UPLINK_RETRY": "RETRY",
+    "LOCATION_DENIED_TITLE": "LOCATION ACCESS DENIED",
+    "LOCATION_DENIED_BODY": "The Prey cannot be played without location access. Grant location permission to The Prey in your device settings to enter the field."
   },
   "PLAYFIELD_DETAIL": {
     "TITLE": "PLAYFIELD",

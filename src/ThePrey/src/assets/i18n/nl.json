@@ -23,7 +23,9 @@
     "COORDS_SIGNAL_LOCK": "{{lat}}° N // {{lon}}° O // SIGNAAL VAST",
     "UPLINK_FAILED_TITLE": "TACTISCHE UPLINK VERBROKEN",
     "UPLINK_FAILED_BODY": "Commandoserver onbereikbaar. Jouw operatief dossier kon niet worden opgehaald. Controleer je signaal en betreedt opnieuw het veld.",
-    "UPLINK_RETRY": "OPNIEUW PROBEREN"
+    "UPLINK_RETRY": "OPNIEUW PROBEREN",
+    "LOCATION_DENIED_TITLE": "LOCATIETOEGANG GEWEIGERD",
+    "LOCATION_DENIED_BODY": "The Prey kan niet worden gespeeld zonder locatietoegang. Geef The Prey toestemming voor locatie in de instellingen van je toestel om het veld te betreden."
   },
   "PLAYFIELD_DETAIL": {
     "TITLE": "SPEELVELD",

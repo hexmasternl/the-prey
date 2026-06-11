@@ -27,15 +27,31 @@
     </h1>
     <p class="lede">{{ 'HOME.LEDE' | translate }}</p>
 
+    <!-- Location permission refused — the game cannot be played without GPS -->
+    @if (locationDenied()) {
+      <div class="location-denied">
+        <div class="location-denied__icon">▲</div>
+        <div>
+          <div class="location-denied__title">{{ 'HOME.LOCATION_DENIED_TITLE' | translate }}</div>
+          <div class="location-denied__body">{{ 'HOME.LOCATION_DENIED_BODY' | translate }}</div>
+        </div>
+      </div>
+    }
+
     <!-- Action buttons — only rendered once the user profile is available -->
     @if (userState.profile(); as profile) {
       <div class="buttons">
         @if (activeGameId()) {
-          <ion-button expand="block" color="danger" (click)="goToActiveGame()">
+          <ion-button expand="block" color="danger" [disabled]="locationDenied()" (click)="goToActiveGame()">
             {{ 'HOME.RESUME_GAME' | translate }}
           </ion-button>
         } @else {
-          <ion-button expand="block" color="primary" [disabled]="!activeGameLoaded()" (click)="goToPlay()">
+          <ion-button
+            expand="block"
+            color="primary"
+            [disabled]="!activeGameLoaded() || locationDenied()"
+            (click)="goToPlay()"
+          >
             {{ 'HOME.PLAY_NOW' | translate }}
           </ion-button>
         }
