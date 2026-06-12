@@ -25,7 +25,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
-import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload } from './game-stream.service';
+import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload, GameEndedPayload } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
 import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
 
@@ -473,8 +473,8 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       // Status poll will pick up the new state on the next tick
     });
 
-    this.streamService.on('game-ended', () => {
-      this.handleGameEnded();
+    this.streamService.on<GameEndedPayload>('game-ended', (payload) => {
+      this.handleGameEnded(payload);
     });
   }
 
@@ -487,13 +487,22 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   /** Idempotent: safe to call from both Web PubSub events and the poll path. */
-  private handleGameEnded(): void {
+  private handleGameEnded(payload?: GameEndedPayload): void {
     if (this.gameEndedHandled) return;
     this.gameEndedHandled = true;
     this.clearPoll();
     this.streamService.disconnect();
     void this.locationService.stop();
-    this.router.navigate(['/home'], { replaceUrl: true });
+    // Hand the result to the debrief screen; it confirms against the server too, so
+    // missing values here are non-fatal. null query params are dropped by the router.
+    this.router.navigate(['/games', this.gameId, 'outcome'], {
+      replaceUrl: true,
+      queryParams: {
+        role: 'prey',
+        outcome: payload?.outcome ?? null,
+        survivors: payload?.survivorCount ?? null,
+      },
+    });
   }
 
   // -------------------------------------------------------------------------

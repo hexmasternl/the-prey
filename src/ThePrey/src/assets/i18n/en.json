@@ -182,6 +182,22 @@
     "REPORTING_DEGRADED_MSG": "Can't reach command. Your position isn't being shared — check your connection.",
     "BACK": "BACK"
   },
+  "GAME_OUTCOME": {
+    "TAG": "// DEBRIEF",
+    "VICTORY": "VICTORY",
+    "DEFEAT": "DEFEAT",
+    "ABORTED": "OPERATION ABORTED",
+    "COMPLETE": "OPERATION COMPLETE",
+    "HUNTERS_WIN": "All prey were captured. The hunter prevailed.",
+    "PREYS_WIN": "The prey evaded capture and made it out.",
+    "CANCELLED": "The operation was aborted before it concluded.",
+    "UNDECIDED": "The operation has concluded.",
+    "ROLE": "ROLE",
+    "ROLE_HUNTER": "HUNTER",
+    "ROLE_PREY": "PREY",
+    "SURVIVORS": "SURVIVORS",
+    "RETURN": "RETURN TO BASE"
+  },
   "SURROUNDINGS_WARNING": {
     "TITLE": "SAFETY BRIEFING",
     "HEADING": "STAY AWARE OF YOUR SURROUNDINGS",

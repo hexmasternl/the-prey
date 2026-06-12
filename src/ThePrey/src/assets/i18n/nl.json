@@ -182,6 +182,22 @@
     "REPORTING_DEGRADED_MSG": "Geen verbinding met de commandopost. Je positie wordt niet gedeeld — controleer je verbinding.",
     "BACK": "TERUG"
   },
+  "GAME_OUTCOME": {
+    "TAG": "// DEBRIEFING",
+    "VICTORY": "OVERWINNING",
+    "DEFEAT": "VERSLAGEN",
+    "ABORTED": "OPERATIE AFGEBROKEN",
+    "COMPLETE": "OPERATIE VOLTOOID",
+    "HUNTERS_WIN": "Alle prooien zijn gepakt. De jager heeft gewonnen.",
+    "PREYS_WIN": "De prooi ontkwam aan de jacht en haalde het einde.",
+    "CANCELLED": "De operatie werd afgebroken voordat die was voltooid.",
+    "UNDECIDED": "De operatie is afgelopen.",
+    "ROLE": "ROL",
+    "ROLE_HUNTER": "JAGER",
+    "ROLE_PREY": "PROOI",
+    "SURVIVORS": "OVERLEVENDEN",
+    "RETURN": "TERUG NAAR BASIS"
+  },
   "SURROUNDINGS_WARNING": {
     "TITLE": "VEILIGHEIDSBRIEFING",
     "HEADING": "BLIJF ALERT OP JE OMGEVING",

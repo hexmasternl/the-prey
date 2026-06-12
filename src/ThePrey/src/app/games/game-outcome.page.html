@@ -1,0 +1,38 @@
+<ion-content [fullscreen]="true" class="outcome-view">
+  <div
+    class="debrief"
+    [class.is-victory]="verdict() === 'victory'"
+    [class.is-defeat]="verdict() === 'defeat'">
+
+    <!-- Corner brackets -->
+    <div class="cb tl"></div>
+    <div class="cb tr"></div>
+    <div class="cb bl"></div>
+    <div class="cb br"></div>
+
+    <div class="debrief-body">
+      <div class="tag">{{ 'GAME_OUTCOME.TAG' | translate }}</div>
+      <h1 class="headline">{{ headlineKey() | translate }}</h1>
+      <p class="summary">{{ summaryKey() | translate }}</p>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">{{ 'GAME_OUTCOME.ROLE' | translate }}</div>
+          <div class="stat-value">{{ roleKey() | translate }}</div>
+        </div>
+        @if (survivors() !== null) {
+        <div class="stat">
+          <div class="stat-label">{{ 'GAME_OUTCOME.SURVIVORS' | translate }}</div>
+          <div class="stat-value">{{ survivors() }}</div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <div class="debrief-actions">
+      <ion-button expand="block" color="primary" (click)="returnToBase()">
+        {{ 'GAME_OUTCOME.RETURN' | translate }}
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

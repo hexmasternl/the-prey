@@ -1,0 +1,145 @@
+ion-content.outcome-view {
+  --background: var(--tp-bg-void);
+}
+
+.debrief {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 54px 28px 48px;
+  overflow: hidden;
+  border: 1px solid var(--tp-line);
+  background:
+    radial-gradient(circle at 50% 30%, rgba(100, 255, 0, 0.08), transparent 70%),
+    var(--tp-bg-void);
+
+  // Result-tinted wash behind everything.
+  &.is-victory {
+    background:
+      radial-gradient(circle at 50% 30%, rgba(100, 255, 0, 0.14), transparent 70%),
+      var(--tp-bg-void);
+  }
+
+  &.is-defeat {
+    background:
+      radial-gradient(circle at 50% 30%, rgba(255, 47, 31, 0.14), transparent 70%),
+      var(--tp-bg-void);
+  }
+}
+
+// Corner brackets
+.cb {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--tp-signal);
+
+  &.tl { top: 24px;    left: 24px;   border-right: 0; border-bottom: 0; }
+  &.tr { top: 24px;    right: 24px;  border-left: 0;  border-bottom: 0; }
+  &.bl { bottom: 24px; left: 24px;   border-right: 0; border-top: 0;    }
+  &.br { bottom: 24px; right: 24px;  border-left: 0;  border-top: 0;    }
+}
+
+.is-defeat .cb {
+  border-color: var(--tp-hunter);
+}
+
+.debrief-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.tag {
+  font-family: var(--tp-body);
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--tp-signal-dim);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.headline {
+  font-family: var(--tp-head);
+  font-size: clamp(48px, 13vw, 92px);
+  line-height: 0.92;
+  letter-spacing: 1px;
+  color: var(--tp-text);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.is-victory .headline {
+  color: var(--tp-signal);
+  text-shadow: 0 0 32px var(--tp-signal-glow);
+}
+
+.is-defeat .headline {
+  color: var(--tp-hunter);
+  text-shadow: 0 0 32px rgba(255, 47, 31, 0.45);
+}
+
+.summary {
+  font-family: var(--tp-body);
+  font-size: 15px;
+  color: var(--tp-text-soft);
+  max-width: 50ch;
+  margin-top: 18px;
+  line-height: 1.6;
+}
+
+.stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.stat {
+  flex: 1;
+  max-width: 160px;
+  padding: 14px 16px;
+  border: 1px solid var(--tp-line);
+  border-left: 3px solid var(--tp-signal);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.is-defeat .stat {
+  border-left-color: var(--tp-hunter);
+}
+
+.stat-label {
+  font-family: var(--tp-body);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--tp-text-ghost);
+}
+
+.stat-value {
+  font-family: var(--tp-head);
+  font-size: 26px;
+  letter-spacing: 1px;
+  color: var(--tp-text);
+  margin-top: 6px;
+}
+
+.debrief-actions {
+  margin-top: 40px;
+
+  ion-button {
+    --border-radius: 3px;
+    font-family: var(--tp-head);
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+
+    &:hover,
+    &:active {
+      --box-shadow: 0 0 24px var(--tp-signal-glow);
+    }
+  }
+}
