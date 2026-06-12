@@ -199,3 +199,7 @@
 .track-warn {
   z-index: 11;
 }
+
+.surroundings-warning-footer {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}

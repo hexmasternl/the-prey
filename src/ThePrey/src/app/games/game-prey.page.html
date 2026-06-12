@@ -17,7 +17,7 @@
         <p>{{ 'SURROUNDINGS_WARNING.BODY_2' | translate }}</p>
         <p>{{ 'SURROUNDINGS_WARNING.BODY_3' | translate }}</p>
       </ion-content>
-      <ion-footer class="ion-padding">
+      <ion-footer class="ion-padding surroundings-warning-footer">
         <ion-item lines="none">
           <ion-checkbox slot="start" (ionChange)="warningAcknowledged.set($any($event).detail.checked)"></ion-checkbox>
           <ion-label class="ion-text-wrap">{{ 'SURROUNDINGS_WARNING.ACKNOWLEDGE' | translate }}</ion-label>
