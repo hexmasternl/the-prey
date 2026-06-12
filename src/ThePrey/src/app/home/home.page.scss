@@ -4,6 +4,9 @@ ion-content {
 
 .hero {
   position: relative;
+  // New stacking context so the negative-z map layer stays above this element's
+  // own background but below all hero content.
+  isolation: isolate;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -14,6 +17,35 @@ ion-content {
   background:
     linear-gradient(135deg, rgba(100, 255, 0, 0.1), transparent 90%),
     var(--tp-bg-void);
+
+  // Slowly panning tactical map. The layer is one tile (1600px) larger than the
+  // hero and translates by exactly one tile per cycle, so the seamless tile loops
+  // without a visible jump. transform animation keeps it GPU-composited.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: calc(100% + 1600px);
+    height: calc(100% + 1600px);
+    background: url('/assets/images/tactical-map.svg') repeat;
+    background-size: 1600px 1600px;
+    opacity: 0.55;
+    pointer-events: none;
+    animation: map-pan 240s linear infinite;
+  }
+}
+
+@keyframes map-pan {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-1600px, -1600px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero::before {
+    animation: none;
+  }
 }
 
 // Corner brackets
@@ -23,16 +55,16 @@ ion-content {
   height: 18px;
   border: 2px solid var(--tp-signal);
 
-  &.tl  { top: 12px;    left: 12px;   border-right: 0; border-bottom: 0; }
-  &.tr  { top: 12px;    right: 12px;  border-left: 0;  border-bottom: 0; }
-  &.bl  { bottom: 12px; left: 12px;   border-right: 0; border-top: 0;    }
-  &.brr { bottom: 12px; right: 12px;  border-left: 0;  border-top: 0;    }
+  &.tl  { top: 24px;    left: 24px;   border-right: 0; border-bottom: 0; }
+  &.tr  { top: 24px;    right: 24px;  border-left: 0;  border-bottom: 0; }
+  &.bl  { bottom: 24px; left: 24px;   border-right: 0; border-top: 0;    }
+  &.brr { bottom: 24px; right: 24px;  border-left: 0;  border-top: 0;    }
 }
 
 // GPS coordinates (top-right)
 .coords {
   position: absolute;
-  top: 18px;
+  top: 32px;
   right: 36px;
   font-family: var(--tp-body);
   font-size: 11px;
