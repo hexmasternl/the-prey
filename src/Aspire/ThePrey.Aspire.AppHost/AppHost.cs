@@ -39,7 +39,7 @@ var pubSub = builder.AddDaprComponent(AspireConstants.DaprComponents.PubSub, "pu
 // Azure Web PubSub fans real-time game events out to clients (one group per game). There is no local
 // emulator, so for local development supply a connection string via user secrets / configuration under
 // the "webpubsub" connection name; in the cloud it is provisioned.
-var webPubSub = builder.AddAzureWebPubSub(AspireConstants.Resources.WebPubSub);
+//var webPubSub = builder.AddAzureWebPubSub(AspireConstants.Resources.WebPubSub);
 
 var storage = builder.AddAzureStorage(AspireConstants.Resources.Storage)
     .RunAsEmulator(azurite => azurite.WithLifetime(ContainerLifetime.Persistent));
@@ -68,7 +68,7 @@ var playFieldsApi = builder.AddProject<Projects.HexMaster_ThePrey_PlayFields_Api
 var gamesApi = builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireConstants.Resources.GamesApi)
     .WithReference(gamesDatabase)
     .WithReference(rabbitmq)
-    .WithReference(webPubSub)
+  //  .WithReference(webPubSub)
     .WithDaprSidecar(opts =>
     {
         opts.WithReference(stateStore);
@@ -78,7 +78,7 @@ var gamesApi = builder.AddProject<Projects.HexMaster_ThePrey_Games_Api>(AspireCo
     .WaitFor(rabbitmq);
 
 var notificationsApi = builder.AddProject<Projects.HexMaster_ThePrey_Notifications_Api>(AspireConstants.Resources.NotificationsApi)
-    .WithReference(webPubSub)
+    //.WithReference(webPubSub)
     .WithReference(rabbitmq)
     .WithReference(gamesApi)
     .WithDaprSidecar(opts =>
