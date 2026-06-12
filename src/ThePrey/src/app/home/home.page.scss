@@ -42,6 +42,19 @@ ion-content {
   to   { transform: translate(-1600px, -1600px); }
 }
 
+@media (prefers-color-scheme: light) {
+  .hero {
+    background:
+      linear-gradient(135deg, rgba(63, 158, 0, 0.14), transparent 90%),
+      var(--tp-bg-void);
+
+    &::before {
+      opacity: 0.82;
+      mix-blend-mode: multiply;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero::before {
     animation: none;

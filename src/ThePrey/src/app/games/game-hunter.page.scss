@@ -306,6 +306,10 @@
   background: var(--bg-base);
 }
 
+.surroundings-warning-footer {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
 /* HUD panel */
 .hud-panel {
   position: absolute;
