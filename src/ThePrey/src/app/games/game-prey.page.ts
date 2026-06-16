@@ -17,8 +17,6 @@ import {
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
-import { firstValueFrom } from 'rxjs';
-import { AuthService } from '@auth0/auth0-angular';
 import { App } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
@@ -28,6 +26,7 @@ import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.s
 import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload, GameEndedPayload } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
 import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
+import { UserStateService } from '../users/user-state.service';
 
 @Component({
   selector: 'app-game-prey',
@@ -56,7 +55,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly gamesService   = inject(GamesService);
   private readonly streamService  = inject(GameStreamService);
   private readonly locationService = inject(GameLocationService);
-  private readonly auth           = inject(AuthService);
+  private readonly userState      = inject(UserStateService);
 
   readonly showSurroundingsWarning = signal(false);
   readonly warningAcknowledged = signal(false);
@@ -127,8 +126,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
     this.checkSurroundingsWarning();
 
-    const user = await firstValueFrom(this.auth.user$);
-    this.currentUserId = user?.sub ?? null;
+    // Participant blips are keyed by the backend's internal user id (User.Id), not the
+    // Auth0 `sub`. Use the same identity source as the lobby so our own blip is recognised
+    // as "self" and skipped — otherwise we'd be plotted as an orange "other prey".
+    this.currentUserId = this.userState.profile()?.userId ?? null;
 
     this.initMap();
 

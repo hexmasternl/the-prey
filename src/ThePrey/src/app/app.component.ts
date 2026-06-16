@@ -36,14 +36,21 @@ export class AppComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    // Once Auth0 is ready and the user is authenticated, trigger the global
-    // user-profile sync (POST /users + IndexedDB cache).
-    this.authService.isLoading$.pipe(
-      filter(loading => !loading),
+    // Once the user is authenticated, trigger the global user-profile sync
+    // (POST /users + IndexedDB cache). We key off the first `true` from
+    // isAuthenticated$ — on a fresh login the session is only established after
+    // the redirect callback completes (later than isLoading$ flipping to false,
+    // and on native much later via the deep-link handler). Filtering claims for
+    // non-null BEFORE take(1) is essential: at the moment Auth0 finishes loading
+    // the user may still be unauthenticated, so idTokenClaims$ emits null first;
+    // taking that null would complete the stream and the real claims would never
+    // reach init(), leaving the home page stuck on its loading spinner.
+    this.authService.isAuthenticated$.pipe(
+      filter(authenticated => authenticated),
       take(1),
       switchMap(() => this.authService.idTokenClaims$),
-      take(1),
       filter((claims): claims is IdToken => claims != null),
+      take(1),
     ).subscribe(claims => {
       this.userState.init(claims);
     });
