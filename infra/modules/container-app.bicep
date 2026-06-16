@@ -26,7 +26,7 @@ param additionalEnvVars array = []
 param corsAllowedOrigins string = 'http://localhost:8100,https://localhost,capacitor://localhost,https://theprey.nl,https://www.theprey.nl'
 
 @description('Minimum replica count')
-param minReplicas int = 0
+param minReplicas int = 1
 
 @description('Maximum replica count')
 param maxReplicas int = 2
