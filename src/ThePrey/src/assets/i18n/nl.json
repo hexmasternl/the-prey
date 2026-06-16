@@ -124,7 +124,10 @@
     "SELECT_PLAYFIELD": "KIES",
     "CREATE": "OPERATIE STARTEN",
     "CREATING": "DEPLOYING...",
-    "ERROR_CREATE": "OPERATIE MISLUKT — CONTROLEER JE SIGNAAL EN PROBEER OPNIEUW"
+    "ERROR_CREATE": "OPERATIE MISLUKT — CONTROLEER JE SIGNAAL EN PROBEER OPNIEUW",
+    "INTRO_HEADER": "ZO MAAK JE EEN SPEL",
+    "INTRO_MESSAGE": "Configureer je missie-parameters en start de operatie. Kies een operationeel gebied (een speelveld) waar het spel zich afspeelt, stel de missionduur in, en bepaal hoelang jagers wachten voordat ze worden vrijgelaten. Zodra je de operatie start, sluiten andere spelers aan in je lobby — als iedereen klaar is, begint de jacht.",
+    "INTRO_OK": "BEGREPEN"
   },
   "GAME_LOBBY": {
     "TAG": "// LOBBY",

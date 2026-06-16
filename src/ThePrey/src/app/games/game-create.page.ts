@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
+  AlertController,
   IonButton,
   IonButtons,
   IonContent,
@@ -12,6 +13,7 @@ import {
   IonToolbar,
   ModalController,
   ToastController,
+  ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBack } from 'ionicons/icons';
@@ -20,6 +22,8 @@ import { PlayfieldSelectionPage } from '../playfields/playfield-selection/playfi
 import { PlayFieldRecord } from '../playfields/playfield.model';
 import { GamesService } from './games.service';
 import { UserStateService } from '../users/user-state.service';
+
+const GAME_CREATE_INTRO_SEEN_KEY = 'game-create-intro-seen';
 
 @Component({
   selector: 'app-game-create',
@@ -38,16 +42,42 @@ import { UserStateService } from '../users/user-state.service';
     IonSpinner,
   ],
 })
-export class GameCreatePage {
+export class GameCreatePage implements ViewWillEnter {
   private readonly router = inject(Router);
   private readonly gamesService = inject(GamesService);
   private readonly userState = inject(UserStateService);
   private readonly modalCtrl = inject(ModalController);
   private readonly toastCtrl = inject(ToastController);
+  private readonly alertCtrl = inject(AlertController);
   private readonly translate = inject(TranslateService);
 
   constructor() {
     addIcons({ chevronBack });
+  }
+
+  ionViewWillEnter(): void {
+    this.maybeShowIntro();
+  }
+
+  private async maybeShowIntro(): Promise<void> {
+    if (localStorage.getItem(GAME_CREATE_INTRO_SEEN_KEY)) {
+      return;
+    }
+
+    const [header, message, ok] = await Promise.all([
+      this.translate.get('GAME_CREATE.INTRO_HEADER').toPromise(),
+      this.translate.get('GAME_CREATE.INTRO_MESSAGE').toPromise(),
+      this.translate.get('GAME_CREATE.INTRO_OK').toPromise(),
+    ]);
+
+    const alert = await this.alertCtrl.create({
+      header,
+      message,
+      buttons: [{ text: ok, role: 'cancel' }],
+    });
+    await alert.present();
+
+    localStorage.setItem(GAME_CREATE_INTRO_SEEN_KEY, 'true');
   }
 
   readonly gameDuration = signal(60);

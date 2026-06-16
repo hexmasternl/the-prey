@@ -124,7 +124,10 @@
     "SELECT_PLAYFIELD": "SELECT",
     "CREATE": "DEPLOY OPERATION",
     "CREATING": "DEPLOYING...",
-    "ERROR_CREATE": "OPERATION FAILED — CHECK YOUR SIGNAL AND RETRY"
+    "ERROR_CREATE": "OPERATION FAILED — CHECK YOUR SIGNAL AND RETRY",
+    "INTRO_HEADER": "HOW TO CREATE A GAME",
+    "INTRO_MESSAGE": "Configure your mission parameters, then deploy. Pick an operational area (a playfield) where the game takes place, set the mission duration, and decide how long hunters wait before they're released. Once you deploy, other players join your lobby — when everyone's ready, the hunt begins.",
+    "INTRO_OK": "ROGER"
   },
   "GAME_LOBBY": {
     "TAG": "// LOBBY",
