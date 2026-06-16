@@ -35,6 +35,8 @@ import { PlayfieldsService } from './playfields.service';
 
 type Tab = 'private' | 'public';
 
+const PLAYFIELD_INTRO_SEEN_KEY = 'playfields-intro-seen';
+
 @Component({
   selector: 'app-playfields-list',
   templateUrl: 'playfields-list.page.html',
@@ -106,7 +108,29 @@ export class PlayfieldsListPage implements ViewWillEnter {
   }
 
   ionViewWillEnter(): void {
+    this.maybeShowIntro();
     this.loadLocalThenSync();
+  }
+
+  private async maybeShowIntro(): Promise<void> {
+    if (localStorage.getItem(PLAYFIELD_INTRO_SEEN_KEY)) {
+      return;
+    }
+
+    const [header, message, ok] = await Promise.all([
+      this.translate.get('PLAYFIELD_LIST.INTRO_HEADER').toPromise(),
+      this.translate.get('PLAYFIELD_LIST.INTRO_MESSAGE').toPromise(),
+      this.translate.get('PLAYFIELD_LIST.INTRO_OK').toPromise(),
+    ]);
+
+    const alert = await this.alertCtrl.create({
+      header,
+      message,
+      buttons: [{ text: ok, role: 'cancel' }],
+    });
+    await alert.present();
+
+    localStorage.setItem(PLAYFIELD_INTRO_SEEN_KEY, 'true');
   }
 
   private async loadLocalThenSync(): Promise<void> {
