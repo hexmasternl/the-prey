@@ -206,7 +206,7 @@ ion-header ion-toolbar {
 // ── Config block (owner edits; participants read) ────────────
 .config-block {
   position: relative;
-  border: 1px solid rgba(57, 64, 47, 0.8);
+  border: 1px solid color-mix(in srgb, var(--tp-line) 80%, transparent);
 }
 
 .config-field {
@@ -216,7 +216,7 @@ ion-header ion-toolbar {
   padding: 10px 14px 10px 16px;
 
   & + .config-field {
-    border-top: 1px solid rgba(57, 64, 47, 0.55);
+    border-top: 1px solid color-mix(in srgb, var(--tp-line) 55%, transparent);
   }
 }
 
@@ -274,8 +274,8 @@ ion-header ion-toolbar {
 // ── Operatives block ─────────────────────────────────────────
 .operatives-block {
   position: relative;
-  background: rgba(12, 14, 12, 0.85);
-  border: 1px solid rgba(57, 64, 47, 0.8);
+  background: color-mix(in srgb, var(--tp-bg-surface) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tp-line) 80%, transparent);
 }
 
 .operative-row {
@@ -285,7 +285,7 @@ ion-header ion-toolbar {
   padding: 10px 10px 10px 16px;
 
   & + .operative-row {
-    border-top: 1px solid rgba(57, 64, 47, 0.55);
+    border-top: 1px solid color-mix(in srgb, var(--tp-line) 55%, transparent);
   }
 
   &--clickable {

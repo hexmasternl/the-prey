@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { IdToken } from '@auth0/auth0-angular';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { LanguageService } from '../i18n/language.service';
@@ -74,10 +74,18 @@ export class UserStateService {
     };
 
     firstValueFrom(
-      this.http.post<UserDto>(`${environment.apiUrl}/users`, request),
+      this.http.post<UserDto>(`${environment.apiUrl}/users`, request).pipe(
+        // Guarantee the sync settles. On native a stuck token acquisition or a
+        // hung request would otherwise leave isSyncing true forever, freezing the
+        // app on its boot spinner with no way to recover. After the timeout we
+        // fall through to catch, which surfaces the retry UI instead.
+        timeout(15000),
+      ),
     )
       .then(dto => this.applyServerUser(dto))
-      .catch(() => {
+      .catch((error: unknown) => {
+        // Log the cause so an otherwise-silent hang/failure is diagnosable.
+        console.error('User profile sync failed', error);
         // If there is no cached profile to fall back on, surface the error to the UI
         if (!this._profile()) {
           this.syncFailed.set(true);
