@@ -3,6 +3,10 @@ name: Android Release
 on:
   push:
     tags: ['v*']            # e.g. push tag v1.4.0 to ship
+    branches: [main]        # auto-run on app changes merged to main
+    paths:
+      - 'src/ThePrey/**'
+      - '.github/workflows/android-release.yml'
   workflow_dispatch:        # or run manually and choose a track
     inputs:
       track:
