@@ -135,6 +135,18 @@
                 href="https://theprey.nl/nl/roles/prey/"
                 />
   </url><url>
+    <loc>https://theprey.nl/en/privacy/</loc>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://theprey.nl/en/privacy/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="nl"
+                href="https://theprey.nl/nl/privacy/"
+                />
+  </url><url>
     <loc>https://theprey.nl/en/roles/</loc>
     <xhtml:link
                 rel="alternate"

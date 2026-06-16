@@ -111,6 +111,18 @@
                 href="https://theprey.nl/nl/how-to/understand-your-role/"
                 />
   </url><url>
+    <loc>https://theprey.nl/nl/privacy/</loc>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://theprey.nl/en/privacy/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="nl"
+                href="https://theprey.nl/nl/privacy/"
+                />
+  </url><url>
     <loc>https://theprey.nl/nl/roles/prey/</loc>
     <xhtml:link
                 rel="alternate"

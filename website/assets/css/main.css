@@ -210,6 +210,14 @@ body::after {
   color: var(--signal-dim);
   text-transform: uppercase;
 }
+.site-footer .footer-link {
+  color: var(--signal-dim);
+  text-decoration: none;
+  margin-left: 10px;
+}
+.site-footer .footer-link:hover {
+  color: var(--signal);
+}
 
 /* ---- TYPOGRAPHY ---- */
 h1, h2, h3, h4 { font-family: var(--head); line-height: 1.1; }
