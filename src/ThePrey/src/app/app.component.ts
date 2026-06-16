@@ -6,7 +6,7 @@ import { AuthService, IdToken } from '@auth0/auth0-angular';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
-import { filter, mergeMap, switchMap, take } from 'rxjs/operators';
+import { filter, mergeMap, pairwise, switchMap, take } from 'rxjs/operators';
 import { nativeCallbackUri } from './auth.utils';
 import { UserStateService } from './users/user-state.service';
 
@@ -36,23 +36,40 @@ export class AppComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    // Once the user is authenticated, trigger the global user-profile sync
-    // (POST /users + IndexedDB cache). We key off the first `true` from
-    // isAuthenticated$ — on a fresh login the session is only established after
-    // the redirect callback completes (later than isLoading$ flipping to false,
-    // and on native much later via the deep-link handler). Filtering claims for
-    // non-null BEFORE take(1) is essential: at the moment Auth0 finishes loading
-    // the user may still be unauthenticated, so idTokenClaims$ emits null first;
-    // taking that null would complete the stream and the real claims would never
-    // reach init(), leaving the home page stuck on its loading spinner.
+    // Trigger the global user-profile sync (POST /users + IndexedDB cache)
+    // whenever the user becomes authenticated. AppComponent is the root
+    // component and lives for the whole app process, so we must NOT take(1) on
+    // the outer stream: after a logout→login round-trip (the session ends,
+    // isAuthenticated$ flips to false, then true again on the next login — on
+    // native this happens in the SAME process with no page reload) a one-shot
+    // subscription would never re-run, leaving the home page stuck on its
+    // spinner with a null profile (cleared on logout). Re-subscribing per
+    // authentication, and taking the first non-null claims INSIDE switchMap,
+    // re-syncs on every login while still calling init() exactly once per login.
+    // The inner filter(non-null) is essential: at the moment Auth0 finishes
+    // loading idTokenClaims$ may emit null first; taking that null would
+    // complete the inner stream before the real claims arrive.
     this.authService.isAuthenticated$.pipe(
       filter(authenticated => authenticated),
-      take(1),
-      switchMap(() => this.authService.idTokenClaims$),
-      filter((claims): claims is IdToken => claims != null),
-      take(1),
+      switchMap(() => this.authService.idTokenClaims$.pipe(
+        filter((claims): claims is IdToken => claims != null),
+        take(1),
+      )),
     ).subscribe(claims => {
       this.userState.init(claims);
+    });
+
+    // Send the user back to the login page whenever the session ends. On logout
+    // the Auth0 SDK flips isAuthenticated$ to false; without an explicit redirect
+    // the (now unauthenticated) user is left on the home page, where the profile
+    // is null and the page hangs on its loading spinner forever. pairwise() limits
+    // this to a real authenticated → unauthenticated transition, so the initial
+    // `false` at startup (before login) and the join-deep-link flow are untouched.
+    this.authService.isAuthenticated$.pipe(
+      pairwise(),
+      filter(([wasAuthenticated, isAuthenticated]) => wasAuthenticated && !isAuthenticated),
+    ).subscribe(() => {
+      this.router.navigateByUrl('/login', { replaceUrl: true });
     });
 
     if (!Capacitor.isNativePlatform()) return;
