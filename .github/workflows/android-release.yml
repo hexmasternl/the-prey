@@ -62,7 +62,7 @@ jobs:
 
       - name: Build web assets
         working-directory: src/ThePrey
-        run: npx ionic build --prod
+        run: npm run build -- --configuration production
 
       - name: Sync Capacitor
         working-directory: src/ThePrey
