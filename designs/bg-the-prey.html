@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>THE PREY // Tactical Background 1920x1080</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#0c0e0c;
+    --bg-base:#181b17;
+    --signal:#64ff00;
+    --signal-dim:#3f9e00;
+    --signal-deep:#1f4d00;
+    --signal-glow:rgba(100,255,0,.35);
+    --info:#13e0c8;
+    --caution:#ffb300;
+    --hunter:#ff2f1f;
+    --text-ghost:#5a6553;
+    --text-soft:#8c9a83;
+    --head:'Special Elite','Courier New',monospace;
+    --body:'PT Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden}
+
+  .frame{
+    position:relative;width:1920px;height:1080px;
+    /* theme-color gradient base: warm phosphor glow top-right, faint teal bottom-left, over dead grey */
+    background:
+      radial-gradient(1500px 1000px at 82% -8%, rgba(100,255,0,.10), transparent 58%),
+      radial-gradient(1300px 1000px at -8% 112%, rgba(19,224,200,.055), transparent 55%),
+      radial-gradient(1100px 900px at 50% 130%, rgba(31,77,0,.30), transparent 60%),
+      linear-gradient(160deg, #1c2018 0%, #181b17 38%, #121510 72%, #0c0e0c 100%);
+    font-family:var(--body);overflow:hidden;
+  }
+
+  /* deep vignette so edges recede — keeps it usable as a background */
+  .vignette{position:absolute;inset:0;pointer-events:none;z-index:50;
+    background:radial-gradient(120% 120% at 50% 45%, transparent 55%, rgba(6,8,6,.55) 88%, rgba(6,8,6,.85) 100%);}
+
+  /* very subtle scanlines — low opacity so it isn't noisy */
+  .scan{position:absolute;inset:0;pointer-events:none;z-index:40;opacity:.22;
+    background:repeating-linear-gradient(to bottom,
+      rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px,
+      rgba(0,0,0,.5) 3px, rgba(0,0,0,0) 4px);
+    mix-blend-mode:multiply;}
+
+  .map{position:absolute;inset:0;z-index:10}
+
+  /* faint corner chrome / telemetry text */
+  .chrome{position:absolute;z-index:30;color:var(--text-ghost);
+    font-size:13px;letter-spacing:2px;text-transform:uppercase}
+  .chrome.tl{top:34px;left:42px}
+  .chrome.tr{top:34px;right:42px;text-align:right}
+  .chrome.bl{bottom:34px;left:42px}
+  .chrome.br{bottom:34px;right:42px;text-align:right}
+  .chrome .lo{color:var(--signal-dim)}
+  .chrome .sig{color:var(--signal);text-shadow:0 0 10px var(--signal-glow)}
+  .chrome small{display:block;font-size:11px;letter-spacing:2px;color:#3a423300;color:var(--text-ghost);margin-top:5px;opacity:.7}
+
+  /* faint corner brackets framing the field */
+  .br{position:absolute;width:34px;height:34px;border:2px solid var(--signal-deep);z-index:30;opacity:.8}
+  .br.tl{top:26px;left:30px;border-right:0;border-bottom:0}
+  .br.tr{top:26px;right:30px;border-left:0;border-bottom:0}
+  .br.bl{bottom:26px;left:30px;border-right:0;border-top:0}
+  .br.brr{bottom:26px;right:30px;border-left:0;border-top:0}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <svg class="map" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- soft glow for active markers -->
+      <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <radialGradient id="playfill" cx="50%" cy="42%" r="70%">
+        <stop offset="0%" stop-color="rgba(100,255,0,0.10)"/>
+        <stop offset="60%" stop-color="rgba(100,255,0,0.04)"/>
+        <stop offset="100%" stop-color="rgba(100,255,0,0.0)"/>
+      </radialGradient>
+      <linearGradient id="roadfade" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#39402f" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#39402f" stop-opacity="0.18"/>
+      </linearGradient>
+    </defs>
+
+    <!-- ===== fine grid (Signal Deep, recedes) ===== -->
+    <g stroke="#1f4d00" stroke-width="1" opacity="0.18">
+      <!-- minor grid every 60px -->
+      <g>
+        <line x1="60"   y1="0" x2="60"   y2="1080"/><line x1="120"  y1="0" x2="120"  y2="1080"/>
+        <line x1="180"  y1="0" x2="180"  y2="1080"/><line x1="240"  y1="0" x2="240"  y2="1080"/>
+        <line x1="300"  y1="0" x2="300"  y2="1080"/><line x1="360"  y1="0" x2="360"  y2="1080"/>
+        <line x1="420"  y1="0" x2="420"  y2="1080"/><line x1="480"  y1="0" x2="480"  y2="1080"/>
+        <line x1="540"  y1="0" x2="540"  y2="1080"/><line x1="600"  y1="0" x2="600"  y2="1080"/>
+        <line x1="660"  y1="0" x2="660"  y2="1080"/><line x1="720"  y1="0" x2="720"  y2="1080"/>
+        <line x1="780"  y1="0" x2="780"  y2="1080"/><line x1="840"  y1="0" x2="840"  y2="1080"/>
+        <line x1="900"  y1="0" x2="900"  y2="1080"/><line x1="960"  y1="0" x2="960"  y2="1080"/>
+        <line x1="1020" y1="0" x2="1020" y2="1080"/><line x1="1080" y1="0" x2="1080" y2="1080"/>
+        <line x1="1140" y1="0" x2="1140" y2="1080"/><line x1="1200" y1="0" x2="1200" y2="1080"/>
+        <line x1="1260" y1="0" x2="1260" y2="1080"/><line x1="1320" y1="0" x2="1320" y2="1080"/>
+        <line x1="1380" y1="0" x2="1380" y2="1080"/><line x1="1440" y1="0" x2="1440" y2="1080"/>
+        <line x1="1500" y1="0" x2="1500" y2="1080"/><line x1="1560" y1="0" x2="1560" y2="1080"/>
+        <line x1="1620" y1="0" x2="1620" y2="1080"/><line x1="1680" y1="0" x2="1680" y2="1080"/>
+        <line x1="1740" y1="0" x2="1740" y2="1080"/><line x1="1800" y1="0" x2="1800" y2="1080"/>
+        <line x1="1860" y1="0" x2="1860" y2="1080"/>
+        <line x1="0" y1="60"   x2="1920" y2="60"/><line x1="0" y1="120"  x2="1920" y2="120"/>
+        <line x1="0" y1="180"  x2="1920" y2="180"/><line x1="0" y1="240"  x2="1920" y2="240"/>
+        <line x1="0" y1="300"  x2="1920" y2="300"/><line x1="0" y1="360"  x2="1920" y2="360"/>
+        <line x1="0" y1="420"  x2="1920" y2="420"/><line x1="0" y1="480"  x2="1920" y2="480"/>
+        <line x1="0" y1="540"  x2="1920" y2="540"/><line x1="0" y1="600"  x2="1920" y2="600"/>
+        <line x1="0" y1="660"  x2="1920" y2="660"/><line x1="0" y1="720"  x2="1920" y2="720"/>
+        <line x1="0" y1="780"  x2="1920" y2="780"/><line x1="0" y1="840"  x2="1920" y2="840"/>
+        <line x1="0" y1="900"  x2="1920" y2="900"/><line x1="0" y1="960"  x2="1920" y2="960"/>
+        <line x1="0" y1="1020" x2="1920" y2="1020"/>
+      </g>
+    </g>
+    <!-- major grid every 240px, slightly brighter -->
+    <g stroke="#1f4d00" stroke-width="1.2" opacity="0.32">
+      <line x1="240" y1="0" x2="240" y2="1080"/><line x1="480" y1="0" x2="480" y2="1080"/>
+      <line x1="720" y1="0" x2="720" y2="1080"/><line x1="960" y1="0" x2="960" y2="1080"/>
+      <line x1="1200" y1="0" x2="1200" y2="1080"/><line x1="1440" y1="0" x2="1440" y2="1080"/>
+      <line x1="1680" y1="0" x2="1680" y2="1080"/>
+      <line x1="0" y1="240" x2="1920" y2="240"/><line x1="0" y1="480" x2="1920" y2="480"/>
+      <line x1="0" y1="720" x2="1920" y2="720"/><line x1="0" y1="960" x2="1920" y2="960"/>
+    </g>
+
+    <!-- ===== abstract street network (muted hairlines) ===== -->
+    <g stroke="url(#roadfade)" fill="none" stroke-linecap="round">
+      <path d="M-20,330 C 300,300 520,420 760,400 1040,376 1300,470 1620,430 1760,414 1940,440 1940,440" stroke-width="6" opacity="0.5"/>
+      <path d="M180,-20 C 220,260 360,520 520,720 660,892 700,1100 700,1100" stroke-width="5" opacity="0.4"/>
+      <path d="M1320,-20 C 1300,220 1180,440 1240,700 1290,910 1200,1100 1200,1100" stroke-width="5" opacity="0.4"/>
+      <path d="M-20,820 C 360,800 560,700 880,740 1180,778 1420,700 1940,760" stroke-width="4" opacity="0.38"/>
+      <path d="M520,720 C 760,700 980,560 1240,620" stroke-width="3" opacity="0.3"/>
+      <path d="M760,400 L 700,1100" stroke-width="2" opacity="0.22" stroke-dasharray="2 8"/>
+      <path d="M-20,560 C 280,540 420,600 760,560 1080,522 1300,600 1940,556" stroke-width="3" opacity="0.28"/>
+    </g>
+
+    <!-- ===== contour rings (topographic, faint) ===== -->
+    <g fill="none" stroke="#3f9e00" opacity="0.12">
+      <ellipse cx="430" cy="760" rx="120" ry="78"  stroke-width="1.2"/>
+      <ellipse cx="430" cy="760" rx="190" ry="128" stroke-width="1.2"/>
+      <ellipse cx="430" cy="760" rx="270" ry="184" stroke-width="1.2"/>
+      <ellipse cx="1530" cy="270" rx="90"  ry="70"  stroke-width="1.2"/>
+      <ellipse cx="1530" cy="270" rx="150" ry="116" stroke-width="1.2"/>
+      <ellipse cx="1530" cy="270" rx="220" ry="170" stroke-width="1.2"/>
+    </g>
+
+    <!-- ===== PLAYFIELD polygon (the hero tactical element) ===== -->
+    <g>
+      <polygon points="612,300 980,232 1320,330 1430,560 1300,800 940,872 660,760 540,520"
+               fill="url(#playfill)"
+               stroke="#64ff00" stroke-width="2.5" stroke-opacity="0.85"
+               stroke-linejoin="round" filter="url(#glow)"/>
+      <!-- dashed inner safety margin -->
+      <polygon points="660,360 960,300 1280,386 1372,568 1258,766 940,824 700,724 600,520"
+               fill="none" stroke="#64ff00" stroke-width="1.2" stroke-opacity="0.4"
+               stroke-dasharray="6 10" stroke-linejoin="round"/>
+      <!-- vertex nodes -->
+      <g fill="#64ff00">
+        <circle cx="612" cy="300" r="4.5"/><circle cx="980" cy="232" r="4.5"/>
+        <circle cx="1320" cy="330" r="4.5"/><circle cx="1430" cy="560" r="4.5"/>
+        <circle cx="1300" cy="800" r="4.5"/><circle cx="940" cy="872" r="4.5"/>
+        <circle cx="660" cy="760" r="4.5"/><circle cx="540" cy="520" r="4.5"/>
+      </g>
+      <g fill="none" stroke="#64ff00" stroke-width="1" stroke-opacity="0.5">
+        <circle cx="612" cy="300" r="9"/><circle cx="1320" cy="330" r="9"/>
+        <circle cx="1300" cy="800" r="9"/><circle cx="540" cy="520" r="9"/>
+      </g>
+    </g>
+
+    <!-- ===== reticle markers / waypoints ===== -->
+    <!-- central friendly reticle (you) -->
+    <g transform="translate(958,548)" filter="url(#glow)">
+      <circle r="22" fill="none" stroke="#64ff00" stroke-width="2" stroke-opacity="0.9"/>
+      <circle r="34" fill="none" stroke="#64ff00" stroke-width="1" stroke-opacity="0.35"/>
+      <line x1="0" y1="-44" x2="0" y2="-26" stroke="#64ff00" stroke-width="2"/>
+      <line x1="0" y1="26"  x2="0" y2="44"  stroke="#64ff00" stroke-width="2"/>
+      <line x1="-44" y1="0" x2="-26" y2="0" stroke="#64ff00" stroke-width="2"/>
+      <line x1="26" y1="0"  x2="44" y2="0"  stroke="#64ff00" stroke-width="2"/>
+      <circle r="3.5" fill="#64ff00"/>
+    </g>
+
+    <!-- info waypoint (teal) -->
+    <g transform="translate(1180,420)" opacity="0.9">
+      <path d="M0,-14 L12,8 L-12,8 Z" fill="none" stroke="#13e0c8" stroke-width="1.6"/>
+      <circle r="2.5" fill="#13e0c8"/>
+    </g>
+    <!-- caution / contested zone marker (amber) -->
+    <g transform="translate(760,690)" opacity="0.85">
+      <rect x="-9" y="-9" width="18" height="18" fill="none" stroke="#ffb300" stroke-width="1.6" transform="rotate(45)"/>
+      <circle r="2.5" fill="#ffb300"/>
+    </g>
+    <!-- distant hunter ghost mark (very faint red, low emphasis) -->
+    <g transform="translate(1300,250)" opacity="0.55">
+      <circle r="7" fill="none" stroke="#ff2f1f" stroke-width="1.4"/>
+      <line x1="-11" y1="0" x2="-4" y2="0" stroke="#ff2f1f" stroke-width="1.4"/>
+      <line x1="4" y1="0" x2="11" y2="0" stroke="#ff2f1f" stroke-width="1.4"/>
+    </g>
+
+    <!-- bearing ticks around central reticle (compass feel), faint -->
+    <g stroke="#3f9e00" stroke-width="1" opacity="0.22" fill="none">
+      <circle cx="958" cy="548" r="120" stroke-dasharray="2 22"/>
+      <circle cx="958" cy="548" r="180" stroke-dasharray="2 34"/>
+    </g>
+  </svg>
+
+  <!-- corner telemetry chrome -->
+  <div class="chrome tl"><span class="lo">PLAYFIELD //</span> SECTOR 04<small>POLY · 8 VERTS · LOCKED</small></div>
+  <div class="chrome tr">52.0705&deg; N // 4.3007&deg; E<small><span class="sig">SIGNAL LOCK</span> · GPS FIX</small></div>
+  <div class="chrome bl">THE PREY<small>OPERATIONS GRID v1.0</small></div>
+  <div class="chrome br"><span class="lo">SCAN //</span> ACTIVE<small>SWEEP 3.4s · 03 TRACKS</small></div>
+
+  <span class="br tl"></span><span class="br tr"></span><span class="br bl"></span><span class="br brr"></span>
+
+  <div class="scan"></div>
+  <div class="vignette"></div>
+</div>
+</body>
+</html>
