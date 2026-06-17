@@ -22,6 +22,7 @@ import { Geolocation, WatchPositionCallback } from '@capacitor/geolocation';
 import { AuthService, IdToken } from '@auth0/auth0-angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, take } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 import { getCallbackUri } from '../auth.utils';
 import { UserStateService } from '../users/user-state.service';
 import { GameStatusDto, GamesService } from '../games/games.service';
@@ -50,6 +51,13 @@ export class HomePage implements OnInit, OnDestroy {
    * once a position fix arrives (the user granted permission after all).
    */
   readonly locationDenied = signal(false);
+
+  /**
+   * App version shown in the hero tag. Seeded with the build-time fallback, then
+   * replaced at runtime by the real native versionName (the GitVersion semVer baked
+   * into the bundle) when running on a native platform.
+   */
+  readonly appVersion = signal<string>(environment.version);
 
   readonly activeGame = signal<GameStatusDto | null>(null);
   readonly activeGameId = computed(() => this.activeGame()?.gameId ?? null);
@@ -83,6 +91,25 @@ export class HomePage implements OnInit, OnDestroy {
     // renders the profile is already available.
     this.checkActiveGame();
     this.startLocationWatch();
+    this.loadAppVersion();
+  }
+
+  /**
+   * Read the real app version from the native bundle. App.getInfo() is only
+   * implemented on iOS/Android; on the web it throws, so we keep the fallback.
+   */
+  private async loadAppVersion(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+    try {
+      const info = await App.getInfo();
+      if (info.version) {
+        this.appVersion.set(info.version);
+      }
+    } catch {
+      // Version info unavailable — keep the build-time fallback.
+    }
   }
 
   ngOnDestroy(): void {

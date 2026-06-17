@@ -7,7 +7,7 @@
     "START_HUNT": "START HUNT"
   },
   "HOME": {
-    "TAG": "Operations Field Manual — v1.0",
+    "TAG": "Operational Field Manual - v{{version}}",
     "TITLE_LINE1": "STAY",
     "TITLE_LINE1_EM": "HIDDEN.",
     "TITLE_LINE2": "HUNT",

@@ -114,6 +114,8 @@ export class GameCreatePage implements ViewWillEnter {
         finalStageDuration: this.endgameDuration(),
         defaultLocationInterval: this.locationInterval() * 60,
         finalLocationInterval: this.endgameInterval() * 60,
+        enablePreyBoundaryPenalties: true,
+        enableHunterBoundaryPenalty: true,
       });
       await this.router.navigate(['/games', game.id, 'lobby']);
     } catch {

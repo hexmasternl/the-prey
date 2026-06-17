@@ -7,7 +7,7 @@
     "START_HUNT": "START DE JACHT"
   },
   "HOME": {
-    "TAG": "Operationeel Veldhandboek — v1.0",
+    "TAG": "Operationeel Veldhandboek - v{{version}}",
     "TITLE_LINE1": "BLIJF",
     "TITLE_LINE1_EM": "VERBORGEN.",
     "TITLE_LINE2": "JAAG",
