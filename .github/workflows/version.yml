@@ -1,0 +1,170 @@
+name: Version
+
+# Reusable workflow: runs GitVersion once and exposes the computed version in
+# several formats, and prints them to the console. Call it as a job:
+#
+#   jobs:
+#     version:
+#       name: Version
+#       uses: ./.github/workflows/version.yml
+#
+# then read the values in dependent jobs, e.g.
+#   ${{ needs.version.outputs.semVer }}   ${{ needs.version.outputs.tag }}
+
+on:
+  workflow_call:
+    inputs:
+      fetch-depth:
+        description: 'Checkout depth; GitVersion needs full history (0 = all).'
+        type: number
+        required: false
+        default: 0
+    outputs:
+      tag:
+        description: 'Git tag form: v<semVer>, e.g. v1.4.0'
+        value: ${{ jobs.gitversion.outputs.tag }}
+      semVer:
+        description: 'SemVer 2.0, e.g. 1.4.0 or 1.5.0-beta.1'
+        value: ${{ jobs.gitversion.outputs.semVer }}
+      fullSemVer:
+        description: 'SemVer including build metadata, e.g. 1.5.0-beta.1+5'
+        value: ${{ jobs.gitversion.outputs.fullSemVer }}
+      majorMinorPatch:
+        description: 'Plain numeric version, e.g. 1.4.0'
+        value: ${{ jobs.gitversion.outputs.majorMinorPatch }}
+      major:
+        description: 'Major component'
+        value: ${{ jobs.gitversion.outputs.major }}
+      minor:
+        description: 'Minor component'
+        value: ${{ jobs.gitversion.outputs.minor }}
+      patch:
+        description: 'Patch component'
+        value: ${{ jobs.gitversion.outputs.patch }}
+      preReleaseTag:
+        description: 'Pre-release tag, e.g. beta.1 (empty on a stable release)'
+        value: ${{ jobs.gitversion.outputs.preReleaseTag }}
+      preReleaseLabel:
+        description: 'Pre-release label, e.g. beta'
+        value: ${{ jobs.gitversion.outputs.preReleaseLabel }}
+      assemblySemVer:
+        description: '.NET AssemblyVersion, e.g. 1.4.0.0'
+        value: ${{ jobs.gitversion.outputs.assemblySemVer }}
+      assemblySemFileVer:
+        description: '.NET AssemblyFileVersion, e.g. 1.4.0.0'
+        value: ${{ jobs.gitversion.outputs.assemblySemFileVer }}
+      informationalVersion:
+        description: 'Full informational version including metadata + sha'
+        value: ${{ jobs.gitversion.outputs.informationalVersion }}
+      nuGetVersion:
+        description: 'NuGet-compatible version string'
+        value: ${{ jobs.gitversion.outputs.nuGetVersion }}
+      branchName:
+        description: 'Source branch name'
+        value: ${{ jobs.gitversion.outputs.branchName }}
+      escapedBranchName:
+        description: 'Branch name safe for use in identifiers/tags'
+        value: ${{ jobs.gitversion.outputs.escapedBranchName }}
+      sha:
+        description: 'Full commit SHA'
+        value: ${{ jobs.gitversion.outputs.sha }}
+      shortSha:
+        description: 'Short commit SHA'
+        value: ${{ jobs.gitversion.outputs.shortSha }}
+
+jobs:
+  gitversion:
+    name: GitVersion
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      semVer: ${{ steps.gitversion.outputs.semVer }}
+      fullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}
+      majorMinorPatch: ${{ steps.gitversion.outputs.majorMinorPatch }}
+      major: ${{ steps.gitversion.outputs.major }}
+      minor: ${{ steps.gitversion.outputs.minor }}
+      patch: ${{ steps.gitversion.outputs.patch }}
+      preReleaseTag: ${{ steps.gitversion.outputs.preReleaseTag }}
+      preReleaseLabel: ${{ steps.gitversion.outputs.preReleaseLabel }}
+      assemblySemVer: ${{ steps.gitversion.outputs.assemblySemVer }}
+      assemblySemFileVer: ${{ steps.gitversion.outputs.assemblySemFileVer }}
+      informationalVersion: ${{ steps.gitversion.outputs.informationalVersion }}
+      nuGetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}
+      branchName: ${{ steps.gitversion.outputs.branchName }}
+      escapedBranchName: ${{ steps.gitversion.outputs.escapedBranchName }}
+      sha: ${{ steps.gitversion.outputs.sha }}
+      shortSha: ${{ steps.gitversion.outputs.shortSha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: ${{ inputs.fetch-depth }}
+
+      - name: Setup GitVersion
+        uses: gittools/actions/gitversion/setup@v4.5.0
+        with:
+          versionSpec: '6.4.x'
+
+      - name: Execute GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v4.5.0
+
+      - name: Compose tag
+        id: tag
+        run: echo "tag=v${{ steps.gitversion.outputs.semVer }}" >> "$GITHUB_OUTPUT"
+
+      - name: Print version numbers
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          SEMVER: ${{ steps.gitversion.outputs.semVer }}
+          FULLSEMVER: ${{ steps.gitversion.outputs.fullSemVer }}
+          MAJORMINORPATCH: ${{ steps.gitversion.outputs.majorMinorPatch }}
+          MAJOR: ${{ steps.gitversion.outputs.major }}
+          MINOR: ${{ steps.gitversion.outputs.minor }}
+          PATCH: ${{ steps.gitversion.outputs.patch }}
+          PRERELEASETAG: ${{ steps.gitversion.outputs.preReleaseTag }}
+          PRERELEASELABEL: ${{ steps.gitversion.outputs.preReleaseLabel }}
+          ASSEMBLYSEMVER: ${{ steps.gitversion.outputs.assemblySemVer }}
+          ASSEMBLYSEMFILEVER: ${{ steps.gitversion.outputs.assemblySemFileVer }}
+          INFORMATIONALVERSION: ${{ steps.gitversion.outputs.informationalVersion }}
+          NUGETVERSION: ${{ steps.gitversion.outputs.nuGetVersion }}
+          BRANCHNAME: ${{ steps.gitversion.outputs.branchName }}
+          SHORTSHA: ${{ steps.gitversion.outputs.shortSha }}
+        run: |
+          print_row() { printf '  %-22s %s\n' "$1" "$2"; }
+          echo "────────────────────────────────────────────────────"
+          echo " GitVersion"
+          echo "────────────────────────────────────────────────────"
+          print_row "tag"                  "${TAG}"
+          print_row "semVer"               "${SEMVER}"
+          print_row "fullSemVer"           "${FULLSEMVER}"
+          print_row "majorMinorPatch"      "${MAJORMINORPATCH}"
+          print_row "major.minor.patch"    "${MAJOR}.${MINOR}.${PATCH}"
+          print_row "preReleaseTag"        "${PRERELEASETAG}"
+          print_row "preReleaseLabel"      "${PRERELEASELABEL}"
+          print_row "assemblySemVer"       "${ASSEMBLYSEMVER}"
+          print_row "assemblySemFileVer"   "${ASSEMBLYSEMFILEVER}"
+          print_row "nuGetVersion"         "${NUGETVERSION}"
+          print_row "informationalVersion" "${INFORMATIONALVERSION}"
+          print_row "branchName"           "${BRANCHNAME}"
+          print_row "shortSha"             "${SHORTSHA}"
+          echo "────────────────────────────────────────────────────"
+
+          {
+            echo "### Version — \`${TAG}\`"
+            echo ""
+            echo "| Format | Value |"
+            echo "| --- | --- |"
+            echo "| tag | \`${TAG}\` |"
+            echo "| semVer | \`${SEMVER}\` |"
+            echo "| fullSemVer | \`${FULLSEMVER}\` |"
+            echo "| majorMinorPatch | \`${MAJORMINORPATCH}\` |"
+            echo "| preReleaseTag | \`${PRERELEASETAG}\` |"
+            echo "| assemblySemVer | \`${ASSEMBLYSEMVER}\` |"
+            echo "| assemblySemFileVer | \`${ASSEMBLYSEMFILEVER}\` |"
+            echo "| nuGetVersion | \`${NUGETVERSION}\` |"
+            echo "| informationalVersion | \`${INFORMATIONALVERSION}\` |"
+            echo "| branchName | \`${BRANCHNAME}\` |"
+            echo "| shortSha | \`${SHORTSHA}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
