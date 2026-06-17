@@ -25,22 +25,7 @@ concurrency:
 jobs:
   version:
     name: Version
-    runs-on: ubuntu-latest
-    outputs:
-      semVer: ${{ steps.gitversion.outputs.semVer }}
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0      # GitVersion needs full history
-
-      - name: Setup GitVersion
-        uses: gittools/actions/gitversion/setup@v4.5.0
-        with:
-          versionSpec: '6.4.x'
-
-      - name: Execute GitVersion
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@v4.5.0
+    uses: ./.github/workflows/version.yml
 
   build-and-publish:
     name: Build & Publish
@@ -84,6 +69,27 @@ jobs:
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
           echo "keyAlias=theprey" >> key.properties
           echo "storeFile=keystore.jks" >> key.properties
+
+      # ---- resolve & verify the version going into the bundle -------------
+      # build.gradle silently falls back to versionName "1.0" when the
+      # versionName property is empty, which would mask a broken version chain.
+      # Fail loudly instead, and surface the exact values that will be baked in.
+      - name: Resolve app version
+        env:
+          SEMVER: ${{ needs.version.outputs.semVer }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          if [ -z "$SEMVER" ]; then
+            echo "::error::GitVersion produced an empty semVer; refusing to ship a fallback (1.0) bundle."
+            exit 1
+          fi
+          echo "versionName (semVer)      : $SEMVER"
+          echo "versionCode  (run number) : $RUN_NUMBER"
+          {
+            echo "### Android bundle version"
+            echo "- versionName: \`$SEMVER\`"
+            echo "- versionCode: \`$RUN_NUMBER\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # ---- build the signed bundle ----------------------------------------
       - name: Build Release AAB
