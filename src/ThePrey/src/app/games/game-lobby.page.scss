@@ -123,7 +123,9 @@ ion-header ion-toolbar {
 .content-wrap {
   position: relative;
   z-index: 1;
-  padding: 0 20px 32px;
+  // Respect the device's bottom safe area (on-screen nav buttons / gesture bar)
+  // so the deploy/start button stays reachable when the lobby needs scrolling.
+  padding: 0 20px calc(32px + var(--ion-safe-area-bottom, env(safe-area-inset-bottom)));
 }
 
 // ── Corner brackets (shared) ─────────────────────────────────
