@@ -103,6 +103,39 @@ internal static class GameMappings
             configuration.EnablePreyBoundaryPenalties,
             configuration.EnableHunterBoundaryPenalty);
 
+    internal static GameExportDto ToExportDto(this Game game) =>
+        new(
+            game.Id,
+            game.GameCode,
+            game.PlayfieldId,
+            game.OwnerUserId,
+            game.Status.ToString(),
+            game.Configuration.ToDto(),
+            game.StartedAt,
+            game.CreatedAt,
+            game.EndsAt,
+            game.CleanUpAfter,
+            game.CompletedAt,
+            game.Outcome.ToString(),
+            game.HunterUserId,
+            game.Preys,
+            game.Participants.Select(p => p.ToExportDto(game.HunterUserId)).ToList());
+
+    private static ParticipantExportDto ToExportDto(this GameParticipant participant, Guid? hunterUserId) =>
+        new(
+            participant.UserId,
+            participant.DisplayName,
+            participant.ProfilePictureUrl,
+            participant.IsReady,
+            participant.State.ToString(),
+            participant.LastLocationAt,
+            participant.Location is { } loc ? new GpsCoordinateDto(loc.Latitude, loc.Longitude) : null,
+            participant.DelayAnchorLocation is { } anchor ? new GpsCoordinateDto(anchor.Latitude, anchor.Longitude) : null,
+            participant.DelayPenaltyApplied,
+            participant.UserId == hunterUserId,
+            participant.Penalties.Select(p => new PenaltyExportDto(p.Id, p.EndsAt)).ToList(),
+            participant.Locations.Select(l => new LocationReadingExportDto(l.Id, new GpsCoordinateDto(l.Coordinate.Latitude, l.Coordinate.Longitude), l.RecordedAt, l.Checked)).ToList());
+
     private static ParticipantDto ToDto(this GameParticipant participant, DateTimeOffset now) =>
         new(
             participant.UserId,
