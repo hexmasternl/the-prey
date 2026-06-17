@@ -82,4 +82,14 @@ public sealed class GameRepository : IGameRepository
 
     public async Task<int> DeleteExpiredGamesAsync(DateTimeOffset cutoff, CancellationToken ct)
         => await _db.Games.Where(g => g.CleanUpAfter <= cutoff).ExecuteDeleteAsync(ct);
+
+    public async Task<IReadOnlyList<Game>> GetGamesStartedBetweenAsync(
+        DateTimeOffset fromInclusive,
+        DateTimeOffset toExclusive,
+        CancellationToken ct)
+        => await _db.Games
+            .Where(g => g.StartedAt != null
+                     && g.StartedAt >= fromInclusive
+                     && g.StartedAt < toExclusive)
+            .ToListAsync(ct);
 }

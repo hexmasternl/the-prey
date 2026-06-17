@@ -6,6 +6,7 @@ using HexMaster.ThePrey.IntegrationEvents;
 using HexMaster.ThePrey.Games.Features.TagPlayer;
 using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.EndGame;
+using HexMaster.ThePrey.Games.Features.ExportGames;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
 using HexMaster.ThePrey.Games.Features.GetGameState;
@@ -42,6 +43,7 @@ public static class GamesModuleRegistration
         services.AddScoped<IQueryHandler<ListGamesQuery, IReadOnlyList<GameSummaryDto>>, ListGamesQueryHandler>();
         services.AddScoped<IQueryHandler<GetActiveGameQuery, GameStatusDto?>, GetActiveGameQueryHandler>();
         services.AddScoped<IQueryHandler<GetGameStatusQuery, GameStatusDto?>, GetGameStatusQueryHandler>();
+        services.AddScoped<IQueryHandler<ExportGamesQuery, IReadOnlyList<GameExportDto>>, ExportGamesQueryHandler>();
 
         services.AddScoped<ICommandHandler<TagPlayerCommand, TagPlayerResult?>, TagPlayerCommandHandler>();
         services.AddScoped<ICommandHandler<EndGameCommand, EndGameResult?>, EndGameCommandHandler>();

@@ -80,5 +80,6 @@ app.UseAuthorization();
 
 app.MapGameEndpoints();
 app.MapInternalGameEndpoints();
+app.MapGameExportEndpoints();
 
 app.Run();
