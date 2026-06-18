@@ -22,6 +22,12 @@ import { TranslatePipe } from '@ngx-translate/core';
           <div class="delay-label">{{ 'HUNTER_DELAY.LABEL' | translate }}</div>
           <div class="delay-countdown">{{ countdown() }}</div>
           <div class="delay-hint">{{ 'HUNTER_DELAY.HINT' | translate }}</div>
+          @if (showMovementWarning()) {
+            <div class="delay-warning">
+              <div class="delay-warning-title">{{ 'HUNTER_DELAY.MOVE_WARNING_TITLE' | translate }}</div>
+              <div class="delay-warning-body">{{ 'HUNTER_DELAY.MOVE_WARNING_BODY' | translate }}</div>
+            </div>
+          }
         </div>
       </div>
     }
@@ -61,6 +67,24 @@ import { TranslatePipe } from '@ngx-translate/core';
         font-size: 12px;
         color: rgba(255, 255, 255, 0.7);
       }
+      .delay-warning {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 60, 60, 0.4);
+      }
+      .delay-warning-title {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #ff3c3c;
+      }
+      .delay-warning-body {
+        margin-top: 4px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.85);
+        max-width: 240px;
+      }
     `,
   ],
   imports: [TranslatePipe],
@@ -68,6 +92,13 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class HunterDelayOverlayComponent implements OnDestroy {
   /** ISO timestamp at which the hunter may move; null hides the overlay. */
   readonly hunterMayMoveAt = input<string | null>(null);
+
+  /**
+   * When true, shows the hunter-only "do not move" warning explaining that
+   * moving during the head-start makes the hunter go live for 10 minutes after
+   * the countdown. Off by default so the prey view keeps the plain countdown.
+   */
+  readonly showMovementWarning = input(false);
 
   private readonly now = signal(Date.now());
   private readonly timer = setInterval(() => this.now.set(Date.now()), 1000);

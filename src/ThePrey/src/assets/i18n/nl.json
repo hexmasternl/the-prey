@@ -186,6 +186,11 @@
     "GPS_UNAVAILABLE_MSG": "Geen GPS-fix. Ga naar de open lucht en zorg dat locatie aanstaat.",
     "REPORTING_DEGRADED_TITLE": "POSITIE WORDT NIET BIJGEWERKT",
     "REPORTING_DEGRADED_MSG": "Geen verbinding met de commandopost. Je positie wordt niet gedeeld — controleer je verbinding.",
+    "TAGGED_TITLE": "JE BENT GETIKT",
+    "TAGGED_MSG": "Je bent uit de jacht.",
+    "OUT_TITLE": "JE BENT AF",
+    "OUT_MSG": "Je was te lang buiten het gebied.",
+    "SPECTATING": "Blijf kijken — je ziet hoe het afloopt.",
     "BACK": "TERUG"
   },
   "GAME_OUTCOME": {
@@ -219,10 +224,15 @@
     "EMPTY": "Geen prooi beschikbaar om te taggen.",
     "TAG_ACTION": "TAG",
     "CANCEL": "ANNULEREN",
-    "BUTTON": "TAG"
+    "BUTTON": "TAG",
+    "CONFIRM_QUESTION": "Je wilt speler '{{callsign}}' taggen.",
+    "ACKNOWLEDGE": "Ik heb speler {{callsign}} echt getikt",
+    "CONFIRM": "TAG BEVESTIGEN"
   },
   "HUNTER_DELAY": {
     "LABEL": "HUNTER LOS OVER",
-    "HINT": "De hunter moet blijven staan tot het aftellen voorbij is."
+    "HINT": "De hunter moet blijven staan tot het aftellen voorbij is.",
+    "MOVE_WARNING_TITLE": "NIET BEWEGEN",
+    "MOVE_WARNING_BODY": "Als je beweegt tijdens de vrijlatingsvertraging, ga je 10 minuten live nadat het aftellen voorbij is."
   }
 }

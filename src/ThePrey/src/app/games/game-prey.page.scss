@@ -27,6 +27,35 @@
   filter: brightness(0.7) saturate(0.4);
 }
 
+/* Self "you" navigation arrow — rotated to the device compass heading.
+ * Leaflet markers are added to the map pane dynamically and don't carry Angular's
+ * view-encapsulation attribute, so these rules must be :global. The --signal custom
+ * property still resolves via the DOM cascade from :host. */
+:global(.self-arrow-marker) {
+  background: transparent;
+  border: none;
+}
+
+:global(.self-arrow) {
+  width: 32px;
+  height: 32px;
+  transform-origin: 50% 50%;
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+
+:global(.self-arrow svg) {
+  display: block;
+  filter: drop-shadow(0 0 6px rgba(100, 255, 0, 0.5));
+}
+
+:global(.self-arrow svg path) {
+  fill: var(--signal);
+  stroke: var(--bg-void);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
 .alert-banner {
   position: absolute;
   top: 16px;
@@ -58,6 +87,42 @@
     font-size: 13px;
     color: var(--text-soft);
     margin-top: 2px;
+  }
+}
+
+// Spectator banner — shown once the player is tagged/out but the game runs on.
+.spectator-banner {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 20;
+  padding: 14px 16px;
+  text-align: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--hunter);
+  border-left: 3px solid var(--hunter);
+  font-family: 'PT Mono', 'Courier New', monospace;
+  box-shadow: 0 0 24px rgba(255, 47, 31, 0.35);
+
+  .spectator-title {
+    font-size: 15px;
+    letter-spacing: 3px;
+    color: var(--hunter);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .spectator-msg {
+    font-size: 13px;
+    color: var(--text);
+    margin-top: 4px;
+  }
+
+  .spectator-note {
+    font-size: 12px;
+    color: var(--text-soft);
+    margin-top: 6px;
   }
 }
 

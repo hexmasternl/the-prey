@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   OnDestroy,
   OnInit,
@@ -43,6 +44,7 @@ import {
   GameEndedPayload,
 } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
+import { CompassService } from './compass.service';
 import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
 
 @Component({
@@ -72,6 +74,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly gamesService = inject(GamesService);
   private readonly streamService = inject(GameStreamService);
   private readonly locationService = inject(GameLocationService);
+  private readonly compass = inject(CompassService);
+
+  /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
+  readonly heading = this.compass.heading;
 
   /** The authenticated user's Auth0 sub — populated from the first status poll. */
   private currentUserId: string | null = null;
@@ -92,6 +98,12 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly showTagModal = signal(false);
   readonly taggablePrey = signal<GameParticipantStatusDto[]>([]);
   readonly tagInFlight = signal(false);
+  /** The prey selected in the list, awaiting confirmation; null shows the list step. */
+  readonly pendingTag = signal<GameParticipantStatusDto | null>(null);
+  /** Whether the hunter ticked "I really tagged this person" — gates the confirm button. */
+  readonly tagAcknowledged = signal(false);
+  /** Drives the separate confirmation popup; open whenever a target is pending. */
+  readonly tagConfirmOpen = computed(() => this.pendingTag() !== null);
   /** ISO timestamp at which the hunter may move, from the status poll; drives the countdown overlay. */
   readonly hunterMayMoveAt = signal<string | null>(null);
   /** Ticked every second by the duration timer so delay gating flips without a poll. */
@@ -112,7 +124,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private gameId!: string;
   private map!: L.Map;
-  private selfMarker: L.CircleMarker | null = null;
+  private selfMarker: L.Marker | null = null;
+  /** Inner element of the self arrow icon whose CSS rotation we drive from the compass. */
+  private selfArrowEl: HTMLElement | null = null;
+  /** Continuously accumulated rotation so the arrow always turns the short way round. */
+  private renderedHeading = 0;
   private playfieldPolygon: L.Polygon | null = null;
   private preyMarkers = new Map<string, L.CircleMarker>();
   /** Local participant state map keyed by userId */
@@ -130,6 +146,14 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private gameEndedHandled = false;
   /** Capacitor App foreground/background listener — drives resume resync. */
   private resumeListener: PluginListenerHandle | null = null;
+
+  constructor() {
+    // Spin the self arrow to match the compass whenever a new heading arrives.
+    effect(() => {
+      const h = this.heading();
+      if (h !== null) this.applyHeading(h);
+    });
+  }
 
   dismissSurroundingsWarning(): void {
     localStorage.setItem('surroundings-warning', this.gameId);
@@ -150,6 +174,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
     this.initMap();
     void this.startGps();
+    void this.compass.start();
     await this.pollStatus();
     this.startDurationTimer();
     this.connectStream();
@@ -198,6 +223,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.clearPingInterval();
     this.clearDurationTimer();
     this.streamService.disconnect();
+    this.compass.stop();
     void this.resumeListener?.remove();
     this.resumeListener = null;
     // NOTE: intentionally do NOT stop location tracking here — the service must keep
@@ -266,15 +292,38 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   closeTagModal(): void {
+    // NOTE: do NOT reset the pending confirmation here. Selecting a target
+    // dismisses this sheet (firing didDismiss → closeTagModal) at the same moment
+    // it opens the confirmation popup; clearing pendingTag here would close that
+    // popup immediately. The sheet only ever has the list, so nothing to reset.
     this.showTagModal.set(false);
   }
 
-  async confirmTag(prey: GameParticipantStatusDto): Promise<void> {
-    if (this.tagInFlight()) return;
+  /** Close the selection sheet and open the confirmation popup for the chosen target. */
+  selectTagTarget(prey: GameParticipantStatusDto): void {
+    this.showTagModal.set(false);
+    this.pendingTag.set(prey);
+    this.tagAcknowledged.set(false);
+  }
+
+  /** Back out of the confirmation screen to the prey list. */
+  cancelTagConfirmation(): void {
+    this.resetTagConfirmation();
+  }
+
+  private resetTagConfirmation(): void {
+    this.pendingTag.set(null);
+    this.tagAcknowledged.set(false);
+  }
+
+  /** Final step: send the tag request for the acknowledged target. */
+  async confirmTag(): Promise<void> {
+    const prey = this.pendingTag();
+    if (!prey || !this.tagAcknowledged() || this.tagInFlight()) return;
     this.tagInFlight.set(true);
     try {
       await this.gamesService.tagPlayer(this.gameId, prey.userId);
-      this.showTagModal.set(false);
+      this.resetTagConfirmation();
     } catch {
       // Tag failed — let user retry
     } finally {
@@ -332,6 +381,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
             if (this.selfMarker) {
               this.selfMarker.remove();
               this.selfMarker = null;
+              this.selfArrowEl = null;
             }
             return;
           }
@@ -343,13 +393,12 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
           if (this.selfMarker) {
             this.selfMarker.setLatLng(latlng);
           } else {
-            this.selfMarker = L.circleMarker(latlng, {
-              radius: 7,
-              color: '#64ff00',
-              fillColor: '#64ff00',
-              fillOpacity: 1,
-              weight: 2,
+            this.selfMarker = L.marker(latlng, {
+              icon: this.buildSelfArrowIcon(),
+              interactive: false,
+              keyboard: false,
             }).addTo(this.map);
+            this.captureSelfArrow();
           }
           if (this.autoFollow) {
             this.map.setView(latlng);
@@ -360,6 +409,39 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     } catch {
       this.gpsAlert.set('Signal lost. Find open sky.');
     }
+  }
+
+  /** Build the rotatable "you" navigation arrow used as the self marker icon. */
+  private buildSelfArrowIcon(): L.DivIcon {
+    return L.divIcon({
+      className: 'self-arrow-marker',
+      html:
+        '<div class="self-arrow">' +
+        '<svg viewBox="0 0 24 24" width="30" height="30">' +
+        '<path d="M12 2 L20 21 L12 16 L4 21 Z" /></svg></div>',
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    });
+  }
+
+  /** Grab the arrow's inner element after the marker mounts and orient it immediately. */
+  private captureSelfArrow(): void {
+    this.selfArrowEl =
+      this.selfMarker?.getElement()?.querySelector('.self-arrow') ?? null;
+    const h = this.heading();
+    if (h !== null) this.applyHeading(h);
+  }
+
+  /**
+   * Rotate the arrow to the given compass heading. The map is north-up, so the heading
+   * (clockwise from north) is the rotation directly. We accumulate the angle so a sweep
+   * across the 0°/360° seam turns the short way instead of spinning all the way round.
+   */
+  private applyHeading(heading: number): void {
+    if (!this.selfArrowEl) return;
+    const delta = ((heading - this.renderedHeading) % 360 + 540) % 360 - 180;
+    this.renderedHeading += delta;
+    this.selfArrowEl.style.transform = `rotate(${this.renderedHeading}deg)`;
   }
 
   private async pollStatus(): Promise<void> {
@@ -377,8 +459,39 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         this.pollIntervalSeconds * 1000,
       );
     } catch {
+      // The status endpoint only serves in-progress games, so an error here may mean the
+      // game ended while we were backgrounded/disconnected and we missed `game-ended`.
+      // Confirm against the full game record before falling back to a plain retry.
+      if (await this.checkGameEndedOnServer()) return;
       this.pollTimer = setTimeout(() => this.pollStatus(), 30_000);
     }
+  }
+
+  /**
+   * Authoritative fallback for a missed `game-ended` event: fetch the full game record and,
+   * if it has completed, hand off to the outcome screen. Returns true when the game has ended
+   * (navigation triggered), false otherwise. Idempotent via `handleGameEnded`'s guard.
+   */
+  private async checkGameEndedOnServer(): Promise<boolean> {
+    try {
+      const game = await this.gamesService.getGame(this.gameId);
+      if (game.status === 'Completed') {
+        const survivorCount = game.participants.filter(
+          (p) =>
+            p.userId !== game.hunterUserId &&
+            (p.state === 'Active' || p.state === 'Passive'),
+        ).length;
+        this.handleGameEnded({
+          gameId: this.gameId,
+          outcome: game.outcome,
+          survivorCount,
+        });
+        return true;
+      }
+    } catch {
+      // Game record unreachable — let the caller retry.
+    }
+    return false;
   }
 
   private applyStatus(status: GameStatusDto): void {

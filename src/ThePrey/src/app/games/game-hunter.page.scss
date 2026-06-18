@@ -1,4 +1,4 @@
-:host {
+@mixin tactical-theme {
   --signal: #64ff00;
   --signal-glow: rgba(100, 255, 0, 0.35);
   --hunter: #ff2f1f;
@@ -13,6 +13,10 @@
   --text-soft: #8c9a83;
   --text-ghost: #5a6553;
   --line: #39402f;
+}
+
+:host {
+  @include tactical-theme;
 }
 
 .hunter-view {
@@ -30,6 +34,35 @@
 
 :global(.leaflet-tile) {
   filter: brightness(0.65) saturate(0.35) hue-rotate(330deg);
+}
+
+/* Self "you" navigation arrow — rotated to the device compass heading.
+ * Leaflet markers are added to the map pane dynamically and don't carry Angular's
+ * view-encapsulation attribute, so these rules must be :global. The CSS custom
+ * properties still resolve via the DOM cascade from :host. */
+:global(.self-arrow-marker) {
+  background: transparent;
+  border: none;
+}
+
+:global(.self-arrow) {
+  width: 30px;
+  height: 30px;
+  transform-origin: 50% 50%;
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+
+:global(.self-arrow svg) {
+  display: block;
+  filter: drop-shadow(0 0 6px var(--signal-glow));
+}
+
+:global(.self-arrow svg path) {
+  fill: var(--signal);
+  stroke: var(--bg-void);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
 }
 
 /* Corner brackets */
@@ -215,9 +248,92 @@
   50% { box-shadow: 0 0 22px var(--hunter-glow); }
 }
 
-/* Tag prey modal */
+/* Tag prey modal.
+ * Ionic teleports the inline modal out of this component's host element, so the
+ * theme tokens defined on :host don't cascade into it (that's why the modal looked
+ * transparent/unthemed). Re-declare them on the modal element itself so every
+ * var(--…) inside resolves. */
 .tag-modal {
+  @include tactical-theme;
   --background: var(--bg-base);
+
+  ion-toolbar {
+    --background: var(--bg-void);
+    --color: var(--text);
+    --border-width: 0 0 1px 0;
+    --border-color: var(--line);
+  }
+
+  ion-title {
+    color: var(--text);
+    font-family: 'Special Elite', 'Courier New', monospace;
+    letter-spacing: 1.5px;
+  }
+}
+
+/* Tag confirmation popup — a small centered card, not a sheet.
+ * Same teleport caveat as the selection sheet: re-declare the theme tokens. */
+.tag-confirm-modal {
+  @include tactical-theme;
+  --width: 88%;
+  --max-width: 360px;
+  --height: auto;
+  --border-radius: 8px;
+  --background: var(--bg-base);
+  --box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+
+  &::part(content) {
+    border: 1px solid var(--hunter-glow);
+  }
+}
+
+.tag-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 18px;
+  font-family: 'PT Mono', 'Courier New', monospace;
+}
+
+.tag-confirm-question {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.tag-ack {
+  --background: transparent;
+  --border-color: var(--line);
+  --inner-padding-end: 0;
+  --padding-start: 0;
+
+  ion-label {
+    font-size: 13px;
+    color: var(--text);
+  }
+}
+
+.tag-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tag-confirm-btn {
+  --background: var(--hunter);
+  --background-activated: var(--hunter-dim);
+  --background-focused: var(--hunter-dim);
+  --color: var(--bg-void);
+  --box-shadow: 0 0 14px var(--hunter-glow);
+  font-family: 'Special Elite', 'Courier New', monospace;
+  letter-spacing: 2px;
+}
+
+.tag-modal-btn {
+  --color: var(--text-soft);
+  --border-color: var(--line);
+  letter-spacing: 2px;
 }
 
 .tag-modal-content {

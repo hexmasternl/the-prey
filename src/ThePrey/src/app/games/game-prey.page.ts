@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent,
@@ -25,6 +25,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
 import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload, GameEndedPayload } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
+import { CompassService } from './compass.service';
 import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
 import { UserStateService } from '../users/user-state.service';
 
@@ -56,6 +57,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly streamService  = inject(GameStreamService);
   private readonly locationService = inject(GameLocationService);
   private readonly userState      = inject(UserStateService);
+  private readonly compass        = inject(CompassService);
+
+  /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
+  readonly heading = this.compass.heading;
 
   readonly showSurroundingsWarning = signal(false);
   readonly warningAcknowledged = signal(false);
@@ -66,7 +71,12 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly preysLeft       = signal(0);
   readonly hasActivePenalty = signal(false);
   readonly gpsAlert        = signal<string | null>(null);
-  readonly gameOverMessage  = signal<string | null>(null);
+  /**
+   * Set once this player is tagged or ruled out while the game is still running. Drives
+   * the spectator overlay; the player stays connected and keeps receiving updates until
+   * the game itself ends (`game-ended`), at which point everyone lands on the outcome screen.
+   */
+  readonly outReason       = signal<'tagged' | 'out' | null>(null);
   /** Seconds until the next status poll, ticked down every second for the HUD. */
   readonly pingCountdown   = signal(30);
   /** Collapsed by default: only the remaining game time shows until the HUD is tapped. */
@@ -84,7 +94,11 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private gameId!: string;
   private map!: L.Map;
-  private playerMarker: L.CircleMarker | null = null;
+  private playerMarker: L.Marker | null = null;
+  /** Inner element of the self arrow icon whose CSS rotation we drive from the compass. */
+  private playerArrowEl: HTMLElement | null = null;
+  /** Continuously accumulated rotation so the arrow always turns the short way round. */
+  private renderedHeading = 0;
   /** Markers for every other player (hunter = red, other preys = orange/grey), keyed by userId. */
   private otherMarkers = new Map<string, L.CircleMarker>();
   /** The hunter's userId, captured from the status snapshot — used to colour blips. */
@@ -108,6 +122,14 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   // -------------------------------------------------------------------------
   // Lifecycle
   // -------------------------------------------------------------------------
+
+  constructor() {
+    // Spin the self arrow to match the compass whenever a new heading arrives.
+    effect(() => {
+      const h = this.heading();
+      if (h !== null) this.applyHeading(h);
+    });
+  }
 
   dismissSurroundingsWarning(): void {
     localStorage.setItem('surroundings-warning', this.gameId);
@@ -135,6 +157,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
     // Separate watch purely for updating the on-screen map marker
     this.startMapWatch();
+    void this.compass.start();
 
     await this.pollStatus();
     this.startDurationTimer();
@@ -159,11 +182,14 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   private resyncOnResume(): void {
-    // Don't resurrect a finished game (tagged/out or ended).
-    if (this.gameOverMessage() || this.gameEndedHandled) return;
+    // The game is fully over for everyone — nothing left to reconcile. A tagged/out
+    // player is NOT finished here: they remain a spectator and must still reconnect so
+    // they catch the eventual `game-ended` event missed while suspended.
+    if (this.gameEndedHandled) return;
     // Reconnect the realtime channel (handles the silently-dead-socket case)…
     this.connectStream();
     // …and force an immediate status refresh to catch events missed while suspended.
+    // pollStatus() also detects a game that ended while we were away (see its catch).
     this.clearPoll();
     void this.pollStatus();
   }
@@ -187,6 +213,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     this.clearDurationTimer();
     this.clearPingInterval();
     this.streamService.disconnect();
+    this.compass.stop();
     void this.resumeListener?.remove();
     this.resumeListener = null;
     // NOTE: intentionally do NOT stop location tracking here — the service must keep
@@ -267,13 +294,12 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
         if (this.playerMarker) {
           this.playerMarker.setLatLng(latlng);
         } else {
-          this.playerMarker = L.circleMarker(latlng, {
-            radius: 8,
-            color: '#64ff00',
-            fillColor: '#64ff00',
-            fillOpacity: 1,
-            weight: 2,
+          this.playerMarker = L.marker(latlng, {
+            icon: this.buildSelfArrowIcon(),
+            interactive: false,
+            keyboard: false,
           }).addTo(this.map);
+          this.captureSelfArrow();
         }
         // Only follow the player until the playfield is framed; once the field is
         // drawn we fitBounds to it and must not recenter on every GPS tick, or the
@@ -296,6 +322,38 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     }
   }
 
+  /** Build the rotatable "you" navigation arrow used as the self marker icon. */
+  private buildSelfArrowIcon(): L.DivIcon {
+    return L.divIcon({
+      className: 'self-arrow-marker',
+      html:
+        '<div class="self-arrow">' +
+        '<svg viewBox="0 0 24 24" width="32" height="32">' +
+        '<path d="M12 2 L20 21 L12 16 L4 21 Z" /></svg></div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+    });
+  }
+
+  /** Grab the arrow's inner element after the marker mounts and orient it immediately. */
+  private captureSelfArrow(): void {
+    this.playerArrowEl = this.playerMarker?.getElement()?.querySelector('.self-arrow') ?? null;
+    const h = this.heading();
+    if (h !== null) this.applyHeading(h);
+  }
+
+  /**
+   * Rotate the arrow to the given compass heading. The map is north-up, so the heading
+   * (clockwise from north) is the rotation directly. We accumulate the angle so a sweep
+   * across the 0°/360° seam turns the short way instead of spinning all the way round.
+   */
+  private applyHeading(heading: number): void {
+    if (!this.playerArrowEl) return;
+    const delta = ((heading - this.renderedHeading) % 360 + 540) % 360 - 180;
+    this.renderedHeading += delta;
+    this.playerArrowEl.style.transform = `rotate(${this.renderedHeading}deg)`;
+  }
+
   // -------------------------------------------------------------------------
   // Status polling
   // -------------------------------------------------------------------------
@@ -311,9 +369,33 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       this.startPingCountdown(this.pollIntervalSeconds);
       this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1_000);
     } catch {
-      // Retry with a safe default on network error
+      // The status endpoint only serves in-progress games, so an error here may mean the
+      // game ended while we were backgrounded/disconnected and we missed `game-ended`.
+      // Confirm against the full game record before falling back to a plain retry.
+      if (await this.checkGameEndedOnServer()) return;
       this.pollTimer = setTimeout(() => this.pollStatus(), 30_000);
     }
+  }
+
+  /**
+   * Authoritative fallback for a missed `game-ended` event: fetch the full game record and,
+   * if it has completed, hand off to the outcome screen. Returns true when the game has ended
+   * (navigation triggered), false otherwise. Idempotent via `handleGameEnded`'s guard.
+   */
+  private async checkGameEndedOnServer(): Promise<boolean> {
+    try {
+      const game = await this.gamesService.getGame(this.gameId);
+      if (game.status === 'Completed') {
+        const survivorCount = game.participants.filter(
+          p => p.userId !== game.hunterUserId && (p.state === 'Active' || p.state === 'Passive'),
+        ).length;
+        this.handleGameEnded({ gameId: this.gameId, outcome: game.outcome, survivorCount });
+        return true;
+      }
+    } catch {
+      // Game record unreachable — let the caller retry.
+    }
+    return false;
   }
 
   private applyStatus(status: GameStatusDto): void {
@@ -445,12 +527,12 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       const activeCount = [...this.participantStates.values()].filter(s => s === 'Active' || s === 'Passive').length;
       this.preysLeft.set(activeCount);
 
-      // React when our own state changes
+      // React when our own state changes — switch to spectator mode but stay connected.
       if (userId === this.currentUserId) {
         if (newState === 'Tagged') {
-          this.handleGameOver('You have been tagged. Game over for you.');
+          this.markSelfOut('tagged');
         } else if (newState === 'Out') {
-          this.handleGameOver('You left the area for too long. You are out.');
+          this.markSelfOut('out');
         }
       }
     };
@@ -479,12 +561,15 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     });
   }
 
-  private handleGameOver(message: string): void {
-    this.clearPoll();
-    this.streamService.disconnect();
-    void this.locationService.stop();
-    this.stopMapWatch();
-    this.gameOverMessage.set(message);
+  /**
+   * This player has been tagged or ruled out, but the GAME is still running. Show the
+   * spectator overlay while deliberately KEEPING the realtime stream, status polling and
+   * the location/foreground service alive — the player keeps seeing the action and, crucially,
+   * still receives the `game-ended` event so everyone reaches the outcome screen together.
+   * All connections and the Android foreground service are torn down only in `handleGameEnded`.
+   */
+  private markSelfOut(reason: 'tagged' | 'out'): void {
+    this.outReason.set(reason);
   }
 
   /** Idempotent: safe to call from both Web PubSub events and the poll path. */
@@ -493,6 +578,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     this.gameEndedHandled = true;
     this.clearPoll();
     this.streamService.disconnect();
+    this.stopMapWatch();
     void this.locationService.stop();
     // Hand the result to the debrief screen; it confirms against the server too, so
     // missing values here are non-fatal. null query params are dropped by the router.
