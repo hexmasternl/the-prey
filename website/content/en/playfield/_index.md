@@ -22,6 +22,8 @@ Playfields are created before the game and can be saved and reused for future se
 
 Your saved playfields appear in the Playfield list and can be selected when starting a new game.
 
+{{< screenshot src="/images/screens/playfield-set-area.png" alt="The playfield editor with a boundary polygon drawn on the map" caption="The playfield editor" >}}
+
 ---
 
 ## Map Gestures

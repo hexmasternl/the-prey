@@ -12,3 +12,7 @@ keywords: ["create a game", "start a game", "join code", "assign roles", "playfi
 6. Assign yourself a role if you are playing.
 7. Confirm all players are assigned and ready.
 8. Tap **Start Game**. The 10-minute head start begins. Prey scatter. Hunters wait.
+
+{{< screenshot src="/images/screens/create-new-operation.png" alt="The new-game screen showing the configurable game parameters" caption="Configuring a new game" >}}
+
+{{< screenshot src="/images/screens/game-lobby.png" alt="The lobby screen showing the join code and the list of players" caption="The lobby and join code" >}}

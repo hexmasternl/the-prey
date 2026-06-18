@@ -12,3 +12,5 @@ keywords: ["je rol begrijpen", "tips voor Jager", "tips voor Prooi", "strategie 
 6. Als **Jager**: vergelijk Prooipinposities met het terrein. Prooi aan de rand van het speelveld heeft beperkte vluchtwegen. Snijd ze af.
 7. Let op de timer in de bovenste balk. De eindfase-waarschuwing klinkt bij 5 minuten resterend. Prooi — blijf verborgen en wacht het uit. Jagers — sluit snel in.
 8. Wanneer het spel eindigt, worden resultaten automatisch weergegeven. Zowel Prooi als Jagers zien wie overleefde.
+
+{{< screenshot src="/images/screens/in-play-hunter-screen.png" alt="Het Jager-scherm tijdens het spel met het speelveld, prooipins, de timer en de afteller tot de volgende update" caption="Het Jager-scherm tijdens het spel" >}}

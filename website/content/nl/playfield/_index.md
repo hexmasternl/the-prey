@@ -22,6 +22,8 @@ Speelvelden worden voor het spel aangemaakt en kunnen worden opgeslagen en herge
 
 Je opgeslagen speelvelden verschijnen in de speelveldlijst en kunnen worden geselecteerd bij het starten van een nieuw spel.
 
+{{< screenshot src="/images/screens/playfield-set-area.png" alt="De speelveldeditor met een grenspolygoon getekend op de kaart" caption="De speelveldeditor" >}}
+
 ---
 
 ## Kaartgebaren

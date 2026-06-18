@@ -11,3 +11,7 @@ keywords: ["join a game", "join code", "lobby", "get a role", "The Prey how-to"]
 5. You land in the lobby. Wait for the Game Creator to assign your role.
 6. Grant location permissions when prompted. Select **Always Allow**.
 7. Once the Game Creator launches the game, your role screen appears. The head start begins immediately.
+
+{{< screenshot src="/images/screens/main-menu.png" alt="The Prey main menu" caption="The main menu" >}}
+
+{{< screenshot src="/images/screens/player-settings.png" alt="The settings screen showing the call sign and language options" caption="Set your call sign and language in Settings" >}}

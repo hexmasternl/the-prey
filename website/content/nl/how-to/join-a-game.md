@@ -11,3 +11,7 @@ keywords: ["deelnemen aan een spel", "toegangscode", "lobby", "rol krijgen", "Th
 5. Je belandt in de lobby. Wacht tot de Spelmaker je rol toewijst.
 6. Geef locatierechten wanneer daarom gevraagd wordt. Selecteer **Altijd Toestaan**.
 7. Zodra de Spelmaker het spel lanceert, verschijnt je rolscherm. De voorsprong begint onmiddellijk.
+
+{{< screenshot src="/images/screens/main-menu.png" alt="Het hoofdmenu van The Prey" caption="Het hoofdmenu" >}}
+
+{{< screenshot src="/images/screens/player-settings.png" alt="Het instellingenscherm met de roepnaam- en taalopties" caption="Stel je roepnaam en taal in bij Instellingen" >}}

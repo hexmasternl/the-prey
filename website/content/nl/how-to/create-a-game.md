@@ -12,3 +12,7 @@ keywords: ["spel aanmaken", "spel starten", "toegangscode", "rollen toewijzen", 
 6. Wijs jezelf een rol toe als je meespeelt.
 7. Bevestig dat alle spelers zijn toegewezen en klaar zijn.
 8. Tik op **Spel Starten**. De 10 minuten voorsprong begint. Prooi verspreidt zich. Jagers wachten.
+
+{{< screenshot src="/images/screens/create-new-operation.png" alt="Het scherm voor een nieuw spel met de instelbare spelparameters" caption="Een nieuw spel instellen" >}}
+
+{{< screenshot src="/images/screens/game-lobby.png" alt="Het lobby-scherm met de deelnamecode en de lijst met spelers" caption="De lobby en deelnamecode" >}}

@@ -12,3 +12,5 @@ keywords: ["understand your role", "Hunter tips", "Prey tips", "in-game strategy
 6. As **Hunter**: cross-reference Prey pin positions with the terrain. Prey on the edge of the playfield have limited escape routes. Cut them off.
 7. Watch the timer in the top bar. The Final Stretch warning fires at 5 minutes remaining. Prey — stay hidden and wait it out. Hunters — close in fast.
 8. When the game ends, results are shown automatically. Both Prey and Hunters see who survived.
+
+{{< screenshot src="/images/screens/in-play-hunter-screen.png" alt="The in-game Hunter screen showing the playfield, prey pins, the timer, and the next-update countdown" caption="The Hunter's in-game screen" >}}
