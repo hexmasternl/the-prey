@@ -21,7 +21,7 @@ The Prey wordt vanuit Nederland beheerd en is bereikbaar via **theprey.nl**. Voo
 | Categorie | Voorbeelden | Waarom |
 |---|---|---|
 | Accountgegevens | Naam of bijnaam, e-mailadres, authenticatie-identificatie | Om je account aan te maken en te beveiligen |
-| Locatiegegevens | GPS-coördinaten tijdens een actief spel | Kern van het spel — het volgen van Prooi en Jagers |
+| Locatiegegevens | GPS-coördinaten tijdens een actief spel | Kern van het spel — het volgen van Prooi en de Jager |
 | Spelgegevens | Speelvelden die je maakt, spellen die je speelt, rollen, tags, resultaten | Om spellen te draaien en terug te kijken |
 | Technische gegevens | Apparaattype, app-versie, diagnostische logs | Om de dienst te beheren, beveiligen en verbeteren |
 
@@ -34,7 +34,7 @@ We **verkopen** jouw persoonsgegevens niet en gebruiken ze niet voor advertentie
 Locatie is het hart van The Prey en verdient daarom een aparte vermelding:
 
 - GPS-coördinaten worden **alleen verzameld terwijl je deelneemt aan een actief spel**.
-- Locaties worden uitsluitend met andere spelers gedeeld volgens de spelregels (zo worden Prooi-posities alleen tijdens de Actieve Jacht aan Jagers getoond).
+- Locaties worden uitsluitend met andere spelers gedeeld volgens de spelregels (zo worden Prooi-posities alleen tijdens de Actieve Jacht aan de Jager getoond).
 - Zodra een spel eindigt, stopt het delen van live locaties.
 - We volgen jouw locatie niet op de achtergrond buiten een actief spel.
 

@@ -21,7 +21,7 @@ The Prey is operated from the Netherlands and reachable at **theprey.nl**. For a
 | Category | Examples | Why |
 |---|---|---|
 | Account data | Name or nickname, email address, authentication identifier | To create and secure your account |
-| Location data | GPS coordinates while a game is active | Core gameplay — tracking Prey and Hunters |
+| Location data | GPS coordinates while a game is active | Core gameplay — tracking Prey and the Hunter |
 | Game data | Playfields you create, games you join, roles, tags, results | To run and replay games |
 | Technical data | Device type, app version, diagnostic logs | To operate, secure, and improve the service |
 
@@ -34,7 +34,7 @@ We **do not** sell your personal data, and we do not use it for advertising.
 Location is the heart of The Prey, so it deserves special mention:
 
 - GPS coordinates are collected **only while you are taking part in an active game**.
-- Locations are shared with other players strictly according to the game rules (for example, Prey positions are broadcast to Hunters only during the Active Hunt phase).
+- Locations are shared with other players strictly according to the game rules (for example, Prey positions are broadcast to the Hunter only during the Active Hunt phase).
 - When a game ends, live location sharing stops.
 - We do not track your location in the background outside of an active game.
 

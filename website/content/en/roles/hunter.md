@@ -1,18 +1,18 @@
 ---
 title: "Hunter"
-description: "Playing as a Hunter in The Prey: wait out the head start, track Prey by GPS pins, close the gap, tag them, and coordinate with other Hunters."
-keywords: ["Hunter", "GPS tracking", "tag prey", "hunt", "chase", "coordinate hunters", "The Prey hunter"]
+description: "Playing as a Hunter in The Prey: you are the game's single Hunter — wait out the head start, track every Prey by GPS pins, close the gap, and tag them."
+keywords: ["Hunter", "GPS tracking", "tag prey", "hunt", "chase", "single hunter", "The Prey hunter"]
 ---
 
 ## Your Goal
 
-You are a Hunter. Tag every Prey before the game timer reaches zero. If all Prey are eliminated, Hunters win.
+You are the Hunter — the only one in the game. Tag every Prey before the game timer reaches zero. If you tag them all, the Hunter wins.
 
 ---
 
 ## Head Start — Wait It Out
 
-When the game starts, Hunters must wait. The 10-minute head start is for Prey only. Your map shows the playfield boundary but no Prey positions.
+When the game starts, you must wait. The 10-minute head start is for Prey only. Your map shows the playfield boundary but no Prey positions.
 
 Stay near the playfield. Use the time to plan your approach.
 
@@ -34,6 +34,6 @@ There is no in-app way to dispute a tag, so tagging is honour-based: only tag a 
 
 ---
 
-## Coordination
+## Working the Field
 
-Multiple Hunters can coordinate via the app's shared map. Divide the playfield, communicate, and cut off escape routes. A lone Prey cornered by two Hunters has nowhere to run.
+You hunt alone, so plan your route. The shared map lets you track every Prey at once — prioritise the ones nearest the playfield edge, where escape routes are fewest, and herd them toward corners where they have nowhere to run.

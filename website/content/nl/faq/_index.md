@@ -5,11 +5,11 @@ keywords: ["The Prey FAQ", "veelgestelde vragen", "GPS-rechten", "hoe te spelen"
 ---
 
 {{< qa q="Wat is The Prey?" >}}
-Een GPS-gebaseerd verstoppertje gespeeld buiten. Prooi verstopt zich en beweegt. Jagers traceren en taggen. Het spel eindigt wanneer alle Prooi getagd zijn of de timer afloopt.
+Een GPS-gebaseerd verstoppertje gespeeld buiten. Prooi verstopt zich en beweegt. Eén Jager traceert en tagt. Het spel eindigt wanneer alle Prooi getagd zijn of de timer afloopt.
 {{< /qa >}}
 
 {{< qa q="Hoeveel spelers heb ik nodig?" >}}
-Minimaal twee — één Prooi en één Jager. Het spel werkt goed met 4–12 spelers. Grotere groepen werken het beste met meerdere Prooi en Jagers.
+Minimaal twee — één Prooi en één Jager — en maximaal 16 spelers in een lobby. Er is altijd precies één Jager, dus grotere spellen betekenen simpelweg meer Prooi. Het spel werkt goed met 4–12 spelers.
 {{< /qa >}}
 
 {{< qa q="Heb ik GPS altijd aan nodig?" >}}
@@ -25,7 +25,7 @@ Een Jager bereikt fysiek de locatie van een Prooi en tikt om die te taggen in de
 {{< /qa >}}
 
 {{< qa q="Kan ik spelen als mijn GPS zwak is?" >}}
-Zwakke GPS resulteert in onnauwkeurige positiedata — je pin verschijnt op de verkeerde plek. Dit beïnvloedt zowel Jagers (die slechte data krijgen) als jou (die onbetrouwbaar bewustzijn heeft). Speel in open gebieden voor beste resultaten.
+Zwakke GPS resulteert in onnauwkeurige positiedata — je pin verschijnt op de verkeerde plek. Dit beïnvloedt zowel de Jager (die slechte data krijgt) als jou (die onbetrouwbaar bewustzijn heeft). Speel in open gebieden voor beste resultaten.
 {{< /qa >}}
 
 {{< qa q="Wat is een speelveld?" >}}
@@ -37,7 +37,7 @@ Technisch gezien ja, maar het is tegen de regels. Prooi die de grens verlaat kan
 {{< /qa >}}
 
 {{< qa q="Wat gebeurt er als een Prooi geëlimineerd wordt?" >}}
-Je gaat naar toeschouwermodus. Je kunt de rest van het spel op de kaart volgen — je pin verdwijnt uit het zicht van Jagers. Je kunt niet meer deelnemen.
+Je gaat naar toeschouwermodus. Je kunt de rest van het spel op de kaart volgen — je pin verdwijnt uit het zicht van de Jager. Je kunt niet meer deelnemen.
 {{< /qa >}}
 
 {{< qa q="Hoe sluit ik aan bij een spel?" >}}
@@ -49,5 +49,5 @@ Prooi wint. Als er ten minste één Prooi onaangeroerd is wanneer de timer nul b
 {{< /qa >}}
 
 {{< qa q="Kan de Spelmaker ook meespelen?" >}}
-Ja. De Spelmaker wijst zichzelf toe aan een rol in de lobby. Zodra het spel begint, spelen ze als die rol. De Spelmakerrol eindigt bij de lancering.
+Ja. In de lobby kan de Spelmaker zichzelf de Jager maken of als Prooi blijven. Zodra het spel begint, speelt hij die rol. De Spelmakerrol eindigt bij de lancering.
 {{< /qa >}}

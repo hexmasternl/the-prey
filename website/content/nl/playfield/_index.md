@@ -44,10 +44,10 @@ De grens van het speelveld wordt tijdens een spel automatisch gehandhaafd. Wanne
 Zolang een straf actief is:
 
 - De straf duurt **5 minuten** vanaf het moment dat je de grens overschrijdt.
-- Je live positie wordt de hele straf **doorlopend** uitgezonden, in plaats van alleen op het normale rapportage-interval. Voor Prooi betekent dit dat Jagers precies kunnen zien waar je bent zolang je buiten bent — je verliest de pauzes tussen locatiepings die je normaal verborgen houden.
+- Je live positie wordt de hele straf **doorlopend** uitgezonden, in plaats van alleen op het normale rapportage-interval. Voor Prooi betekent dit dat de Jager precies kan zien waar je bent zolang je buiten bent — je verliest de pauzes tussen locatiepings die je normaal verborgen houden.
 - Terugkeren binnen de grens beëindigt een actieve straf niet eerder; het voorkomt alleen dat er nieuwe straffen worden toegepast.
 
-De straf kan apart worden ingeschakeld voor Prooi en voor Jagers bij het instellen van het spel.
+De straf kan apart worden ingeschakeld voor Prooi en voor de Jager bij het instellen van het spel.
 
 ---
 

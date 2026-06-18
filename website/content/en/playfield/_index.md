@@ -44,10 +44,10 @@ The playfield boundary is enforced automatically during a game. When the Game Cr
 While a penalty is active:
 
 - The penalty lasts **5 minutes** from the moment you cross the boundary.
-- Your live position is broadcast **continuously** for the whole penalty, instead of only at the normal reporting interval. For Prey this means Hunters can see exactly where you are the entire time you are out — you lose the gaps between location pings that normally keep you hidden.
+- Your live position is broadcast **continuously** for the whole penalty, instead of only at the normal reporting interval. For Prey this means the Hunter can see exactly where you are the entire time you are out — you lose the gaps between location pings that normally keep you hidden.
 - Returning inside the boundary does not clear an active penalty early; it simply stops new penalties from being applied.
 
-The penalty can be enabled separately for Prey and for Hunters when the game is configured.
+The penalty can be enabled separately for Prey and for the Hunter when the game is configured.
 
 ---
 

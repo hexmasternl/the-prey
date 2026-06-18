@@ -22,9 +22,9 @@ The app counts down the head start. When it ends, the Active Hunt begins and you
 
 ## During the Hunt
 
-Once the head start ends, your GPS coordinates are sent to every Hunter on the map at regular intervals. You appear as a pin. Keep moving — staying in one place makes you easy to find.
+Once the head start ends, your GPS coordinates are sent to the Hunter's map at regular intervals. You appear as a pin. Keep moving — staying in one place makes you easy to find.
 
-The app must remain active in the background. Location sharing depends on your device's background GPS service. If the service stops, Hunters lose your signal — but so does your awareness of theirs.
+The app must remain active in the background. Location sharing depends on your device's background GPS service. If the service stops, the Hunter loses your signal — but you also lose awareness of the Hunter's.
 
 ---
 

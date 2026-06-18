@@ -1,14 +1,14 @@
 ---
 title: "Rules"
-description: "The full rules of The Prey: timing phases, the 10-minute head start, GPS update schedule, tagging and elimination, and how Hunters and Prey win."
+description: "The full rules of The Prey: timing phases, the 10-minute head start, GPS update schedule, tagging and elimination, and how the Hunter and Prey win."
 keywords: ["The Prey rules", "game rules", "head start", "GPS tracking", "tagging", "elimination", "win conditions", "hide and seek rules"]
 ---
 
 ## Game Concept
 
-The Prey is a GPS-based hide-and-seek game played in a defined outdoor area called a **playfield**. One or more players are **Prey** — they hide and evade. The rest are **Hunters** — they track and tag.
+The Prey is a GPS-based hide-and-seek game played in a defined outdoor area called a **playfield**. One or more players are **Prey** — they hide and evade. Exactly one player is the **Hunter** — they track and tag.
 
-The game is time-limited. Hunters win by tagging all Prey before time runs out. Prey win by having at least one survivor when the clock hits zero.
+The game is time-limited. The Hunter wins by tagging all Prey before time runs out. Prey win by having at least one survivor when the clock hits zero.
 
 ---
 
@@ -16,8 +16,8 @@ The game is time-limited. Hunters win by tagging all Prey before time runs out. 
 
 | Phase | Duration | What Happens |
 |---|---|---|
-| Head Start | 10 minutes | Prey scatter and hide. Hunters wait. No locations shared. |
-| Active Hunt | ~45 minutes | Hunt begins. Prey GPS pings broadcast to all Hunters. |
+| Head Start | 10 minutes | Prey scatter and hide. The Hunter waits. No locations shared. |
+| Active Hunt | ~45 minutes | Hunt begins. Prey GPS pings broadcast to the Hunter. |
 | Final Stretch | Last 5 minutes | Warning issued. All players are notified. |
 | Total | ~60 minutes | Game ends. Results displayed. |
 
@@ -39,7 +39,7 @@ Eliminated Prey can see the rest of the game play out in spectator mode.
 
 ## Win Conditions
 
-**Hunters win** if all Prey are tagged before the game timer expires.
+**The Hunter wins** if all Prey are tagged before the game timer expires.
 
 **Prey win** if at least one Prey survives until the timer reaches zero.
 

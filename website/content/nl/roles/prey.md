@@ -22,9 +22,9 @@ De app telt de voorsprong af. Wanneer die eindigt, begint de Actieve Jacht en wo
 
 ## Tijdens de Jacht
 
-Zodra de voorsprong eindigt, worden je GPS-coördinaten met vaste tussenpozen naar elke Jager op de kaart gestuurd. Je verschijnt als een pin. Blijf bewegen — stilstaan maakt je gemakkelijk te vinden.
+Zodra de voorsprong eindigt, worden je GPS-coördinaten met vaste tussenpozen naar de kaart van de Jager gestuurd. Je verschijnt als een pin. Blijf bewegen — stilstaan maakt je gemakkelijk te vinden.
 
-De app moet actief blijven op de achtergrond. Locatiedeling is afhankelijk van de achtergrond-GPS-service van je apparaat. Als de service stopt, verliezen Jagers je signaal — maar verlies jij ook bewustzijn van de hunne.
+De app moet actief blijven op de achtergrond. Locatiedeling is afhankelijk van de achtergrond-GPS-service van je apparaat. Als de service stopt, verliest de Jager je signaal — maar verlies jij ook bewustzijn van die van de Jager.
 
 ---
 

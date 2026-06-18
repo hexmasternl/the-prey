@@ -5,11 +5,11 @@ keywords: ["The Prey FAQ", "frequently asked questions", "GPS permissions", "how
 ---
 
 {{< qa q="What is The Prey?" >}}
-A GPS-based hide-and-seek game played outdoors. Prey hide and move. Hunters track and tag. The game ends when all Prey are tagged or the timer runs out.
+A GPS-based hide-and-seek game played outdoors. Prey hide and move. A single Hunter tracks and tags. The game ends when all Prey are tagged or the timer runs out.
 {{< /qa >}}
 
 {{< qa q="How many players do I need?" >}}
-Minimum two — one Prey and one Hunter. The game scales well with 4–12 players. Larger groups work best with multiple Prey and Hunters.
+Minimum two — one Prey and one Hunter — and up to 16 players in a lobby. There is always exactly one Hunter, so larger games simply mean more Prey. The game scales well with 4–12 players.
 {{< /qa >}}
 
 {{< qa q="Do I need GPS always-on?" >}}
@@ -25,7 +25,7 @@ A Hunter physically reaches a Prey's location and taps to tag them in the app. T
 {{< /qa >}}
 
 {{< qa q="Can I play if my GPS is weak?" >}}
-Weak GPS results in inaccurate position data — your pin appears in the wrong place. This affects both Hunters (who get bad data) and you (who get unreliable awareness). Play in open areas for best results.
+Weak GPS results in inaccurate position data — your pin appears in the wrong place. This affects both the Hunter (who gets bad data) and you (who get unreliable awareness). Play in open areas for best results.
 {{< /qa >}}
 
 {{< qa q="What is a playfield?" >}}
@@ -37,7 +37,7 @@ Technically yes, but it is against the rules. Prey who leave the boundary can be
 {{< /qa >}}
 
 {{< qa q="What happens if a Prey is eliminated?" >}}
-You enter spectator mode. You can watch the rest of the game on the map — your pin disappears from the Hunters' view. You cannot participate further.
+You enter spectator mode. You can watch the rest of the game on the map — your pin disappears from the Hunter's view. You cannot participate further.
 {{< /qa >}}
 
 {{< qa q="How do I join a game?" >}}
@@ -49,5 +49,5 @@ Prey win. If at least one Prey is still untagged when the timer hits zero, all P
 {{< /qa >}}
 
 {{< qa q="Can the Game Creator play too?" >}}
-Yes. The Game Creator assigns themselves to any role in the lobby. Once the game starts, they play as that role. The Creator role ends at launch.
+Yes. In the lobby the Game Creator can make themselves the Hunter or stay as Prey. Once the game starts, they play that role. The Creator role ends at launch.
 {{< /qa >}}

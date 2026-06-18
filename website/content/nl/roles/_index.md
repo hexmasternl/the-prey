@@ -4,6 +4,6 @@ description: "De drie rollen in The Prey — Spelmaker, Jager en Prooi. Ontdek w
 keywords: ["The Prey rollen", "Jager", "Prooi", "Spelmaker", "spelersrollen", "spelrollen"]
 ---
 
-Er zijn drie rollen in The Prey. Elk spel heeft er minimaal één van elk nodig.
+Er zijn drie rollen in The Prey. Elk spel wordt opgezet door een Spelmaker, heeft precies één Jager en een of meer Prooien.
 
 Kies hieronder je rol om te leren wat die inhoudt en hoe je speelt.
