@@ -34,14 +34,20 @@
     </ion-item>
 
     @if (isOwner()) {
-      <ion-item>
+      <ion-item lines="none">
         <ion-label>{{ 'PLAYFIELD_DETAIL.VISIBILITY_LABEL' | translate }}</ion-label>
         <ion-toggle
           slot="end"
           [checked]="isPublic()"
+          [disabled]="!canBePublic()"
           (ionChange)="isPublic.set($any($event).detail.checked)"
         ></ion-toggle>
       </ion-item>
+      @if (!canBePublic()) {
+        <ion-note color="medium" style="display:block;padding:0 16px 8px;font-size:0.8em;">
+          {{ 'PLAYFIELD_DETAIL.VISIBILITY_HINT' | translate }}
+        </ion-note>
+      }
     }
 
     @if (areaPoints().length >= 3) {
@@ -77,6 +83,10 @@
       } @else {
         {{ 'PLAYFIELD_DETAIL.SAVE' | translate }}
       }
+    </ion-button>
+
+    <ion-button expand="block" fill="clear" class="help-btn" (click)="openHelp()">
+      {{ 'PLAYFIELD_DETAIL.HELP' | translate }}
     </ion-button>
   }
 </ion-content>

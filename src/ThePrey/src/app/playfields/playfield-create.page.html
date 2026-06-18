@@ -22,14 +22,20 @@
     ></ion-input>
   </ion-item>
 
-  <ion-item>
+  <ion-item lines="none">
     <ion-label>{{ 'PLAYFIELD_CREATE.VISIBILITY_LABEL' | translate }}</ion-label>
     <ion-toggle
       slot="end"
       [checked]="isPublic()"
+      [disabled]="!canBePublic()"
       (ionChange)="isPublic.set($any($event).detail.checked)"
     ></ion-toggle>
   </ion-item>
+  @if (!canBePublic()) {
+    <ion-note color="medium" style="display:block;padding:0 16px 8px;font-size:0.8em;">
+      {{ 'PLAYFIELD_CREATE.VISIBILITY_HINT' | translate }}
+    </ion-note>
+  }
 
   <ion-item lines="none">
     <ion-button expand="block" fill="outline" (click)="goToArea()" style="width:100%;">
@@ -58,5 +64,9 @@
     } @else {
       {{ 'PLAYFIELD_CREATE.SAVE' | translate }}
     }
+  </ion-button>
+
+  <ion-button expand="block" fill="clear" class="help-btn" (click)="openHelp()">
+    {{ 'PLAYFIELD_CREATE.HELP' | translate }}
   </ion-button>
 </ion-content>
