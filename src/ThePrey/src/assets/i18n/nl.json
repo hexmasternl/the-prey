@@ -219,7 +219,11 @@
     "EMPTY": "Geen prooi beschikbaar om te taggen.",
     "TAG_ACTION": "TAG",
     "CANCEL": "ANNULEREN",
-    "BUTTON": "TAG"
+    "BUTTON": "TAG",
+    "CONFIRM_QUESTION": "Bevestig dat je deze speler echt hebt getikt:",
+    "ACKNOWLEDGE": "Ik heb deze persoon echt getikt",
+    "CONFIRM": "TAG BEVESTIGEN",
+    "BACK": "TERUG"
   },
   "HUNTER_DELAY": {
     "LABEL": "HUNTER LOS OVER",

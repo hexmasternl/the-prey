@@ -92,6 +92,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly showTagModal = signal(false);
   readonly taggablePrey = signal<GameParticipantStatusDto[]>([]);
   readonly tagInFlight = signal(false);
+  /** The prey selected in the list, awaiting confirmation; null shows the list step. */
+  readonly pendingTag = signal<GameParticipantStatusDto | null>(null);
+  /** Whether the hunter ticked "I really tagged this person" — gates the confirm button. */
+  readonly tagAcknowledged = signal(false);
   /** ISO timestamp at which the hunter may move, from the status poll; drives the countdown overlay. */
   readonly hunterMayMoveAt = signal<string | null>(null);
   /** Ticked every second by the duration timer so delay gating flips without a poll. */
@@ -267,14 +271,34 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
   closeTagModal(): void {
     this.showTagModal.set(false);
+    this.resetTagConfirmation();
   }
 
-  async confirmTag(prey: GameParticipantStatusDto): Promise<void> {
-    if (this.tagInFlight()) return;
+  /** Step one → step two: pick a target and move to the confirmation screen. */
+  selectTagTarget(prey: GameParticipantStatusDto): void {
+    this.pendingTag.set(prey);
+    this.tagAcknowledged.set(false);
+  }
+
+  /** Back out of the confirmation screen to the prey list. */
+  cancelTagConfirmation(): void {
+    this.resetTagConfirmation();
+  }
+
+  private resetTagConfirmation(): void {
+    this.pendingTag.set(null);
+    this.tagAcknowledged.set(false);
+  }
+
+  /** Final step: send the tag request for the acknowledged target. */
+  async confirmTag(): Promise<void> {
+    const prey = this.pendingTag();
+    if (!prey || !this.tagAcknowledged() || this.tagInFlight()) return;
     this.tagInFlight.set(true);
     try {
       await this.gamesService.tagPlayer(this.gameId, prey.userId);
       this.showTagModal.set(false);
+      this.resetTagConfirmation();
     } catch {
       // Tag failed — let user retry
     } finally {

@@ -219,7 +219,11 @@
     "EMPTY": "No prey available to tag.",
     "TAG_ACTION": "TAG",
     "CANCEL": "CANCEL",
-    "BUTTON": "TAG"
+    "BUTTON": "TAG",
+    "CONFIRM_QUESTION": "Confirm you have physically tagged this player:",
+    "ACKNOWLEDGE": "I really tagged this person",
+    "CONFIRM": "CONFIRM TAG",
+    "BACK": "BACK"
   },
   "HUNTER_DELAY": {
     "LABEL": "HUNTER RELEASE IN",

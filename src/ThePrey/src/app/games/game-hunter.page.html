@@ -44,26 +44,58 @@
         </ion-toolbar>
       </ion-header>
       <ion-content class="tag-modal-content">
-        <p class="tag-instruction">{{ 'TAG_MODAL.INSTRUCTION' | translate }}</p>
-        @if (taggablePrey().length === 0) {
-          <p class="tag-empty">{{ 'TAG_MODAL.EMPTY' | translate }}</p>
-        } @else {
-          <div class="tag-list">
-            @for (prey of taggablePrey(); track prey.userId) {
-              <button class="tag-row" [disabled]="tagInFlight()" (click)="confirmTag(prey)">
-                <span class="tag-dot"></span>
-                <span class="tag-callsign">{{ prey.callsign }}</span>
-                <span class="tag-row-state">{{ prey.state }}</span>
-                <span class="tag-row-action">{{ 'TAG_MODAL.TAG_ACTION' | translate }} ▸</span>
-              </button>
-            }
+        @if (pendingTag(); as target) {
+          <!-- Step 2: confirm the chosen target -->
+          <div class="tag-confirm">
+            <p class="tag-confirm-question">{{ 'TAG_MODAL.CONFIRM_QUESTION' | translate }}</p>
+            <div class="tag-confirm-target">
+              <span class="tag-dot"></span>
+              <span class="tag-callsign">{{ target.callsign }}</span>
+            </div>
+            <ion-item class="tag-ack" lines="none">
+              <ion-checkbox
+                slot="start"
+                [checked]="tagAcknowledged()"
+                (ionChange)="tagAcknowledged.set($any($event).detail.checked)"></ion-checkbox>
+              <ion-label class="ion-text-wrap">{{ 'TAG_MODAL.ACKNOWLEDGE' | translate }}</ion-label>
+            </ion-item>
           </div>
+        } @else {
+          <!-- Step 1: pick a target -->
+          <p class="tag-instruction">{{ 'TAG_MODAL.INSTRUCTION' | translate }}</p>
+          @if (taggablePrey().length === 0) {
+            <p class="tag-empty">{{ 'TAG_MODAL.EMPTY' | translate }}</p>
+          } @else {
+            <div class="tag-list">
+              @for (prey of taggablePrey(); track prey.userId) {
+                <button class="tag-row" [disabled]="tagInFlight()" (click)="selectTagTarget(prey)">
+                  <span class="tag-dot"></span>
+                  <span class="tag-callsign">{{ prey.callsign }}</span>
+                  <span class="tag-row-state">{{ prey.state }}</span>
+                  <span class="tag-row-action">{{ 'TAG_MODAL.TAG_ACTION' | translate }} ▸</span>
+                </button>
+              }
+            </div>
+          }
         }
       </ion-content>
       <ion-footer class="ion-padding tag-modal-footer">
-        <ion-button expand="block" fill="outline" [disabled]="tagInFlight()" (click)="closeTagModal()">
-          {{ 'TAG_MODAL.CANCEL' | translate }}
-        </ion-button>
+        @if (pendingTag()) {
+          <ion-button
+            class="tag-confirm-btn"
+            expand="block"
+            [disabled]="!tagAcknowledged() || tagInFlight()"
+            (click)="confirmTag()">
+            {{ 'TAG_MODAL.CONFIRM' | translate }}
+          </ion-button>
+          <ion-button class="tag-modal-btn" expand="block" fill="outline" [disabled]="tagInFlight()" (click)="cancelTagConfirmation()">
+            {{ 'TAG_MODAL.BACK' | translate }}
+          </ion-button>
+        } @else {
+          <ion-button class="tag-modal-btn" expand="block" fill="outline" [disabled]="tagInFlight()" (click)="closeTagModal()">
+            {{ 'TAG_MODAL.CANCEL' | translate }}
+          </ion-button>
+        }
       </ion-footer>
     </ng-template>
   </ion-modal>
