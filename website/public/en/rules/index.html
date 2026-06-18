@@ -10,7 +10,7 @@
   
   
   <title>Rules // The Prey</title>
-  <meta name="description" content="The full rules of The Prey: timing phases, the 10-minute head start, GPS update schedule, tagging and elimination, and how Hunters and Prey win.">
+  <meta name="description" content="The full rules of The Prey: timing phases, the configurable head start, GPS update schedule, tagging and elimination, and how the Hunter and Prey win.">
   
   <meta name="keywords" content="The Prey rules, game rules, head start, GPS tracking, tagging, elimination, win conditions, hide and seek rules">
 
@@ -19,7 +19,7 @@
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://theprey.nl/favicon.svg">
   <meta property="og:url" content="https://theprey.nl/en/rules/">
-  <meta property="og:description" content="The full rules of The Prey: timing phases, the 10-minute head start, GPS update schedule, tagging and elimination, and how Hunters and Prey win.">
+  <meta property="og:description" content="The full rules of The Prey: timing phases, the configurable head start, GPS update schedule, tagging and elimination, and how the Hunter and Prey win.">
   <meta property="og:site_name" content="The Prey">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="/css/main.min.5f1b50bea840ec25417aa3dae7fdca017a7d209d8ac0d600d9a14292679109d1.css">
+  <link rel="stylesheet" href="/css/main.min.60675691721b26d9280af0bee0772338c3f463086e484c46672ef03d85401664.css">
 </head>
 <body>
 <div class="crt-beam" aria-hidden="true"></div>
@@ -75,42 +75,43 @@
   <header class="page-head">
   <div class="eyebrow">RULES</div>
   <h1>Rules</h1>
-  <p class="lede page-lede">The full rules of The Prey: timing phases, the 10-minute head start, GPS update schedule, tagging and elimination, and how Hunters and Prey win.</p>
+  <p class="lede page-lede">The full rules of The Prey: timing phases, the configurable head start, GPS update schedule, tagging and elimination, and how the Hunter and Prey win.</p>
 </header>
 
   <h2 id="game-concept">Game Concept</h2>
-<p>The Prey is a GPS-based hide-and-seek game played in a defined outdoor area called a <strong>playfield</strong>. One or more players are <strong>Prey</strong> — they hide and evade. The rest are <strong>Hunters</strong> — they track and tag.</p>
-<p>The game is time-limited. Hunters win by tagging all Prey before time runs out. Prey win by having at least one survivor when the clock hits zero.</p>
+<p>The Prey is a GPS-based hide-and-seek game played in a defined outdoor area called a <strong>playfield</strong>. One or more players are <strong>Prey</strong>, who hide and evade. Exactly one player is the <strong>Hunter</strong>, who tracks and tags.</p>
+<p>The game is time-limited. The Hunter wins by tagging all Prey before time runs out. Prey win by having at least one survivor when the clock hits zero.</p>
 <hr>
 <h2 id="timing-phases">Timing Phases</h2>
+<p>Every duration is set by the Game Creator when the game is created; the values below are the in-app defaults. A game moves through three phases:</p>
 <div class="table-scroll">
   <table>
     <thead>
       <tr>
         <th>Phase</th>
-        <th>Duration</th>
+        <th>Default duration</th>
         <th>What Happens</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>Head Start</td>
-        <td>10 minutes</td>
-        <td>Prey scatter and hide. Hunters wait. No locations shared.</td>
+        <td>5 minutes</td>
+        <td>Prey scatter and hide. The Hunter is held in place, with no moving and no tagging yet.</td>
       </tr>
       <tr>
         <td>Active Hunt</td>
-        <td>~45 minutes</td>
-        <td>Hunt begins. Prey GPS pings broadcast to all Hunters.</td>
+        <td>~20 minutes</td>
+        <td>Hunt begins. Prey GPS pings broadcast to the Hunter.</td>
       </tr>
       <tr>
         <td>Final Stretch</td>
         <td>Last 5 minutes</td>
-        <td>Warning issued. All players are notified.</td>
+        <td>Position updates speed up to tighten the net.</td>
       </tr>
       <tr>
         <td>Total</td>
-        <td>~60 minutes</td>
+        <td>30 minutes</td>
         <td>Game ends. Results displayed.</td>
       </tr>
     </tbody>
@@ -118,14 +119,14 @@
 </div>
 <hr>
 <h2 id="gps-update-schedule">GPS Update Schedule</h2>
-<p>Prey locations are broadcast as GPS pins on the Hunter&rsquo;s map. Updates arrive at a fixed interval — typically every 30 seconds during the Active Hunt phase. During the Head Start, no location data is transmitted.</p>
+<p>Prey locations are broadcast as GPS pins on the Hunter&rsquo;s map. Updates arrive at the position-report interval the Game Creator chose for the game: 3 minutes by default, tightening to a shorter interval (1 minute by default) during the final stage. Locations are broadcast from the moment the game starts, including during the Head Start; the Hunter simply cannot move or tag until the head start ends.</p>
 <hr>
 <h2 id="elimination">Elimination</h2>
-<p>A Prey is eliminated when a Hunter physically reaches them and confirms the tag in the app. Both the Hunter and Prey must confirm the tag in the app. Once confirmed, the eliminated Prey is removed from the map and can no longer be tagged.</p>
+<p>A Prey is eliminated when a Hunter physically reaches them and tags them in the app. The tag takes effect immediately. Only the Hunter confirms it; the Prey does not. Once tagged, the eliminated Prey is removed from the map and can no longer be tagged.</p>
 <p>Eliminated Prey can see the rest of the game play out in spectator mode.</p>
 <hr>
 <h2 id="win-conditions">Win Conditions</h2>
-<p><strong>Hunters win</strong> if all Prey are tagged before the game timer expires.</p>
+<p><strong>The Hunter wins</strong> if all Prey are tagged before the game timer expires.</p>
 <p><strong>Prey win</strong> if at least one Prey survives until the timer reaches zero.</p>
 <p>There is no draw. If the final Prey is tagged in the same second the timer hits zero, the game result is determined by whichever event is registered first in the app.</p>
 
@@ -134,9 +135,14 @@
 
   </main>
 
+  
+  
+
   <footer class="site-footer">
   <span style="color:var(--signal-dim)">THE PREY</span> // END OF TRANSMISSION
+  <a class="footer-link" href="/en/become-a-tester/">Become a Tester</a>
   <a class="footer-link" href="/en/privacy/">Privacy</a>
+  <a class="footer-link" href="/en/account-removal/">Account Removal</a>
 </footer>
 
 

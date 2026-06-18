@@ -22,6 +22,9 @@
     </div>
   </div>
 
+  {{/* mobile-only in-flow badge; the desktop fixed badge is rendered in baseof.html */}}
+  {{ partial "tester-burst.html" (dict "variant" "inline") }}
+
   <div class="ticker" aria-hidden="true">
     <div class="ticker-track">
       {{ range seq 2 }}

@@ -10,7 +10,7 @@
   
   
   <title>Playfield // The Prey</title>
-  <meta name="description" content="How to draw and use a playfield in The Prey — define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one.">
+  <meta name="description" content="How to draw and use a playfield in The Prey: define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one.">
   
   <meta name="keywords" content="playfield, GPS boundary, polygon map, game area, draw playfield, map editor, The Prey playfield">
 
@@ -19,7 +19,7 @@
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://theprey.nl/favicon.svg">
   <meta property="og:url" content="https://theprey.nl/en/playfield/">
-  <meta property="og:description" content="How to draw and use a playfield in The Prey — define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one.">
+  <meta property="og:description" content="How to draw and use a playfield in The Prey: define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one.">
   <meta property="og:site_name" content="The Prey">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="/css/main.min.5f1b50bea840ec25417aa3dae7fdca017a7d209d8ac0d600d9a14292679109d1.css">
+  <link rel="stylesheet" href="/css/main.min.60675691721b26d9280af0bee0772338c3f463086e484c46672ef03d85401664.css">
 </head>
 <body>
 <div class="crt-beam" aria-hidden="true"></div>
@@ -75,11 +75,11 @@
   <header class="page-head">
   <div class="eyebrow">PLAYFIELD</div>
   <h1>Playfield</h1>
-  <p class="lede page-lede">How to draw and use a playfield in The Prey — define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one.</p>
+  <p class="lede page-lede">How to draw and use a playfield in The Prey: define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one.</p>
 </header>
 
   <h2 id="what-is-a-playfield">What Is a Playfield?</h2>
-<p>A playfield is a GPS polygon — a closed boundary drawn on a map that defines the valid game area. Players must stay within it during the hunt. Prey who leave the boundary can be disqualified at the Game Creator&rsquo;s discretion.</p>
+<p>A playfield is a GPS polygon: a closed boundary drawn on a map that defines the valid game area. Players must stay within it during the hunt.</p>
 <p>Playfields are created before the game and can be saved and reused for future sessions.</p>
 <hr>
 <h2 id="creation-steps">Creation Steps</h2>
@@ -91,6 +91,11 @@
 <li>Name the playfield and tap <strong>Save</strong>.</li>
 </ol>
 <p>Your saved playfields appear in the Playfield list and can be selected when starting a new game.</p>
+<figure class="screenshot">
+  <img src="/images/screens/playfield-set-area.png" alt="The playfield editor with a boundary polygon drawn on the map" loading="lazy">
+  <figcaption>The playfield editor</figcaption>
+</figure>
+
 <hr>
 <h2 id="map-gestures">Map Gestures</h2>
 <div class="table-scroll">
@@ -103,7 +108,7 @@
     </thead>
     <tbody>
       <tr>
-        <td>Tap</td>
+        <td>Tap map</td>
         <td>Place a new vertex</td>
       </tr>
       <tr>
@@ -115,16 +120,33 @@
         <td>Zoom in / zoom out</td>
       </tr>
       <tr>
-        <td>Long press edge</td>
-        <td>Insert a new vertex on that edge</td>
-      </tr>
-      <tr>
         <td>Tap vertex</td>
-        <td>Remove that vertex</td>
+        <td>Select it, then tap the trash button to remove it</td>
       </tr>
     </tbody>
   </table>
 </div>
+<hr>
+<h2 id="leaving-the-boundary-the-penalty">Leaving the Boundary: the Penalty</h2>
+<p>The playfield boundary is enforced automatically during a game. When the Game Creator enables boundary penalties, any player who steps outside the polygon is penalised by the game.</p>
+<p>While a penalty is active:</p>
+<ul>
+<li>The penalty lasts <strong>5 minutes</strong> from the moment you cross the boundary.</li>
+<li>Your live position is broadcast <strong>continuously</strong> for the whole penalty, instead of only at the normal reporting interval. For Prey this means the Hunter can see exactly where you are the entire time you are out, and you lose the gaps between location pings that normally keep you hidden.</li>
+<li>Returning inside the boundary does not clear an active penalty early; it simply stops new penalties from being applied.</li>
+</ul>
+<p>The penalty can be enabled separately for Prey and for the Hunter when the game is configured.</p>
+<hr>
+<h2 id="making-a-playfield-public">Making a Playfield Public</h2>
+<p>By default a playfield is <strong>private</strong>, so only you can use it. You can share a playfield with the wider community by switching it to <strong>public</strong>, but the public toggle only unlocks when the name follows the listing convention:</p>
+<pre tabindex="0"><code>CC, City, Fieldname
+</code></pre><ul>
+<li><strong>CC</strong>: a country code of 2 to 4 uppercase letters (e.g. <code>NL</code>, <code>USA</code>).</li>
+<li><strong>City</strong>: the city, starting with a capital and using ordinary city-name characters only (no special symbols).</li>
+<li><strong>Fieldname</strong>: the name of the field; ordinary characters, with ampersands (<code>&amp;</code>) and dashes (<code>-</code>) allowed.</li>
+</ul>
+<p>For example: <code>NL, Amsterdam, Vondelpark Arena</code>.</p>
+<p>Name your playfield this way and the <strong>Public</strong> switch becomes available. If you rename it so it no longer matches, the playfield is automatically set back to private before the switch is locked again. This keeps public playfields consistently named and easy to find for other players.</p>
 <hr>
 <h2 id="starting-a-game-from-a-playfield">Starting a Game from a Playfield</h2>
 <p>Open a saved playfield and tap <strong>Start Game</strong>. This creates a game session linked to that boundary. Invite players with the generated join code, assign roles in the lobby, and launch.</p>
@@ -134,9 +156,14 @@
 
   </main>
 
+  
+  
+
   <footer class="site-footer">
   <span style="color:var(--signal-dim)">THE PREY</span> // END OF TRANSMISSION
+  <a class="footer-link" href="/en/become-a-tester/">Become a Tester</a>
   <a class="footer-link" href="/en/privacy/">Privacy</a>
+  <a class="footer-link" href="/en/account-removal/">Account Removal</a>
 </footer>
 
 

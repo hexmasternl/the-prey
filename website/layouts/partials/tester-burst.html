@@ -1,0 +1,9 @@
+{{- /* "New!" starburst CTA linking to the tester page.
+  Params (dict): variant — "fixed" (desktop, viewport-pinned) or "inline" (mobile, in-hero flow). */ -}}
+{{- $variant := .variant -}}
+<a class="tester-burst tester-burst--{{ $variant }}" href="{{ "/become-a-tester/" | relLangURL }}" aria-label="{{ i18n "footer_become_tester" }}">
+  <span class="burst-inner">
+    <span class="burst-kicker">★ {{ i18n "badge_new" }} ★</span>
+    <span class="burst-main">{{ i18n "footer_become_tester" }}</span>
+  </span>
+</a>
