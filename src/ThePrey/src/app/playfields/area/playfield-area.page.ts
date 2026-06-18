@@ -30,6 +30,7 @@ import * as L from 'leaflet';
 import { GpsCoordinateDto } from '../playfield.model';
 import { PlayfieldsService } from '../playfields.service';
 import { PlayfieldDraftService } from '../playfield-draft.service';
+import { MAP_COLORS } from '../../shared/map-colors';
 
 addIcons({ trashOutline });
 
@@ -44,7 +45,7 @@ addIcons({ trashOutline });
 
     @if (isLoading()) {
       <div class="loading-overlay">
-        <ion-spinner name="crescent" />
+        <ion-spinner name="lines" color="primary" />
       </div>
     }
 
@@ -63,11 +64,17 @@ addIcons({ trashOutline });
     <ion-footer>
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-button (click)="onReset()">{{ 'PLAYFIELD_AREA.RESET' | translate }}</ion-button>
-          <ion-button (click)="onCancel()">{{ 'PLAYFIELD_AREA.CANCEL' | translate }}</ion-button>
+          <ion-button fill="outline" (click)="onReset()">{{ 'PLAYFIELD_AREA.RESET' | translate }}</ion-button>
+          <ion-button fill="outline" (click)="onCancel()">{{ 'PLAYFIELD_AREA.CANCEL' | translate }}</ion-button>
         </ion-buttons>
         <ion-buttons slot="end">
-          <ion-button [disabled]="pointCount() < 3" (click)="onSave()">
+          <ion-button
+            fill="solid"
+            color="primary"
+            class="save-action"
+            [disabled]="pointCount() < 3"
+            (click)="onSave()"
+          >
             {{ 'PLAYFIELD_AREA.SAVE' | translate }}
           </ion-button>
         </ion-buttons>
@@ -76,6 +83,10 @@ addIcons({ trashOutline });
   `,
   styles: [
     `
+      :host {
+        --ion-toolbar-background: var(--tp-bg-void);
+        --ion-toolbar-color: var(--tp-text);
+      }
       .map-container {
         position: absolute;
         top: 0;
@@ -89,8 +100,15 @@ addIcons({ trashOutline });
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0, 0, 0, 0.4);
+        background: var(--tp-scrim);
         z-index: 9999;
+      }
+      .save-action {
+        --border-radius: 3px;
+        box-shadow: 0 0 8px var(--tp-signal-glow);
+      }
+      ion-button[fill='outline'] {
+        --border-radius: 3px;
       }
     `,
   ],
@@ -209,10 +227,10 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
   }
 
   private createMarkerIcon(selected: boolean): L.DivIcon {
-    const border = selected ? '#ef4444' : '#ffffff';
+    const border = selected ? MAP_COLORS.HUNTER : MAP_COLORS.SIGNAL;
     return L.divIcon({
       className: '',
-      html: `<div style="width:16px;height:16px;border-radius:50%;background:#22c55e;border:3px solid ${border};box-sizing:border-box;"></div>`,
+      html: `<div style="width:16px;height:16px;border-radius:50%;background:${MAP_COLORS.SIGNAL};border:3px solid ${border};box-sizing:border-box;"></div>`,
       iconSize: [16, 16],
       iconAnchor: [8, 8],
     });
@@ -284,7 +302,7 @@ export class PlayfieldAreaPage implements ViewDidEnter, OnDestroy {
     if (this.points.length >= 3) {
       this.polygon = L.polygon(
         this.points.map((p) => L.latLng(p.latitude, p.longitude)),
-        { color: '#22c55e', fillColor: '#22c55e', fillOpacity: 0.25, weight: 2 },
+        { color: MAP_COLORS.SIGNAL, fillColor: MAP_COLORS.SIGNAL, fillOpacity: 0.25, weight: 2 },
       ).addTo(this.map!);
     }
   }

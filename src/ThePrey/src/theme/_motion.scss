@@ -1,0 +1,34 @@
+// THE PREY — Shared reduced-motion handling
+// ----------------------------------------------------------------------------
+// One pattern every animated page can include so it honors the OS
+// `prefers-reduced-motion: reduce` request: looping sweeps/scanlines freeze and
+// pulses/flashes collapse to a static state.
+//
+// Usage in a page `.scss`:
+//
+//   @use '../../theme/motion' as motion;
+//   ...
+//   @include motion.reduce {
+//     .radar-sweep { animation: none; }
+//     .ready-pulse { animation: none; box-shadow: 0 0 12px var(--tp-signal-glow); }
+//   }
+//
+// The `freeze` mixin is a convenience that neutralizes every animation on a set
+// of selectors at once (kills the animation, keeps a static halo).
+
+@mixin reduce {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+// Kill all animation on the passed selectors under reduced-motion.
+// Pass a comma-joined selector string, e.g. @include motion.freeze('.a, .b');
+@mixin freeze($selectors) {
+  @media (prefers-reduced-motion: reduce) {
+    #{$selectors} {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}

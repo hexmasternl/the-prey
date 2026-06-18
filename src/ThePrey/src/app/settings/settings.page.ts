@@ -7,8 +7,13 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonInput,
+  IonLabel,
+  IonSegment,
+  IonSegmentButton,
   IonTitle,
   IonToolbar,
+  SegmentCustomEvent,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBack } from 'ionicons/icons';
@@ -32,6 +37,10 @@ import { UserStateService } from '../users/user-state.service';
     IonButton,
     IonContent,
     IonIcon,
+    IonInput,
+    IonSegment,
+    IonSegmentButton,
+    IonLabel,
     ReactiveFormsModule,
     TranslatePipe,
   ],
@@ -130,6 +139,13 @@ export class SettingsPage implements OnInit {
   selectLanguage(lang: SupportedLanguage): void {
     this.form.patchValue({ language: lang }, { emitEvent: true });
     this.languageService.setLanguage(lang);
+  }
+
+  onLanguageSegmentChange(event: SegmentCustomEvent): void {
+    const lang = event.detail.value as SupportedLanguage;
+    if (lang) {
+      this.selectLanguage(lang);
+    }
   }
 
   back(): void {

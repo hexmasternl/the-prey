@@ -8,7 +8,7 @@
     <ion-title>{{ 'PLAYFIELD_LIST.TITLE' | translate }}</ion-title>
     <ion-buttons slot="end">
       @if (isSyncing()) {
-        <ion-spinner name="lines-small" style="width:20px;height:20px;margin-right:12px;"></ion-spinner>
+        <ion-spinner name="lines-small" color="primary" class="sync-spinner"></ion-spinner>
       } @else {
         <ion-button fill="clear" (click)="sync()">&#8635;</ion-button>
       }
@@ -16,9 +16,9 @@
   </ion-toolbar>
 
   <ion-toolbar>
-    <ion-segment [value]="activeTab()" (ionChange)="selectTab($any($event).detail.value)">
-      <ion-segment-button value="private">{{ 'PLAYFIELD_LIST.TAB_PRIVATE' | translate }}</ion-segment-button>
-      <ion-segment-button value="public">{{ 'PLAYFIELD_LIST.TAB_PUBLIC' | translate }}</ion-segment-button>
+    <ion-segment [value]="activeTab()" (ionChange)="selectTab($any($event).detail.value)" class="tp-segment">
+      <ion-segment-button value="private" class="tp-segment-btn">{{ 'PLAYFIELD_LIST.TAB_PRIVATE' | translate }}</ion-segment-button>
+      <ion-segment-button value="public" class="tp-segment-btn">{{ 'PLAYFIELD_LIST.TAB_PUBLIC' | translate }}</ion-segment-button>
     </ion-segment>
   </ion-toolbar>
 </ion-header>
@@ -26,7 +26,7 @@
 <ion-content>
   @if (activeTab() === 'private') {
     <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button (click)="createPlayfield()">
+      <ion-fab-button color="primary" class="tp-fab-primary" (click)="createPlayfield()">
         <ion-icon name="add"></ion-icon>
       </ion-fab-button>
     </ion-fab>

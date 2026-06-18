@@ -1,27 +1,19 @@
-@mixin tactical-theme {
-  --signal: #64ff00;
-  --signal-glow: rgba(100, 255, 0, 0.35);
-  --hunter: #ff2f1f;
-  --hunter-dim: #a01408;
-  --hunter-glow: rgba(255, 47, 31, 0.4);
-  --caution: #ffb300;
-  --caution-glow: rgba(255, 179, 0, 0.35);
-  --bg-void: #0c0e0c;
-  --bg-base: #181b17;
-  --bg-surface: #23271f;
-  --text: #dcf6d2;
-  --text-soft: #8c9a83;
-  --text-ghost: #5a6553;
-  --line: #39402f;
-}
+@use '../../theme/motion' as motion;
+@use '../../theme/gameplay-hud' as hud;
+
+// ── No local @mixin tactical-theme — all colors resolved from global --tp-* tokens ──
+
+// Include shared structural chrome (corner brackets, status bar, pill, role tag,
+// timer flash keyframe, and reduced-motion fallbacks).
+@include hud.structural-chrome;
 
 :host {
-  @include tactical-theme;
+  display: block;
 }
 
 .hunter-view {
-  --background: var(--bg-void);
-  font-family: 'PT Mono', 'Courier New', monospace;
+  --background: var(--tp-bg-void);
+  font-family: var(--tp-body);
 }
 
 .map-container {
@@ -55,92 +47,27 @@
 
 :global(.self-arrow svg) {
   display: block;
-  filter: drop-shadow(0 0 6px var(--signal-glow));
+  filter: drop-shadow(0 0 6px var(--tp-signal-glow));
 }
 
 :global(.self-arrow svg path) {
-  fill: var(--signal);
-  stroke: var(--bg-void);
+  fill: var(--tp-signal);
+  stroke: var(--tp-bg-void);
   stroke-width: 1.5;
   stroke-linejoin: round;
-}
-
-/* Corner brackets */
-.cb {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid var(--hunter);
-  z-index: 10;
-  pointer-events: none;
-
-  &.tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; }
-  &.tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; }
-  &.bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; }
-  &.br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; }
-}
-
-/* Status bar */
-.status-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 12px 16px 10px;
-  background: linear-gradient(to bottom, rgba(12, 9, 9, 0.9), transparent);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 10;
-}
-
-.status-pill {
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--hunter);
-  color: var(--hunter);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  animation: pill-pulse 1.5s ease-in-out infinite;
-
-  &::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    box-shadow: 0 0 6px currentColor;
-  }
-}
-
-@keyframes pill-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-.role-tag {
-  font-family: 'Special Elite', 'Courier New', monospace;
-  font-size: 11px;
-  color: var(--hunter);
-  letter-spacing: 1.5px;
-  text-shadow: 0 0 8px var(--hunter-glow);
 }
 
 /* Location reporting status pill in the status bar. */
 .link-tag {
   margin-left: auto;
-  font-family: 'PT Mono', 'Courier New', monospace;
+  font-family: var(--tp-body);
   font-size: 10px;
   letter-spacing: 1.5px;
-  color: var(--text-soft, #888);
+  color: var(--tp-text-soft);
 
   &.link-on {
-    color: #64ff00;
-    text-shadow: 0 0 8px rgba(100, 255, 0, 0.4);
+    color: var(--tp-signal);
+    text-shadow: 0 0 8px rgba(var(--tp-signal-rgb), 0.4);
   }
 }
 
@@ -160,25 +87,27 @@
   align-items: flex-start;
   gap: 10px;
   padding: 12px 14px;
-  background: var(--bg-surface);
-  border-left: 3px solid var(--caution);
+  background: var(--tp-bg-surface);
+  border-left: 3px solid var(--tp-caution);
 
   .alert-icon {
-    color: var(--caution);
+    color: var(--tp-caution);
     font-size: 16px;
     line-height: 1.4;
   }
 
   .alert-title {
+    font-family: var(--tp-body);
     font-size: 11px;
     letter-spacing: 2px;
-    color: var(--caution);
+    color: var(--tp-caution);
     text-transform: uppercase;
   }
 
   .alert-msg {
+    font-family: var(--tp-body);
     font-size: 13px;
-    color: var(--text-soft);
+    color: var(--tp-text-soft);
     margin-top: 2px;
   }
 }
@@ -191,13 +120,13 @@
   z-index: 12;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--hunter-dim);
-  background: rgba(12, 9, 9, 0.88);
+  border-radius: 3px;
+  border: 1px solid var(--tp-hunter-dim);
+  background: rgba(var(--tp-bg-void-rgb), 0.88);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--hunter-dim);
+  color: var(--tp-hunter-dim);
   font-size: 14px;
   cursor: pointer;
   padding: 0;
@@ -211,10 +140,10 @@
   z-index: 12;
   width: 60px;
   height: 60px;
-  border-radius: 50%;
-  border: 1.5px solid var(--hunter);
-  background: rgba(40, 8, 6, 0.92);
-  color: var(--hunter);
+  border-radius: 3px;
+  border: 1.5px solid var(--tp-hunter);
+  background: rgba(var(--tp-hunter-rgb), 0.12);
+  color: var(--tp-hunter);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -222,7 +151,7 @@
   gap: 1px;
   cursor: pointer;
   padding: 0;
-  box-shadow: 0 0 14px var(--hunter-glow);
+  box-shadow: 0 0 14px var(--tp-hunter-glow);
   animation: tag-pulse 1.6s ease-in-out infinite;
 
   .tag-fab-icon { font-size: 20px; line-height: 1; }
@@ -230,13 +159,13 @@
   .tag-fab-label {
     font-size: 9px;
     letter-spacing: 2px;
-    font-family: 'Special Elite', 'Courier New', monospace;
+    font-family: var(--tp-head);
   }
 
   &:disabled {
-    border-color: var(--line);
-    color: var(--text-ghost);
-    background: rgba(12, 9, 9, 0.85);
+    border-color: var(--tp-line);
+    color: var(--tp-text-ghost);
+    background: rgba(var(--tp-bg-void-rgb), 0.85);
     box-shadow: none;
     animation: none;
     cursor: default;
@@ -244,46 +173,42 @@
 }
 
 @keyframes tag-pulse {
-  0%, 100% { box-shadow: 0 0 12px var(--hunter-glow); }
-  50% { box-shadow: 0 0 22px var(--hunter-glow); }
+  0%, 100% { box-shadow: 0 0 12px var(--tp-hunter-glow); }
+  50% { box-shadow: 0 0 22px var(--tp-hunter-glow); }
 }
 
 /* Tag prey modal.
  * Ionic teleports the inline modal out of this component's host element, so the
- * theme tokens defined on :host don't cascade into it (that's why the modal looked
- * transparent/unthemed). Re-declare them on the modal element itself so every
- * var(--…) inside resolves. */
+ * theme tokens defined on :host don't cascade into it. The global --tp-* tokens
+ * on :root resolve fine — no shadow-token re-declaration needed. */
 .tag-modal {
-  @include tactical-theme;
-  --background: var(--bg-base);
+  --background: var(--tp-bg-base);
 
   ion-toolbar {
-    --background: var(--bg-void);
-    --color: var(--text);
+    --background: var(--tp-bg-void);
+    --color: var(--tp-text);
     --border-width: 0 0 1px 0;
-    --border-color: var(--line);
+    --border-color: var(--tp-line);
   }
 
   ion-title {
-    color: var(--text);
-    font-family: 'Special Elite', 'Courier New', monospace;
+    color: var(--tp-text);
+    font-family: var(--tp-head);
     letter-spacing: 1.5px;
   }
 }
 
-/* Tag confirmation popup — a small centered card, not a sheet.
- * Same teleport caveat as the selection sheet: re-declare the theme tokens. */
+/* Tag confirmation popup — a small centered card, not a sheet. */
 .tag-confirm-modal {
-  @include tactical-theme;
   --width: 88%;
   --max-width: 360px;
   --height: auto;
-  --border-radius: 8px;
-  --background: var(--bg-base);
-  --box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+  --border-radius: 3px;
+  --background: var(--tp-bg-base);
+  --box-shadow: 0 0 24px rgba(var(--tp-bg-void-rgb), 0.6);
 
   &::part(content) {
-    border: 1px solid var(--hunter-glow);
+    border: 1px solid var(--tp-hunter-glow);
   }
 }
 
@@ -292,25 +217,25 @@
   flex-direction: column;
   gap: 18px;
   padding: 22px 18px;
-  font-family: 'PT Mono', 'Courier New', monospace;
+  font-family: var(--tp-body);
 }
 
 .tag-confirm-question {
   margin: 0;
   font-size: 15px;
   line-height: 1.4;
-  color: var(--text);
+  color: var(--tp-text);
 }
 
 .tag-ack {
   --background: transparent;
-  --border-color: var(--line);
+  --border-color: var(--tp-line);
   --inner-padding-end: 0;
   --padding-start: 0;
 
   ion-label {
     font-size: 13px;
-    color: var(--text);
+    color: var(--tp-text);
   }
 }
 
@@ -321,38 +246,39 @@
 }
 
 .tag-confirm-btn {
-  --background: var(--hunter);
-  --background-activated: var(--hunter-dim);
-  --background-focused: var(--hunter-dim);
-  --color: var(--bg-void);
-  --box-shadow: 0 0 14px var(--hunter-glow);
-  font-family: 'Special Elite', 'Courier New', monospace;
+  --background: var(--tp-hunter);
+  --background-activated: var(--tp-hunter-dim);
+  --background-focused: var(--tp-hunter-dim);
+  --color: var(--tp-bg-void);
+  --box-shadow: 0 0 14px var(--tp-hunter-glow);
+  font-family: var(--tp-head);
   letter-spacing: 2px;
 }
 
 .tag-modal-btn {
-  --color: var(--text-soft);
-  --border-color: var(--line);
+  --color: var(--tp-text-soft);
+  --border-color: var(--tp-line);
   letter-spacing: 2px;
 }
 
 .tag-modal-content {
-  --background: var(--bg-base);
-  --color: var(--text);
-  font-family: 'PT Mono', 'Courier New', monospace;
+  --background: var(--tp-bg-base);
+  --color: var(--tp-text);
+  font-family: var(--tp-body);
 }
 
 .tag-instruction {
+  font-family: var(--tp-body);
   font-size: 12px;
   letter-spacing: 1px;
-  color: var(--text-soft);
+  color: var(--tp-text-soft);
   text-transform: uppercase;
   padding: 14px 16px 6px;
   margin: 0;
 }
 
 .tag-empty {
-  color: var(--text-ghost);
+  color: var(--tp-text-ghost);
   text-align: center;
   padding: 32px 16px;
   letter-spacing: 1px;
@@ -371,11 +297,11 @@
   gap: 12px;
   width: 100%;
   padding: 14px;
-  background: rgba(12, 9, 9, 0.7);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--hunter);
+  background: rgba(var(--tp-bg-void-rgb), 0.7);
+  border: 1px solid var(--tp-line);
+  border-left: 3px solid var(--tp-hunter);
   border-radius: 3px;
-  color: var(--text);
+  color: var(--tp-text);
   cursor: pointer;
   font-family: inherit;
 
@@ -383,15 +309,15 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--hunter);
-    box-shadow: 0 0 8px var(--hunter-glow);
+    background: var(--tp-hunter);
+    box-shadow: 0 0 8px var(--tp-hunter-glow);
     flex: 0 0 auto;
   }
 
   .tag-callsign {
-    font-family: 'Special Elite', 'Courier New', monospace;
+    font-family: var(--tp-head);
     font-size: 16px;
-    color: var(--text);
+    color: var(--tp-text);
     flex: 1;
     text-align: left;
     white-space: nowrap;
@@ -402,24 +328,24 @@
   .tag-row-state {
     font-size: 10px;
     letter-spacing: 1.5px;
-    color: var(--text-ghost);
+    color: var(--tp-text-ghost);
     text-transform: uppercase;
   }
 
   .tag-row-action {
     font-size: 12px;
     letter-spacing: 1.5px;
-    color: var(--hunter);
-    text-shadow: 0 0 8px var(--hunter-glow);
+    color: var(--tp-hunter);
+    text-shadow: 0 0 8px var(--tp-hunter-glow);
   }
 
   &:disabled { opacity: 0.5; cursor: default; }
-  &:active { background: rgba(255, 47, 31, 0.12); }
+  &:active { background: rgba(var(--tp-hunter-rgb), 0.12); }
 }
 
 .tag-modal-footer {
-  --background: var(--bg-base);
-  background: var(--bg-base);
+  --background: var(--tp-bg-base);
+  background: var(--tp-bg-base);
 }
 
 .surroundings-warning-footer {
@@ -432,7 +358,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, rgba(12, 9, 9, 0.97) 85%, transparent);
+  background: linear-gradient(to top, rgba(var(--tp-bg-void-rgb), 0.97) 85%, transparent);
   padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 10;
 }
@@ -441,41 +367,54 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--tp-line);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 8px;
 }
 
 .hud-cell {
-  background: rgba(12, 9, 9, 0.7);
+  background: rgba(var(--tp-bg-void-rgb), 0.7);
   padding: 10px 14px;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--tp-line);
+  border-bottom: 1px solid var(--tp-line);
 
   &:nth-child(even) { border-right: none; }
   &:nth-last-child(-n+2) { border-bottom: none; }
 
   .hud-label {
+    font-family: var(--tp-body);
     font-size: 9px;
     letter-spacing: 2px;
-    color: var(--text-ghost);
+    color: var(--tp-text-ghost);
     text-transform: uppercase;
     margin-bottom: 4px;
   }
 
   .hud-value {
-    font-family: 'Special Elite', 'Courier New', monospace;
+    font-family: var(--tp-head);
     font-size: 22px;
     line-height: 1;
-    color: var(--signal);
-    text-shadow: 0 0 12px var(--signal-glow);
+    color: var(--tp-signal);
+    text-shadow: 0 0 12px var(--tp-signal-glow);
   }
 
   &.hud-penalty .hud-value {
-    color: var(--caution);
-    text-shadow: 0 0 12px var(--caution-glow);
+    color: var(--tp-caution);
+    text-shadow: 0 0 12px var(--tp-caution-glow);
   }
+
+  /* On-target: hunter is within 30 m of the nearest prey — emphasise the distance cell. */
+  &.hud-on-target .hud-value {
+    color: var(--tp-signal);
+    text-shadow: 0 0 14px var(--tp-signal-glow);
+    animation: hud-on-target-pulse 1s ease-in-out infinite;
+  }
+}
+
+@keyframes hud-on-target-pulse {
+  0%, 100% { text-shadow: 0 0 14px var(--tp-signal-glow); }
+  50%       { text-shadow: 0 0 24px var(--tp-signal-glow); }
 }
 
 /* Ping row */
@@ -483,40 +422,47 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--tp-line);
   border-radius: 3px;
-  background: rgba(12, 9, 9, 0.7);
+  background: rgba(var(--tp-bg-void-rgb), 0.7);
   padding: 8px 14px;
 }
 
 .hud-ping-label {
+  font-family: var(--tp-body);
   font-size: 9px;
   letter-spacing: 2px;
-  color: var(--text-ghost);
+  color: var(--tp-text-ghost);
   text-transform: uppercase;
 }
 
 .hud-ping-bar-wrap {
   flex: 1;
   height: 4px;
-  background: var(--line);
+  background: var(--tp-line);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .hud-ping-bar {
   height: 100%;
-  background: var(--hunter);
-  box-shadow: 0 0 6px var(--hunter-glow);
+  background: var(--tp-hunter);
+  box-shadow: 0 0 6px var(--tp-hunter-glow);
   border-radius: 2px;
   transition: width 1s linear;
 }
 
 .hud-ping-value {
-  font-family: 'Special Elite', 'Courier New', monospace;
+  font-family: var(--tp-head);
   font-size: 16px;
-  color: var(--hunter);
-  text-shadow: 0 0 8px var(--hunter-glow);
+  color: var(--tp-hunter);
+  text-shadow: 0 0 8px var(--tp-hunter-glow);
   min-width: 36px;
   text-align: right;
+}
+
+@include motion.reduce {
+  .tag-fab { animation: none; box-shadow: 0 0 14px var(--tp-hunter-glow); }
+  // .status-pill and .hud-time-flash are covered by hud.structural-chrome's @include motion.reduce block.
+  .hud-cell.hud-on-target .hud-value { animation: none; text-shadow: 0 0 14px var(--tp-signal-glow); }
 }

@@ -1,5 +1,5 @@
 ion-content.login-content {
-  --background: var(--tp-bg-void, #0c0e0c);
+  --background: var(--tp-bg-void);
 }
 
 .login-container {
@@ -12,34 +12,34 @@ ion-content.login-content {
 }
 
 .app-title {
-  font-family: var(--tp-head, 'Special Elite', 'Courier New', monospace);
+  font-family: var(--tp-head);
   font-size: 3.5rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ion-color-primary);
   text-align: center;
   margin-bottom: 3rem;
-  text-shadow: 0 0 20px var(--tp-signal-glow, rgba(100, 255, 0, 0.35));
+  text-shadow: 0 0 20px var(--tp-signal-glow);
 }
 
 .hunt-button {
-  --background: transparent;
-  --border-width: 2px;
-  --border-style: solid;
-  --border-color: var(--ion-color-primary);
-  --color: var(--ion-color-primary);
-  --border-radius: 0;
-  --box-shadow: 0 0 16px var(--tp-signal-glow, rgba(100, 255, 0, 0.35));
+  // Solid primary — one glowing CTA per screen
+  --background: var(--tp-signal);
+  --background-activated: var(--tp-signal-dim);
+  --background-hover: var(--tp-signal-dim);
+  --color: #000;
+  --border-radius: 3px;
+  --box-shadow: 0 0 20px var(--tp-signal-glow);
 
   width: 100%;
   max-width: 320px;
-  font-family: var(--tp-head, 'Special Elite', 'Courier New', monospace);
+  font-family: var(--tp-head);
   font-size: 1.25rem;
   letter-spacing: 0.1em;
+  text-transform: uppercase;
 
   &:hover,
   &:active {
-    --background: var(--tp-signal-glow, rgba(100, 255, 0, 0.35));
-    --box-shadow: 0 0 32px var(--tp-signal-glow, rgba(100, 255, 0, 0.35));
+    --box-shadow: 0 0 36px var(--tp-signal-glow);
   }
 }

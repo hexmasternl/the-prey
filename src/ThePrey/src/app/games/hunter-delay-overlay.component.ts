@@ -53,45 +53,48 @@ import { TranslatePipe } from '@ngx-translate/core';
         pointer-events: none;
       }
       .delay-card {
-        background: rgba(10, 14, 10, 0.85);
-        border: 1px solid rgba(100, 255, 0, 0.5);
-        border-radius: 8px;
+        background: rgba(var(--tp-bg-void-rgb), 0.88);
+        border: 1px solid rgba(var(--tp-signal-rgb), 0.5);
+        border-radius: 3px;
         padding: 20px 32px;
         text-align: center;
       }
       .delay-label {
+        font-family: var(--tp-body);
         font-size: 12px;
         letter-spacing: 2px;
         text-transform: uppercase;
-        color: #64ff00;
+        color: var(--tp-signal);
       }
       .delay-countdown {
+        font-family: var(--tp-head);
         font-size: 48px;
-        font-weight: 700;
         font-variant-numeric: tabular-nums;
-        color: #ffffff;
+        color: var(--tp-text);
         line-height: 1.2;
       }
       .delay-hint {
+        font-family: var(--tp-body);
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--tp-text-soft);
       }
       .delay-warning {
         margin-top: 16px;
         padding-top: 12px;
-        border-top: 1px solid rgba(255, 60, 60, 0.4);
+        border-top: 1px solid rgba(var(--tp-hunter-rgb), 0.4);
       }
       .delay-warning-title {
+        font-family: var(--tp-body);
         font-size: 13px;
-        font-weight: 700;
         letter-spacing: 2px;
         text-transform: uppercase;
-        color: #ff3c3c;
+        color: var(--tp-hunter);
       }
       .delay-warning-body {
+        font-family: var(--tp-body);
         margin-top: 4px;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.85);
+        color: var(--tp-text-soft);
         max-width: 240px;
       }
     `,

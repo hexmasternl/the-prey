@@ -2,7 +2,7 @@
   @if (showContent()) {
     <ion-router-outlet></ion-router-outlet>
   } @else {
-    <div class="boot-screen">
+    <div class="boot-screen" role="status" aria-label="The Prey — initialising tactical systems">
       <ion-spinner name="lines-sharp"></ion-spinner>
     </div>
   }

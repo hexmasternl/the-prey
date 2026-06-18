@@ -1,12 +1,13 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="cancel()">{{ 'PLAYFIELD_SELECT.CANCEL' | translate }}</ion-button>
+      <ion-button fill="outline" class="cancel-btn" (click)="cancel()">{{ 'PLAYFIELD_SELECT.CANCEL' | translate }}</ion-button>
     </ion-buttons>
     <ion-title>{{ 'PLAYFIELD_SELECT.TITLE' | translate }}</ion-title>
   </ion-toolbar>
   <ion-toolbar>
     <ion-searchbar
+      class="tp-searchbar"
       [placeholder]="'PLAYFIELD_SELECT.SEARCH_PLACEHOLDER' | translate"
       (ionInput)="onSearch($any($event).detail.value ?? '')"
     ></ion-searchbar>
@@ -27,7 +28,7 @@
       @for (pf of displayList(); track pf.id) {
         <ion-item button [class.selected-row]="isSelected(pf)" (click)="toggleSelect(pf)">
           <ion-label>
-            <h2>{{ pf.name }}</h2>
+            <h2 class="item-name">{{ pf.name }}</h2>
           </ion-label>
           <ion-badge slot="end" [color]="pf.isPublic ? 'success' : 'medium'">
             {{ (pf.isPublic ? 'PLAYFIELD_SELECT.BADGE_PUBLIC' : 'PLAYFIELD_SELECT.BADGE_PRIVATE') | translate }}
@@ -43,7 +44,14 @@
 
 <ion-footer>
   <ion-toolbar>
-    <ion-button expand="block" [disabled]="!selectedPlayfield()" (click)="confirm()">
+    <ion-button
+      expand="block"
+      color="primary"
+      fill="solid"
+      class="confirm-btn"
+      [disabled]="!selectedPlayfield()"
+      (click)="confirm()"
+    >
       {{ 'PLAYFIELD_SELECT.SELECT' | translate }}
     </ion-button>
   </ion-toolbar>

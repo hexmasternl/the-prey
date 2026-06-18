@@ -38,3 +38,110 @@
 
 // Custom palette — must follow dark.system.css so our tokens take precedence
 @use 'theme/variables';
+
+/* ════════════════════════════════════════════════════════════════
+ *  TACTICAL PRIMITIVES — shared, globally-scoped
+ *  Conventions and overlay themes the whole app references so pages
+ *  stop duplicating values. (Design System v1.0)
+ * ════════════════════════════════════════════════════════════════ */
+
+/* §06 — Instrument radius: every button is near-square (3px), never the
+ * rounded Ionic default. Applied globally so no page can drift. */
+ion-button {
+  --border-radius: 3px;
+}
+ion-fab-button {
+  --border-radius: 3px;
+}
+
+/* ── Themed Ionic overlays ──────────────────────────────────────
+ * Ionic teleports overlays to the app root, escaping component style
+ * encapsulation, so they must be themed through globally-scoped classes
+ * applied via `cssClass`. (design.md D3) */
+
+/* `.tp-overlay` — tactical modal / alert surface.
+ * Apply on ion-modal / ion-alert via cssClass="tp-overlay". */
+.tp-overlay {
+  --background: var(--tp-bg-surface);
+  --backdrop-opacity: 1;
+
+  &::part(backdrop),
+  .alert-wrapper ~ .ion-backdrop,
+  ion-backdrop {
+    background: var(--tp-scrim);
+  }
+
+  .alert-wrapper,
+  .modal-wrapper,
+  &::part(content) {
+    background: var(--tp-bg-surface);
+    border: 1px solid var(--tp-line);
+    border-radius: 3px;
+  }
+
+  .alert-title,
+  .alert-head h2,
+  h1, h2 {
+    font-family: var(--tp-head);
+    color: var(--tp-text);
+    text-transform: uppercase;
+  }
+
+  .alert-message,
+  .alert-sub-title,
+  p {
+    font-family: var(--tp-body);
+    color: var(--tp-text-soft);
+  }
+
+  .alert-button {
+    font-family: var(--tp-head);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--tp-signal);
+    border-radius: 3px;
+  }
+}
+
+/* `.tp-select-popover` — tactical ion-select alert/popover overlay.
+ * Apply via the ion-select [interfaceOptions]="{ cssClass: 'tp-select-popover' }"
+ * or interfaceOptions.cssClass = 'tp-select-popover'. */
+.tp-select-popover {
+  --background: var(--tp-bg-surface);
+  --backdrop-opacity: 1;
+
+  &::part(backdrop),
+  ion-backdrop {
+    background: var(--tp-scrim);
+  }
+
+  .alert-wrapper,
+  .popover-content,
+  &::part(content) {
+    background: var(--tp-bg-surface);
+    border: 1px solid var(--tp-line);
+    border-radius: 3px;
+  }
+
+  .alert-title,
+  .alert-radio-label,
+  .alert-checkbox-label,
+  ion-item {
+    font-family: var(--tp-body);
+    color: var(--tp-text);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Selected option lights signal-green */
+  [aria-checked="true"].alert-radio-button .alert-radio-label,
+  .item-radio-checked .alert-radio-label {
+    color: var(--tp-signal);
+  }
+
+  .alert-button {
+    font-family: var(--tp-head);
+    text-transform: uppercase;
+    color: var(--tp-signal);
+  }
+}

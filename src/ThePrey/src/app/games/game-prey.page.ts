@@ -21,8 +21,10 @@ import { App } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
+import { computeThreatState, ThreatState } from './threat-state';
+import { MAP_COLORS } from '../shared/map-colors';
 import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload, GameEndedPayload } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
 import { CompassService } from './compass.service';
@@ -58,6 +60,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly locationService = inject(GameLocationService);
   private readonly userState      = inject(UserStateService);
   private readonly compass        = inject(CompassService);
+  private readonly translate      = inject(TranslateService);
 
   /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
   readonly heading = this.compass.heading;
@@ -68,6 +71,44 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   /** Seconds left in the game, resynced from the server each poll and ticked down locally every second. */
   readonly secondsRemaining = signal<number | null>(null);
   readonly timeRemaining   = computed(() => this.formatDuration(this.secondsRemaining()));
+
+  /** True when the server has flagged the game as being in its final stage. */
+  readonly isEndgame = signal(false);
+
+  /**
+   * Three-state threat level derived from remaining time and the endgame flag.
+   * Drives [attr.data-threat] on ion-content so the shared HUD chrome escalates.
+   *   normal   → signal green   (standard play)
+   *   final    → caution amber  (endgame stage active)
+   *   critical → hunter red     (≤60 seconds left)
+   *
+   * NOTE: Proximity-based escalation (hunter-is-near) is intentionally absent.
+   * The prey client does NOT receive hunter distance in real-time — the status
+   * poll only supplies secondsRemaining and isEndgame. A proximity-driven
+   * escalation path requires the backend to push hunter distance to prey players,
+   * which is a separate, deferred feature.
+   */
+  readonly threatState = computed<ThreatState>(() =>
+    computeThreatState(this.secondsRemaining(), this.isEndgame()),
+  );
+
+  /**
+   * Status pill label for the prey status bar. Reflects the player's in-game
+   * state (hidden/active, spectating) and the threat phase.
+   *   active + normal   → 'GAME_PROGRESS.STATUS_LIVE'
+   *   active + final    → 'GAME_PROGRESS.STATUS_ENDGAME'
+   *   active + critical → 'GAME_PROGRESS.STATUS_CRITICAL'
+   *   spectating (tagged/out) → 'GAME_PROGRESS.STATUS_SPECTATING'
+   */
+  readonly statusPillLabel = computed(() => {
+    if (this.outReason() !== null) return 'GAME_PROGRESS.STATUS_SPECTATING';
+    switch (this.threatState()) {
+      case 'critical': return 'GAME_PROGRESS.STATUS_CRITICAL';
+      case 'final':    return 'GAME_PROGRESS.STATUS_ENDGAME';
+      default:         return 'GAME_PROGRESS.STATUS_LIVE';
+    }
+  });
+
   readonly preysLeft       = signal(0);
   readonly hasActivePenalty = signal(false);
   readonly gpsAlert        = signal<string | null>(null);
@@ -314,7 +355,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       { enableHighAccuracy: true, maximumAge: 5_000 },
       (position, err) => {
         if (err || !position) {
-          this.gpsAlert.set('Signal lost. Find open sky.');
+          this.gpsAlert.set(this.translate.instant('GAME_PROGRESS.GPS_SIGNAL_LOST'));
           return;
         }
         this.gpsAlert.set(null);
@@ -442,6 +483,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private applyStatus(status: GameStatusDto): void {
     this.secondsRemaining.set(status.gameDurationLeft);
+    this.isEndgame.set(status.isEndgame ?? false);
     this.preysLeft.set(status.preysLeft);
     this.hunterMayMoveAt.set(status.hunterMayMoveAt ?? null);
     this.hunterUserId = status.hunterUserId;
@@ -520,10 +562,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   /** Hunter → red; other preys → orange (grey once Tagged/Out). */
   private blipOptionsFor(userId: string, state: string): L.CircleMarkerOptions {
     if (userId === this.hunterUserId) {
-      return { radius: 7, color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9, weight: 2 };
+      return { radius: 7, color: MAP_COLORS.HUNTER, fillColor: MAP_COLORS.HUNTER, fillOpacity: 0.9, weight: 2 };
     }
     const isInactive = state === 'Tagged' || state === 'Out';
-    const colour = isInactive ? '#888888' : '#ff9500';
+    const colour = isInactive ? MAP_COLORS.TAGGED : MAP_COLORS.CAUTION;
     return { radius: 6, color: colour, fillColor: colour, fillOpacity: isInactive ? 0.4 : 0.9, weight: 2 };
   }
 
@@ -533,10 +575,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
     const latlngs = coords.map(c => [c.latitude, c.longitude] as L.LatLngExpression);
     this.playfieldPolygon = L.polygon(latlngs, {
-      color: '#64ff00',     // opaque border
+      color: MAP_COLORS.SIGNAL,   // opaque border
       weight: 3,
       opacity: 1,
-      fillColor: '#64ff00', // transparent fill: faint tint, map shows through
+      fillColor: MAP_COLORS.SIGNAL, // transparent fill: faint tint, map shows through
       fillOpacity: 0.1,
     }).addTo(this.map);
 

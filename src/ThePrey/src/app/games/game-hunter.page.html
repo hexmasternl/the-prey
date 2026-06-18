@@ -1,10 +1,10 @@
-<ion-content [fullscreen]="true" class="hunter-view">
+<ion-content [fullscreen]="true" class="hunter-view" [attr.data-threat]="threatState()">
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <!-- Surroundings safety warning modal -->
-  <ion-modal [isOpen]="showSurroundingsWarning()" [backdropDismiss]="false">
+  <ion-modal [isOpen]="showSurroundingsWarning()" [backdropDismiss]="false" cssClass="tp-overlay">
     <ng-template>
       <ion-header>
         <ion-toolbar>
@@ -135,8 +135,8 @@
 
   <!-- Status bar -->
   <div class="status-bar">
-    <span class="status-pill">LIVE</span>
-    <span class="role-tag">HUNTER</span>
+    <span class="status-pill">{{ statusPillLabel() | translate }}</span>
+    <span class="role-tag">{{ 'GAME_PROGRESS.ROLE_HUNTER' | translate }}</span>
     <span class="link-tag" [class.link-on]="isTracking()">{{ isTracking() ? 'LIVE' : 'OFF' }}</span>
   </div>
 
@@ -204,20 +204,20 @@
   <div class="hud-panel">
     <div class="hud-grid">
       <div class="hud-cell">
-        <div class="hud-label">TIME</div>
-        <div class="hud-value">{{ timeRemaining() }}</div>
+        <div class="hud-label">{{ 'GAME_PROGRESS.HUD_TIME' | translate }}</div>
+        <div class="hud-value" [class.hud-time-flash]="threatState() === 'critical'">{{ timeRemaining() }}</div>
       </div>
       <div class="hud-cell">
-        <div class="hud-label">PREY</div>
+        <div class="hud-label">{{ 'GAME_PROGRESS.HUD_PREY' | translate }}</div>
         <div class="hud-value">{{ preysLeft() }}</div>
       </div>
-      <div class="hud-cell">
-        <div class="hud-label">DISTANCE</div>
+      <div class="hud-cell" [class.hud-on-target]="onTarget()">
+        <div class="hud-label">{{ 'GAME_PROGRESS.HUD_DISTANCE' | translate }}</div>
         <div class="hud-value">{{ nearestDistance() }}</div>
       </div>
       <div class="hud-cell" [class.hud-penalty]="hasActivePenalty()">
-        <div class="hud-label">PENALTY</div>
-        <div class="hud-value">{{ hasActivePenalty() ? 'ACTIVE' : '—' }}</div>
+        <div class="hud-label">{{ 'GAME_PROGRESS.HUD_PENALTY' | translate }}</div>
+        <div class="hud-value">{{ hasActivePenalty() ? ('GAME_PROGRESS.HUD_PENALTY_ACTIVE' | translate) : '—' }}</div>
       </div>
     </div>
     <div class="hud-ping-row">

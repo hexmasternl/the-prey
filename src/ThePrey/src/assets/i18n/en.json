@@ -188,6 +188,7 @@
     "GPS_DENIED_MSG": "Location permission is denied. Enable location access for The Prey to stay in the game.",
     "GPS_UNAVAILABLE_TITLE": "NO LOCATION FIX",
     "GPS_UNAVAILABLE_MSG": "Can't get a GPS fix. Move to open sky and make sure location is switched on.",
+    "GPS_SIGNAL_LOST": "Signal lost. Find open sky.",
     "REPORTING_DEGRADED_TITLE": "POSITION NOT UPDATING",
     "REPORTING_DEGRADED_MSG": "Can't reach command. Your position isn't being shared — check your connection.",
     "TAGGED_TITLE": "YOU HAVE BEEN TAGGED",
@@ -195,7 +196,16 @@
     "OUT_TITLE": "YOU ARE OUT",
     "OUT_MSG": "You left the area for too long.",
     "SPECTATING": "Stay tuned — you'll see how it ends.",
-    "BACK": "BACK"
+    "BACK": "BACK",
+    "STATUS_LIVE": "LIVE",
+    "STATUS_ENDGAME": "ENDGAME",
+    "STATUS_CRITICAL": "CRITICAL",
+    "STATUS_SPECTATING": "SPECTATING",
+    "HUD_TIME": "TIME",
+    "HUD_PREY": "PREY",
+    "HUD_DISTANCE": "DISTANCE",
+    "HUD_PENALTY": "PENALTY",
+    "HUD_PENALTY_ACTIVE": "ACTIVE"
   },
   "GAME_OUTCOME": {
     "TAG": "// DEBRIEF",

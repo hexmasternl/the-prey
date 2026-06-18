@@ -40,6 +40,8 @@ import {
   GamesService,
   TagCandidateDto,
 } from './games.service';
+import { computeThreatState, ThreatState } from './threat-state';
+import { MAP_COLORS } from '../shared/map-colors';
 import {
   GameStreamService,
   PlayerLocationUpdatedPayload,
@@ -99,6 +101,48 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly timeRemaining = computed(() =>
     this.formatDuration(this.secondsRemaining()),
   );
+
+  /** True when the server has flagged the game as being in its final stage. */
+  readonly isEndgame = signal(false);
+
+  /**
+   * Three-state threat level derived from remaining time and the endgame flag.
+   * Drives [attr.data-threat] on ion-content so the shared HUD chrome escalates.
+   *   normal   → signal green   (standard play)
+   *   final    → caution amber  (endgame stage active)
+   *   critical → hunter red     (≤60 seconds left)
+   */
+  readonly threatState = computed<ThreatState>(() =>
+    computeThreatState(this.secondsRemaining(), this.isEndgame()),
+  );
+
+  /**
+   * Status pill label — reflects the current threat phase so the label
+   * escalates alongside the color change.
+   *   normal   → 'GAME_PROGRESS.STATUS_LIVE'
+   *   final    → 'GAME_PROGRESS.STATUS_ENDGAME'
+   *   critical → 'GAME_PROGRESS.STATUS_CRITICAL'
+   */
+  readonly statusPillLabel = computed(() => {
+    switch (this.threatState()) {
+      case 'critical': return 'GAME_PROGRESS.STATUS_CRITICAL';
+      case 'final':    return 'GAME_PROGRESS.STATUS_ENDGAME';
+      default:         return 'GAME_PROGRESS.STATUS_LIVE';
+    }
+  });
+
+  /**
+   * True when the hunter is effectively on top of a prey (distance < 30 m).
+   * Used to add a visual emphasis to the DISTANCE HUD cell. Falls back to false
+   * when no prey is in range (nearestDistance() is '--').
+   */
+  readonly onTarget = computed(() => {
+    const raw = this.nearestDistance();
+    if (raw === '--') return false;
+    const metres = parseInt(raw, 10);
+    return !isNaN(metres) && metres < 30;
+  });
+
   readonly preysLeft = signal(0);
   readonly hasActivePenalty = signal(false);
   readonly nearestDistance = signal<string>('--');
@@ -450,7 +494,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         { enableHighAccuracy: true, maximumAge: 5000 },
         (position, err) => {
           if (err || !position) {
-            this.gpsAlert.set('Signal lost. Find open sky.');
+            this.gpsAlert.set(this.translate.instant('GAME_PROGRESS.GPS_SIGNAL_LOST'));
             if (this.selfMarker) {
               this.selfMarker.remove();
               this.selfMarker = null;
@@ -583,6 +627,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private applyStatus(status: GameStatusDto): void {
     this.secondsRemaining.set(status.gameDurationLeft);
+    this.isEndgame.set(status.isEndgame ?? false);
     this.preysLeft.set(status.preysLeft);
     this.hunterMayMoveAt.set(status.hunterMayMoveAt ?? null);
 
@@ -615,8 +660,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       (c) => [c.latitude, c.longitude] as L.LatLngExpression,
     );
     this.playfieldPolygon = L.polygon(latlngs, {
-      color: '#ff2f1f',
-      fillColor: 'rgba(255,47,31,0.25)',
+      color: MAP_COLORS.HUNTER,
+      fillColor: MAP_COLORS.HUNTER,
       fillOpacity: 0.1,
       weight: 2,
     }).addTo(this.map);
@@ -646,15 +691,15 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     const options: L.CircleMarkerOptions = isInactive
       ? {
           radius: 6,
-          color: '#888888',
-          fillColor: '#888888',
+          color: MAP_COLORS.TAGGED,
+          fillColor: MAP_COLORS.TAGGED,
           fillOpacity: 0.7,
           weight: 2,
         }
       : {
           radius: 6,
-          color: '#ff2f1f',
-          fillColor: '#ff2f1f',
+          color: MAP_COLORS.HUNTER,
+          fillColor: MAP_COLORS.HUNTER,
           fillOpacity: 0.9,
           weight: 2,
         };
@@ -763,8 +808,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         const isInactive = newState === 'Tagged' || newState === 'Out';
         marker.setStyle(
           isInactive
-            ? { color: '#888888', fillColor: '#888888', fillOpacity: 0.7 }
-            : { color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9 },
+            ? { color: MAP_COLORS.TAGGED, fillColor: MAP_COLORS.TAGGED, fillOpacity: 0.7 }
+            : { color: MAP_COLORS.HUNTER, fillColor: MAP_COLORS.HUNTER, fillOpacity: 0.9 },
         );
       }
       const activeCount = [...this.participantStates.values()].filter(

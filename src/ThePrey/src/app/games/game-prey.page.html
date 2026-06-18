@@ -1,10 +1,10 @@
-<ion-content [fullscreen]="true" class="prey-view">
+<ion-content [fullscreen]="true" class="prey-view" [attr.data-threat]="threatState()">
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <!-- Surroundings safety warning modal -->
-  <ion-modal [isOpen]="showSurroundingsWarning()" [backdropDismiss]="false">
+  <ion-modal [isOpen]="showSurroundingsWarning()" [backdropDismiss]="false" cssClass="tp-overlay">
     <ng-template>
       <ion-header>
         <ion-toolbar>
@@ -31,6 +31,21 @@
 
   <!-- Full-screen map -->
   <div id="map" class="map-container"></div>
+  <!-- Map green-wash overlay: subtle tint reinforcing the prey/signal identity -->
+  <div class="map-wash" aria-hidden="true"></div>
+
+  <!-- Corner brackets (structural parity with hunter view, color tracks --threat) -->
+  <div class="cb tl"></div>
+  <div class="cb tr"></div>
+  <div class="cb bl"></div>
+  <div class="cb br"></div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-pill">{{ statusPillLabel() | translate }}</span>
+    <span class="role-tag">{{ 'GAME_PROGRESS.ROLE_PREY' | translate }}</span>
+    <span class="link-tag" [class.link-on]="isTracking()">{{ isTracking() ? 'LIVE' : 'OFF' }}</span>
+  </div>
 
   <!-- Waiting-for-start overlay (Ready state) or hunter head-start countdown (InProgress) -->
   <app-hunter-delay-overlay
@@ -118,8 +133,8 @@
 
     <!-- Always visible: total remaining game time + expand/collapse handle -->
     <div class="hud-time-row" (click)="toggleHud()">
-      <span class="hud-label">TIME</span>
-      <span class="hud-time-value">{{ timeRemaining() }}</span>
+      <span class="hud-label">{{ 'GAME_PROGRESS.HUD_TIME' | translate }}</span>
+      <span class="hud-time-value" [class.hud-time-flash]="threatState() === 'critical'">{{ timeRemaining() }}</span>
       <span class="hud-caret">{{ hudExpanded() ? '▾' : '▴' }}</span>
     </div>
 

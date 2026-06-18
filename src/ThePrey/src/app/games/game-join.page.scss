@@ -1,3 +1,5 @@
+@use '../../theme/motion' as motion;
+
 :host {
   display: block;
   background: var(--tp-bg-void);
@@ -25,7 +27,7 @@ ion-header ion-toolbar {
   &__grid {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(circle, rgba(100, 255, 0, 0.06) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(var(--tp-signal-rgb), 0.06) 1px, transparent 1px);
     background-size: 36px 36px;
   }
 
@@ -39,7 +41,7 @@ ion-header ion-toolbar {
     background: conic-gradient(
       from 0deg,
       transparent 0deg,
-      rgba(100, 255, 0, 0.14) 45deg,
+      rgba(var(--tp-signal-rgb), 0.14) 45deg,
       transparent 70deg
     );
     animation: radar-spin 5s linear infinite;
@@ -53,7 +55,7 @@ ion-header ion-toolbar {
     background: linear-gradient(
       to right,
       transparent 0%,
-      rgba(100, 255, 0, 0.55) 50%,
+      rgba(var(--tp-signal-rgb), 0.55) 50%,
       transparent 100%
     );
     animation: scanline-h 12s linear infinite;
@@ -67,7 +69,7 @@ ion-header ion-toolbar {
     background: linear-gradient(
       to bottom,
       transparent 0%,
-      rgba(100, 255, 0, 0.45) 50%,
+      rgba(var(--tp-signal-rgb), 0.45) 50%,
       transparent 100%
     );
     animation: scanline-v 11s linear infinite;
@@ -78,14 +80,14 @@ ion-header ion-toolbar {
 @media (prefers-color-scheme: light) {
   .tac-bg {
     &__grid {
-      background-image: radial-gradient(circle, rgba(31, 77, 0, 0.1) 1px, transparent 1px);
+      background-image: radial-gradient(circle, rgba(var(--tp-signal-rgb), 0.1) 1px, transparent 1px);
     }
 
     &__radar {
       background: conic-gradient(
         from 0deg,
         transparent 0deg,
-        rgba(63, 158, 0, 0.16) 45deg,
+        rgba(var(--tp-signal-rgb), 0.16) 45deg,
         transparent 70deg
       );
     }
@@ -94,7 +96,7 @@ ion-header ion-toolbar {
       background: linear-gradient(
         to right,
         transparent 0%,
-        rgba(63, 158, 0, 0.42) 50%,
+        rgba(var(--tp-signal-rgb), 0.42) 50%,
         transparent 100%
       );
     }
@@ -103,11 +105,18 @@ ion-header ion-toolbar {
       background: linear-gradient(
         to bottom,
         transparent 0%,
-        rgba(63, 158, 0, 0.34) 50%,
+        rgba(var(--tp-signal-rgb), 0.34) 50%,
         transparent 100%
       );
     }
   }
+}
+
+@include motion.reduce {
+  .tac-bg__radar { animation: none; }
+  .tac-bg__scanline { animation: none; }
+  .tac-bg__scanline-v { animation: none; }
+  .join-btn { animation: none; box-shadow: 0 0 12px var(--tp-signal-glow); }
 }
 
 // ── Loading ──────────────────────────────────────────────────
@@ -181,7 +190,7 @@ ion-header ion-toolbar {
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 2px solid rgba(100, 255, 0, 0.6);
+  border-bottom: 2px solid rgba(var(--tp-signal-rgb), 0.6);
   font-family: var(--tp-head);
   font-size: clamp(36px, 12vw, 56px);
   letter-spacing: 0.3em;
@@ -194,7 +203,7 @@ ion-header ion-toolbar {
   -webkit-appearance: none;
 
   &::placeholder {
-    color: rgba(100, 255, 0, 0.2);
+    color: rgba(var(--tp-signal-rgb), 0.2);
     text-shadow: none;
   }
 
@@ -227,7 +236,7 @@ ion-header ion-toolbar {
   gap: 12px;
   margin-bottom: 8px;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(57, 64, 47, 0.4);
+  border-bottom: 1px solid color-mix(in srgb, var(--tp-line) 40%, transparent);
 }
 
 .game-id-label {
@@ -311,6 +320,6 @@ ion-header ion-toolbar {
 }
 
 @keyframes deploy-pulse {
-  0%, 100% { --box-shadow: 0 0 12px rgba(100, 255, 0, 0.2); }
-  50%       { --box-shadow: 0 0 28px rgba(100, 255, 0, 0.5); }
+  0%, 100% { --box-shadow: 0 0 12px rgba(var(--tp-signal-rgb), 0.2); }
+  50%       { --box-shadow: 0 0 28px rgba(var(--tp-signal-rgb), 0.5); }
 }

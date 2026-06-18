@@ -13,19 +13,19 @@ ion-content.outcome-view {
   overflow: hidden;
   border: 1px solid var(--tp-line);
   background:
-    radial-gradient(circle at 50% 30%, rgba(100, 255, 0, 0.08), transparent 70%),
+    radial-gradient(circle at 50% 30%, rgba(var(--tp-signal-rgb), 0.08), transparent 70%),
     var(--tp-bg-void);
 
   // Result-tinted wash behind everything.
   &.is-victory {
     background:
-      radial-gradient(circle at 50% 30%, rgba(100, 255, 0, 0.14), transparent 70%),
+      radial-gradient(circle at 50% 30%, rgba(var(--tp-signal-rgb), 0.14), transparent 70%),
       var(--tp-bg-void);
   }
 
   &.is-defeat {
     background:
-      radial-gradient(circle at 50% 30%, rgba(255, 47, 31, 0.14), transparent 70%),
+      radial-gradient(circle at 50% 30%, rgba(var(--tp-hunter-rgb), 0.14), transparent 70%),
       var(--tp-bg-void);
   }
 }
@@ -80,7 +80,7 @@ ion-content.outcome-view {
 
 .is-defeat .headline {
   color: var(--tp-hunter);
-  text-shadow: 0 0 32px rgba(255, 47, 31, 0.45);
+  text-shadow: 0 0 32px var(--tp-hunter-glow);
 }
 
 .summary {
@@ -104,7 +104,7 @@ ion-content.outcome-view {
   padding: 14px 16px;
   border: 1px solid var(--tp-line);
   border-left: 3px solid var(--tp-signal);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--tp-bg-surface-rgb), 0.06);
 }
 
 .is-defeat .stat {
@@ -132,14 +132,15 @@ ion-content.outcome-view {
 
   ion-button {
     --border-radius: 3px;
+    --box-shadow: 0 0 16px var(--tp-signal-glow);
     font-family: var(--tp-head);
     font-size: 14px;
-    letter-spacing: 1px;
+    letter-spacing: 3px;
     text-transform: uppercase;
 
     &:hover,
     &:active {
-      --box-shadow: 0 0 24px var(--tp-signal-glow);
+      --box-shadow: 0 0 28px var(--tp-signal-glow);
     }
   }
 }

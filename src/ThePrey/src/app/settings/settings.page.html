@@ -36,13 +36,9 @@
           {{ callsignLength }} / 30
         </span>
       </div>
-      <div
-        class="input-wrap"
-        [class.focused]="callsignFocused"
-        [class.invalid]="callsign.invalid && callsign.touched"
-      >
+      <div class="input-wrap" [class.invalid]="callsign.invalid && callsign.touched">
         <span class="input-caret">&#9658;</span>
-        <input
+        <ion-input
           formControlName="callsign"
           type="text"
           autocomplete="off"
@@ -50,9 +46,10 @@
           spellcheck="false"
           maxlength="30"
           [placeholder]="'SETTINGS.CALLSIGN_PLACEHOLDER' | translate"
-          (focus)="callsignFocused = true"
-          (blur)="callsignFocused = false; callsign.markAsTouched()"
-        />
+          [clearOnEdit]="false"
+          (ionBlur)="callsign.markAsTouched()"
+          class="callsign-input"
+        ></ion-input>
       </div>
       @if (callsign.invalid && callsign.touched && callsignError) {
         <p class="field-error">{{ callsignError | translate }}</p>
@@ -68,26 +65,24 @@
       <div class="section-head">
         <span class="section-label">{{ 'SETTINGS.LANGUAGE_LABEL' | translate }}</span>
       </div>
-      <div class="lang-grid">
-        <button
-          type="button"
-          class="lang-btn"
-          [class.active]="form.value.language === 'en'"
-          (click)="selectLanguage('en')"
-        >
-          <span class="lang-code">EN</span>
-          <span class="lang-name">{{ 'SETTINGS.LANG_EN' | translate }}</span>
-        </button>
-        <button
-          type="button"
-          class="lang-btn"
-          [class.active]="form.value.language === 'nl'"
-          (click)="selectLanguage('nl')"
-        >
-          <span class="lang-code">NL</span>
-          <span class="lang-name">{{ 'SETTINGS.LANG_NL' | translate }}</span>
-        </button>
-      </div>
+      <ion-segment
+        [value]="form.value.language ?? 'en'"
+        (ionChange)="onLanguageSegmentChange($event)"
+        class="lang-segment"
+      >
+        <ion-segment-button value="en" class="lang-seg-btn">
+          <ion-label class="lang-seg-label">
+            <span class="lang-code">EN</span>
+            <span class="lang-name">{{ 'SETTINGS.LANG_EN' | translate }}</span>
+          </ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="nl" class="lang-seg-btn">
+          <ion-label class="lang-seg-label">
+            <span class="lang-code">NL</span>
+            <span class="lang-name">{{ 'SETTINGS.LANG_NL' | translate }}</span>
+          </ion-label>
+        </ion-segment-button>
+      </ion-segment>
     </section>
 
   </form>

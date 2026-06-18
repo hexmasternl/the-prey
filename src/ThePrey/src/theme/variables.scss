@@ -32,6 +32,19 @@
   --tp-caution:        #ffb300;
   --tp-info:           #13e0c8;
 
+  // ── Derived tokens ──────────────────────────────────────────
+  // RGB channels for token-based translucent fills: rgba(var(--tp-*-rgb), a)
+  --tp-signal-rgb:     100, 255, 0;
+  --tp-hunter-rgb:     255, 47, 31;
+  --tp-caution-rgb:    255, 179, 0;
+  --tp-bg-void-rgb:    12, 14, 12;
+  --tp-bg-surface-rgb: 35, 39, 31;
+  // Ambient role glows (companion to --tp-signal-glow)
+  --tp-hunter-glow:    rgba(255, 47, 31, 0.35);
+  --tp-caution-glow:   rgba(255, 179, 0, 0.35);
+  // Void scrim for overlay backdrops
+  --tp-scrim:          rgba(0, 0, 0, 0.78);
+
   // ── Text ────────────────────────────────────────────────────
   --tp-text:           #dcf6d2;
   --tp-text-soft:      #8c9a83;
@@ -54,6 +67,9 @@
     --tp-text:         #1a1d16;
     --tp-text-soft:    #4a5544;
     --tp-text-ghost:   #6b7a64;
+    // Surface RGB channels track the light surfaces above
+    --tp-bg-void-rgb:    232, 236, 227;
+    --tp-bg-surface-rgb: 232, 236, 227;
   }
 }
 
