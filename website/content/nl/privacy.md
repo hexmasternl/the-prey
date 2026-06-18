@@ -34,7 +34,7 @@ We **verkopen** jouw persoonsgegevens niet en gebruiken ze niet voor advertentie
 Locatie is het hart van The Prey en verdient daarom een aparte vermelding:
 
 - GPS-coördinaten worden **alleen verzameld terwijl je deelneemt aan een actief spel**.
-- Locaties worden uitsluitend met andere spelers gedeeld volgens de spelregels (zo worden Prooi-posities alleen tijdens de Actieve Jacht aan de Jager getoond).
+- Locaties worden uitsluitend met andere spelers gedeeld volgens de spelregels (zo worden Prooi-posities gedurende het hele spel aan de Jager getoond).
 - Zodra een spel eindigt, stopt het delen van live locaties.
 - We volgen jouw locatie niet op de achtergrond buiten een actief spel.
 

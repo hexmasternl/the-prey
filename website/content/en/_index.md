@@ -15,14 +15,14 @@ game:
   title: "Hunt or be Hunted"
   body:
     - "The Prey drops players into a real-world GPS arena. Most players hide and run. One player — the Hunter — tracks and tags. The map updates on a set timer. Every move matters."
-    - "Games run for as long as the host sets — 30 minutes by default. Prey have a head start to scatter before the Hunter sees their first ping. After that — you are on the radar."
+    - "Games run for as long as the host sets — 30 minutes by default. Prey have a head start to scatter before the Hunter is set loose. After that — the chase is on."
 
 phases:
   - value: "5"
     unit: "min"
     accent: "signal"
     title: "Head Start"
-    desc: "Prey scatter. No location data. The Hunter waits."
+    desc: "Prey scatter. The Hunter is held in place."
   - value: "~20"
     unit: "min"
     accent: "signal"

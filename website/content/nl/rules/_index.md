@@ -18,7 +18,7 @@ Elke duur wordt door de Spelmaker ingesteld bij het aanmaken van het spel — de
 
 | Fase | Standaardduur | Wat er gebeurt |
 |---|---|---|
-| Voorsprong | 5 minuten | Prooi verspreidt zich en verstopt zich. De Jager wacht. Geen locaties gedeeld. |
+| Voorsprong | 5 minuten | Prooi verspreidt zich en verstopt zich. De Jager wordt op zijn plek gehouden — nog niet bewegen, nog niet taggen. |
 | Actieve Jacht | ~20 minuten | De jacht begint. GPS-pingen van Prooi worden aan de Jager doorgegeven. |
 | Eindfase | Laatste 5 minuten | Waarschuwing gegeven. Alle spelers worden op de hoogte gesteld. |
 | Totaal | 30 minuten | Spel eindigt. Resultaten worden weergegeven. |
@@ -27,7 +27,7 @@ Elke duur wordt door de Spelmaker ingesteld bij het aanmaken van het spel — de
 
 ## GPS-updateschema
 
-Prooilocaties worden als GPS-pins op de kaart van de Jager uitgezonden. Updates komen op het positie-rapportage-interval dat de Spelmaker voor het spel koos — standaard 3 minuten, en een korter interval (standaard 1 minuut) tijdens de eindfase. Tijdens de Voorsprong worden geen locatiegegevens verzonden.
+Prooilocaties worden als GPS-pins op de kaart van de Jager uitgezonden. Updates komen op het positie-rapportage-interval dat de Spelmaker voor het spel koos — standaard 3 minuten, en een korter interval (standaard 1 minuut) tijdens de eindfase. Locaties worden uitgezonden vanaf het moment dat het spel start, ook tijdens de Voorsprong — de Jager kan alleen niet bewegen of taggen totdat de voorsprong eindigt.
 
 ---
 

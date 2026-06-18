@@ -18,7 +18,7 @@ Every duration is set by the Game Creator when the game is created — the value
 
 | Phase | Default duration | What Happens |
 |---|---|---|
-| Head Start | 5 minutes | Prey scatter and hide. The Hunter waits. No locations shared. |
+| Head Start | 5 minutes | Prey scatter and hide. The Hunter is held in place — no moving, no tagging yet. |
 | Active Hunt | ~20 minutes | Hunt begins. Prey GPS pings broadcast to the Hunter. |
 | Final Stretch | Last 5 minutes | Warning issued. All players are notified. |
 | Total | 30 minutes | Game ends. Results displayed. |
@@ -27,7 +27,7 @@ Every duration is set by the Game Creator when the game is created — the value
 
 ## GPS Update Schedule
 
-Prey locations are broadcast as GPS pins on the Hunter's map. Updates arrive at the position-report interval the Game Creator chose for the game — 3 minutes by default, tightening to a shorter interval (1 minute by default) during the final stage. During the Head Start, no location data is transmitted.
+Prey locations are broadcast as GPS pins on the Hunter's map. Updates arrive at the position-report interval the Game Creator chose for the game — 3 minutes by default, tightening to a shorter interval (1 minute by default) during the final stage. Locations are broadcast from the moment the game starts, including during the Head Start — the Hunter simply cannot move or tag until the head start ends.
 
 ---
 

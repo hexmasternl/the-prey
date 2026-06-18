@@ -5,7 +5,7 @@ keywords: ["je rol begrijpen", "tips voor Jager", "tips voor Prooi", "strategie 
 ---
 
 1. Wanneer het spel begint, verschijnt je rolscherm — **Prooi** of **Jager**. Lees het. Het vertelt je wat je hierna moet doen.
-2. Als je **Prooi** bent: de voorsprong-afteller staat op het scherm. Beweeg onmiddellijk. Wacht niet tot de Jager verschijnt — die begint te traceren zodra de voorsprong eindigt.
+2. Als je **Prooi** bent: de voorsprong-afteller staat op het scherm. Beweeg onmiddellijk — de Jager kan je al zien en wordt losgelaten zodra de voorsprong eindigt.
 3. Als je **Jager** bent: de voorsprong-afteller staat ook op jouw scherm. Gebruik de tijd om de speelveldgrens te bestuderen en je aanpak te plannen.
 4. Open het kaarttabblad wanneer de Actieve Jacht begint. Je positie is het middenpunt. Prooipins verschijnen op hun laatste uitzendlocatie.
 5. Als **Prooi**: de kaart toont de positie van de Jager zodat je weet welke richting je moet vermijden. Blijf bewegen. Pinposities zijn niet real-time — ga ervan uit dat de Jager dichterbij is dan de kaart aangeeft.

@@ -17,7 +17,7 @@ Yes. Grant the app "Always Allow" location permissions. Background GPS is requir
 {{< /qa >}}
 
 {{< qa q="What happens during the head start?" >}}
-The head start — 5 minutes by default — is for Prey only. Your location is not shared. Use the time to scatter and find cover. The Hunter must wait. When the head start ends, GPS tracking activates.
+The head start — 5 minutes by default — gives Prey time to scatter. The Hunter is held in place and cannot move or tag during this window, though Prey positions are already on the Hunter's map. When the head start ends, the Hunter is released and the chase begins.
 {{< /qa >}}
 
 {{< qa q="How does tagging work?" >}}

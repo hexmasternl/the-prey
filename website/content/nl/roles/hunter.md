@@ -10,11 +10,11 @@ Jij bent de Jager — de enige in het spel. Tag alle Prooi voordat de timer nul 
 
 ---
 
-## Voorsprong — Wacht Af
+## Voorsprong — Blijf Op Je Plek
 
-Wanneer het spel begint, moet je wachten. De voorsprong is alleen voor Prooi. Je kaart toont de speelveldgrens, maar geen Prooiposities.
+Wanneer het spel begint, kun je nog niet achtervolgen. Blijf dicht bij waar je begint — te ver afdwalen tijdens de voorsprong levert een straf op — en je kunt pas taggen als de voorsprong eindigt.
 
-Blijf bij het speelveld. Gebruik de tijd om je aanpak te plannen.
+Prooiposities verschijnen al op je kaart, dus gebruik de wachttijd om je eerste doelwit te kiezen en je aanpak te plannen.
 
 ---
 

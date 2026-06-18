@@ -12,11 +12,11 @@ You are the Prey. Survive until the game timer hits zero. If at least one Prey i
 
 ## The Head Start
 
-When the game starts, you have a head start — 5 minutes by default, though the Game Creator can change it. **Your location is not shared with Hunters during this window.**
+When the game starts, you have a head start — 5 minutes by default, though the Game Creator can change it. **The Hunter is held in place during this window and cannot chase or tag you — but your position is already on their map, so keep moving.**
 
 Use this time to scatter and find cover. Move away from the playfield entrance. Do not stand still.
 
-The app counts down the head start. When it ends, the Active Hunt begins and your GPS position starts broadcasting.
+The app counts down the head start. When it ends, the Hunter is released and the chase is on.
 
 ---
 

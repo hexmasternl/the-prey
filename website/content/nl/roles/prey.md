@@ -12,11 +12,11 @@ Jij bent de Prooi. Overleef tot de timer nul bereikt. Als er ten minste één Pr
 
 ## De Voorsprong
 
-Wanneer het spel begint, heb je voorsprong — standaard 5 minuten, al kan de Spelmaker dit aanpassen. **Je locatie wordt tijdens dit tijdvenster niet met Jagers gedeeld.**
+Wanneer het spel begint, heb je voorsprong — standaard 5 minuten, al kan de Spelmaker dit aanpassen. **De Jager wordt tijdens dit tijdvenster op zijn plek gehouden en kan je niet achtervolgen of taggen — maar je positie staat al op zijn kaart, dus blijf bewegen.**
 
 Gebruik deze tijd om te verspreiden en dekking te zoeken. Beweeg weg van de ingang van het speelveld. Sta niet stil.
 
-De app telt de voorsprong af. Wanneer die eindigt, begint de Actieve Jacht en wordt je GPS-positie doorgegeven.
+De app telt de voorsprong af. Wanneer die eindigt, wordt de Jager losgelaten en begint de jacht.
 
 ---
 

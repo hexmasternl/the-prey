@@ -17,7 +17,7 @@ Ja. Geef de app toestemming voor "Altijd Toestaan" locatie. Achtergrond-GPS is v
 {{< /qa >}}
 
 {{< qa q="Wat gebeurt er tijdens de voorsprong?" >}}
-De voorsprong — standaard 5 minuten — is alleen voor Prooi. Je locatie wordt niet gedeeld. Gebruik de tijd om te verspreiden en dekking te zoeken. De Jager moet wachten. Wanneer de voorsprong eindigt, activeert GPS-tracking.
+De voorsprong — standaard 5 minuten — geeft Prooi tijd om zich te verspreiden. De Jager wordt op zijn plek gehouden en kan tijdens dit tijdvenster niet bewegen of taggen, al staan Prooiposities al op de kaart van de Jager. Wanneer de voorsprong eindigt, wordt de Jager losgelaten en begint de jacht.
 {{< /qa >}}
 
 {{< qa q="Hoe werkt taggen?" >}}

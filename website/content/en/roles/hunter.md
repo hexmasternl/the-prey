@@ -10,11 +10,11 @@ You are the Hunter — the only one in the game. Tag every Prey before the game 
 
 ---
 
-## Head Start — Wait It Out
+## Head Start — Hold Your Position
 
-When the game starts, you must wait. The head start is for Prey only. Your map shows the playfield boundary but no Prey positions.
+When the game starts, you cannot give chase yet. Stay close to where you begin — straying too far during the head start earns you a penalty — and you cannot tag until it ends.
 
-Stay near the playfield. Use the time to plan your approach.
+Prey positions already appear on your map, so use the wait to pick your first target and plan your approach.
 
 ---
 

@@ -5,7 +5,7 @@ keywords: ["understand your role", "Hunter tips", "Prey tips", "in-game strategy
 ---
 
 1. When the game starts, your role screen appears — **Prey** or **Hunter**. Read it. It tells you what to do next.
-2. If you are **Prey**: the head start countdown is on screen. Move immediately. Do not wait for the Hunter to appear — they start tracking as soon as the head start ends.
+2. If you are **Prey**: the head start countdown is on screen. Move immediately — the Hunter can already see you and is released the moment the head start ends.
 3. If you are **Hunter**: the head start countdown is on screen too. Use the time to study the playfield boundary and plan your approach.
 4. Open the map tab when the Active Hunt begins. Your position is the center marker. Prey pins appear at their last broadcast location.
 5. As **Prey**: the map shows the Hunter's position so you know which direction to avoid. Keep moving. Pinned positions are not real-time — assume the Hunter is closer than the map shows.

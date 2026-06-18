@@ -34,7 +34,7 @@ We **do not** sell your personal data, and we do not use it for advertising.
 Location is the heart of The Prey, so it deserves special mention:
 
 - GPS coordinates are collected **only while you are taking part in an active game**.
-- Locations are shared with other players strictly according to the game rules (for example, Prey positions are broadcast to the Hunter only during the Active Hunt phase).
+- Locations are shared with other players strictly according to the game rules (for example, Prey positions are broadcast to the Hunter throughout the game).
 - When a game ends, live location sharing stops.
 - We do not track your location in the background outside of an active game.
 
