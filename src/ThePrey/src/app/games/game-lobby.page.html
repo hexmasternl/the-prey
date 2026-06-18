@@ -155,14 +155,17 @@
           [value]="locationInterval()"
           (ionChange)="onLocationIntervalChange($event)"
         >
+          <ion-select-option [value]="2"
+            >2 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
           <ion-select-option [value]="3"
             >3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
           >
+          <ion-select-option [value]="4"
+            >4 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
           <ion-select-option [value]="5"
             >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
-          >
-          <ion-select-option [value]="10"
-            >10 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
           >
         </ion-select>
         } @else {
@@ -188,11 +191,11 @@
           <ion-select-option [value]="1"
             >1 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
           >
+          <ion-select-option [value]="2"
+            >2 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
+          >
           <ion-select-option [value]="3"
             >3 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
-          >
-          <ion-select-option [value]="5"
-            >5 {{ 'GAME_CREATE.UNIT_MIN' | translate }}</ion-select-option
           >
         </ion-select>
         } @else {

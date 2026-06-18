@@ -75,8 +75,8 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   readonly gameDuration = signal(60);
   readonly hunterDelay = signal(10);
   readonly endgameDuration = signal(10);
-  readonly locationInterval = signal(5);
-  readonly endgameInterval = signal(3);
+  readonly locationInterval = signal(3);
+  readonly endgameInterval = signal(1);
 
   readonly gameId = computed(() => this.route.snapshot.paramMap.get('id') ?? '');
 
