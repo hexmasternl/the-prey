@@ -74,7 +74,15 @@ Standardize: solid `--ion-color-primary` + glow for the single primary action; `
 
 *Why:* the audit found multiple peers competing as primary and inconsistent radii; the system mandates exactly one primary.
 
-### D8 — Scope: styling/templates/i18n only, area-by-area
+### D8 — Gameplay views: structural parity (prey ↔ hunter) + shared threat-state system
+
+The prey view is missing the §16 structure entirely (no corner brackets, status bar, role tag, status pill, or map wash), while the hunter view already implements §17's equivalents. Bring the prey view to parity by **reusing the hunter view's existing structural markup/SCSS** (`.cb`, `.status-bar`, `.status-pill`, `.role-tag`) adapted to prey colors, rather than inventing a parallel implementation. Add a single shared **threat-state system** (a `[data-threat="normal|final|critical"]` attribute or host class on the gameplay `ion-content`, with corner brackets / status bar / timer reading their color from one set of state-scoped variables) so both screens escalate identically. Drive the state from the **game-timer phase** (and prey spectator/penalty state) — signals both clients already have.
+
+*Why:* parity + one escalation mechanism avoids the current asymmetry and prevents two divergent threat implementations. *Alternative:* per-screen bespoke threat logic — rejected; duplicates and drifts.
+
+**Bounded by a data dependency:** §16 also shows the prey a live **hunter distance** ("147 M, 14s ago") and implies prey "critical" escalates on hunter *proximity*. The prey client receives **no hunter-location data today** (confirmed: `game-prey.page.ts` has no distance/threat signal). Adding it is a backend/data change and possibly a deliberate game-design choice — so the hunter-distance HUD cell and proximity-driven prey escalation are **explicitly out of scope**; only presentational structure and timer-phase escalation land here. The hunter view *does* have `nearestDistance()`, so its proximity escalation (amber endgame, green "on target") is feasible and in scope.
+
+### D9 — Scope: styling/templates/i18n only, area-by-area
 
 Work proceeds shared-layer-first, then per area (playfields, games, shell/auth). Each page is a self-contained conformance edit; no shared component refactor beyond the token/helper layer and overlay classes.
 
@@ -99,3 +107,5 @@ Work proceeds shared-layer-first, then per area (playfields, games, shell/auth).
 
 - Should the derived tokens (glow/scrim) and `MAP_COLORS` be documented back into the design-system reference, or is `variables.scss` the canonical token home? (Assumption: `variables.scss` is canonical.)
 - Is `#ff9500` (live prey-other blip on `game-prey`) intended as caution amber, or a deliberate distinct state? (Assumption: map to `--tp-caution`; confirm during implementation.)
+- **Should the prey see hunter distance (§16 "Hunter 147 M")?** This needs hunter-location data the prey client does not get today, and may be an intentional design choice to preserve tension. Deferred to a separate backend-touching change; this change ships prey structural parity + timer-phase escalation only. If the answer is "yes," a follow-up adds the data feed, the prey hunter-distance HUD cell, and proximity-driven prey escalation.
+- For the prey **status pill**, which live state should it show given no hunter-proximity data — a simple `HIDDEN`/`SPECTATING` derived from spectator/out state, or a timer-phase label? (Assumption: derive from spectator/out + timer phase; confirm during implementation.)

@@ -31,17 +31,30 @@
 - [ ] 3.10 Theme the surroundings-warning modal (hunter + prey) with the `.tp-overlay` class (dark surface, Special Elite title, PT Mono body, 3px)
 - [ ] 3.11 Verify games pages in light + dark and in a live game view: tokens resolve, radii 3px, reduced-motion freezes animations, overlays themed
 
-## 4. Shell & auth area
+## 4. Gameplay-view structural parity (prey + hunter)
 
-- [ ] 4.1 `login.page`: make the CTA a solid `var(--tp-signal)` primary with black contrast text + glow (was ghost); remove redundant hardcoded `rgba` fallbacks; keep Special Elite uppercase label
-- [ ] 4.2 `home.page`: token-ize gradient/denied `rgba()` values; demote secondary nav (Playfields/Settings/Logout/Quit) below the single primary "PLAY NOW"; keep one glowing primary
-- [ ] 4.3 `settings.page`: replace raw `<input>` with `ion-input` (dark inset, signal focus); replace raw `<button>` language grid with `ion-segment`/`ion-segment-button` (green-lit active); fix `transition: all`; add `ion-title` Special Elite/uppercase; `section-label` → PT Mono `letter-spacing: 2px`
-- [ ] 4.4 `app.component.scss`: remove wrong-shade fallback so boot screen uses `var(--tp-bg-void)` and spinner uses `var(--tp-signal)`; add tactical `aria-label` to boot screen
-- [ ] 4.5 Verify shell/auth pages in light + dark: single primary per screen, native controls, no hardcoded fallbacks
+- [ ] 4.1 Extract the hunter view's structural pieces (corner brackets `.cb`, `.status-bar`, `.status-pill`, `.role-tag`) into a shared, token-driven SCSS partial/markup so prey and hunter use one implementation
+- [ ] 4.2 Add a shared threat-state mechanism: a `[data-threat="normal|final|critical"]` attribute (or host class) on the gameplay `ion-content` whose corner brackets, status bar, and timer read color from one set of state-scoped variables; compute the state from the game-timer phase (+ prey spectator/penalty state)
+- [ ] 4.3 `game-prey.page.html`/`.scss`: add corner brackets, the floating status bar with `PREY` role tag and a live status pill (derived from spectator/out + timer phase), and a map green-wash — reaching parity with the hunter view
+- [ ] 4.4 `game-prey`: render HUD numeric readouts (TIME and cell values) in `var(--tp-head)` Special Elite with signal-green treatment, no faux-bold
+- [ ] 4.5 `game-hunter.page.html`: make the status pill reflect live state instead of the hardcoded `LIVE` literal; ensure corner brackets/status bar are wired to the shared threat-state mechanism
+- [ ] 4.6 `game-hunter`: wire timer-phase escalation (normal→final→critical) and, using existing `nearestDistance()`, the on-target/endgame color shift; confirm HUD numerics use Special Elite
+- [ ] 4.7 Add the critical-phase timer flash with a `prefers-reduced-motion` fallback to a static threat-red value on both screens
+- [ ] 4.8 Add any new i18n keys for prey status-pill / threat-state labels across all locale files
+- [ ] 4.9 (Deferred — do NOT implement here) Note in the change that the prey hunter-distance HUD cell and proximity-driven prey escalation require backend hunter-location data and are out of scope; leave a clear TODO/placeholder, no fabricated data
+- [ ] 4.10 Verify both gameplay views in light + dark and in a live game: prey/hunter structural parity, threat escalation across timer phases, reduced-motion freezes the flash
 
-## 5. Final verification
+## 5. Shell & auth area
 
-- [ ] 5.1 Grep `src/ThePrey/src/app` for residual hex/`rgba(` color literals and inline `style=` attributes; confirm none remain outside derived-token definitions
-- [ ] 5.2 Confirm no element using `--tp-head` declares `font-weight: 700`/`bold`
-- [ ] 5.3 Confirm every page with a looping animation has a `prefers-reduced-motion` rule
-- [ ] 5.4 Run the Angular build and smoke-test the app (lobby, live hunter/prey view, overlays) in both color schemes; confirm no missing-i18n-key warnings
+- [ ] 5.1 `login.page`: make the CTA a solid `var(--tp-signal)` primary with black contrast text + glow (was ghost); remove redundant hardcoded `rgba` fallbacks; keep Special Elite uppercase label
+- [ ] 5.2 `home.page`: token-ize gradient/denied `rgba()` values; demote secondary nav (Playfields/Settings/Logout/Quit) below the single primary "PLAY NOW"; keep one glowing primary
+- [ ] 5.3 `settings.page`: replace raw `<input>` with `ion-input` (dark inset, signal focus); replace raw `<button>` language grid with `ion-segment`/`ion-segment-button` (green-lit active); fix `transition: all`; add `ion-title` Special Elite/uppercase; `section-label` → PT Mono `letter-spacing: 2px`
+- [ ] 5.4 `app.component.scss`: remove wrong-shade fallback so boot screen uses `var(--tp-bg-void)` and spinner uses `var(--tp-signal)`; add tactical `aria-label` to boot screen
+- [ ] 5.5 Verify shell/auth pages in light + dark: single primary per screen, native controls, no hardcoded fallbacks
+
+## 6. Final verification
+
+- [ ] 6.1 Grep `src/ThePrey/src/app` for residual hex/`rgba(` color literals and inline `style=` attributes; confirm none remain outside derived-token definitions
+- [ ] 6.2 Confirm no element using `--tp-head` declares `font-weight: 700`/`bold`
+- [ ] 6.3 Confirm every page with a looping animation has a `prefers-reduced-motion` rule
+- [ ] 6.4 Run the Angular build and smoke-test the app (lobby, live hunter/prey view, overlays) in both color schemes; confirm no missing-i18n-key warnings

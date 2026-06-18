@@ -145,6 +145,43 @@ The games screens (`game-join`, `game-create`, `game-lobby`, `game-hunter`, `gam
 - **WHEN** HUD numeric values render on `game-hunter` and `game-prey`
 - **THEN** both use `var(--tp-head)` with signal-green treatment, with no faux-bold
 
+### Requirement: Gameplay screens render the documented HUD and status-bar structure
+
+The in-game prey and hunter screens SHALL render the structural components defined by the design system's §16 Prey Gameplay, §17 Hunter Gameplay, §13 HUD Panel, and §14 Status Bar patterns — not only token-clean styling. Both screens SHALL present: a full-bleed map with the role wash (green for prey, red for hunter), corner brackets framing the viewport, a floating status bar carrying the role tag and a live status pill, and a HUD panel whose numeric readouts use `var(--tp-head)` (Special Elite). The prey screen — which today has none of these — SHALL gain the corner brackets, status bar, role tag (`PREY`), and status pill to reach parity with the hunter screen, which already implements them.
+
+NOTE: The §16 prey "Hunter distance" HUD cell and any prey-side threat escalation that depends on hunter proximity require hunter-location data the prey client does not currently receive; those are tracked as a dependency/open question in `design.md` and are NOT required by this change. This requirement covers presentational structure achievable with data the client already has.
+
+#### Scenario: Prey screen gains the status-bar structure
+
+- **WHEN** the prey gameplay screen is rendered
+- **THEN** it shows corner brackets, a floating status bar with a `PREY` role tag and a live status pill, and a map green-wash — mirroring the hunter screen's existing structure
+
+#### Scenario: HUD numeric readouts are Special Elite on both screens
+
+- **WHEN** the HUD panel renders numeric values (time, counts, distance, countdown) on the prey or hunter screen
+- **THEN** those values use `var(--tp-head)` with the signal-green treatment and no faux-bold
+
+#### Scenario: Status pill reflects live state
+
+- **WHEN** the hunter status pill renders
+- **THEN** it reflects the live game/role state rather than a hardcoded literal, and the prey status pill renders an equivalent live state from data the prey client already has
+
+### Requirement: Gameplay screens escalate threat state visually
+
+The prey and hunter screens SHALL implement the design system's three-state threat escalation (§16/§17) using a shared color-state system: a normal state (signal green), a final/endgame state (caution amber), and a critical/on-target state (threat red for prey, signal green "on target" for hunter), where the corner brackets, status bar, and relevant HUD readouts shift color together and the game timer flashes in the critical phase. The escalation MUST be driven by signals the client already has (e.g. game-timer phase, penalty/spectator state) and MUST honor `prefers-reduced-motion` by replacing the timer flash with a static colored value.
+
+NOTE: Escalation triggered specifically by hunter proximity (prey "critical" when a hunter is within range) depends on the same missing hunter-distance data and is out of scope here; timer-phase escalation is in scope because it needs no new data.
+
+#### Scenario: Timer-phase escalation changes the frame color
+
+- **WHEN** the game timer crosses into its final phase (and then its critical phase)
+- **THEN** the corner brackets, status bar, and timer readout shift from signal green to caution amber (then to threat red in the critical phase) on both gameplay screens
+
+#### Scenario: Critical-phase timer flash respects reduced motion
+
+- **WHEN** the screen is in the critical threat phase and the OS reports `prefers-reduced-motion: reduce`
+- **THEN** the timer renders as a static threat-red value instead of a flashing animation
+
 ### Requirement: Shell and auth screens conform to the tactical system
 
 The shell and auth screens (`login`, `home`, `settings`, `app.component`) SHALL conform: the login CTA is a solid signal-green primary with glow, token references carry no redundant or wrong-shade hardcoded fallbacks (e.g. `app.component` boot screen uses `var(--tp-bg-void)` not `#0a0c0a`), settings uses native Ionic controls, and the home screen presents a single primary action with secondary navigation demoted to a lower visual weight.
