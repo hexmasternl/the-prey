@@ -49,8 +49,9 @@ resource corsAllowedOriginsSetting 'Microsoft.AppConfiguration/configurationStor
 // Feature flag: EnableDailyGamesExport
 // Default: OFF. Gates the public GET /games/export/today endpoint.
 // Flip to enabled=true in Azure App Configuration to turn on the daily games export for diagnostics
-// or external data consumers. The .NET FeatureManagement provider polls every 30 s, so changes
-// take effect within ~30 seconds without a container restart.
+// or external data consumers. The .NET App Configuration provider refreshes feature flags on a
+// 15-minute interval (triggered per-request by the UseAzureAppConfiguration middleware), so changes
+// take effect within ~15 minutes without a container restart.
 resource featureFlagEnableDailyGamesExport 'Microsoft.AppConfiguration/configurationStores/keyValues@2025-08-01-preview' = {
   parent: appConfig
   name: '.appconfig.featureflag~2FEnableDailyGamesExport'

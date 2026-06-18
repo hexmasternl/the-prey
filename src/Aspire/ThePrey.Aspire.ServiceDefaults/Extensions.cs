@@ -107,10 +107,16 @@ public static class Extensions
                 .Select(KeyFilter.Any, LabelFilter.Null)
                 .ConfigureKeyVault(keyVault => keyVault.SetCredential(credential))
                 // Surface .appconfig.featureflag/* keys to IFeatureManager.
-                // The 30-second refresh interval means a flag flipped in Azure takes effect
-                // within ~30 seconds without a container restart.
-                .UseFeatureFlags(ff => ff.SetRefreshInterval(TimeSpan.FromSeconds(30)));
+                // The 15-minute refresh interval means a flag flipped in Azure takes effect
+                // within ~15 minutes without a container restart. Refresh is pull-based: the
+                // UseAzureAppConfiguration middleware (wired via UseAppConfigurationRefresh)
+                // triggers a (non-blocking) refresh on incoming requests, honoring this interval.
+                .UseFeatureFlags(ff => ff.SetRefreshInterval(TimeSpan.FromMinutes(15)));
         });
+
+        // Register the refresher services consumed by the UseAzureAppConfiguration middleware.
+        // Only registered when App Config is wired (cloud); locally this method returns early above.
+        builder.Services.AddAzureAppConfiguration();
 
         return builder;
     }
@@ -155,6 +161,23 @@ public static class Extensions
     public static WebApplication UseDefaultCors(this WebApplication app)
     {
         app.UseCors(DefaultCorsPolicyName);
+        return app;
+    }
+
+    /// <summary>
+    /// Adds the Azure App Configuration middleware, which triggers a (non-blocking) refresh of
+    /// configuration and feature flags on incoming requests, honoring the configured refresh
+    /// interval. Without this, App Configuration — including feature flags — is loaded once at
+    /// startup and never re-read, so flag toggles never take effect until a container restart.
+    /// No-op locally, where the refresher services are not registered (App Config is absent).
+    /// </summary>
+    public static WebApplication UseAppConfigurationRefresh(this WebApplication app)
+    {
+        if (app.Services.GetService<IConfigurationRefresherProvider>() is not null)
+        {
+            app.UseAzureAppConfiguration();
+        }
+
         return app;
     }
 
