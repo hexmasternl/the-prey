@@ -36,6 +36,35 @@
   filter: brightness(0.65) saturate(0.35) hue-rotate(330deg);
 }
 
+/* Self "you" navigation arrow — rotated to the device compass heading.
+ * Leaflet markers are added to the map pane dynamically and don't carry Angular's
+ * view-encapsulation attribute, so these rules must be :global. The CSS custom
+ * properties still resolve via the DOM cascade from :host. */
+:global(.self-arrow-marker) {
+  background: transparent;
+  border: none;
+}
+
+:global(.self-arrow) {
+  width: 30px;
+  height: 30px;
+  transform-origin: 50% 50%;
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+
+:global(.self-arrow svg) {
+  display: block;
+  filter: drop-shadow(0 0 6px var(--signal-glow));
+}
+
+:global(.self-arrow svg path) {
+  fill: var(--signal);
+  stroke: var(--bg-void);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
 /* Corner brackets */
 .cb {
   position: absolute;

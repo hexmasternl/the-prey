@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   OnDestroy,
   OnInit,
@@ -43,6 +44,7 @@ import {
   GameEndedPayload,
 } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
+import { CompassService } from './compass.service';
 import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
 
 @Component({
@@ -72,6 +74,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly gamesService = inject(GamesService);
   private readonly streamService = inject(GameStreamService);
   private readonly locationService = inject(GameLocationService);
+  private readonly compass = inject(CompassService);
+
+  /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
+  readonly heading = this.compass.heading;
 
   /** The authenticated user's Auth0 sub — populated from the first status poll. */
   private currentUserId: string | null = null;
@@ -118,7 +124,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private gameId!: string;
   private map!: L.Map;
-  private selfMarker: L.CircleMarker | null = null;
+  private selfMarker: L.Marker | null = null;
+  /** Inner element of the self arrow icon whose CSS rotation we drive from the compass. */
+  private selfArrowEl: HTMLElement | null = null;
+  /** Continuously accumulated rotation so the arrow always turns the short way round. */
+  private renderedHeading = 0;
   private playfieldPolygon: L.Polygon | null = null;
   private preyMarkers = new Map<string, L.CircleMarker>();
   /** Local participant state map keyed by userId */
@@ -136,6 +146,14 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private gameEndedHandled = false;
   /** Capacitor App foreground/background listener — drives resume resync. */
   private resumeListener: PluginListenerHandle | null = null;
+
+  constructor() {
+    // Spin the self arrow to match the compass whenever a new heading arrives.
+    effect(() => {
+      const h = this.heading();
+      if (h !== null) this.applyHeading(h);
+    });
+  }
 
   dismissSurroundingsWarning(): void {
     localStorage.setItem('surroundings-warning', this.gameId);
@@ -156,6 +174,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
     this.initMap();
     void this.startGps();
+    void this.compass.start();
     await this.pollStatus();
     this.startDurationTimer();
     this.connectStream();
@@ -204,6 +223,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.clearPingInterval();
     this.clearDurationTimer();
     this.streamService.disconnect();
+    this.compass.stop();
     void this.resumeListener?.remove();
     this.resumeListener = null;
     // NOTE: intentionally do NOT stop location tracking here — the service must keep
@@ -361,6 +381,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
             if (this.selfMarker) {
               this.selfMarker.remove();
               this.selfMarker = null;
+              this.selfArrowEl = null;
             }
             return;
           }
@@ -372,13 +393,12 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
           if (this.selfMarker) {
             this.selfMarker.setLatLng(latlng);
           } else {
-            this.selfMarker = L.circleMarker(latlng, {
-              radius: 7,
-              color: '#64ff00',
-              fillColor: '#64ff00',
-              fillOpacity: 1,
-              weight: 2,
+            this.selfMarker = L.marker(latlng, {
+              icon: this.buildSelfArrowIcon(),
+              interactive: false,
+              keyboard: false,
             }).addTo(this.map);
+            this.captureSelfArrow();
           }
           if (this.autoFollow) {
             this.map.setView(latlng);
@@ -389,6 +409,39 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     } catch {
       this.gpsAlert.set('Signal lost. Find open sky.');
     }
+  }
+
+  /** Build the rotatable "you" navigation arrow used as the self marker icon. */
+  private buildSelfArrowIcon(): L.DivIcon {
+    return L.divIcon({
+      className: 'self-arrow-marker',
+      html:
+        '<div class="self-arrow">' +
+        '<svg viewBox="0 0 24 24" width="30" height="30">' +
+        '<path d="M12 2 L20 21 L12 16 L4 21 Z" /></svg></div>',
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    });
+  }
+
+  /** Grab the arrow's inner element after the marker mounts and orient it immediately. */
+  private captureSelfArrow(): void {
+    this.selfArrowEl =
+      this.selfMarker?.getElement()?.querySelector('.self-arrow') ?? null;
+    const h = this.heading();
+    if (h !== null) this.applyHeading(h);
+  }
+
+  /**
+   * Rotate the arrow to the given compass heading. The map is north-up, so the heading
+   * (clockwise from north) is the rotation directly. We accumulate the angle so a sweep
+   * across the 0°/360° seam turns the short way instead of spinning all the way round.
+   */
+  private applyHeading(heading: number): void {
+    if (!this.selfArrowEl) return;
+    const delta = ((heading - this.renderedHeading) % 360 + 540) % 360 - 180;
+    this.renderedHeading += delta;
+    this.selfArrowEl.style.transform = `rotate(${this.renderedHeading}deg)`;
   }
 
   private async pollStatus(): Promise<void> {
