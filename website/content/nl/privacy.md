@@ -4,7 +4,7 @@ description: "Hoe The Prey jouw persoonsgegevens verzamelt, gebruikt en bescherm
 keywords: ["The Prey privacy", "privacybeleid", "AVG", "GDPR", "locatiegegevens", "gegevensbescherming", "persoonsgegevens"]
 ---
 
-_Laatst bijgewerkt: 16 juni 2026_
+_Laatst bijgewerkt: 18 juni 2026_
 
 The Prey is een op GPS gebaseerd verstoppertjesspel. Omdat het spel de locatie van spelers in realtime volgt, nemen we jouw privacy serieus. In deze verklaring lees je welke gegevens we verzamelen, waarom we dat doen en welke rechten je hebt op grond van de Algemene Verordening Gegevensbescherming (AVG).
 
@@ -35,7 +35,7 @@ Locatie is het hart van The Prey en verdient daarom een aparte vermelding:
 
 - GPS-coördinaten worden **alleen verzameld terwijl je deelneemt aan een actief spel**.
 - Locaties worden uitsluitend met andere spelers gedeeld volgens de spelregels (zo worden Prooi-posities gedurende het hele spel aan de Jager getoond).
-- Zodra een spel eindigt, stopt het delen van live locaties.
+- Zodra een spel eindigt, stopt het delen van live locaties en wordt elke tijdens het spel verzamelde GPS-locatie binnen 48 uur permanent van onze servers verwijderd.
 - We volgen jouw locatie niet op de achtergrond buiten een actief spel.
 
 ---
@@ -68,7 +68,7 @@ Deze partijen verwerken gegevens namens ons op basis van overeenkomsten die pass
 ## Hoe Lang Wij Gegevens Bewaren
 
 - **Accountgegevens** bewaren we zolang je account bestaat.
-- **Locatiegegevens** uit spellen bewaren we alleen zo lang als nodig is om een spel te leveren en terug te kijken, daarna verwijderen of anonimiseren we ze.
+- **Spelgegevens**, waaronder de spelersinformatie, rollen, tags, resultaten en alle tijdens het spel verzamelde GPS-locaties van elk spel, worden **48 uur nadat het spel is afgelopen permanent van onze servers verwijderd**.
 - **Diagnostische logs** bewaren we voor een beperkte periode voor beveiliging en probleemoplossing.
 
 Wanneer je je account verwijdert, verwijderen of anonimiseren we je persoonsgegevens, behalve waar we deze wettelijk verplicht moeten bewaren.
