@@ -96,6 +96,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly pendingTag = signal<GameParticipantStatusDto | null>(null);
   /** Whether the hunter ticked "I really tagged this person" — gates the confirm button. */
   readonly tagAcknowledged = signal(false);
+  /** Drives the separate confirmation popup; open whenever a target is pending. */
+  readonly tagConfirmOpen = computed(() => this.pendingTag() !== null);
   /** ISO timestamp at which the hunter may move, from the status poll; drives the countdown overlay. */
   readonly hunterMayMoveAt = signal<string | null>(null);
   /** Ticked every second by the duration timer so delay gating flips without a poll. */
@@ -274,8 +276,9 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.resetTagConfirmation();
   }
 
-  /** Step one → step two: pick a target and move to the confirmation screen. */
+  /** Close the selection sheet and open the confirmation popup for the chosen target. */
   selectTagTarget(prey: GameParticipantStatusDto): void {
+    this.showTagModal.set(false);
     this.pendingTag.set(prey);
     this.tagAcknowledged.set(false);
   }
@@ -297,7 +300,6 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.tagInFlight.set(true);
     try {
       await this.gamesService.tagPlayer(this.gameId, prey.userId);
-      this.showTagModal.set(false);
       this.resetTagConfirmation();
     } catch {
       // Tag failed — let user retry

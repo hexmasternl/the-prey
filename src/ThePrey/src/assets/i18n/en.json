@@ -220,10 +220,9 @@
     "TAG_ACTION": "TAG",
     "CANCEL": "CANCEL",
     "BUTTON": "TAG",
-    "CONFIRM_QUESTION": "Confirm you have physically tagged this player:",
-    "ACKNOWLEDGE": "I really tagged this person",
-    "CONFIRM": "CONFIRM TAG",
-    "BACK": "BACK"
+    "CONFIRM_QUESTION": "You want to tag player '{{callsign}}'.",
+    "ACKNOWLEDGE": "I really tagged player {{callsign}}",
+    "CONFIRM": "CONFIRM TAG"
   },
   "HUNTER_DELAY": {
     "LABEL": "HUNTER RELEASE IN",

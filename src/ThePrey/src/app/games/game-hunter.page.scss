@@ -242,57 +242,53 @@
   }
 }
 
-/* Step 2: tag confirmation */
+/* Tag confirmation popup — a small centered card, not a sheet.
+ * Same teleport caveat as the selection sheet: re-declare the theme tokens. */
+.tag-confirm-modal {
+  @include tactical-theme;
+  --width: 88%;
+  --max-width: 360px;
+  --height: auto;
+  --border-radius: 8px;
+  --background: var(--bg-base);
+  --box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+
+  &::part(content) {
+    border: 1px solid var(--hunter-glow);
+  }
+}
+
 .tag-confirm {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 22px 16px;
+  padding: 22px 18px;
+  font-family: 'PT Mono', 'Courier New', monospace;
 }
 
 .tag-confirm-question {
   margin: 0;
-  font-size: 12px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-soft);
-}
-
-.tag-confirm-target {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: rgba(12, 9, 9, 0.7);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--hunter);
-  border-radius: 3px;
-
-  .tag-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--hunter);
-    box-shadow: 0 0 8px var(--hunter-glow);
-    flex: 0 0 auto;
-  }
-
-  .tag-callsign {
-    font-family: 'Special Elite', 'Courier New', monospace;
-    font-size: 20px;
-    color: var(--text);
-  }
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
 }
 
 .tag-ack {
   --background: transparent;
   --border-color: var(--line);
   --inner-padding-end: 0;
+  --padding-start: 0;
 
   ion-label {
     font-size: 13px;
     color: var(--text);
   }
+}
+
+.tag-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .tag-confirm-btn {

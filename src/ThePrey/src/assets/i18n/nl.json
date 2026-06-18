@@ -220,10 +220,9 @@
     "TAG_ACTION": "TAG",
     "CANCEL": "ANNULEREN",
     "BUTTON": "TAG",
-    "CONFIRM_QUESTION": "Bevestig dat je deze speler echt hebt getikt:",
-    "ACKNOWLEDGE": "Ik heb deze persoon echt getikt",
-    "CONFIRM": "TAG BEVESTIGEN",
-    "BACK": "TERUG"
+    "CONFIRM_QUESTION": "Je wilt speler '{{callsign}}' taggen.",
+    "ACKNOWLEDGE": "Ik heb speler {{callsign}} echt getikt",
+    "CONFIRM": "TAG BEVESTIGEN"
   },
   "HUNTER_DELAY": {
     "LABEL": "HUNTER LOS OVER",
