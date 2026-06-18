@@ -11,6 +11,7 @@ using HexMaster.ThePrey.Games.Features.GetActiveGame;
 using HexMaster.ThePrey.Games.Features.GetGame;
 using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.GetGameStatus;
+using HexMaster.ThePrey.Games.Features.GetTagCandidates;
 using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Features.LeaveGame;
 using HexMaster.ThePrey.Games.Features.ListGames;
@@ -153,6 +154,13 @@ public static class GameEndpoints
             .Produces<GameDto>()
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{id:guid}/tag-candidates", GetTagCandidates)
+            .WithName("GetTagCandidates")
+            .Produces<TagCandidatesDto>()
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized);
 
         group.MapPost("/{id:guid}/participants/{participantId:guid}/tag", TagPlayer)
             .WithName("TagPlayer")
@@ -485,6 +493,29 @@ public static class GameEndpoints
         catch (InvalidOperationException)
         {
             return Results.Conflict();
+        }
+    }
+
+    private static async Task<IResult> GetTagCandidates(
+        Guid id,
+        ClaimsPrincipal principal,
+        IUserResolver userResolver,
+        IQueryHandler<GetTagCandidatesQuery, TagCandidatesDto?> handler,
+        CancellationToken ct)
+    {
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        try
+        {
+            var candidates = await handler.Handle(new GetTagCandidatesQuery(id, user.UserId), ct);
+            return candidates is not null ? Results.Ok(candidates) : Results.NotFound();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
         }
     }
 

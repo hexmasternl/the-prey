@@ -139,6 +139,7 @@ public sealed class ToStatusDtoMappingTests
         var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, startedAt);
         var preyId = preyIds[0];
+        GameFaker.RecordColocated(game, startedAt.AddMinutes(1), hunterId, preyId);
         game.TagParticipant(hunterId, preyId, startedAt.AddMinutes(10));
 
         var repoMock = new Mock<IGameRepository>();
@@ -162,6 +163,7 @@ public sealed class ToStatusDtoMappingTests
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, startedAt, playerCount: 4);
 
         // Tag one prey
+        GameFaker.RecordColocated(game, startedAt.AddMinutes(1), hunterId, preyIds[0]);
         game.TagParticipant(hunterId, preyIds[0], startedAt.AddMinutes(10));
         // Set one to Out via timeout
         game.RecordLocation(preyIds[1], GpsCoordinate.Create(52.0, 5.0), startedAt);

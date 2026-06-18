@@ -40,6 +40,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAppConfigurationRefresh();
 app.UseDefaultCors();
 
 // Dapr delivers events wrapped in CloudEvents; unwrap before model binding.

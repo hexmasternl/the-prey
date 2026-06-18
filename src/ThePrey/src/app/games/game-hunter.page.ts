@@ -7,6 +7,8 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent,
@@ -19,9 +21,11 @@ import {
   IonCheckbox,
   IonLabel,
   IonItem,
+  IonSpinner,
   IonRefresher,
   IonRefresherContent,
   RefresherCustomEvent,
+  ToastController,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
@@ -29,11 +33,12 @@ import { App } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   GameParticipantStatusDto,
   GameStatusDto,
   GamesService,
+  TagCandidateDto,
 } from './games.service';
 import {
   GameStreamService,
@@ -52,6 +57,7 @@ import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
   templateUrl: 'game-hunter.page.html',
   styleUrls: ['game-hunter.page.scss'],
   imports: [
+    DecimalPipe,
     IonContent,
     IonModal,
     IonHeader,
@@ -62,6 +68,7 @@ import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
     IonCheckbox,
     IonLabel,
     IonItem,
+    IonSpinner,
     IonRefresher,
     IonRefresherContent,
     TranslatePipe,
@@ -75,6 +82,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly streamService = inject(GameStreamService);
   private readonly locationService = inject(GameLocationService);
   private readonly compass = inject(CompassService);
+  private readonly toastCtrl = inject(ToastController);
+  private readonly translate = inject(TranslateService);
 
   /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
   readonly heading = this.compass.heading;
@@ -96,10 +105,13 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly gpsAlert = signal<string | null>(null);
   readonly pingCountdown = signal(30);
   readonly showTagModal = signal(false);
-  readonly taggablePrey = signal<GameParticipantStatusDto[]>([]);
+  /** Candidates fetched from the server when the tag drawer opens. */
+  readonly tagCandidates = signal<TagCandidateDto[]>([]);
+  readonly tagCandidatesLoading = signal(false);
+  readonly tagCandidatesError = signal(false);
   readonly tagInFlight = signal(false);
   /** The prey selected in the list, awaiting confirmation; null shows the list step. */
-  readonly pendingTag = signal<GameParticipantStatusDto | null>(null);
+  readonly pendingTag = signal<TagCandidateDto | null>(null);
   /** Whether the hunter ticked "I really tagged this person" — gates the confirm button. */
   readonly tagAcknowledged = signal(false);
   /** Drives the separate confirmation popup; open whenever a target is pending. */
@@ -133,8 +145,6 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private preyMarkers = new Map<string, L.CircleMarker>();
   /** Local participant state map keyed by userId */
   private participantStates = new Map<string, string>();
-  /** Cache of the latest prey DTOs (callsign + state) keyed by userId, for the tag list. */
-  private participantsById = new Map<string, GameParticipantStatusDto>();
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private pingIntervalTimer: ReturnType<typeof setInterval> | null = null;
   private durationTimer: ReturnType<typeof setInterval> | null = null;
@@ -287,8 +297,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     }
   }
 
-  openTagModal(): void {
+  async openTagModal(): Promise<void> {
     this.showTagModal.set(true);
+    this.tagCandidatesError.set(false);
+    await this.fetchTagCandidates();
   }
 
   closeTagModal(): void {
@@ -299,8 +311,25 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.showTagModal.set(false);
   }
 
+  async retryTagCandidates(): Promise<void> {
+    this.tagCandidatesError.set(false);
+    await this.fetchTagCandidates();
+  }
+
+  private async fetchTagCandidates(): Promise<void> {
+    this.tagCandidatesLoading.set(true);
+    try {
+      const result = await this.gamesService.getTagCandidates(this.gameId);
+      this.tagCandidates.set(result.candidates);
+    } catch {
+      this.tagCandidatesError.set(true);
+    } finally {
+      this.tagCandidatesLoading.set(false);
+    }
+  }
+
   /** Close the selection sheet and open the confirmation popup for the chosen target. */
-  selectTagTarget(prey: GameParticipantStatusDto): void {
+  selectTagTarget(prey: TagCandidateDto): void {
     this.showTagModal.set(false);
     this.pendingTag.set(prey);
     this.tagAcknowledged.set(false);
@@ -324,8 +353,22 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     try {
       await this.gamesService.tagPlayer(this.gameId, prey.userId);
       this.resetTagConfirmation();
-    } catch {
-      // Tag failed — let user retry
+    } catch (err) {
+      const isOutOfRange = err instanceof HttpErrorResponse && err.status === 409;
+      const messageKey = isOutOfRange ? 'TAG_MODAL.OUT_OF_RANGE' : 'TAG_MODAL.TAG_FAILED';
+      const toast = await this.toastCtrl.create({
+        message: this.translate.instant(messageKey),
+        duration: 4000,
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
+      if (isOutOfRange) {
+        // Prey moved away — refresh the candidate list and return to the drawer.
+        this.resetTagConfirmation();
+        this.showTagModal.set(true);
+        await this.fetchTagCandidates();
+      }
     } finally {
       this.tagInFlight.set(false);
     }
@@ -508,25 +551,14 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     const me = hunter;
     this.hasActivePenalty.set(me?.hasActivePenalty ?? false);
 
-    // Seed the local state + participant caches from the status snapshot
+    // Seed the local state cache from the status snapshot
     for (const prey of preys) {
       this.participantStates.set(prey.userId, prey.state);
-      this.participantsById.set(prey.userId, prey);
     }
-    this.recomputeTaggable();
 
     this.drawPlayfield(status.playfieldCoordinates);
     this.updatePreyBlips(preys);
     this.updateNearestDistance();
-  }
-
-  /** Rebuild the taggable list (Active/Passive prey) from the participant cache. */
-  private recomputeTaggable(): void {
-    this.taggablePrey.set(
-      [...this.participantsById.values()].filter(
-        (p) => p.state === 'Active' || p.state === 'Passive',
-      ),
-    );
   }
 
   private drawPlayfield(
@@ -695,20 +727,6 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         (s) => s === 'Active' || s === 'Passive',
       ).length;
       this.preysLeft.set(activeCount);
-      // Keep the participant cache's state current so the tag list keeps callsigns.
-      const cached = this.participantsById.get(userId);
-      if (cached) {
-        this.participantsById.set(userId, { ...cached, state: newState });
-      } else if (userId !== this.currentUserId) {
-        this.participantsById.set(userId, {
-          userId,
-          callsign: '',
-          lastKnownLocation: null,
-          hasActivePenalty: false,
-          state: newState,
-        });
-      }
-      this.recomputeTaggable();
       this.updateNearestDistance();
     };
 

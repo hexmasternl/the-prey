@@ -83,8 +83,8 @@ export class GameCreatePage implements ViewWillEnter {
   readonly gameDuration = signal(60);
   readonly hunterDelay = signal(10);
   readonly endgameDuration = signal(10);
-  readonly locationInterval = signal(5);
-  readonly endgameInterval = signal(3);
+  readonly locationInterval = signal(3);
+  readonly endgameInterval = signal(1);
   readonly selectedPlayfield = signal<PlayFieldRecord | null>(null);
   readonly isSubmitting = signal(false);
 

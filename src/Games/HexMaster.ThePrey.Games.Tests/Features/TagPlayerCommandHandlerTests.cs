@@ -30,6 +30,7 @@ public sealed class TagPlayerCommandHandlerTests
     public async Task Handle_ShouldTagPreyAndPublishEvent_WhenHunterTagsActiveTarget()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        GameFaker.RecordColocated(game, Now, hunterId, preyIds[0]);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         var result = await _handler.Handle(
@@ -81,6 +82,7 @@ public sealed class TagPlayerCommandHandlerTests
     public async Task Handle_ShouldThrowInvalidOperation_WhenTargetIsAlreadyTagged()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        GameFaker.RecordColocated(game, Now, hunterId, preyIds[0]);
         game.TagParticipant(hunterId, preyIds[0], Now);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
@@ -108,6 +110,7 @@ public sealed class TagPlayerCommandHandlerTests
     public async Task Handle_ShouldTagPrey_WhenExactlyAtHunterMayMoveAt()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        GameFaker.RecordColocated(game, game.HunterMayMoveAt!.Value, hunterId, preyIds[0]);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
         var handler = new TagPlayerCommandHandler(
             _repository.Object, _eventBus.Object, _metrics.Object, new FixedTimeProvider(game.HunterMayMoveAt!.Value));
@@ -124,6 +127,7 @@ public sealed class TagPlayerCommandHandlerTests
     {
         // 3 players → 1 hunter + 2 preys; tagging one leaves a survivor.
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        GameFaker.RecordColocated(game, Now, hunterId, preyIds[0]);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         await _handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyIds[0]), CancellationToken.None);
@@ -138,6 +142,7 @@ public sealed class TagPlayerCommandHandlerTests
     {
         // 2 players → 1 hunter + 1 prey; tagging that prey leaves no survivors.
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start, playerCount: 2);
+        GameFaker.RecordColocated(game, Now, hunterId, preyIds[0]);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         var result = await _handler.Handle(
@@ -161,6 +166,7 @@ public sealed class TagPlayerCommandHandlerTests
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(52.1, 5.1), Start);
         game.ApplyTimeoutTransitions(Start.AddMinutes(8)); // preyIds[0] → Out
+        GameFaker.RecordColocated(game, Now, hunterId, preyIds[1]);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         await _handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyIds[1]), CancellationToken.None);
@@ -182,5 +188,61 @@ public sealed class TagPlayerCommandHandlerTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyId), CancellationToken.None));
+    }
+
+    // ── Proximity guard ───────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperation_WhenTargetIsOutOfRange()
+    {
+        // Hunter and prey are ~89 m apart — beyond the 50 m tag range.
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        var preyId = preyIds[0];
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Now);
+        game.RecordLocation(preyId, GpsCoordinate.Create(52.1008, 5.1), Now); // ~89 m north
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyId), CancellationToken.None));
+
+        Assert.Equal(PlayerState.Active, game.Participants.Single(p => p.UserId == preyId).State);
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldThrowInvalidOperation_WhenHunterHasNoLocation()
+    {
+        // Prey has a location but the hunter has none — proximity guard must reject the tag.
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        var preyId = preyIds[0];
+        game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Now);
+        // No RecordLocation for hunterId.
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyId), CancellationToken.None));
+
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldTagPassivePrey_WhenInRange()
+    {
+        // A prey that has gone Passive (5 min silence) can still be tagged when in range.
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        var preyId = preyIds[0];
+        var origin = GpsCoordinate.Create(52.1, 5.1);
+        game.RecordLocation(preyId, origin, Start);
+        game.ApplyTimeoutTransitions(Start.AddMinutes(6)); // → Passive
+        Assert.Equal(PlayerState.Passive, game.Participants.Single(p => p.UserId == preyId).State);
+        game.RecordLocation(hunterId, origin, Now); // hunter at same coord, distance 0
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(
+            new TagPlayerCommand(game.Id, hunterId, preyId), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
+        _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

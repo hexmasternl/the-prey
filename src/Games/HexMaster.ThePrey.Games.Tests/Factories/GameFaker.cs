@@ -7,6 +7,19 @@ internal static class GameFaker
 {
     private static readonly Faker _faker = new();
 
+    /// <summary>A fixed GPS coordinate used as a common "co-located" anchor point in tests.</summary>
+    internal static readonly GpsCoordinate Origin = GpsCoordinate.Create(52.1, 5.1);
+
+    /// <summary>
+    /// Records the same <see cref="Origin"/> location for every supplied userId at the given timestamp,
+    /// placing them all at distance 0 — well within the 50-metre tagging range.
+    /// </summary>
+    internal static void RecordColocated(Game game, DateTimeOffset at, params Guid[] userIds)
+    {
+        foreach (var id in userIds)
+            game.RecordLocation(id, Origin, at);
+    }
+
     internal static GameConfiguration ValidConfiguration(
         int gameDuration = 60,
         int hunterDelayTime = 5,

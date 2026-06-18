@@ -5,3 +5,4 @@
 - [Cross-service Dapr pattern](feedback_cross_service_dapr_pattern.md) — port interface in domain + Dapr adapter in .Api + internal endpoint in target service; GpsCoordinateDto name clash requires using alias
 - [Azure Queue Aspire API: use AddAzureQueueServiceClient](feedback_azure_queue_api.md) — AddAzureQueueClient is deprecated; use AddAzureQueueServiceClient instead
 - [Commands must be public sealed record](feedback_command_visibility.md) — Commands/results must be public to satisfy ICommandHandler<TCommand,TResult> interface constraints
+- [TagParticipant proximity guard](feedback_tag_proximity_guard.md) — TagParticipant requires RecordLocation for both hunter and target; use GameFaker.RecordColocated in test setup

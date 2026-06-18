@@ -12,7 +12,7 @@ You can ask us to remove your The Prey account and the personal data associated 
 
 ## How to Request Account Removal
 
-To request the removal of your account, send an email to **cekeilholz@gmail.com**.
+To request the removal of your account, send an email to **account-removals@theprey.nl**.
 
 Please send the request from the email address linked to your account, or include enough detail for us to identify your account, so we can verify the request and process it correctly.
 
@@ -26,4 +26,4 @@ Once we receive and verify your request, we will remove or anonymise your person
 
 ## Contact
 
-Questions about account removal? Email us at **cekeilholz@gmail.com**.
+Questions about account removal? Email us at **account-removals@theprey.nl**.

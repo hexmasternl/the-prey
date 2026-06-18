@@ -225,13 +225,19 @@
   "TAG_MODAL": {
     "TITLE": "PROOI TAGGEN",
     "INSTRUCTION": "Kies een doelwit om te taggen.",
-    "EMPTY": "Geen prooi beschikbaar om te taggen.",
+    "LOADING": "Nabije prooi opsporen...",
+    "EMPTY": "Geen prooi binnen bereik.",
+    "ERROR": "Kon nabije prooi niet ophalen. Controleer je verbinding.",
+    "RETRY": "OPNIEUW",
     "TAG_ACTION": "TAG",
     "CANCEL": "ANNULEREN",
     "BUTTON": "TAG",
+    "DISTANCE_METERS": "m",
     "CONFIRM_QUESTION": "Je wilt speler '{{callsign}}' taggen.",
     "ACKNOWLEDGE": "Ik heb speler {{callsign}} echt getikt",
-    "CONFIRM": "TAG BEVESTIGEN"
+    "CONFIRM": "TAG BEVESTIGEN",
+    "OUT_OF_RANGE": "Die prooi is buiten bereik geraakt — kom dichterbij en probeer het opnieuw.",
+    "TAG_FAILED": "Taggen mislukt — probeer het opnieuw."
   },
   "HUNTER_DELAY": {
     "LABEL": "HUNTER LOS OVER",

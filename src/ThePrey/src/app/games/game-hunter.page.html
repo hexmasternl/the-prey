@@ -45,15 +45,27 @@
       </ion-header>
       <ion-content class="tag-modal-content">
         <p class="tag-instruction">{{ 'TAG_MODAL.INSTRUCTION' | translate }}</p>
-        @if (taggablePrey().length === 0) {
+        @if (tagCandidatesLoading()) {
+          <div class="tag-loading">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>{{ 'TAG_MODAL.LOADING' | translate }}</p>
+          </div>
+        } @else if (tagCandidatesError()) {
+          <div class="tag-error">
+            <p>{{ 'TAG_MODAL.ERROR' | translate }}</p>
+            <ion-button fill="outline" size="small" (click)="retryTagCandidates()">
+              {{ 'TAG_MODAL.RETRY' | translate }}
+            </ion-button>
+          </div>
+        } @else if (tagCandidates().length === 0) {
           <p class="tag-empty">{{ 'TAG_MODAL.EMPTY' | translate }}</p>
         } @else {
           <div class="tag-list">
-            @for (prey of taggablePrey(); track prey.userId) {
+            @for (prey of tagCandidates(); track prey.userId) {
               <button class="tag-row" [disabled]="tagInFlight()" (click)="selectTagTarget(prey)">
                 <span class="tag-dot"></span>
                 <span class="tag-callsign">{{ prey.callsign }}</span>
-                <span class="tag-row-state">{{ prey.state }}</span>
+                <span class="tag-row-distance">{{ prey.distanceMeters | number:'1.0-0' }} {{ 'TAG_MODAL.DISTANCE_METERS' | translate }}</span>
                 <span class="tag-row-action">{{ 'TAG_MODAL.TAG_ACTION' | translate }} ▸</span>
               </button>
             }
@@ -178,7 +190,7 @@
   <!-- Tag prey action — unavailable until the hunter head-start delay has passed -->
   <button
     class="tag-fab"
-    [disabled]="hunterDelayActive() || taggablePrey().length === 0"
+    [disabled]="hunterDelayActive()"
     (click)="openTagModal()"
     aria-label="Tag prey">
     <span class="tag-fab-icon">◎</span>

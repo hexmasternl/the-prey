@@ -4,7 +4,7 @@ description: "How The Prey collects, uses, and protects your personal data, incl
 keywords: ["The Prey privacy", "privacy policy", "GDPR", "location data", "data protection", "personal data"]
 ---
 
-_Last updated: 16 June 2026_
+_Last updated: 18 June 2026_
 
 The Prey is a GPS-based hide-and-seek game. Because the game tracks player locations in real time, we take your privacy seriously. This statement explains what data we collect, why we collect it, and the rights you have under the General Data Protection Regulation (GDPR).
 
@@ -35,7 +35,7 @@ Location is the heart of The Prey, so it deserves special mention:
 
 - GPS coordinates are collected **only while you are taking part in an active game**.
 - Locations are shared with other players strictly according to the game rules (for example, Prey positions are broadcast to the Hunter throughout the game).
-- When a game ends, live location sharing stops.
+- When a game ends, live location sharing stops, and every GPS location collected during the game is permanently deleted from our servers within 48 hours.
 - We do not track your location in the background outside of an active game.
 
 ---
@@ -68,7 +68,7 @@ These providers process data on our behalf under agreements that require appropr
 ## How Long We Keep Data
 
 - **Account data** is kept for as long as your account exists.
-- **Location data** from gameplay is retained only as long as needed to deliver and replay a game, then deleted or anonymised.
+- **Game data**, including each game's player information, roles, tags, results, and every GPS location collected during play, is **permanently deleted from our servers 48 hours after the game finishes**.
 - **Diagnostic logs** are kept for a limited period for security and troubleshooting.
 
 When you delete your account, we remove or anonymise your personal data, except where we are legally required to retain it.

@@ -86,6 +86,18 @@ export interface GameStatusDto {
   hunterMayMoveAt: string | null;
 }
 
+export interface TagCandidateDto {
+  userId: string;
+  callsign: string;
+  state: string;
+  distanceMeters: number;
+}
+
+export interface TagCandidatesDto {
+  rangeMeters: number;
+  candidates: TagCandidateDto[];
+}
+
 /** Response to a POST /games/{id}/locations call. Mirrors the backend RecordLocationResponse. */
 export interface RecordLocationResponse {
   accepted: boolean;
@@ -202,6 +214,12 @@ export class GamesService {
         accuracy,
         recordedAt,
       }),
+    );
+  }
+
+  getTagCandidates(gameId: string): Promise<TagCandidatesDto> {
+    return firstValueFrom(
+      this.http.get<TagCandidatesDto>(`${this.apiBase}/${gameId}/tag-candidates`)
     );
   }
 
