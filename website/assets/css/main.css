@@ -601,12 +601,13 @@ summary:hover { background: rgba(100, 255, 0, 0.04); }
 .howto-content ol > li strong { color: var(--text); }
 .howto-content ol > li::marker { content: none; }
 
-/* ---- TESTER STARBURST (home hero "New!" sticker) ---- */
+/* ---- TESTER STARBURST ("New!" sticker) ----
+   Two render points (see partials/tester-burst.html):
+   - --fixed   desktop: pinned to the viewport's top-right corner. Lives OUTSIDE
+               .site-main, which retains an identity transform from its page-in
+               animation and would otherwise become the fixed containing block.
+   - --inline  mobile: dropped into the hero flow, centered below the buttons. */
 .tester-burst {
-  position: fixed;
-  top: 4rem;
-  right: 2rem;
-  z-index: 200;
   width: clamp(116px, 13vw, 146px);
   aspect-ratio: 1;
   display: grid;
@@ -634,6 +635,26 @@ summary:hover { background: rgba(100, 255, 0, 0.04); }
   outline: 2px solid var(--bg-void);
   outline-offset: -10px;
 }
+
+/* desktop: fixed to the browser's top-right corner */
+.tester-burst--fixed {
+  position: fixed;
+  top: 4rem;
+  right: 2rem;
+  z-index: 200;
+}
+/* mobile: in-flow, centered below the hero copy so it never covers the title */
+.tester-burst--inline {
+  position: static;
+  margin: 30px auto 4px;
+  width: 134px;
+  transform: rotate(8deg);
+}
+.tester-burst--inline:hover { transform: rotate(8deg) scale(1.07); }
+
+/* only the matching variant shows at each breakpoint */
+@media (max-width: 880px) { .tester-burst--fixed { display: none; } }
+@media (min-width: 881px) { .tester-burst--inline { display: none; } }
 .burst-inner {
   padding: 10px 6px;
   /* Rests most of the cycle, then a quick attention shake every ~6s. */
@@ -667,17 +688,6 @@ summary:hover { background: rgba(100, 255, 0, 0.04); }
 @keyframes burst-glow {
   0%, 100% { filter: drop-shadow(0 0 7px rgba(255, 179, 0, 0.45)); }
   50% { filter: drop-shadow(0 0 20px rgba(255, 179, 0, 0.85)); }
-}
-
-@media (max-width: 880px) {
-  /* Drop into flow (centered below the hero copy) so it never covers the title. */
-  .tester-burst {
-    position: static;
-    margin: 30px auto 4px;
-    width: 134px;
-    transform: rotate(8deg);
-  }
-  .tester-burst:hover { transform: rotate(8deg) scale(1.07); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -22,12 +22,8 @@
     </div>
   </div>
 
-  <a class="tester-burst" href="{{ "/become-a-tester/" | relLangURL }}" aria-label="{{ i18n "footer_become_tester" }}">
-    <span class="burst-inner">
-      <span class="burst-kicker">★ {{ i18n "badge_new" }} ★</span>
-      <span class="burst-main">{{ i18n "footer_become_tester" }}</span>
-    </span>
-  </a>
+  {{/* mobile-only in-flow badge; the desktop fixed badge is rendered in baseof.html */}}
+  {{ partial "tester-burst.html" (dict "variant" "inline") }}
 
   <div class="ticker" aria-hidden="true">
     <div class="ticker-track">
