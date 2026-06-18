@@ -9,23 +9,23 @@ Een GPS-gebaseerd verstoppertje gespeeld buiten. Prooi verstopt zich en beweegt.
 {{< /qa >}}
 
 {{< qa q="Hoeveel spelers heb ik nodig?" >}}
-Minimaal twee — één Prooi en één Jager — en maximaal 16 spelers in een lobby. Er is altijd precies één Jager, dus grotere spellen betekenen simpelweg meer Prooi. Het spel werkt goed met 4–12 spelers.
+Minimaal twee (één Prooi en één Jager), en maximaal 16 spelers in een lobby. Er is altijd precies één Jager, dus grotere spellen betekenen simpelweg meer Prooi. Het spel werkt goed met 4 tot 12 spelers.
 {{< /qa >}}
 
 {{< qa q="Heb ik GPS altijd aan nodig?" >}}
-Ja. Geef de app toestemming voor "Altijd Toestaan" locatie. Achtergrond-GPS is vereist om je positie door te sturen wanneer het scherm uit is. Zonder dit stop je met uitzenden — wat eerlijk spel voor iedereen beïnvloedt.
+Ja. Geef de app toestemming voor "Altijd Toestaan" locatie. Achtergrond-GPS is vereist om je positie door te sturen wanneer het scherm uit is. Zonder dit stop je met uitzenden, wat eerlijk spel voor iedereen beïnvloedt.
 {{< /qa >}}
 
 {{< qa q="Wat gebeurt er tijdens de voorsprong?" >}}
-De voorsprong — standaard 5 minuten — geeft Prooi tijd om zich te verspreiden. De Jager wordt op zijn plek gehouden en kan tijdens dit tijdvenster niet bewegen of taggen, al staan Prooiposities al op de kaart van de Jager. Wanneer de voorsprong eindigt, wordt de Jager losgelaten en begint de jacht.
+De voorsprong (standaard 5 minuten) geeft Prooi tijd om zich te verspreiden. De Jager wordt op zijn plek gehouden en kan tijdens dit tijdvenster niet bewegen of taggen, al staan Prooiposities al op de kaart van de Jager. Wanneer de voorsprong eindigt, wordt de Jager losgelaten en begint de jacht.
 {{< /qa >}}
 
 {{< qa q="Hoe werkt taggen?" >}}
-Een Jager bereikt fysiek de locatie van een Prooi en tikt om die te taggen in de app. De tag is direct — alleen de Jager bevestigt de tag, de Prooi niet. Taggen is op basis van eerlijkheid, dus een Jager hoort alleen een Prooi te taggen die hij echt heeft bereikt.
+Een Jager bereikt fysiek de locatie van een Prooi en tikt om die te taggen in de app. De tag is direct. Alleen de Jager bevestigt de tag, de Prooi niet. Taggen is op basis van eerlijkheid, dus een Jager hoort alleen een Prooi te taggen die hij echt heeft bereikt.
 {{< /qa >}}
 
 {{< qa q="Kan ik spelen als mijn GPS zwak is?" >}}
-Zwakke GPS resulteert in onnauwkeurige positiedata — je pin verschijnt op de verkeerde plek. Dit beïnvloedt zowel de Jager (die slechte data krijgt) als jou (die onbetrouwbaar bewustzijn heeft). Speel in open gebieden voor beste resultaten.
+Zwakke GPS resulteert in onnauwkeurige positiedata, dus je pin verschijnt op de verkeerde plek. Dit beïnvloedt zowel de Jager (die slechte data krijgt) als jou (die onbetrouwbaar bewustzijn heeft). Speel in open gebieden voor beste resultaten.
 {{< /qa >}}
 
 {{< qa q="Wat is een speelveld?" >}}
@@ -37,7 +37,7 @@ Technisch gezien ja, maar het is tegen de regels. Prooi die de grens verlaat kan
 {{< /qa >}}
 
 {{< qa q="Wat gebeurt er als een Prooi geëlimineerd wordt?" >}}
-Je gaat naar toeschouwermodus. Je kunt de rest van het spel op de kaart volgen — je pin verdwijnt uit het zicht van de Jager. Je kunt niet meer deelnemen.
+Je gaat naar toeschouwermodus. Je kunt de rest van het spel op de kaart volgen, maar je pin verdwijnt uit het zicht van de Jager. Je kunt niet meer deelnemen.
 {{< /qa >}}
 
 {{< qa q="Hoe sluit ik aan bij een spel?" >}}
@@ -45,7 +45,7 @@ Haal de deelnamecode op bij de Spelmaker. Open de app, tik op Deelnemen aan Spel
 {{< /qa >}}
 
 {{< qa q="Wie wint als de tijd om is?" >}}
-Prooi wint. Als er ten minste één Prooi onaangeroerd is wanneer de timer nul bereikt, winnen alle Prooi — ongeacht hoeveel er geëlimineerd werden.
+Prooi wint. Als er ten minste één Prooi onaangeroerd is wanneer de timer nul bereikt, winnen alle Prooi, ongeacht hoeveel er geëlimineerd werden.
 {{< /qa >}}
 
 {{< qa q="Kan de Spelmaker ook meespelen?" >}}

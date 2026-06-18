@@ -9,23 +9,23 @@ A GPS-based hide-and-seek game played outdoors. Prey hide and move. A single Hun
 {{< /qa >}}
 
 {{< qa q="How many players do I need?" >}}
-Minimum two — one Prey and one Hunter — and up to 16 players in a lobby. There is always exactly one Hunter, so larger games simply mean more Prey. The game scales well with 4–12 players.
+Minimum two (one Prey and one Hunter), and up to 16 players in a lobby. There is always exactly one Hunter, so larger games simply mean more Prey. The game scales well with 4 to 12 players.
 {{< /qa >}}
 
 {{< qa q="Do I need GPS always-on?" >}}
-Yes. Grant the app "Always Allow" location permissions. Background GPS is required to broadcast your position when the screen is off. Without it, you stop transmitting — which affects fair play for all.
+Yes. Grant the app "Always Allow" location permissions. Background GPS is required to broadcast your position when the screen is off. Without it, you stop transmitting, which affects fair play for all.
 {{< /qa >}}
 
 {{< qa q="What happens during the head start?" >}}
-The head start — 5 minutes by default — gives Prey time to scatter. The Hunter is held in place and cannot move or tag during this window, though Prey positions are already on the Hunter's map. When the head start ends, the Hunter is released and the chase begins.
+The head start (5 minutes by default) gives Prey time to scatter. The Hunter is held in place and cannot move or tag during this window, though Prey positions are already on the Hunter's map. When the head start ends, the Hunter is released and the chase begins.
 {{< /qa >}}
 
 {{< qa q="How does tagging work?" >}}
-A Hunter physically reaches a Prey's location and taps to tag them in the app. The tag is immediate — only the Hunter confirms it; the Prey does not. Tagging is honour-based, so a Hunter should only tag a Prey they have genuinely reached.
+A Hunter physically reaches a Prey's location and taps to tag them in the app. The tag is immediate. Only the Hunter confirms it; the Prey does not. Tagging is honour-based, so a Hunter should only tag a Prey they have genuinely reached.
 {{< /qa >}}
 
 {{< qa q="Can I play if my GPS is weak?" >}}
-Weak GPS results in inaccurate position data — your pin appears in the wrong place. This affects both the Hunter (who gets bad data) and you (who get unreliable awareness). Play in open areas for best results.
+Weak GPS results in inaccurate position data, so your pin appears in the wrong place. This affects both the Hunter (who gets bad data) and you (who get unreliable awareness). Play in open areas for best results.
 {{< /qa >}}
 
 {{< qa q="What is a playfield?" >}}
@@ -37,7 +37,7 @@ Technically yes, but it is against the rules. Prey who leave the boundary can be
 {{< /qa >}}
 
 {{< qa q="What happens if a Prey is eliminated?" >}}
-You enter spectator mode. You can watch the rest of the game on the map — your pin disappears from the Hunter's view. You cannot participate further.
+You enter spectator mode. You can watch the rest of the game on the map, but your pin disappears from the Hunter's view. You cannot participate further.
 {{< /qa >}}
 
 {{< qa q="How do I join a game?" >}}
@@ -45,7 +45,7 @@ Get the join code from the Game Creator. Open the app, tap Join Game, enter the 
 {{< /qa >}}
 
 {{< qa q="Who wins if time runs out?" >}}
-Prey win. If at least one Prey is still untagged when the timer hits zero, all Prey win — regardless of how many were eliminated.
+Prey win. If at least one Prey is still untagged when the timer hits zero, all Prey win, regardless of how many were eliminated.
 {{< /qa >}}
 
 {{< qa q="Can the Game Creator play too?" >}}

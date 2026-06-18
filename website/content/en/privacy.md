@@ -1,6 +1,6 @@
 ---
 title: "Privacy Statement"
-description: "How The Prey collects, uses, and protects your personal data — including location data, account information, and game activity."
+description: "How The Prey collects, uses, and protects your personal data, including location data, account information, and game activity."
 keywords: ["The Prey privacy", "privacy policy", "GDPR", "location data", "data protection", "personal data"]
 ---
 
@@ -21,7 +21,7 @@ The Prey is operated from the Netherlands and reachable at **theprey.nl**. For a
 | Category | Examples | Why |
 |---|---|---|
 | Account data | Name or nickname, email address, authentication identifier | To create and secure your account |
-| Location data | GPS coordinates while a game is active | Core gameplay — tracking Prey and the Hunter |
+| Location data | GPS coordinates while a game is active | Core gameplay: tracking Prey and the Hunter |
 | Game data | Playfields you create, games you join, roles, tags, results | To run and replay games |
 | Technical data | Device type, app version, diagnostic logs | To operate, secure, and improve the service |
 
@@ -57,9 +57,9 @@ Our legal bases are the **performance of a contract** (providing the game you as
 
 We share data only with service providers that help us run The Prey:
 
-- **Authentication** — our identity provider (Auth0) manages secure sign-in.
-- **Cloud hosting** — our backend runs on Microsoft Azure within the European Union.
-- **Other players** — during a game, limited gameplay data (such as your role and, where the rules allow, your location) is visible to other participants.
+- **Authentication**: our identity provider (Auth0) manages secure sign-in.
+- **Cloud hosting**: our backend runs on Microsoft Azure within the European Union.
+- **Other players**: during a game, limited gameplay data (such as your role and, where the rules allow, your location) is visible to other participants.
 
 These providers process data on our behalf under agreements that require appropriate safeguards.
 

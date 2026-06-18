@@ -1,6 +1,6 @@
 ---
 title: "Create a Game"
-description: "Step-by-step: create a game in The Prey — pick a playfield, share the join code, choose the Hunter, and start the head start."
+description: "Step-by-step: create a game in The Prey. Pick a playfield, share the join code, choose the Hunter, and start the head start."
 keywords: ["create a game", "start a game", "join code", "assign roles", "playfield", "The Prey how-to"]
 ---
 
@@ -8,7 +8,7 @@ keywords: ["create a game", "start a game", "join code", "assign roles", "playfi
 2. Select a saved playfield or draw a new one. The playfield defines the game boundary.
 3. The app generates a join code. Share it with all participants before proceeding.
 4. Wait for players to join. They appear in the lobby list as they connect.
-5. Tap one player to make them the **Hunter**. Everyone else is automatically **Prey** — there is only ever one Hunter.
+5. Tap one player to make them the **Hunter**. Everyone else is automatically **Prey**. There is only ever one Hunter.
 6. Make yourself the Hunter, or leave yourself as Prey, if you are playing.
 7. Confirm all players are ready.
 8. Tap **Start Game**. The head start begins. Prey scatter. The Hunter waits.

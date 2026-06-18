@@ -1,6 +1,6 @@
 ---
 title: "Privacyverklaring"
-description: "Hoe The Prey jouw persoonsgegevens verzamelt, gebruikt en beschermt — waaronder locatiegegevens, accountgegevens en spelactiviteit."
+description: "Hoe The Prey jouw persoonsgegevens verzamelt, gebruikt en beschermt, waaronder locatiegegevens, accountgegevens en spelactiviteit."
 keywords: ["The Prey privacy", "privacybeleid", "AVG", "GDPR", "locatiegegevens", "gegevensbescherming", "persoonsgegevens"]
 ---
 
@@ -21,7 +21,7 @@ The Prey wordt vanuit Nederland beheerd en is bereikbaar via **theprey.nl**. Voo
 | Categorie | Voorbeelden | Waarom |
 |---|---|---|
 | Accountgegevens | Naam of bijnaam, e-mailadres, authenticatie-identificatie | Om je account aan te maken en te beveiligen |
-| Locatiegegevens | GPS-coördinaten tijdens een actief spel | Kern van het spel — het volgen van Prooi en de Jager |
+| Locatiegegevens | GPS-coördinaten tijdens een actief spel | Kern van het spel: het volgen van Prooi en de Jager |
 | Spelgegevens | Speelvelden die je maakt, spellen die je speelt, rollen, tags, resultaten | Om spellen te draaien en terug te kijken |
 | Technische gegevens | Apparaattype, app-versie, diagnostische logs | Om de dienst te beheren, beveiligen en verbeteren |
 
@@ -57,9 +57,9 @@ Onze grondslagen zijn de **uitvoering van een overeenkomst** (het aanbieden van 
 
 We delen gegevens alleen met dienstverleners die ons helpen The Prey te draaien:
 
-- **Authenticatie** — onze identiteitsprovider (Auth0) verzorgt het veilig inloggen.
-- **Cloudhosting** — onze backend draait op Microsoft Azure binnen de Europese Unie.
-- **Andere spelers** — tijdens een spel is beperkte spelinformatie (zoals je rol en, waar de regels dit toestaan, je locatie) zichtbaar voor andere deelnemers.
+- **Authenticatie**: onze identiteitsprovider (Auth0) verzorgt het veilig inloggen.
+- **Cloudhosting**: onze backend draait op Microsoft Azure binnen de Europese Unie.
+- **Andere spelers**: tijdens een spel is beperkte spelinformatie (zoals je rol en, waar de regels dit toestaan, je locatie) zichtbaar voor andere deelnemers.
 
 Deze partijen verwerken gegevens namens ons op basis van overeenkomsten die passende waarborgen vereisen.
 

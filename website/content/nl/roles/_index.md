@@ -1,6 +1,6 @@
 ---
 title: "Rollen"
-description: "De drie rollen in The Prey — Spelmaker, Jager en Prooi. Ontdek wat elke rol doet voordat het spel begint."
+description: "De drie rollen in The Prey: Spelmaker, Jager en Prooi. Ontdek wat elke rol doet voordat het spel begint."
 keywords: ["The Prey rollen", "Jager", "Prooi", "Spelmaker", "spelersrollen", "spelrollen"]
 ---
 

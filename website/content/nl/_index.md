@@ -14,8 +14,8 @@ game:
   eyebrow: "Het Spel"
   title: "Jaag of Word Gejaagd"
   body:
-    - "The Prey zet spelers in een echte GPS-arena. De meeste spelers verstoppen zich en rennen. Eén speler — de Jager — traceert en tagt. De kaart ververst op een vaste timer. Elke beweging telt."
-    - "Spellen duren zo lang als de host instelt — standaard 30 minuten. Prooi krijgt voorsprong om zich te verspreiden voordat de Jager wordt losgelaten. Daarna — de jacht is begonnen."
+    - "The Prey zet spelers in een echte GPS-arena. De meeste spelers verstoppen zich en rennen. Eén speler, de Jager, traceert en tagt. De kaart ververst op een vaste timer. Elke beweging telt."
+    - "Spellen duren zo lang als de host instelt, standaard 30 minuten. Prooi krijgt voorsprong om zich te verspreiden voordat de Jager wordt losgelaten. Daarna begint de jacht."
 
 phases:
   - value: "5"

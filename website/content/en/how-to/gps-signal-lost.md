@@ -1,6 +1,6 @@
 ---
 title: "GPS Signal Lost"
-description: "What to do when your GPS signal drops in The Prey — restore background location, move to open sky, and get your position transmitting again."
+description: "What to do when your GPS signal drops in The Prey: restore background location, move to open sky, and get your position transmitting again."
 keywords: ["GPS signal lost", "location not updating", "background location", "GPS troubleshooting", "The Prey help"]
 ---
 

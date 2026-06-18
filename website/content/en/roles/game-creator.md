@@ -6,7 +6,7 @@ keywords: ["Game Creator", "host a game", "join code", "assign roles", "set up g
 
 ## Your Responsibility
 
-The Game Creator sets up the game before it begins. You control the playfield, the lobby, and role assignments. Once the game starts, you play as a Hunter or Prey — the Creator role ends at launch.
+The Game Creator sets up the game before it begins. You control the playfield, the lobby, and role assignments. Once the game starts, you play as a Hunter or Prey, and the Creator role ends at launch.
 
 ---
 
@@ -19,7 +19,7 @@ Draw the boundary polygon in the app. The playfield is the GPS area within which
 The app generates a unique join code for your game session. Share it with all participants before the game. Players use it to join the lobby.
 
 **3. Choose the Hunter**
-In the lobby, tap one player to make them the Hunter. Everyone else is automatically Prey — there is only ever one Hunter. You need at least one Prey, so a game needs at least two players in total.
+In the lobby, tap one player to make them the Hunter. Everyone else is automatically Prey, since there is only ever one Hunter. You need at least one Prey, so a game needs at least two players in total.
 
 **4. Start the Game**
 When all players are ready, launch the game. The head start begins immediately. Prey scatter. The Hunter waits.
