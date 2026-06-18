@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ServiceDiscovery;
+using Microsoft.FeatureManagement;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -49,6 +50,10 @@ public static class Extensions
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.AddAzureAppConfiguration();
+
+        // Register IFeatureManager. Must be called unconditionally so that IFeatureManager resolves
+        // even locally where App Config is absent — flags simply evaluate to false (default-off).
+        builder.Services.AddFeatureManagement();
 
         builder.ConfigureOpenTelemetry();
 
@@ -100,7 +105,11 @@ public static class Extensions
             options
                 .Connect(new Uri(endpoint), credential)
                 .Select(KeyFilter.Any, LabelFilter.Null)
-                .ConfigureKeyVault(keyVault => keyVault.SetCredential(credential));
+                .ConfigureKeyVault(keyVault => keyVault.SetCredential(credential))
+                // Surface .appconfig.featureflag/* keys to IFeatureManager.
+                // The 30-second refresh interval means a flag flipped in Azure takes effect
+                // within ~30 seconds without a container restart.
+                .UseFeatureFlags(ff => ff.SetRefreshInterval(TimeSpan.FromSeconds(30)));
         });
 
         return builder;
