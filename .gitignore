@@ -434,3 +434,6 @@ infra/**/*.json
 
 # Subagent-local memory/scratch (not part of the project)
 **/.claude/agent-memory/
+
+# Playwright CLI snapshot/screenshot artifacts
+**/.playwright-cli/
