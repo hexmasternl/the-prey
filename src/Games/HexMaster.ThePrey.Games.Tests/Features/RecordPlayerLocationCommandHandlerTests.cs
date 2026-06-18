@@ -12,7 +12,7 @@ namespace HexMaster.ThePrey.Games.Tests.Features;
 public sealed class RecordPlayerLocationCommandHandlerTests
 {
     private static readonly DateTimeOffset Start = new(2026, 6, 3, 12, 0, 0, TimeSpan.Zero);
-    // 10 minutes in: before the final stage, so the default interval (30s) applies.
+    // 10 minutes in: before the final stage.
     private static readonly DateTimeOffset Now = Start.AddMinutes(10);
 
     private readonly Mock<IGameRepository> _repository = new();
@@ -32,7 +32,7 @@ public sealed class RecordPlayerLocationCommandHandlerTests
         new(_repository.Object, _metrics.Object, _eventBus.Object, _integrationEvents.Object, new FixedTimeProvider(now));
 
     [Fact]
-    public async Task Handle_ShouldRecordAndReturnNextInterval_WhenParticipantSubmits()
+    public async Task Handle_ShouldRecordAndReturn10sInterval_WhenParticipantSubmits()
     {
         var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
@@ -42,7 +42,8 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         Assert.NotNull(result);
         Assert.True(result!.Response.Accepted);
-        Assert.Equal(30, result.Response.NextLocationIntervalSeconds);
+        // Device sampling cadence is now a constant 10s regardless of game stage.
+        Assert.Equal(Game.LocationReportingIntervalSeconds, result.Response.NextLocationIntervalSeconds);
         Assert.Null(result.Response.PenaltyIntervalSeconds);
         Assert.Null(result.Response.PenaltyEndsAt);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
@@ -50,7 +51,7 @@ public sealed class RecordPlayerLocationCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnPenaltyOverride_WhenParticipantHasActivePenalty()
+    public async Task Handle_ShouldReturnPenaltyInterval_WhenParticipantHasActivePenalty()
     {
         var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
         var penaltyEndsAt = Now.AddMinutes(2);
@@ -62,7 +63,8 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         Assert.NotNull(result);
         Assert.True(result!.Response.Accepted);
-        Assert.Equal(30, result.Response.NextLocationIntervalSeconds);
+        // Device cadence stays at 10s; penalty info is still surfaced for UI display.
+        Assert.Equal(Game.LocationReportingIntervalSeconds, result.Response.NextLocationIntervalSeconds);
         Assert.Equal(Game.PenaltyReportingIntervalSeconds, result.Response.PenaltyIntervalSeconds);
         Assert.Equal(penaltyEndsAt, result.Response.PenaltyEndsAt);
     }
@@ -104,8 +106,9 @@ public sealed class RecordPlayerLocationCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldPublishHunterLocatedEvent_WhenHunterRecordsLocation()
+    public async Task Handle_ShouldNotPublishParticipantLocatedEvent_WhenHunterRecordsLocation()
     {
+        // Broadcasts are now sweep-only; ingest must NOT emit ParticipantLocatedEvent.
         var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: GameFaker.ValidConfiguration());
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
@@ -113,29 +116,15 @@ public sealed class RecordPlayerLocationCommandHandlerTests
             new RecordPlayerLocationCommand(game.Id, hunterId, 52.1, 5.1, null), CancellationToken.None);
 
         _eventBus.Verify(b => b.PublishAsync(
-            game.Id,
-            It.Is<ParticipantLocatedEvent>(e => e.UserId == hunterId && e.ParticipantRole == "Hunter" && e.Latitude == 52.1 && e.Longitude == 5.1),
-            It.IsAny<CancellationToken>()), Times.Once);
+            It.IsAny<Guid>(),
+            It.IsAny<ParticipantLocatedEvent>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_ShouldPublishPreyLocatedEvent_WhenPreyRecordsLocation()
+    public async Task Handle_ShouldNotPublishParticipantLocatedEvent_WhenPreyRecordsLocation()
     {
-        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
-        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
-
-        await _handler.Handle(
-            new RecordPlayerLocationCommand(game.Id, preyIds[0], 52.2, 5.2, null), CancellationToken.None);
-
-        _eventBus.Verify(b => b.PublishAsync(
-            game.Id,
-            It.Is<ParticipantLocatedEvent>(e => e.UserId == preyIds[0] && e.ParticipantRole == "Prey" && e.Latitude == 52.2 && e.Longitude == 5.2),
-            It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldNotPublishHunterEvent_WhenPreyRecordsLocation()
-    {
+        // Broadcasts are now sweep-only; ingest must NOT emit ParticipantLocatedEvent.
         var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
@@ -144,7 +133,7 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         _eventBus.Verify(b => b.PublishAsync(
             It.IsAny<Guid>(),
-            It.Is<ParticipantLocatedEvent>(e => e.ParticipantRole == "Hunter"),
+            It.IsAny<ParticipantLocatedEvent>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -222,6 +211,8 @@ public sealed class RecordPlayerLocationCommandHandlerTests
             It.IsAny<CancellationToken>()), Times.Once);
         Assert.NotNull(result);
         Assert.True(result!.Response.Accepted);
+        // Device cadence is constant 10s; penalty info is surfaced separately for UI.
+        Assert.Equal(Game.LocationReportingIntervalSeconds, result!.Response.NextLocationIntervalSeconds);
         Assert.Equal(Game.PenaltyReportingIntervalSeconds, result.Response.PenaltyIntervalSeconds);
         Assert.Equal(expectedEndsAt, result.Response.PenaltyEndsAt);
     }

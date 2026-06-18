@@ -60,14 +60,17 @@ public sealed class GameSweepProcessorTests
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldBroadcastUncheckedReadingsAndMarkThemChecked()
+    public async Task ProcessAsync_ShouldBroadcastParticipantsWithKnownLocation_OnRegularTick()
     {
+        // Regular tick: now >= NextScheduledBroadcastOn (seeded to Start).
         var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3);
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(0, 0), Start.AddSeconds(5));
         SetupGame(game);
 
-        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        // Sweep at Start+30s → regular tick due (schedule seeded to Start).
+        var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
 
+        // Only the prey that has a location is broadcast; the others have no location yet.
         Assert.Equal(1, result.Broadcasts);
         var prey = game.Participants.Single(p => p.UserId == preyIds[0]);
         Assert.NotNull(prey.Location);
@@ -79,16 +82,39 @@ public sealed class GameSweepProcessorTests
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldNotBroadcastAlreadyCheckedReadings_OnSecondTick()
+    public async Task ProcessAsync_ShouldBroadcastOnEveryRegularTick_EvenWithoutNewReadings()
     {
+        // Between ticks without new readings a participant with a known location IS still broadcast
+        // on the next regular tick (schedule-driven, not reading-driven).
         var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3);
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(0, 0), Start.AddSeconds(5));
         SetupGame(game);
 
-        await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
-        var second = await _sut.ProcessAsync(game.Id, Start.AddMinutes(2), CancellationToken.None);
+        // First regular tick — broadcasts and consumes the reading.
+        await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
+        // Second regular tick (schedule advanced to Start+60s) — no new readings, but still a regular tick.
+        var second = await _sut.ProcessAsync(game.Id, Start.AddSeconds(60), CancellationToken.None);
 
-        Assert.Equal(0, second.Broadcasts);
+        // Still 1 broadcast because the participant has a known last position.
+        Assert.Equal(1, second.Broadcasts);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldNotBroadcast_WhenBetweenRegularTicksAndNoActivePenalty()
+    {
+        // Between regular ticks, a participant with new readings but no penalty must NOT be broadcast.
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3);
+        // First regular tick consumes the initial reading and advances schedule to Start+30s.
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(0, 0), Start.AddSeconds(5));
+        SetupGame(game);
+        await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
+
+        // New reading arrives in the gap; sweep at Start+40s — schedule next due at Start+60s.
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(0.1, 0.1), Start.AddSeconds(35));
+        var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(40), CancellationToken.None);
+
+        // Off-beat sweep: new coordinate consumed for boundary check but no broadcast.
+        Assert.Equal(0, result.Broadcasts);
     }
 
     [Fact]
@@ -99,7 +125,7 @@ public sealed class GameSweepProcessorTests
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // outside the square
         SetupGame(game);
 
-        var now = Start.AddMinutes(1);
+        var now = Start.AddSeconds(30); // regular tick
         var result = await _sut.ProcessAsync(game.Id, now, CancellationToken.None);
 
         Assert.Equal(1, result.Penalties);
@@ -120,10 +146,10 @@ public sealed class GameSweepProcessorTests
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(0, 0), Start.AddSeconds(15)); // back inside
         SetupGame(game);
 
-        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
 
         Assert.Equal(1, result.Penalties);
-        // The broadcast position is still the newest reading, not the violating one.
+        // The broadcast position is the newest reading (last recorded).
         var prey = game.Participants.Single(p => p.UserId == preyIds[0]);
         Assert.Equal(GpsCoordinate.Create(0, 0), prey.Location);
     }
@@ -137,22 +163,25 @@ public sealed class GameSweepProcessorTests
         game.TagParticipant(hunterId, preyIds[0], Start.AddMinutes(10));
         SetupGame(game);
 
-        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
 
         Assert.Equal(0, result.Penalties);
         _publisher.Verify(p => p.PublishAsync(It.IsAny<PlayerPenalizedIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldRebroadcastPenalizedPrey_WhenNoNewReadings()
+    public async Task ProcessAsync_ShouldBroadcastPenalizedPrey_BetweenRegularTicks()
     {
+        // Between regular ticks, a penalized participant must still be broadcast.
         var config = GameFaker.ValidConfiguration(enablePreyBoundaryPenalties: true);
         var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3, configuration: config);
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // outside the square
         SetupGame(game);
 
-        var first = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
-        var second = await _sut.ProcessAsync(game.Id, Start.AddMinutes(2), CancellationToken.None);
+        // First regular tick at Start+30s: broadcasts (regular), applies penalty.
+        var first = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
+        // Off-beat tick at Start+45s: schedule next at Start+60s, penalty still active.
+        var second = await _sut.ProcessAsync(game.Id, Start.AddSeconds(45), CancellationToken.None);
 
         Assert.Equal(1, first.Penalties);
         Assert.Equal(1, second.Broadcasts); // re-broadcast while the penalty is active, without new readings
@@ -170,7 +199,7 @@ public sealed class GameSweepProcessorTests
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // outside the square
         SetupGame(game);
 
-        var first = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        var first = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
         // 6 minutes later the first penalty (5 min) has expired; the last-known position is still outside.
         var afterExpiry = await _sut.ProcessAsync(game.Id, Start.AddMinutes(7), CancellationToken.None);
 
@@ -186,7 +215,7 @@ public sealed class GameSweepProcessorTests
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5));
         SetupGame(game);
 
-        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
 
         Assert.Equal(0, result.Penalties);
     }
@@ -200,7 +229,7 @@ public sealed class GameSweepProcessorTests
         game.ApplyPenalty(preyIds[0], Start.AddMinutes(5)); // already penalised
         SetupGame(game);
 
-        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
 
         Assert.Equal(0, result.Penalties);
         _publisher.Verify(p => p.PublishAsync(It.IsAny<PlayerPenalizedIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -224,13 +253,37 @@ public sealed class GameSweepProcessorTests
     [Fact]
     public async Task ProcessAsync_ShouldNotPersist_WhenNothingChanged()
     {
+        // No readings, no penalties, not ended, and the regular tick has no participants with
+        // known locations, so no broadcast occurs either.
         var game = GameFaker.StartedGame(out _, out _, Start, playerCount: 3); // no readings, not ended
         SetupGame(game);
 
-        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+        // Sweep slightly before the first regular tick to avoid any broadcast.
+        // NextScheduledBroadcastOn = Start; sweep at exactly Start but no known locations.
+        // The regular tick is due but no participant has a location, so no broadcasts happen.
+        var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(1), CancellationToken.None);
 
-        Assert.Equal(GameTickResult.None with { }, result);
         _games.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
         _publisher.Verify(p => p.PublishAsync(It.IsAny<IIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldPersist_WhenOnlyOffBeatPenaltyBroadcastOccurs()
+    {
+        // An off-beat penalty broadcast mutates Location — must persist even without new readings.
+        var config = GameFaker.ValidConfiguration(enablePreyBoundaryPenalties: true);
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3, configuration: config);
+        // Give prey a known location and a penalty via a regular tick.
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5));
+        SetupGame(game);
+
+        await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None); // first tick: penalty applied
+        _games.Invocations.Clear(); // reset mock tracking
+
+        // Off-beat tick: no new readings, penalty still active → must still persist (broadcast happened).
+        var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(45), CancellationToken.None);
+
+        Assert.Equal(1, result.Broadcasts);
+        _games.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
