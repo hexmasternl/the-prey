@@ -35,6 +35,18 @@
   <!-- Hunter head-start countdown (removed automatically when it reaches zero) -->
   <app-hunter-delay-overlay [hunterMayMoveAt]="hunterMayMoveAt()" />
 
+  <!-- Spectator banner: shown once tagged/out, while the game keeps running -->
+  @if (outReason(); as reason) {
+  <div class="spectator-banner">
+    <div class="spectator-title">
+      {{ (reason === 'tagged' ? 'GAME_PROGRESS.TAGGED_TITLE' : 'GAME_PROGRESS.OUT_TITLE') | translate }}
+    </div>
+    <div class="spectator-msg">
+      {{ (reason === 'tagged' ? 'GAME_PROGRESS.TAGGED_MSG' : 'GAME_PROGRESS.OUT_MSG') | translate }}
+    </div>
+    <div class="spectator-note">{{ 'GAME_PROGRESS.SPECTATING' | translate }}</div>
+  </div>
+  }
 
   <!-- GPS alert banner -->
   @if (gpsAlert()) {

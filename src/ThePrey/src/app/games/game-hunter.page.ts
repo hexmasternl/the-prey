@@ -272,8 +272,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   closeTagModal(): void {
+    // NOTE: do NOT reset the pending confirmation here. Selecting a target
+    // dismisses this sheet (firing didDismiss → closeTagModal) at the same moment
+    // it opens the confirmation popup; clearing pendingTag here would close that
+    // popup immediately. The sheet only ever has the list, so nothing to reset.
     this.showTagModal.set(false);
-    this.resetTagConfirmation();
   }
 
   /** Close the selection sheet and open the confirmation popup for the chosen target. */
@@ -403,8 +406,39 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         this.pollIntervalSeconds * 1000,
       );
     } catch {
+      // The status endpoint only serves in-progress games, so an error here may mean the
+      // game ended while we were backgrounded/disconnected and we missed `game-ended`.
+      // Confirm against the full game record before falling back to a plain retry.
+      if (await this.checkGameEndedOnServer()) return;
       this.pollTimer = setTimeout(() => this.pollStatus(), 30_000);
     }
+  }
+
+  /**
+   * Authoritative fallback for a missed `game-ended` event: fetch the full game record and,
+   * if it has completed, hand off to the outcome screen. Returns true when the game has ended
+   * (navigation triggered), false otherwise. Idempotent via `handleGameEnded`'s guard.
+   */
+  private async checkGameEndedOnServer(): Promise<boolean> {
+    try {
+      const game = await this.gamesService.getGame(this.gameId);
+      if (game.status === 'Completed') {
+        const survivorCount = game.participants.filter(
+          (p) =>
+            p.userId !== game.hunterUserId &&
+            (p.state === 'Active' || p.state === 'Passive'),
+        ).length;
+        this.handleGameEnded({
+          gameId: this.gameId,
+          outcome: game.outcome,
+          survivorCount,
+        });
+        return true;
+      }
+    } catch {
+      // Game record unreachable — let the caller retry.
+    }
+    return false;
   }
 
   private applyStatus(status: GameStatusDto): void {

@@ -66,7 +66,12 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly preysLeft       = signal(0);
   readonly hasActivePenalty = signal(false);
   readonly gpsAlert        = signal<string | null>(null);
-  readonly gameOverMessage  = signal<string | null>(null);
+  /**
+   * Set once this player is tagged or ruled out while the game is still running. Drives
+   * the spectator overlay; the player stays connected and keeps receiving updates until
+   * the game itself ends (`game-ended`), at which point everyone lands on the outcome screen.
+   */
+  readonly outReason       = signal<'tagged' | 'out' | null>(null);
   /** Seconds until the next status poll, ticked down every second for the HUD. */
   readonly pingCountdown   = signal(30);
   /** Collapsed by default: only the remaining game time shows until the HUD is tapped. */
@@ -159,11 +164,14 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   private resyncOnResume(): void {
-    // Don't resurrect a finished game (tagged/out or ended).
-    if (this.gameOverMessage() || this.gameEndedHandled) return;
+    // The game is fully over for everyone — nothing left to reconcile. A tagged/out
+    // player is NOT finished here: they remain a spectator and must still reconnect so
+    // they catch the eventual `game-ended` event missed while suspended.
+    if (this.gameEndedHandled) return;
     // Reconnect the realtime channel (handles the silently-dead-socket case)…
     this.connectStream();
     // …and force an immediate status refresh to catch events missed while suspended.
+    // pollStatus() also detects a game that ended while we were away (see its catch).
     this.clearPoll();
     void this.pollStatus();
   }
@@ -311,9 +319,33 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       this.startPingCountdown(this.pollIntervalSeconds);
       this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1_000);
     } catch {
-      // Retry with a safe default on network error
+      // The status endpoint only serves in-progress games, so an error here may mean the
+      // game ended while we were backgrounded/disconnected and we missed `game-ended`.
+      // Confirm against the full game record before falling back to a plain retry.
+      if (await this.checkGameEndedOnServer()) return;
       this.pollTimer = setTimeout(() => this.pollStatus(), 30_000);
     }
+  }
+
+  /**
+   * Authoritative fallback for a missed `game-ended` event: fetch the full game record and,
+   * if it has completed, hand off to the outcome screen. Returns true when the game has ended
+   * (navigation triggered), false otherwise. Idempotent via `handleGameEnded`'s guard.
+   */
+  private async checkGameEndedOnServer(): Promise<boolean> {
+    try {
+      const game = await this.gamesService.getGame(this.gameId);
+      if (game.status === 'Completed') {
+        const survivorCount = game.participants.filter(
+          p => p.userId !== game.hunterUserId && (p.state === 'Active' || p.state === 'Passive'),
+        ).length;
+        this.handleGameEnded({ gameId: this.gameId, outcome: game.outcome, survivorCount });
+        return true;
+      }
+    } catch {
+      // Game record unreachable — let the caller retry.
+    }
+    return false;
   }
 
   private applyStatus(status: GameStatusDto): void {
@@ -445,12 +477,12 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       const activeCount = [...this.participantStates.values()].filter(s => s === 'Active' || s === 'Passive').length;
       this.preysLeft.set(activeCount);
 
-      // React when our own state changes
+      // React when our own state changes — switch to spectator mode but stay connected.
       if (userId === this.currentUserId) {
         if (newState === 'Tagged') {
-          this.handleGameOver('You have been tagged. Game over for you.');
+          this.markSelfOut('tagged');
         } else if (newState === 'Out') {
-          this.handleGameOver('You left the area for too long. You are out.');
+          this.markSelfOut('out');
         }
       }
     };
@@ -479,12 +511,15 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     });
   }
 
-  private handleGameOver(message: string): void {
-    this.clearPoll();
-    this.streamService.disconnect();
-    void this.locationService.stop();
-    this.stopMapWatch();
-    this.gameOverMessage.set(message);
+  /**
+   * This player has been tagged or ruled out, but the GAME is still running. Show the
+   * spectator overlay while deliberately KEEPING the realtime stream, status polling and
+   * the location/foreground service alive — the player keeps seeing the action and, crucially,
+   * still receives the `game-ended` event so everyone reaches the outcome screen together.
+   * All connections and the Android foreground service are torn down only in `handleGameEnded`.
+   */
+  private markSelfOut(reason: 'tagged' | 'out'): void {
+    this.outReason.set(reason);
   }
 
   /** Idempotent: safe to call from both Web PubSub events and the poll path. */
@@ -493,6 +528,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     this.gameEndedHandled = true;
     this.clearPoll();
     this.streamService.disconnect();
+    this.stopMapWatch();
     void this.locationService.stop();
     // Hand the result to the debrief screen; it confirms against the server too, so
     // missing values here are non-fatal. null query params are dropped by the router.

@@ -186,6 +186,11 @@
     "GPS_UNAVAILABLE_MSG": "Can't get a GPS fix. Move to open sky and make sure location is switched on.",
     "REPORTING_DEGRADED_TITLE": "POSITION NOT UPDATING",
     "REPORTING_DEGRADED_MSG": "Can't reach command. Your position isn't being shared — check your connection.",
+    "TAGGED_TITLE": "YOU HAVE BEEN TAGGED",
+    "TAGGED_MSG": "You're out of the chase.",
+    "OUT_TITLE": "YOU ARE OUT",
+    "OUT_MSG": "You left the area for too long.",
+    "SPECTATING": "Stay tuned — you'll see how it ends.",
     "BACK": "BACK"
   },
   "GAME_OUTCOME": {
