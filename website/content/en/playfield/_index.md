@@ -6,7 +6,7 @@ keywords: ["playfield", "GPS boundary", "polygon map", "game area", "draw playfi
 
 ## What Is a Playfield?
 
-A playfield is a GPS polygon — a closed boundary drawn on a map that defines the valid game area. Players must stay within it during the hunt. Prey who leave the boundary can be disqualified at the Game Creator's discretion.
+A playfield is a GPS polygon — a closed boundary drawn on a map that defines the valid game area. Players must stay within it during the hunt.
 
 Playfields are created before the game and can be saved and reused for future sessions.
 
@@ -28,11 +28,42 @@ Your saved playfields appear in the Playfield list and can be selected when star
 
 | Gesture | Action |
 |---|---|
-| Tap | Place a new vertex |
+| Tap map | Place a new vertex |
 | Drag vertex | Reposition a placed vertex |
 | Pinch | Zoom in / zoom out |
-| Long press edge | Insert a new vertex on that edge |
-| Tap vertex | Remove that vertex |
+| Tap vertex | Select it, then tap the trash button to remove it |
+
+---
+
+## Leaving the Boundary — the Penalty
+
+The playfield boundary is enforced automatically during a game. When the Game Creator enables boundary penalties, any player who steps outside the polygon is penalised by the game.
+
+While a penalty is active:
+
+- The penalty lasts **5 minutes** from the moment you cross the boundary.
+- Your live position is broadcast **continuously** for the whole penalty, instead of only at the normal reporting interval. For Prey this means Hunters can see exactly where you are the entire time you are out — you lose the gaps between location pings that normally keep you hidden.
+- Returning inside the boundary does not clear an active penalty early; it simply stops new penalties from being applied.
+
+The penalty can be enabled separately for Prey and for Hunters when the game is configured.
+
+---
+
+## Making a Playfield Public
+
+By default a playfield is **private** — only you can use it. You can share a playfield with the wider community by switching it to **public**, but the public toggle only unlocks when the name follows the listing convention:
+
+```
+CC, City, Fieldname
+```
+
+- **CC** — a country code of 2 to 4 uppercase letters (e.g. `NL`, `USA`).
+- **City** — the city, starting with a capital and using ordinary city-name characters only (no special symbols).
+- **Fieldname** — the name of the field; ordinary characters, with ampersands (`&`) and dashes (`-`) allowed.
+
+For example: `NL, Amsterdam, Vondelpark Arena`.
+
+Name your playfield this way and the **Public** switch becomes available. If you rename it so it no longer matches, the playfield is automatically set back to private before the switch is locked again. This keeps public playfields consistently named and easy to find for other players.
 
 ---
 

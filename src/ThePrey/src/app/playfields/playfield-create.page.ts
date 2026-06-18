@@ -1,6 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Browser } from '@capacitor/browser';
 import {
   IonButton,
   IonButtons,
@@ -23,7 +24,9 @@ import { chevronBack } from 'ionicons/icons';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PlayfieldsService } from './playfields.service';
 import { PlayfieldDraftService } from './playfield-draft.service';
+import { isPublicEligibleName } from './playfield.model';
 import { UserStateService } from '../users/user-state.service';
+import { LanguageService } from '../i18n/language.service';
 
 @Component({
   selector: 'app-playfield-create',
@@ -53,9 +56,19 @@ export class PlayfieldCreatePage implements ViewWillEnter {
   private readonly userState = inject(UserStateService);
   private readonly draftService = inject(PlayfieldDraftService);
   private readonly toastController = inject(ToastController);
+  private readonly languageService = inject(LanguageService);
 
   constructor() {
     addIcons({ chevronBack });
+
+    // The public toggle is only enabled while the name follows the public-listing
+    // convention. If the name stops matching after the toggle was switched on,
+    // reset it to private before the control is disabled.
+    effect(() => {
+      if (!this.canBePublic() && this.isPublic()) {
+        this.isPublic.set(false);
+      }
+    });
   }
 
   readonly name = signal('');
@@ -63,6 +76,7 @@ export class PlayfieldCreatePage implements ViewWillEnter {
   readonly isSaving = signal(false);
 
   readonly areaPoints = this.draftService.points;
+  readonly canBePublic = computed(() => isPublicEligibleName(this.name()));
   readonly canSave = computed(
     () => this.name().trim().length > 3 && this.draftService.points().length >= 3,
   );
@@ -105,6 +119,10 @@ export class PlayfieldCreatePage implements ViewWillEnter {
     } finally {
       this.isSaving.set(false);
     }
+  }
+
+  async openHelp(): Promise<void> {
+    await Browser.open({ url: `https://theprey.nl/${this.languageService.current}/playfield/` });
   }
 
   back(): void {

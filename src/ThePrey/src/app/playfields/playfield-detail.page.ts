@@ -1,6 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Browser } from '@capacitor/browser';
 import {
   IonButton,
   IonButtons,
@@ -21,11 +22,12 @@ import {
 import { addIcons } from 'ionicons';
 import { chevronBack } from 'ionicons/icons';
 import { TranslatePipe } from '@ngx-translate/core';
-import { PlayFieldDetailDto } from './playfield.model';
+import { PlayFieldDetailDto, isPublicEligibleName } from './playfield.model';
 import { PlayfieldsService } from './playfields.service';
 import { PlayfieldDraftService } from './playfield-draft.service';
 import { PlayfieldMapComponent } from './playfield-map/playfield-map.component';
 import { UserStateService } from '../users/user-state.service';
+import { LanguageService } from '../i18n/language.service';
 
 @Component({
   selector: 'app-playfield-detail',
@@ -57,9 +59,19 @@ export class PlayfieldDetailPage implements ViewWillEnter {
   private readonly draftService = inject(PlayfieldDraftService);
   private readonly toastController = inject(ToastController);
   private readonly userState = inject(UserStateService);
+  private readonly languageService = inject(LanguageService);
 
   constructor() {
     addIcons({ chevronBack });
+
+    // The public toggle is only enabled while the name follows the public-listing
+    // convention. If the name stops matching after the toggle was switched on,
+    // reset it to private before the control is disabled.
+    effect(() => {
+      if (!this.canBePublic() && this.isPublic()) {
+        this.isPublic.set(false);
+      }
+    });
   }
 
   readonly isLoading = signal(false);
@@ -70,6 +82,7 @@ export class PlayfieldDetailPage implements ViewWillEnter {
   readonly isPublic = signal(false);
 
   readonly areaPoints = this.draftService.points;
+  readonly canBePublic = computed(() => isPublicEligibleName(this.name()));
   readonly canSave = computed(() => this.name().trim().length > 2 && this.areaPoints().length >= 3);
   readonly isOwner = computed(
     () => !!this.playfield() && this.playfield()!.ownerId === this.userState.profile()?.userId,
@@ -143,6 +156,10 @@ export class PlayfieldDetailPage implements ViewWillEnter {
     } finally {
       this.isSaving.set(false);
     }
+  }
+
+  async openHelp(): Promise<void> {
+    await Browser.open({ url: `https://theprey.nl/${this.languageService.current}/playfield/` });
   }
 
   back(): void {

@@ -133,4 +133,82 @@ public sealed class UpsertPlayFieldCommandHandlerTests
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _handler.Handle(null!, CancellationToken.None));
     }
+
+    // ─── IsPublic coercion via Create branch ─────────────────────────────────
+
+    [Fact]
+    public async Task Handle_ShouldCoerceIsPublicToFalse_WhenCreatingWithNonEligibleNameAndIsPublicTrue()
+    {
+        _mockRepository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PlayField?)null);
+
+        // "Vondelpark" does not match the CC, City, Fieldname convention
+        var command = new UpsertPlayFieldCommand(
+            Guid.NewGuid(), OwnerGuid, "Vondelpark", true, ValidSquare(), DateTimeOffset.UtcNow);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        var created = Assert.IsType<UpsertPlayFieldResult.Created>(result);
+        Assert.False(created.PlayField.IsPublic);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldKeepIsPublicTrue_WhenCreatingWithEligibleNameAndIsPublicTrue()
+    {
+        _mockRepository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PlayField?)null);
+
+        var command = new UpsertPlayFieldCommand(
+            Guid.NewGuid(), OwnerGuid, "NL, Amsterdam, Vondelpark", true, ValidSquare(), DateTimeOffset.UtcNow);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        var created = Assert.IsType<UpsertPlayFieldResult.Created>(result);
+        Assert.True(created.PlayField.IsPublic);
+    }
+
+    // ─── IsPublic coercion via Update branch ─────────────────────────────────
+
+    [Fact]
+    public async Task Handle_ShouldCoerceIsPublicToFalse_WhenUpdatingWithNonEligibleNameAndIsPublicTrue()
+    {
+        var existingTs = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var newerTs = existingTs.AddHours(1);
+        var id = Guid.NewGuid();
+        var existing = PlayField.Rehydrate(id, "NL, Amsterdam, Vondelpark", OwnerGuid, false,
+            PlayFieldFaker.SquarePoints(), existingTs);
+
+        _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+
+        // Non-eligible name with isPublic=true — should be coerced to false
+        var command = new UpsertPlayFieldCommand(
+            id, OwnerGuid, "Vondelpark", true, ValidSquare(), newerTs);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        var updated = Assert.IsType<UpsertPlayFieldResult.Updated>(result);
+        Assert.False(updated.PlayField.IsPublic);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldKeepIsPublicTrue_WhenUpdatingWithEligibleNameAndIsPublicTrue()
+    {
+        var existingTs = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var newerTs = existingTs.AddHours(1);
+        var id = Guid.NewGuid();
+        var existing = PlayField.Rehydrate(id, "NL, Amsterdam, Vondelpark", OwnerGuid, false,
+            PlayFieldFaker.SquarePoints(), existingTs);
+
+        _mockRepository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+
+        var command = new UpsertPlayFieldCommand(
+            id, OwnerGuid, "NL, Amsterdam, Vondelpark", true, ValidSquare(), newerTs);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        var updated = Assert.IsType<UpsertPlayFieldResult.Updated>(result);
+        Assert.True(updated.PlayField.IsPublic);
+    }
 }
