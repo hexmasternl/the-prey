@@ -223,6 +223,8 @@
   },
   "HUNTER_DELAY": {
     "LABEL": "HUNTER LOS OVER",
-    "HINT": "De hunter moet blijven staan tot het aftellen voorbij is."
+    "HINT": "De hunter moet blijven staan tot het aftellen voorbij is.",
+    "MOVE_WARNING_TITLE": "NIET BEWEGEN",
+    "MOVE_WARNING_BODY": "Als je beweegt tijdens de vrijlatingsvertraging, ga je 10 minuten live nadat het aftellen voorbij is."
   }
 }

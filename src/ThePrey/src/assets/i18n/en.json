@@ -223,6 +223,8 @@
   },
   "HUNTER_DELAY": {
     "LABEL": "HUNTER RELEASE IN",
-    "HINT": "The hunter must stay put until the countdown ends."
+    "HINT": "The hunter must stay put until the countdown ends.",
+    "MOVE_WARNING_TITLE": "DO NOT MOVE",
+    "MOVE_WARNING_BODY": "If you move during the release delay, you go live for 10 minutes after the countdown ends."
   }
 }
