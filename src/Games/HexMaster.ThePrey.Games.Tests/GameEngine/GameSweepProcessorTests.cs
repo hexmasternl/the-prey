@@ -250,6 +250,101 @@ public sealed class GameSweepProcessorTests
         _games.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    // ── Hunter head-start penalty ──────────────────────────────────────────
+
+    [Fact]
+    public async Task ProcessAsync_ShouldApplyHeadStartPenalty_WhenHunterMovesBeyond25mDuringDelay()
+    {
+        // Configuration: 5-minute hunter delay. Default test Start is used.
+        var config = GameFaker.ValidConfiguration(hunterDelayTime: 5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: config);
+
+        // Record head-start readings: anchor then a move > 25 m (~111 m north).
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Start.AddMinutes(1));
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.101, 5.1), Start.AddMinutes(2));
+        SetupGame(game);
+
+        // Sweep during the delay.
+        var now = Start.AddMinutes(3);
+        var result = await _sut.ProcessAsync(game.Id, now, CancellationToken.None);
+
+        Assert.Equal(1, result.Penalties);
+        var hunter = game.Participants.Single(p => p.UserId == hunterId);
+        Assert.True(hunter.DelayPenaltyApplied);
+        var expectedEndsAt = game.HunterMayMoveAt!.Value.AddMinutes(Game.HunterDelayPenaltyMinutes);
+        Assert.True(hunter.HasActivePenalty(now));
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<PlayerPenalizedIntegrationEvent>(e =>
+                e.GameId == game.Id &&
+                e.UserId == hunterId &&
+                e.PenaltyEndsAt == expectedEndsAt &&
+                e.Reason == "moved-during-delay"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldApplyHeadStartPenalty_WhenSweepRunsAfterDelayButReadingsAreBefore()
+    {
+        // Critical correctness: reading is emitted just before HunterMayMoveAt, sweep runs after.
+        var config = GameFaker.ValidConfiguration(hunterDelayTime: 5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: config);
+        var mayMoveAt = game.HunterMayMoveAt!.Value; // Start + 5 min
+
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Start.AddMinutes(1));
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.101, 5.1), mayMoveAt.AddSeconds(-5)); // still head-start
+        SetupGame(game);
+
+        // Sweep arrives 30s after HunterMayMoveAt.
+        var now = mayMoveAt.AddSeconds(30);
+        var result = await _sut.ProcessAsync(game.Id, now, CancellationToken.None);
+
+        Assert.Equal(1, result.Penalties);
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<PlayerPenalizedIntegrationEvent>(e => e.UserId == hunterId && e.Reason == "moved-during-delay"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldApplyHeadStartPenaltyAtMostOnce_AcrossMultipleSweeps()
+    {
+        var config = GameFaker.ValidConfiguration(hunterDelayTime: 5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: config);
+
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Start.AddMinutes(1));
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.101, 5.1), Start.AddMinutes(2));
+        SetupGame(game);
+
+        // First sweep applies the penalty.
+        var first = await _sut.ProcessAsync(game.Id, Start.AddMinutes(3), CancellationToken.None);
+        // Second sweep: idempotent — no second penalty.
+        var second = await _sut.ProcessAsync(game.Id, Start.AddMinutes(4), CancellationToken.None);
+
+        Assert.Equal(1, first.Penalties);
+        Assert.Equal(0, second.Penalties);
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<PlayerPenalizedIntegrationEvent>(e => e.Reason == "moved-during-delay"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldNotApplyHeadStartPenalty_WhenHunterStaysWithin25m()
+    {
+        var config = GameFaker.ValidConfiguration(hunterDelayTime: 5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: config);
+
+        // ~22 m north: within the 25 m threshold.
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Start.AddMinutes(1));
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.1002, 5.1), Start.AddMinutes(2));
+        SetupGame(game);
+
+        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(3), CancellationToken.None);
+
+        Assert.Equal(0, result.Penalties);
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<PlayerPenalizedIntegrationEvent>(e => e.Reason == "moved-during-delay"),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     [Fact]
     public async Task ProcessAsync_ShouldNotPersist_WhenNothingChanged()
     {

@@ -15,6 +15,7 @@ namespace HexMaster.ThePrey.Games.GameEngine;
 public sealed class GameSweepProcessor : IGameSweepProcessor
 {
     private const string BoundaryPenaltyReason = "left-playfield";
+    private const string HeadStartPenaltyReason = "moved-during-delay";
 
     private readonly IGameRepository _games;
     private readonly IPlayfieldBoundaryProvider _boundary;
@@ -81,6 +82,15 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
         // 3. Boundary penalties: every reading consumed this sweep is assessed.
         var penalties = await ApplyBoundaryPenaltiesAsync(game, sweeps, now, events, ct);
         if (penalties > 0) changed = true;
+
+        // 3b. Hunter head-start penalty: assessed every sweep (idempotent).
+        var headStartPenalty = game.AssessHunterHeadStartPenalty(now);
+        if (headStartPenalty is { } hsPenalty && game.HunterUserId is { } hsPenaltyHunterId)
+        {
+            penalties++;
+            changed = true;
+            events.Add(new PlayerPenalizedIntegrationEvent(game.Id, hsPenaltyHunterId, hsPenalty.EndsAt, HeadStartPenaltyReason));
+        }
 
         // 4. Completion when the scheduled end time has passed.
         var completed = false;

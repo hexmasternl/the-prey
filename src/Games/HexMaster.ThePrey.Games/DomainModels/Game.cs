@@ -25,8 +25,8 @@ public sealed class Game
     /// <summary>How long, in minutes, a boundary-violation penalty lasts.</summary>
     public const int PenaltyDurationMinutes = 5;
 
-    /// <summary>How far, in meters, the hunter may stray from their first measured location during the head-start delay.</summary>
-    public const int HunterDelayMovementThresholdMeters = 50;
+    /// <summary>How far, in meters, the hunter may stray from their first measured location during the head-start delay before incurring a penalty.</summary>
+    public const int HunterDelayMovementThresholdMeters = 25;
 
     /// <summary>How long, in minutes, the penalty for moving during the head-start delay lasts beyond <see cref="HunterMayMoveAt"/>.</summary>
     public const int HunterDelayPenaltyMinutes = 10;
@@ -281,13 +281,10 @@ public sealed class Game
 
     /// <summary>
     /// Records a GPS location for a participant of an in-progress game and activates their state
-    /// (no-op when the participant is Out or Tagged). When the reporter is the hunter and the
-    /// head-start delay is still running, the first reported coordinate is anchored and any later
-    /// report more than <see cref="HunterDelayMovementThresholdMeters"/> meters from that anchor
-    /// earns a single penalty lasting <see cref="HunterDelayPenaltyMinutes"/> minutes beyond
-    /// <see cref="HunterMayMoveAt"/>. The reading is always recorded, penalty or not.
+    /// (no-op when the participant is Out or Tagged). The reading is always stored.
+    /// Returns the participant's state before this call.
     /// </summary>
-    public RecordLocationOutcome RecordLocation(Guid userId, GpsCoordinate coordinate, DateTimeOffset at)
+    public PlayerState RecordLocation(Guid userId, GpsCoordinate coordinate, DateTimeOffset at)
     {
         ArgumentNullException.ThrowIfNull(coordinate);
 
@@ -297,36 +294,41 @@ public sealed class Game
         var participant = FindParticipant(userId)
             ?? throw new InvalidOperationException("Only a participant of the game can record a location.");
 
-        var delayPenalty = TryApplyHunterDelayPenalty(participant, coordinate, at);
-
         participant.RecordLocation(LocationReading.Create(coordinate, at));
-        var previousState = participant.ActivateIfAllowed(at);
-        return new RecordLocationOutcome(previousState, delayPenalty);
+        return participant.ActivateIfAllowed(at);
     }
 
     /// <summary>
-    /// Anchors the hunter's first measured location during the head-start delay and penalises
-    /// movement beyond the threshold. At most one delay-violation penalty is applied per game.
-    /// Returns the applied penalty, or null when none was applied.
+    /// Assesses the hunter's movement during the head-start delay and applies the single head-start
+    /// penalty when any location emitted before <see cref="HunterMayMoveAt"/> strays more than
+    /// <see cref="HunterDelayMovementThresholdMeters"/> metres from the hunter's first emitted location.
+    /// Idempotent: re-runnable every sweep, a no-op once the penalty is applied or there are no
+    /// head-start readings. Returns the applied penalty, or null.
     /// </summary>
-    private Penalty? TryApplyHunterDelayPenalty(GameParticipant participant, GpsCoordinate coordinate, DateTimeOffset at)
+    public Penalty? AssessHunterHeadStartPenalty(DateTimeOffset now)
     {
-        if (participant.UserId != HunterUserId || HunterMayMoveAt is not { } mayMoveAt || at >= mayMoveAt)
-            return null;
+        if (Status != GameStatus.InProgress) return null;
+        if (HunterUserId is not { } hunterId || HunterMayMoveAt is not { } mayMoveAt) return null;
 
-        if (participant.DelayAnchorLocation is not { } anchor)
-        {
-            participant.AnchorDelayLocation(coordinate);
-            return null;
-        }
+        var hunter = FindParticipant(hunterId);
+        if (hunter is null || hunter.DelayPenaltyApplied) return null;
 
-        if (participant.DelayPenaltyApplied
-            || anchor.DistanceInMetersTo(coordinate) <= HunterDelayMovementThresholdMeters)
+        var headStart = hunter.Locations
+            .Where(r => r.RecordedAt < mayMoveAt)
+            .OrderBy(r => r.RecordedAt)
+            .ToList();
+        if (headStart.Count == 0) return null;
+
+        if (hunter.DelayAnchorLocation is null)
+            hunter.AnchorDelayLocation(headStart[0].Coordinate);
+
+        var anchor = hunter.DelayAnchorLocation!;
+        if (!headStart.Any(r => anchor.DistanceInMetersTo(r.Coordinate) > HunterDelayMovementThresholdMeters))
             return null;
 
         var penalty = Penalty.Create(mayMoveAt.AddMinutes(HunterDelayPenaltyMinutes));
-        participant.ApplyPenalty(penalty);
-        participant.MarkDelayPenaltyApplied();
+        hunter.ApplyPenalty(penalty);
+        hunter.MarkDelayPenaltyApplied();
         return penalty;
     }
 

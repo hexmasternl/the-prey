@@ -38,9 +38,9 @@ public sealed class PlayerStateTests
         var preyId = preyIds[0];
         var coord = GpsCoordinate.Create(52.1, 5.1);
 
-        var outcome = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
+        var previousState = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
 
-        Assert.Equal(PlayerState.Active, outcome.PreviousState);
+        Assert.Equal(PlayerState.Active, previousState);
         Assert.Equal(PlayerState.Active, game.Participants.Single(p => p.UserId == preyId).State);
         Assert.Equal(Start.AddMinutes(1), game.Participants.Single(p => p.UserId == preyId).LastLocationAt);
     }
@@ -59,8 +59,8 @@ public sealed class PlayerStateTests
         Assert.Equal(PlayerState.Passive, game.Participants.Single(p => p.UserId == preyId).State);
 
         // Record again: should return Passive (previous) and set Active
-        var outcome = game.RecordLocation(preyId, coord, Start.AddMinutes(7));
-        Assert.Equal(PlayerState.Passive, outcome.PreviousState);
+        var previousState = game.RecordLocation(preyId, coord, Start.AddMinutes(7));
+        Assert.Equal(PlayerState.Passive, previousState);
         Assert.Equal(PlayerState.Active, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
@@ -77,8 +77,8 @@ public sealed class PlayerStateTests
         Assert.Equal(PlayerState.Out, game.Participants.Single(p => p.UserId == preyId).State);
 
         // Record should be a no-op on state
-        var outcome = game.RecordLocation(preyId, coord, Start.AddMinutes(9));
-        Assert.Equal(PlayerState.Out, outcome.PreviousState);
+        var previousState = game.RecordLocation(preyId, coord, Start.AddMinutes(9));
+        Assert.Equal(PlayerState.Out, previousState);
         Assert.Equal(PlayerState.Out, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
@@ -93,8 +93,8 @@ public sealed class PlayerStateTests
         game.TagParticipant(hunterId, preyId, Start.AddMinutes(10));
         Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
 
-        var outcome = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
-        Assert.Equal(PlayerState.Tagged, outcome.PreviousState);
+        var previousState = game.RecordLocation(preyId, coord, Start.AddMinutes(1));
+        Assert.Equal(PlayerState.Tagged, previousState);
         Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
     }
 
