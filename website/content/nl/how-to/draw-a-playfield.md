@@ -1,6 +1,6 @@
 ---
 title: "Een Speelveld Tekenen"
-description: "Hoe je een speelveld tekent in The Prey — tik op de kaart om grenspunten te plaatsen, vorm de GPS-polygoon en sla de arena op voordat je speelt."
+description: "Hoe je een speelveld tekent in The Prey: tik op de kaart om grenspunten te plaatsen, vorm de GPS-polygoon en sla de arena op voordat je speelt."
 keywords: ["speelveld tekenen", "GPS-grens", "polygoon", "kaartpunten", "speelgebied", "The Prey handleiding"]
 ---
 
@@ -13,3 +13,5 @@ keywords: ["speelveld tekenen", "GPS-grens", "polygoon", "kaartpunten", "speelge
 7. Wanneer de vorm er goed uitziet, tik op **Polygoon Bevestigen**.
 8. Voer een naam in voor het speelveld en tik op **Opslaan**.
 9. Het speelveld is nu beschikbaar om te selecteren bij het aanmaken van een nieuw spel.
+
+{{< screenshot src="/images/screens/playfield-set-area.png" alt="De speelveldeditor met een grenspolygoon getekend op de kaart" caption="Een speelveldgrens tekenen" >}}

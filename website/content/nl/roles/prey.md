@@ -10,32 +10,32 @@ Jij bent de Prooi. Overleef tot de timer nul bereikt. Als er ten minste één Pr
 
 ---
 
-## Voorsprong — 10 Minuten
+## De Voorsprong
 
-Wanneer het spel begint, heb je 10 minuten voorsprong. **Je locatie wordt tijdens dit tijdvenster niet met Jagers gedeeld.**
+Wanneer het spel begint, heb je voorsprong (standaard 5 minuten, al kan de Spelmaker dit aanpassen). **De Jager wordt tijdens dit tijdvenster op zijn plek gehouden en kan je niet achtervolgen of taggen, maar je positie staat al op zijn kaart, dus blijf bewegen.**
 
 Gebruik deze tijd om te verspreiden en dekking te zoeken. Beweeg weg van de ingang van het speelveld. Sta niet stil.
 
-De app telt de voorsprong af. Wanneer die eindigt, begint de Actieve Jacht en wordt je GPS-positie doorgegeven.
+De app telt de voorsprong af. Wanneer die eindigt, wordt de Jager losgelaten en begint de jacht.
 
 ---
 
 ## Tijdens de Jacht
 
-Zodra de voorsprong eindigt, worden je GPS-coördinaten met vaste tussenpozen naar elke Jager op de kaart gestuurd. Je verschijnt als een pin. Blijf bewegen — stilstaan maakt je gemakkelijk te vinden.
+Zodra de voorsprong eindigt, worden je GPS-coördinaten met vaste tussenpozen naar de kaart van de Jager gestuurd. Je verschijnt als een pin. Blijf bewegen, want stilstaan maakt je gemakkelijk te vinden.
 
-De app moet actief blijven op de achtergrond. Locatiedeling is afhankelijk van de achtergrond-GPS-service van je apparaat. Als de service stopt, verliezen Jagers je signaal — maar verlies jij ook bewustzijn van de hunne.
+De app moet actief blijven op de achtergrond. Locatiedeling is afhankelijk van de achtergrond-GPS-service van je apparaat. Als de service stopt, verliest de Jager je signaal, maar verlies jij ook bewustzijn van die van de Jager.
 
 ---
 
 ## Getagd Worden
 
-Een Jager die je fysieke locatie bereikt, kan in de app een tag starten. Je moet de tag bevestigen. Eenmaal bevestigd ben je geëlimineerd en ga je naar toeschouwermodus.
+Een Jager die je fysieke locatie bereikt, tagt je in de app. De tag wordt direct van kracht. Je bevestigt niets en je kunt hem niet weigeren. Eenmaal getagd ben je geëlimineerd en ga je naar toeschouwermodus.
 
-Weiger geen eerlijke tag. Het spel vertrouwt op eerlijkheid.
+Taggen is op basis van eerlijkheid: een Jager hoort alleen een Prooi te taggen die hij echt heeft bereikt. Het spel vertrouwt op eerlijkheid.
 
 ---
 
 ## Achtergrondservice Vereist
 
-De Prey-app vereist een achtergrondlocatieservice om je positie door te sturen terwijl het scherm uit is. Geef de app toestemming voor **"Altijd Toestaan"** locatie voordat het spel begint. Als locatietoegang beperkt is, stop je mogelijk met uitzenden zonder waarschuwing — dit beïnvloedt fair play.
+De Prey-app vereist een achtergrondlocatieservice om je positie door te sturen terwijl het scherm uit is. Geef de app toestemming voor **"Altijd Toestaan"** locatie voordat het spel begint. Als locatietoegang beperkt is, stop je mogelijk met uitzenden zonder waarschuwing, wat fair play beïnvloedt.

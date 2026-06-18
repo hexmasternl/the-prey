@@ -1,39 +1,39 @@
 ---
 title: "Hunter"
-description: "Playing as a Hunter in The Prey: wait out the head start, track Prey by GPS pins, close the gap, tag them, and coordinate with other Hunters."
-keywords: ["Hunter", "GPS tracking", "tag prey", "hunt", "chase", "coordinate hunters", "The Prey hunter"]
+description: "Playing as a Hunter in The Prey: you are the game's single Hunter. Wait out the head start, track every Prey by GPS pins, close the gap, and tag them."
+keywords: ["Hunter", "GPS tracking", "tag prey", "hunt", "chase", "single hunter", "The Prey hunter"]
 ---
 
 ## Your Goal
 
-You are a Hunter. Tag every Prey before the game timer reaches zero. If all Prey are eliminated, Hunters win.
+You are the Hunter, the only one in the game. Tag every Prey before the game timer reaches zero. If you tag them all, the Hunter wins.
 
 ---
 
-## Head Start — Wait It Out
+## Head Start: Hold Your Position
 
-When the game starts, Hunters must wait. The 10-minute head start is for Prey only. Your map shows the playfield boundary but no Prey positions.
+When the game starts, you cannot give chase yet. Stay close to where you begin (straying too far during the head start earns you a penalty), and you cannot tag until it ends.
 
-Stay near the playfield. Use the time to plan your approach.
+Prey positions already appear on your map, so use the wait to pick your first target and plan your approach.
 
 ---
 
-## Active Hunt — GPS Tracking
+## Active Hunt: GPS Tracking
 
-When the head start ends, the hunt is on. Prey GPS positions appear as pins on your map. Positions update on a fixed interval — check the map regularly.
+When the head start ends, the hunt is on. Prey GPS positions appear as pins on your map. Positions update on a fixed interval, so check the map regularly.
 
-Pins show where the Prey *was* when the last update fired — not where they are right now. Close the gap fast.
+Pins show where the Prey *was* when the last update fired, not where they are right now. Close the gap fast.
 
 ---
 
 ## Tagging a Prey
 
-When you reach a Prey's physical location, initiate a tag in the app. The Prey must confirm. Once confirmed, that Prey is eliminated.
+When you reach a Prey's physical location, tag them in the app. The tag takes effect immediately, and the Prey does not confirm it. That Prey is eliminated.
 
-If a Prey denies a fair tag, call it out to the Game Creator. Do not chase endlessly — the game has a timer.
+There is no in-app way to dispute a tag, so tagging is honour-based: only tag a Prey you have genuinely reached. Do not chase endlessly, because the game has a timer.
 
 ---
 
-## Coordination
+## Working the Field
 
-Multiple Hunters can coordinate via the app's shared map. Divide the playfield, communicate, and cut off escape routes. A lone Prey cornered by two Hunters has nowhere to run.
+You hunt alone, so plan your route. The shared map lets you track every Prey at once. Prioritise the ones nearest the playfield edge, where escape routes are fewest, and herd them toward corners where they have nowhere to run.

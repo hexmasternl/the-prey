@@ -10,32 +10,32 @@ You are the Prey. Survive until the game timer hits zero. If at least one Prey i
 
 ---
 
-## Head Start — 10 Minutes
+## The Head Start
 
-When the game starts, you have a 10-minute head start. **Your location is not shared with Hunters during this window.**
+When the game starts, you have a head start (5 minutes by default, though the Game Creator can change it). **The Hunter is held in place during this window and cannot chase or tag you, but your position is already on their map, so keep moving.**
 
 Use this time to scatter and find cover. Move away from the playfield entrance. Do not stand still.
 
-The app counts down the head start. When it ends, the Active Hunt begins and your GPS position starts broadcasting.
+The app counts down the head start. When it ends, the Hunter is released and the chase is on.
 
 ---
 
 ## During the Hunt
 
-Once the head start ends, your GPS coordinates are sent to every Hunter on the map at regular intervals. You appear as a pin. Keep moving — staying in one place makes you easy to find.
+Once the head start ends, your GPS coordinates are sent to the Hunter's map at regular intervals. You appear as a pin. Keep moving, because staying in one place makes you easy to find.
 
-The app must remain active in the background. Location sharing depends on your device's background GPS service. If the service stops, Hunters lose your signal — but so does your awareness of theirs.
+The app must remain active in the background. Location sharing depends on your device's background GPS service. If the service stops, the Hunter loses your signal, but you also lose awareness of the Hunter's.
 
 ---
 
 ## Getting Tagged
 
-A Hunter who reaches your physical location can initiate a tag in the app. You must confirm the tag. Once confirmed, you are eliminated and enter spectator mode.
+A Hunter who reaches your physical location tags you in the app. The tag takes effect immediately. You do not confirm it, and there is no way to refuse it. Once tagged, you are eliminated and enter spectator mode.
 
-Do not deny a fair tag. The game depends on honesty.
+Tagging is honour-based: a Hunter should only tag a Prey they have genuinely reached. The game depends on honesty.
 
 ---
 
 ## Background Service Requirement
 
-The Prey app requires a background location service to broadcast your position while the screen is off. Grant the app **"Always Allow"** location permissions before the game starts. If location access is restricted, you may stop transmitting without warning — this affects fair play.
+The Prey app requires a background location service to broadcast your position while the screen is off. Grant the app **"Always Allow"** location permissions before the game starts. If location access is restricted, you may stop transmitting without warning, which affects fair play.

@@ -6,7 +6,7 @@ keywords: ["Spelmaker", "spel hosten", "toegangscode", "rollen toewijzen", "spel
 
 ## Jouw Verantwoordelijkheid
 
-De Spelmaker stelt het spel in voordat het begint. Je beheert het speelveld, de lobby en roltoewijzingen. Zodra het spel begint, speel je als Jager of Prooi — de Spelmakerrol eindigt bij de lancering.
+De Spelmaker stelt het spel in voordat het begint. Je beheert het speelveld, de lobby en roltoewijzingen. Zodra het spel begint, speel je als Jager of Prooi, en de Spelmakerrol eindigt bij de lancering.
 
 ---
 
@@ -18,17 +18,17 @@ Teken de grenspolygoon in de app. Het speelveld is het GPS-gebied waarbinnen het
 **2. Deel de Spelcode**
 De app genereert een unieke deelnamecode voor je sessie. Deel die met alle deelnemers voor het spel. Spelers gebruiken hem om de lobby te betreden.
 
-**3. Wijs Rollen Toe**
-Wijs in de lobby elke speler toe aan Prooi of Jager. Je moet minimaal één Prooi en één Jager toewijzen. Niet-toegewezen spelers kunnen niet deelnemen.
+**3. Kies de Jager**
+Tik in de lobby op één speler om die de Jager te maken. Iedereen anders is automatisch Prooi, want er is altijd maar één Jager. Je hebt minimaal één Prooi nodig, dus een spel heeft minimaal twee spelers in totaal.
 
 **4. Start het Spel**
-Wanneer alle spelers zijn toegewezen en klaar zijn, lanceer je het spel. De 10 minuten voorsprong begint onmiddellijk. Prooi verspreidt zich. Jagers wachten.
+Wanneer alle spelers klaar zijn, lanceer je het spel. De voorsprong begint onmiddellijk. Prooi verspreidt zich. De Jager wacht.
 
 ---
 
 ## Roltoewijzingsregels
 
-- Elk spel vereist minimaal één Prooi en één Jager.
-- Een speler kan niet zowel Prooi als Jager zijn.
-- De Spelmaker mag zichzelf aan elke rol toewijzen.
-- Zodra het spel begint, zijn roltoewijzingen vergrendeld.
+- Elk spel heeft precies één Jager en minimaal één Prooi.
+- Iedereen die niet de Jager is, speelt als Prooi.
+- De Spelmaker kan zichzelf de Jager maken of als Prooi blijven.
+- Zodra het spel begint, is de Jagerkeuze vergrendeld.

@@ -1,6 +1,6 @@
 ---
 title: "Draw a Playfield"
-description: "How to draw a playfield in The Prey — tap the map to place boundary vertices, shape the GPS polygon, and save the arena before you play."
+description: "How to draw a playfield in The Prey: tap the map to place boundary vertices, shape the GPS polygon, and save the arena before you play."
 keywords: ["draw a playfield", "GPS boundary", "polygon", "map vertices", "game area", "The Prey how-to"]
 ---
 
@@ -13,3 +13,5 @@ keywords: ["draw a playfield", "GPS boundary", "polygon", "map vertices", "game 
 7. When the shape looks correct, tap **Confirm Polygon**.
 8. Enter a name for the playfield and tap **Save**.
 9. The playfield is now available to select when creating a new game.
+
+{{< screenshot src="/images/screens/playfield-set-area.png" alt="The playfield editor with a boundary polygon drawn on the map" caption="Drawing a playfield boundary" >}}

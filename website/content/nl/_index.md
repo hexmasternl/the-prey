@@ -1,6 +1,6 @@
 ---
 title: "The Prey"
-description: "The Prey is een GPS-verstoppertje in de echte wereld. Prooien verspreiden zich en overleven, terwijl Jagers ze opsporen via GPS. Ren. Verstop je. Overleef."
+description: "The Prey is een GPS-verstoppertje in de echte wereld. Prooien verspreiden zich en overleven, terwijl één Jager ze opspoort via GPS. Ren. Verstop je. Overleef."
 keywords: ["The Prey", "GPS-spel", "verstoppertje", "locatiespel", "multiplayer buitenspel", "tikkertje", "GPS verstoppertje", "mobiel spel"]
 
 # ---- Home-pagina tekst (gerenderd door layouts/index.html) ----
@@ -14,25 +14,25 @@ game:
   eyebrow: "Het Spel"
   title: "Jaag of Word Gejaagd"
   body:
-    - "The Prey zet spelers in een echte GPS-arena. Eén team verstopt zich en rent. Het andere traceert en tagt. Elke 30 seconden ververst de kaart. Elke beweging telt."
-    - "Spellen duren 60 minuten. Prooi krijgt 10 minuten voorsprong om zich te verspreiden voordat Jagers hun eerste ping zien. Daarna — sta je op de radar."
+    - "The Prey zet spelers in een echte GPS-arena. De meeste spelers verstoppen zich en rennen. Eén speler, de Jager, traceert en tagt. De kaart ververst op een vaste timer. Elke beweging telt."
+    - "Spellen duren zo lang als de host instelt, standaard 30 minuten. Prooi krijgt voorsprong om zich te verspreiden voordat de Jager wordt losgelaten. Daarna begint de jacht."
 
 phases:
-  - value: "10"
+  - value: "5"
     unit: "min"
     accent: "signal"
     title: "Voorsprong"
-    desc: "Prooi verspreidt zich. Geen locatiedata. Jagers wachten."
-  - value: "~45"
+    desc: "Prooi verspreidt zich. De Jager wordt op zijn plek gehouden."
+  - value: "~20"
     unit: "min"
     accent: "signal"
     title: "Actieve Jacht"
-    desc: "GPS-pings live. Kaart ververst elke 30 seconden."
+    desc: "GPS-pings live. Kaart ververst op de timer van de host."
   - value: "5"
     unit: "min"
     accent: "caution"
     title: "Eindfase"
-    desc: "Waarschuwing afgegeven. Sluit in of houd vol."
+    desc: "Updates versnellen. Sluit in of houd vol."
 
 roles:
   eyebrow: "Rollen"
