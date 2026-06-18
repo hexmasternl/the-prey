@@ -12,7 +12,7 @@ You are the Hunter — the only one in the game. Tag every Prey before the game 
 
 ## Head Start — Wait It Out
 
-When the game starts, you must wait. The 10-minute head start is for Prey only. Your map shows the playfield boundary but no Prey positions.
+When the game starts, you must wait. The head start is for Prey only. Your map shows the playfield boundary but no Prey positions.
 
 Stay near the playfield. Use the time to plan your approach.
 

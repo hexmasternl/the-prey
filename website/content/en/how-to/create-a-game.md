@@ -1,6 +1,6 @@
 ---
 title: "Create a Game"
-description: "Step-by-step: create a game in The Prey — pick a playfield, share the join code, assign Hunter and Prey roles, and start the 10-minute head start."
+description: "Step-by-step: create a game in The Prey — pick a playfield, share the join code, choose the Hunter, and start the head start."
 keywords: ["create a game", "start a game", "join code", "assign roles", "playfield", "The Prey how-to"]
 ---
 
@@ -11,7 +11,7 @@ keywords: ["create a game", "start a game", "join code", "assign roles", "playfi
 5. Tap one player to make them the **Hunter**. Everyone else is automatically **Prey** — there is only ever one Hunter.
 6. Make yourself the Hunter, or leave yourself as Prey, if you are playing.
 7. Confirm all players are ready.
-8. Tap **Start Game**. The 10-minute head start begins. Prey scatter. The Hunter waits.
+8. Tap **Start Game**. The head start begins. Prey scatter. The Hunter waits.
 
 {{< screenshot src="/images/screens/create-new-operation.png" alt="The new-game screen showing the configurable game parameters" caption="Configuring a new game" >}}
 

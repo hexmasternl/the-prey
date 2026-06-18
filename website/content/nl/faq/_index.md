@@ -17,7 +17,7 @@ Ja. Geef de app toestemming voor "Altijd Toestaan" locatie. Achtergrond-GPS is v
 {{< /qa >}}
 
 {{< qa q="Wat gebeurt er tijdens de voorsprong?" >}}
-De eerste 10 minuten zijn alleen voor Prooi. Je locatie wordt niet gedeeld. Gebruik de tijd om te verspreiden en dekking te zoeken. Jagers moeten wachten. Wanneer de voorsprong eindigt, activeert GPS-tracking.
+De voorsprong — standaard 5 minuten — is alleen voor Prooi. Je locatie wordt niet gedeeld. Gebruik de tijd om te verspreiden en dekking te zoeken. De Jager moet wachten. Wanneer de voorsprong eindigt, activeert GPS-tracking.
 {{< /qa >}}
 
 {{< qa q="Hoe werkt taggen?" >}}

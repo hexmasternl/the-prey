@@ -12,7 +12,7 @@ Jij bent de Jager — de enige in het spel. Tag alle Prooi voordat de timer nul 
 
 ## Voorsprong — Wacht Af
 
-Wanneer het spel begint, moet je wachten. De 10 minuten voorsprong is alleen voor Prooi. Je kaart toont de speelveldgrens, maar geen Prooiposities.
+Wanneer het spel begint, moet je wachten. De voorsprong is alleen voor Prooi. Je kaart toont de speelveldgrens, maar geen Prooiposities.
 
 Blijf bij het speelveld. Gebruik de tijd om je aanpak te plannen.
 

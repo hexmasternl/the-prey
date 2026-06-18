@@ -1,6 +1,6 @@
 ---
 title: "Rules"
-description: "The full rules of The Prey: timing phases, the 10-minute head start, GPS update schedule, tagging and elimination, and how the Hunter and Prey win."
+description: "The full rules of The Prey: timing phases, the configurable head start, GPS update schedule, tagging and elimination, and how the Hunter and Prey win."
 keywords: ["The Prey rules", "game rules", "head start", "GPS tracking", "tagging", "elimination", "win conditions", "hide and seek rules"]
 ---
 
@@ -14,18 +14,20 @@ The game is time-limited. The Hunter wins by tagging all Prey before time runs o
 
 ## Timing Phases
 
-| Phase | Duration | What Happens |
+Every duration is set by the Game Creator when the game is created — the values below are the in-app defaults. A game moves through three phases:
+
+| Phase | Default duration | What Happens |
 |---|---|---|
-| Head Start | 10 minutes | Prey scatter and hide. The Hunter waits. No locations shared. |
-| Active Hunt | ~45 minutes | Hunt begins. Prey GPS pings broadcast to the Hunter. |
+| Head Start | 5 minutes | Prey scatter and hide. The Hunter waits. No locations shared. |
+| Active Hunt | ~20 minutes | Hunt begins. Prey GPS pings broadcast to the Hunter. |
 | Final Stretch | Last 5 minutes | Warning issued. All players are notified. |
-| Total | ~60 minutes | Game ends. Results displayed. |
+| Total | 30 minutes | Game ends. Results displayed. |
 
 ---
 
 ## GPS Update Schedule
 
-Prey locations are broadcast as GPS pins on the Hunter's map. Updates arrive at a fixed interval — typically every 30 seconds during the Active Hunt phase. During the Head Start, no location data is transmitted.
+Prey locations are broadcast as GPS pins on the Hunter's map. Updates arrive at the position-report interval the Game Creator chose for the game — 3 minutes by default, tightening to a shorter interval (1 minute by default) during the final stage. During the Head Start, no location data is transmitted.
 
 ---
 

@@ -22,7 +22,7 @@ De app genereert een unieke deelnamecode voor je sessie. Deel die met alle deeln
 Tik in de lobby op één speler om die de Jager te maken. Iedereen anders is automatisch Prooi — er is altijd maar één Jager. Je hebt minimaal één Prooi nodig, dus een spel heeft minimaal twee spelers in totaal.
 
 **4. Start het Spel**
-Wanneer alle spelers klaar zijn, lanceer je het spel. De 10 minuten voorsprong begint onmiddellijk. Prooi verspreidt zich. De Jager wacht.
+Wanneer alle spelers klaar zijn, lanceer je het spel. De voorsprong begint onmiddellijk. Prooi verspreidt zich. De Jager wacht.
 
 ---
 

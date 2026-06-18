@@ -10,9 +10,9 @@ You are the Prey. Survive until the game timer hits zero. If at least one Prey i
 
 ---
 
-## Head Start — 10 Minutes
+## The Head Start
 
-When the game starts, you have a 10-minute head start. **Your location is not shared with Hunters during this window.**
+When the game starts, you have a head start — 5 minutes by default, though the Game Creator can change it. **Your location is not shared with Hunters during this window.**
 
 Use this time to scatter and find cover. Move away from the playfield entrance. Do not stand still.
 

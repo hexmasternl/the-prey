@@ -22,7 +22,7 @@ The app generates a unique join code for your game session. Share it with all pa
 In the lobby, tap one player to make them the Hunter. Everyone else is automatically Prey — there is only ever one Hunter. You need at least one Prey, so a game needs at least two players in total.
 
 **4. Start the Game**
-When all players are ready, launch the game. The 10-minute head start begins immediately. Prey scatter. The Hunter waits.
+When all players are ready, launch the game. The head start begins immediately. Prey scatter. The Hunter waits.
 
 ---
 

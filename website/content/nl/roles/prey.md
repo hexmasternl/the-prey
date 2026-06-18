@@ -10,9 +10,9 @@ Jij bent de Prooi. Overleef tot de timer nul bereikt. Als er ten minste één Pr
 
 ---
 
-## Voorsprong — 10 Minuten
+## De Voorsprong
 
-Wanneer het spel begint, heb je 10 minuten voorsprong. **Je locatie wordt tijdens dit tijdvenster niet met Jagers gedeeld.**
+Wanneer het spel begint, heb je voorsprong — standaard 5 minuten, al kan de Spelmaker dit aanpassen. **Je locatie wordt tijdens dit tijdvenster niet met Jagers gedeeld.**
 
 Gebruik deze tijd om te verspreiden en dekking te zoeken. Beweeg weg van de ingang van het speelveld. Sta niet stil.
 
