@@ -8,10 +8,12 @@ public sealed class HunterDelayTests
     private static readonly DateTimeOffset Start = new(2026, 6, 11, 12, 0, 0, TimeSpan.Zero);
 
     private static readonly GpsCoordinate Anchor = GpsCoordinate.Create(52.1, 5.1);
-    // ~111 m north of the anchor: beyond the 50 m threshold.
+    // ~111 m north of the anchor: beyond the 25 m threshold.
     private static readonly GpsCoordinate BeyondThreshold = GpsCoordinate.Create(52.101, 5.1);
-    // ~11 m north of the anchor: within the 50 m threshold.
-    private static readonly GpsCoordinate WithinThreshold = GpsCoordinate.Create(52.1001, 5.1);
+    // ~30 m north of the anchor: beyond the 25 m threshold (comfortably over).
+    private static readonly GpsCoordinate JustBeyondThreshold = GpsCoordinate.Create(52.10027, 5.1);
+    // ~22 m north of the anchor: within the 25 m threshold.
+    private static readonly GpsCoordinate WithinThreshold = GpsCoordinate.Create(52.1002, 5.1);
 
     // ── HunterMayMoveAt ─────────────────────────────────────────────────────
 
@@ -35,11 +37,12 @@ public sealed class HunterDelayTests
     // ── Anchor behaviour ────────────────────────────────────────────────────
 
     [Fact]
-    public void RecordLocation_ShouldAnchorFirstHunterLocation_WhenDuringDelay()
+    public void AssessHunterHeadStartPenalty_ShouldAnchorFirstHunterLocation_WhenDuringDelay()
     {
         var game = GameFaker.StartedGame(out var hunterId, out _, Start);
-
         game.RecordLocation(hunterId, Anchor, Start.AddMinutes(1));
+
+        game.AssessHunterHeadStartPenalty(Start.AddMinutes(1));
 
         var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.Equal(Anchor, hunter.DelayAnchorLocation);
@@ -52,6 +55,7 @@ public sealed class HunterDelayTests
 
         game.RecordLocation(hunterId, Anchor, Start.AddMinutes(1));
         game.RecordLocation(hunterId, WithinThreshold, Start.AddMinutes(2));
+        game.AssessHunterHeadStartPenalty(Start.AddMinutes(2));
 
         var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.Equal(Anchor, hunter.DelayAnchorLocation);
@@ -68,81 +72,134 @@ public sealed class HunterDelayTests
         Assert.Null(prey.DelayAnchorLocation);
     }
 
-    [Fact]
-    public void RecordLocation_ShouldNotAnchor_WhenHunterReportsAfterDelay()
-    {
-        var game = GameFaker.StartedGame(out var hunterId, out _, Start);
-
-        game.RecordLocation(hunterId, Anchor, Start.AddMinutes(6));
-
-        var hunter = game.Participants.Single(p => p.UserId == hunterId);
-        Assert.Null(hunter.DelayAnchorLocation);
-    }
-
     // ── Movement penalty ────────────────────────────────────────────────────
 
     [Fact]
-    public void RecordLocation_ShouldApplyPenaltyEndingTenMinutesAfterDelay_WhenHunterMovesBeyondThreshold()
+    public void AssessHunterHeadStartPenalty_ShouldApplyPenaltyEndingTenMinutesAfterDelay_WhenHunterMovesBeyondThreshold()
     {
         var game = GameFaker.StartedGame(out var hunterId, out _, Start);
-
         game.RecordLocation(hunterId, Anchor, Start.AddMinutes(1));
-        var outcome = game.RecordLocation(hunterId, BeyondThreshold, Start.AddMinutes(2));
+        game.RecordLocation(hunterId, BeyondThreshold, Start.AddMinutes(2));
 
-        Assert.NotNull(outcome.DelayViolationPenalty);
-        Assert.Equal(Start.AddMinutes(5 + Game.HunterDelayPenaltyMinutes), outcome.DelayViolationPenalty!.EndsAt);
+        var penalty = game.AssessHunterHeadStartPenalty(Start.AddMinutes(2));
+
+        Assert.NotNull(penalty);
+        Assert.Equal(Start.AddMinutes(5 + Game.HunterDelayPenaltyMinutes), penalty!.EndsAt);
         var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.True(hunter.HasActivePenalty(Start.AddMinutes(2)));
     }
 
     [Fact]
-    public void RecordLocation_ShouldNotApplyPenalty_WhenHunterStaysWithinThreshold()
+    public void AssessHunterHeadStartPenalty_ShouldApplyPenalty_WhenHunterMovesJustBeyond25Meters()
     {
         var game = GameFaker.StartedGame(out var hunterId, out _, Start);
-
         game.RecordLocation(hunterId, Anchor, Start.AddMinutes(1));
-        var outcome = game.RecordLocation(hunterId, WithinThreshold, Start.AddMinutes(2));
+        game.RecordLocation(hunterId, JustBeyondThreshold, Start.AddMinutes(2));
 
-        Assert.Null(outcome.DelayViolationPenalty);
+        var penalty = game.AssessHunterHeadStartPenalty(Start.AddMinutes(2));
+
+        Assert.NotNull(penalty);
+    }
+
+    [Fact]
+    public void AssessHunterHeadStartPenalty_ShouldNotApplyPenalty_WhenHunterStaysWithin25Meters()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start);
+        game.RecordLocation(hunterId, Anchor, Start.AddMinutes(1));
+        game.RecordLocation(hunterId, WithinThreshold, Start.AddMinutes(2));
+
+        var penalty = game.AssessHunterHeadStartPenalty(Start.AddMinutes(2));
+
+        Assert.Null(penalty);
         var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.False(hunter.HasActivePenalty(Start.AddMinutes(2)));
     }
 
     [Fact]
-    public void RecordLocation_ShouldNotStackPenalties_OnRepeatedMovementDuringDelay()
+    public void AssessHunterHeadStartPenalty_ShouldApplyAtMostOnePenalty_OnRepeatedAssessments()
     {
         var game = GameFaker.StartedGame(out var hunterId, out _, Start);
-
         game.RecordLocation(hunterId, Anchor, Start.AddMinutes(1));
-        var first = game.RecordLocation(hunterId, BeyondThreshold, Start.AddMinutes(2));
-        var second = game.RecordLocation(hunterId, BeyondThreshold, Start.AddMinutes(3));
+        game.RecordLocation(hunterId, BeyondThreshold, Start.AddMinutes(2));
 
-        Assert.NotNull(first.DelayViolationPenalty);
-        Assert.Null(second.DelayViolationPenalty);
+        var first = game.AssessHunterHeadStartPenalty(Start.AddMinutes(2));
+        var second = game.AssessHunterHeadStartPenalty(Start.AddMinutes(3));
+        var third = game.AssessHunterHeadStartPenalty(Start.AddMinutes(4));
+
+        Assert.NotNull(first);
+        Assert.Null(second);
+        Assert.Null(third);
         var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.Single(hunter.Penalties);
     }
 
     [Fact]
-    public void RecordLocation_ShouldNotApplyPenalty_WhenHunterMovesAfterDelay()
+    public void AssessHunterHeadStartPenalty_ShouldNotApplyPenalty_WhenReadingsAreAllAfterDelay()
     {
+        // Readings timestamped >= HunterMayMoveAt must NOT trigger the head-start penalty.
         var game = GameFaker.StartedGame(out var hunterId, out _, Start);
+        var mayMoveAt = game.HunterMayMoveAt!.Value; // Start + 5 min
+        game.RecordLocation(hunterId, Anchor, mayMoveAt);             // exactly at boundary — not < mayMoveAt
+        game.RecordLocation(hunterId, BeyondThreshold, mayMoveAt.AddSeconds(1));
 
-        game.RecordLocation(hunterId, Anchor, Start.AddMinutes(1));
-        var outcome = game.RecordLocation(hunterId, BeyondThreshold, Start.AddMinutes(5));
+        var penalty = game.AssessHunterHeadStartPenalty(mayMoveAt.AddSeconds(1));
 
-        Assert.Null(outcome.DelayViolationPenalty);
+        Assert.Null(penalty);
         var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.Empty(hunter.Penalties);
     }
 
     [Fact]
-    public void RecordLocation_ShouldStillRecordReading_WhenPenalized()
+    public void AssessHunterHeadStartPenalty_ShouldApplyPenalty_WhenAssessedAfterDelayButReadingsAreBefore()
+    {
+        // Critical correctness case: a reading emitted during the head-start is assessed after
+        // HunterMayMoveAt (the sweep that picks it up runs at/after that time). The gate must use
+        // RecordedAt, not the 'now' passed to AssessHunterHeadStartPenalty.
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start);
+        var mayMoveAt = game.HunterMayMoveAt!.Value; // Start + 5 min
+
+        // Reading timestamped before the delay boundary
+        game.RecordLocation(hunterId, Anchor, Start.AddMinutes(1));
+        game.RecordLocation(hunterId, BeyondThreshold, mayMoveAt.AddSeconds(-1));
+
+        // Assessed after the delay has expired (simulates a late sweep)
+        var penalty = game.AssessHunterHeadStartPenalty(mayMoveAt.AddSeconds(30));
+
+        Assert.NotNull(penalty);
+        Assert.Equal(mayMoveAt.AddMinutes(Game.HunterDelayPenaltyMinutes), penalty!.EndsAt);
+    }
+
+    [Fact]
+    public void AssessHunterHeadStartPenalty_ShouldReturnNull_WhenNoHeadStartReadingsExist()
     {
         var game = GameFaker.StartedGame(out var hunterId, out _, Start);
+        // Only readings after the delay
+        var mayMoveAt = game.HunterMayMoveAt!.Value;
+        game.RecordLocation(hunterId, BeyondThreshold, mayMoveAt.AddMinutes(1));
 
+        var penalty = game.AssessHunterHeadStartPenalty(mayMoveAt.AddMinutes(1));
+
+        Assert.Null(penalty);
+    }
+
+    [Fact]
+    public void AssessHunterHeadStartPenalty_ShouldReturnNull_WhenGameIsNotInProgress()
+    {
+        var game = GameFaker.LobbyGame();
+
+        var penalty = game.AssessHunterHeadStartPenalty(DateTimeOffset.UtcNow);
+
+        Assert.Null(penalty);
+    }
+
+    [Fact]
+    public void AssessHunterHeadStartPenalty_ShouldStillRecordReading_WhenPenalized()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start);
         game.RecordLocation(hunterId, Anchor, Start.AddMinutes(1));
         game.RecordLocation(hunterId, BeyondThreshold, Start.AddMinutes(2));
+
+        game.AssessHunterHeadStartPenalty(Start.AddMinutes(2));
 
         var hunter = game.Participants.Single(p => p.UserId == hunterId);
         Assert.Equal(2, hunter.Locations.Count);
