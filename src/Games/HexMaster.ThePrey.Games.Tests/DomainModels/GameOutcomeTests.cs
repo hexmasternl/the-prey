@@ -45,6 +45,8 @@ public sealed class GameOutcomeTests
     public void Complete_ShouldReturnHuntersWin_WhenAllPreysAreTagged()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Now, playerCount: 3);
+        var allIds = preyIds.Prepend(hunterId).ToArray();
+        GameFaker.RecordColocated(game, Now.AddMinutes(1), allIds);
         foreach (var preyId in preyIds)
             game.TagParticipant(hunterId, preyId, Now.AddMinutes(10));
 
@@ -70,6 +72,7 @@ public sealed class GameOutcomeTests
     {
         // 1 hunter + 3 preys
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Now, playerCount: 4);
+        GameFaker.RecordColocated(game, Now.AddMinutes(1), hunterId, preyIds[0], preyIds[2]);
         game.TagParticipant(hunterId, preyIds[0], Now.AddMinutes(10));
         game.Forfeit(preyIds[1]);
         game.TagParticipant(hunterId, preyIds[2], Now.AddMinutes(10));
@@ -84,6 +87,7 @@ public sealed class GameOutcomeTests
     {
         // 1 hunter + 2 preys; only 1 tagged
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Now, playerCount: 3);
+        GameFaker.RecordColocated(game, Now.AddMinutes(1), hunterId, preyIds[0]);
         game.TagParticipant(hunterId, preyIds[0], Now.AddMinutes(10));
 
         game.Complete(Now.AddMinutes(60));

@@ -225,13 +225,19 @@
   "TAG_MODAL": {
     "TITLE": "TAG PREY",
     "INSTRUCTION": "Select a target to tag them out.",
-    "EMPTY": "No prey available to tag.",
+    "LOADING": "Scanning for nearby prey...",
+    "EMPTY": "No prey within range.",
+    "ERROR": "Could not fetch nearby prey. Check your connection.",
+    "RETRY": "RETRY",
     "TAG_ACTION": "TAG",
     "CANCEL": "CANCEL",
     "BUTTON": "TAG",
+    "DISTANCE_METERS": "m",
     "CONFIRM_QUESTION": "You want to tag player '{{callsign}}'.",
     "ACKNOWLEDGE": "I really tagged player {{callsign}}",
-    "CONFIRM": "CONFIRM TAG"
+    "CONFIRM": "CONFIRM TAG",
+    "OUT_OF_RANGE": "That prey moved out of range — get closer and try again.",
+    "TAG_FAILED": "Tag failed — please try again."
   },
   "HUNTER_DELAY": {
     "LABEL": "HUNTER RELEASE IN",

@@ -28,6 +28,9 @@ public sealed class Game
     /// <summary>How far, in meters, the hunter may stray from their first measured location during the head-start delay before incurring a penalty.</summary>
     public const int HunterDelayMovementThresholdMeters = 25;
 
+    /// <summary>How close, in meters, a prey's most recent emitted location must be to the hunter's most recent emitted location for the hunter to be allowed to tag it.</summary>
+    public const int TagRangeMeters = 50;
+
     /// <summary>How long, in minutes, the penalty for moving during the head-start delay lasts beyond <see cref="HunterMayMoveAt"/>.</summary>
     public const int HunterDelayPenaltyMinutes = 10;
 
@@ -367,7 +370,46 @@ public sealed class Game
         var target = _participants.FirstOrDefault(p => p.UserId == targetUserId && p.UserId != HunterUserId)
             ?? throw new ArgumentException("The target participant is not a prey of this game.", nameof(targetUserId));
 
+        // Proximity guard: the hunter may only tag a prey whose most recent emitted location is within
+        // TagRangeMeters of the hunter's own most recent emitted location. Missing positions block the tag.
+        var hunter = FindParticipant(callerId);
+        if (hunter?.LatestKnownLocation is not { } hunterLocation ||
+            target.LatestKnownLocation is not { } targetLocation ||
+            hunterLocation.DistanceInMetersTo(targetLocation) > TagRangeMeters)
+        {
+            throw new InvalidOperationException("The target prey is not within tagging range.");
+        }
+
         target.Tag();
+    }
+
+    /// <summary>
+    /// Returns the preys the hunter is currently allowed to tag: each prey in <see cref="PlayerState.Active"/>
+    /// or <see cref="PlayerState.Passive"/> whose most recent emitted location is within
+    /// <paramref name="rangeMeters"/> of the hunter's most recent emitted location, paired with the
+    /// computed great-circle distance. Returns an empty list when the hunter has no emitted location;
+    /// preys with no emitted location are excluded. The most recent reading from each participant's
+    /// location history is used — never a previously broadcast snapshot.
+    /// </summary>
+    public IReadOnlyList<(GameParticipant Prey, double DistanceMeters)> TaggablePreysWithin(double rangeMeters)
+    {
+        if (HunterUserId is not { } hunterId) return [];
+
+        var hunter = FindParticipant(hunterId);
+        if (hunter?.LatestKnownLocation is not { } hunterLocation) return [];
+
+        var candidates = new List<(GameParticipant, double)>();
+        foreach (var prey in _participants.Where(p => p.UserId != hunterId))
+        {
+            if (prey.State is not (PlayerState.Active or PlayerState.Passive)) continue;
+            if (prey.LatestKnownLocation is not { } preyLocation) continue;
+
+            var distance = hunterLocation.DistanceInMetersTo(preyLocation);
+            if (distance <= rangeMeters)
+                candidates.Add((prey, distance));
+        }
+
+        return candidates;
     }
 
     /// <summary>Applies a penalty, expiring at <paramref name="endsAt"/>, to a participant.</summary>

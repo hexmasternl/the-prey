@@ -160,6 +160,7 @@ public sealed class GameSweepProcessorTests
         var config = GameFaker.ValidConfiguration(enablePreyBoundaryPenalties: true);
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start, playerCount: 3, configuration: config);
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // outside the square
+        game.RecordLocation(hunterId, GpsCoordinate.Create(5, 5), Start.AddSeconds(5)); // hunter at same coord
         game.TagParticipant(hunterId, preyIds[0], Start.AddMinutes(10));
         SetupGame(game);
 

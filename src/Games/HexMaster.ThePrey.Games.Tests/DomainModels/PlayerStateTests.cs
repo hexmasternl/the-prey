@@ -90,6 +90,7 @@ public sealed class PlayerStateTests
         var coord = GpsCoordinate.Create(52.1, 5.1);
 
         game.RecordLocation(preyId, coord, Start);
+        GameFaker.RecordColocated(game, Start, hunterId);
         game.TagParticipant(hunterId, preyId, Start.AddMinutes(10));
         Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
 
@@ -147,6 +148,7 @@ public sealed class PlayerStateTests
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
         var preyId = preyIds[0];
         game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Start);
+        GameFaker.RecordColocated(game, Start, hunterId);
         game.TagParticipant(hunterId, preyId, Start.AddMinutes(10));
 
         var changes = game.ApplyTimeoutTransitions(Start.AddMinutes(10));
@@ -172,6 +174,7 @@ public sealed class PlayerStateTests
     public void TagParticipant_ShouldSetTaggedState_WhenCallerIsHunterAndTargetIsActive()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        GameFaker.RecordColocated(game, Start.AddMinutes(1), hunterId, preyIds[0]);
 
         game.TagParticipant(hunterId, preyIds[0], Start.AddMinutes(10));
 
@@ -184,6 +187,7 @@ public sealed class PlayerStateTests
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
         var preyId = preyIds[0];
         game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Start);
+        GameFaker.RecordColocated(game, Start, hunterId);
         game.ApplyTimeoutTransitions(Start.AddMinutes(6));
         Assert.Equal(PlayerState.Passive, game.Participants.Single(p => p.UserId == preyId).State);
 
@@ -205,6 +209,7 @@ public sealed class PlayerStateTests
     public void TagParticipant_ShouldThrow_WhenTargetIsAlreadyTagged()
     {
         var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start);
+        GameFaker.RecordColocated(game, Start.AddMinutes(1), hunterId, preyIds[0]);
         game.TagParticipant(hunterId, preyIds[0], Start.AddMinutes(10));
 
         Assert.Throws<InvalidOperationException>(() =>
