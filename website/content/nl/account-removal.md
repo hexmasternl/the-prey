@@ -12,7 +12,7 @@ Je kunt op elk moment vragen om je The Prey-account en de bijbehorende persoonsg
 
 ## Hoe Vraag Je Accountverwijdering Aan
 
-Om het verwijderen van je account aan te vragen, stuur je een e-mail naar **cekeilholz@gmail.com**.
+Om het verwijderen van je account aan te vragen, stuur je een e-mail naar **account-removals@theprey.nl**.
 
 Stuur het verzoek bij voorkeur vanaf het e-mailadres dat aan je account is gekoppeld, of vermeld voldoende gegevens om je account te kunnen identificeren, zodat we het verzoek kunnen verifiëren en correct kunnen verwerken.
 
@@ -26,4 +26,4 @@ Zodra we je verzoek hebben ontvangen en geverifieerd, verwijderen of anonimisere
 
 ## Contact
 
-Vragen over het verwijderen van je account? Mail ons via **cekeilholz@gmail.com**.
+Vragen over het verwijderen van je account? Mail ons via **account-removals@theprey.nl**.
