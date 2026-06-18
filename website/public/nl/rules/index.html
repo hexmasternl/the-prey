@@ -10,7 +10,7 @@
   
   
   <title>Regels // The Prey</title>
-  <meta name="description" content="De volledige spelregels van The Prey: tijdsfases, de voorsprong van 10 minuten, GPS-updates, taggen en eliminatie, en hoe Jagers en Prooien winnen.">
+  <meta name="description" content="De volledige spelregels van The Prey: tijdsfases, de instelbare voorsprong, GPS-updates, taggen en eliminatie, en hoe de Jager en Prooien winnen.">
   
   <meta name="keywords" content="The Prey regels, spelregels, voorsprong, GPS-tracking, taggen, eliminatie, winvoorwaarden, verstoppertje regels">
 
@@ -19,7 +19,7 @@
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://theprey.nl/favicon.svg">
   <meta property="og:url" content="https://theprey.nl/nl/rules/">
-  <meta property="og:description" content="De volledige spelregels van The Prey: tijdsfases, de voorsprong van 10 minuten, GPS-updates, taggen en eliminatie, en hoe Jagers en Prooien winnen.">
+  <meta property="og:description" content="De volledige spelregels van The Prey: tijdsfases, de instelbare voorsprong, GPS-updates, taggen en eliminatie, en hoe de Jager en Prooien winnen.">
   <meta property="og:site_name" content="The Prey">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="/css/main.min.5f1b50bea840ec25417aa3dae7fdca017a7d209d8ac0d600d9a14292679109d1.css">
+  <link rel="stylesheet" href="/css/main.min.2cb85302a19403d18ead8a7eb9ddbabb29b7e9699408cb5b8066086dfabb7e3a.css">
 </head>
 <body>
 <div class="crt-beam" aria-hidden="true"></div>
@@ -75,42 +75,43 @@
   <header class="page-head">
   <div class="eyebrow">RULES</div>
   <h1>Regels</h1>
-  <p class="lede page-lede">De volledige spelregels van The Prey: tijdsfases, de voorsprong van 10 minuten, GPS-updates, taggen en eliminatie, en hoe Jagers en Prooien winnen.</p>
+  <p class="lede page-lede">De volledige spelregels van The Prey: tijdsfases, de instelbare voorsprong, GPS-updates, taggen en eliminatie, en hoe de Jager en Prooien winnen.</p>
 </header>
 
   <h2 id="spelconcept">Spelconcept</h2>
-<p>The Prey is een GPS-gebaseerd verstoppertje gespeeld in een bepaald buitengebied dat een <strong>speelveld</strong> heet. Eén of meer spelers zijn <strong>Prooi</strong> — zij verstoppen zich en ontwijken. De rest zijn <strong>Jagers</strong> — zij traceren en taggen.</p>
-<p>Het spel heeft een tijdslimiet. Jagers winnen door alle Prooi te taggen voor de tijd om is. Prooi wint als er ten minste één overlevende is wanneer de klok nul bereikt.</p>
+<p>The Prey is een GPS-gebaseerd verstoppertje gespeeld in een bepaald buitengebied dat een <strong>speelveld</strong> heet. Eén of meer spelers zijn <strong>Prooi</strong>, die zich verstoppen en ontwijken. Precies één speler is de <strong>Jager</strong>, die traceert en tagt.</p>
+<p>Het spel heeft een tijdslimiet. De Jager wint door alle Prooi te taggen voor de tijd om is. Prooi wint als er ten minste één overlevende is wanneer de klok nul bereikt.</p>
 <hr>
 <h2 id="tijdsfasen">Tijdsfasen</h2>
+<p>Elke duur wordt door de Spelmaker ingesteld bij het aanmaken van het spel; de waarden hieronder zijn de standaardwaarden in de app. Een spel doorloopt drie fasen:</p>
 <div class="table-scroll">
   <table>
     <thead>
       <tr>
         <th>Fase</th>
-        <th>Duur</th>
+        <th>Standaardduur</th>
         <th>Wat er gebeurt</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>Voorsprong</td>
-        <td>10 minuten</td>
-        <td>Prooi verspreidt zich en verstopt zich. Jagers wachten. Geen locaties gedeeld.</td>
+        <td>5 minuten</td>
+        <td>Prooi verspreidt zich en verstopt zich. De Jager wordt op zijn plek gehouden: nog niet bewegen, nog niet taggen.</td>
       </tr>
       <tr>
         <td>Actieve Jacht</td>
-        <td>~45 minuten</td>
-        <td>De jacht begint. GPS-pingen van Prooi worden aan alle Jagers doorgegeven.</td>
+        <td>~20 minuten</td>
+        <td>De jacht begint. GPS-pingen van Prooi worden aan de Jager doorgegeven.</td>
       </tr>
       <tr>
         <td>Eindfase</td>
         <td>Laatste 5 minuten</td>
-        <td>Waarschuwing gegeven. Alle spelers worden op de hoogte gesteld.</td>
+        <td>Positie-updates versnellen om het net te sluiten.</td>
       </tr>
       <tr>
         <td>Totaal</td>
-        <td>~60 minuten</td>
+        <td>30 minuten</td>
         <td>Spel eindigt. Resultaten worden weergegeven.</td>
       </tr>
     </tbody>
@@ -118,14 +119,14 @@
 </div>
 <hr>
 <h2 id="gps-updateschema">GPS-updateschema</h2>
-<p>Prooilocaties worden als GPS-pins op de kaart van de Jager uitgezonden. Updates komen met een vast interval — doorgaans elke 30 seconden tijdens de Actieve Jacht. Tijdens de Voorsprong worden geen locatiegegevens verzonden.</p>
+<p>Prooilocaties worden als GPS-pins op de kaart van de Jager uitgezonden. Updates komen op het positie-rapportage-interval dat de Spelmaker voor het spel koos: standaard 3 minuten, en een korter interval (standaard 1 minuut) tijdens de eindfase. Locaties worden uitgezonden vanaf het moment dat het spel start, ook tijdens de Voorsprong; de Jager kan alleen niet bewegen of taggen totdat de voorsprong eindigt.</p>
 <hr>
 <h2 id="eliminatie">Eliminatie</h2>
-<p>Een Prooi wordt geëlimineerd wanneer een Jager de Prooi fysiek bereikt en de tag in de app bevestigt. Zowel de Jager als de Prooi moeten de tag in de app bevestigen. Eenmaal bevestigd wordt de geëlimineerde Prooi van de kaart verwijderd.</p>
+<p>Een Prooi wordt geëlimineerd wanneer een Jager de Prooi fysiek bereikt en in de app tagt. De tag wordt direct van kracht. Alleen de Jager bevestigt de tag, de Prooi niet. Eenmaal getagd wordt de geëlimineerde Prooi van de kaart verwijderd.</p>
 <p>Geëlimineerde Prooi kunnen de rest van het spel als toeschouwer volgen.</p>
 <hr>
 <h2 id="wincondities">Wincondities</h2>
-<p><strong>Jagers winnen</strong> als alle Prooi wordt getagd voordat de timer afloopt.</p>
+<p><strong>De Jager wint</strong> als alle Prooi wordt getagd voordat de timer afloopt.</p>
 <p><strong>Prooi wint</strong> als er ten minste één Prooi overleeft tot de timer nul bereikt.</p>
 <p>Er is geen gelijkspel. Als de laatste Prooi wordt getagd op hetzelfde moment dat de timer nul bereikt, wordt het resultaat bepaald door welk moment het eerst in de app wordt geregistreerd.</p>
 
@@ -136,7 +137,9 @@
 
   <footer class="site-footer">
   <span style="color:var(--signal-dim)">THE PREY</span> // EINDE TRANSMISSIE
+  <a class="footer-link" href="/nl/become-a-tester/">Word Tester</a>
   <a class="footer-link" href="/nl/privacy/">Privacy</a>
+  <a class="footer-link" href="/nl/account-removal/">Account verwijderen</a>
 </footer>
 
 

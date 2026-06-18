@@ -11,7 +11,7 @@
   
   
   <title>The Prey // GPS Hide-and-Seek</title>
-  <meta name="description" content="The Prey is a GPS-powered, real-world hide-and-seek game. Prey scatter and survive while Hunters track them down by GPS. Run. Hide. Survive.">
+  <meta name="description" content="The Prey is a GPS-powered, real-world hide-and-seek game. Prey scatter and survive while one Hunter tracks them down by GPS. Run. Hide. Survive.">
   
   <meta name="keywords" content="The Prey, GPS game, hide and seek, location-based game, outdoor multiplayer game, real-world tag game, GPS hide and seek, mobile game">
 
@@ -20,7 +20,7 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://theprey.nl/favicon.svg">
   <meta property="og:url" content="https://theprey.nl/en/">
-  <meta property="og:description" content="The Prey is a GPS-powered, real-world hide-and-seek game. Prey scatter and survive while Hunters track them down by GPS. Run. Hide. Survive.">
+  <meta property="og:description" content="The Prey is a GPS-powered, real-world hide-and-seek game. Prey scatter and survive while one Hunter tracks them down by GPS. Run. Hide. Survive.">
   <meta property="og:site_name" content="The Prey">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="/css/main.min.5f1b50bea840ec25417aa3dae7fdca017a7d209d8ac0d600d9a14292679109d1.css">
+  <link rel="stylesheet" href="/css/main.min.2cb85302a19403d18ead8a7eb9ddbabb29b7e9699408cb5b8066086dfabb7e3a.css">
 </head>
 <body>
 <div class="crt-beam" aria-hidden="true"></div>
@@ -83,7 +83,7 @@
     <div class="hero-content">
       <div class="tag">// Signal Acquired</div>
       <h1>THE <em>PREY</em></h1>
-      <p class="lede">The Prey is a GPS-powered, real-world hide-and-seek game. Prey scatter and survive while Hunters track them down by GPS. Run. Hide. Survive.</p>
+      <p class="lede">The Prey is a GPS-powered, real-world hide-and-seek game. Prey scatter and survive while one Hunter tracks them down by GPS. Run. Hide. Survive.</p>
       <p class="lede hero-sub">GPS-based hide-and-seek. Define the arena. Scatter and hide. Hunt them down before time runs out.</p>
       <div class="hero-actions">
         <a href="/en/rules/" class="btn primary">Read the Rules</a>
@@ -104,24 +104,31 @@
     </div>
   </div>
 
+  <a class="tester-burst" href="/en/become-a-tester/" aria-label="Become a Tester">
+    <span class="burst-inner">
+      <span class="burst-kicker">★ New ★</span>
+      <span class="burst-main">Become a Tester</span>
+    </span>
+  </a>
+
   <div class="ticker" aria-hidden="true">
     <div class="ticker-track">
       
       <span class="live">● Live</span>
       <span>SAT-Lock 09</span>
       <span>52.3676°N 4.9041°E</span>
-      <span>Ping 30s</span>
-      <span>T-60:00</span>
-      <span>Head Start 10:00</span>
+      <span>Ping 3m</span>
+      <span>T-30:00</span>
+      <span>Head Start 5:00</span>
       <span>Grid Locked</span>
       <span>Signal Strong</span>
       
       <span class="live">● Live</span>
       <span>SAT-Lock 09</span>
       <span>52.3676°N 4.9041°E</span>
-      <span>Ping 30s</span>
-      <span>T-60:00</span>
-      <span>Head Start 10:00</span>
+      <span>Ping 3m</span>
+      <span>T-30:00</span>
+      <span>Head Start 5:00</span>
       <span>Grid Locked</span>
       <span>Signal Strong</span>
       
@@ -132,25 +139,25 @@
 <section class="reveal">
   <div class="eyebrow">The Game</div>
   <h2>Hunt or be Hunted</h2>
-  <p>The Prey drops players into a real-world GPS arena. One team hides and runs. The other tracks and tags. Every 30 seconds the map updates. Every move matters.</p><p>Games last 60 minutes. Prey have a 10-minute head start to scatter before Hunters see their first ping. After that — you are on the radar.</p>
+  <p>The Prey drops players into a real-world GPS arena. Most players hide and run. One player, the Hunter, tracks and tags. The map updates on a set timer. Every move matters.</p><p>Games run for as long as the host sets, 30 minutes by default. Prey have a head start to scatter before the Hunter is set loose. After that, the chase is on.</p>
   <div class="phase-grid reveal-stagger">
     
     <div class="panel">
       <div class="ptitle">Head Start</div>
-      <div class="phase-figure signal"><span class="phase-num" data-count="10">10</span><span class="unit"> min</span></div>
-      <p class="phase-desc">Prey scatter. No location data. Hunters wait.</p>
+      <div class="phase-figure signal"><span class="phase-num" data-count="5">5</span><span class="unit"> min</span></div>
+      <p class="phase-desc">Prey scatter. The Hunter is held in place.</p>
     </div>
     
     <div class="panel">
       <div class="ptitle">Active Hunt</div>
-      <div class="phase-figure signal"><span class="phase-num" data-count="~45">~45</span><span class="unit"> min</span></div>
-      <p class="phase-desc">GPS pings live. Map updates every 30 seconds.</p>
+      <div class="phase-figure signal"><span class="phase-num" data-count="~20">~20</span><span class="unit"> min</span></div>
+      <p class="phase-desc">GPS pings live. Map updates on the host&#39;s timer.</p>
     </div>
     
     <div class="panel">
       <div class="ptitle">Final Stretch</div>
       <div class="phase-figure caution"><span class="phase-num" data-count="5">5</span><span class="unit"> min</span></div>
-      <p class="phase-desc">Warning issued. Close in or hold on.</p>
+      <p class="phase-desc">Updates speed up. Close in or hold on.</p>
     </div>
     
   </div>
@@ -213,7 +220,9 @@
 
   <footer class="site-footer">
   <span style="color:var(--signal-dim)">THE PREY</span> // END OF TRANSMISSION
+  <a class="footer-link" href="/en/become-a-tester/">Become a Tester</a>
   <a class="footer-link" href="/en/privacy/">Privacy</a>
+  <a class="footer-link" href="/en/account-removal/">Account Removal</a>
 </footer>
 
 

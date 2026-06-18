@@ -1,0 +1,121 @@
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - link "THE PREY" [ref=e5] [cursor=pointer]:
+        - /url: /en/
+        - img [ref=e6]
+        - generic [ref=e10]: THE PREY
+      - generic [ref=e11]:
+        - list [ref=e12]:
+          - listitem [ref=e13]:
+            - link "Rules" [ref=e14] [cursor=pointer]:
+              - /url: /en/rules/
+          - listitem [ref=e15]:
+            - link "Roles" [ref=e16] [cursor=pointer]:
+              - /url: /en/roles/
+          - listitem [ref=e17]:
+            - link "Playfield" [ref=e18] [cursor=pointer]:
+              - /url: /en/playfield/
+          - listitem [ref=e19]:
+            - link "FAQ" [ref=e20] [cursor=pointer]:
+              - /url: /en/faq/
+          - listitem [ref=e21]:
+            - link "How-To" [ref=e22] [cursor=pointer]:
+              - /url: /en/how-to/
+        - link "NL" [ref=e24] [cursor=pointer]:
+          - /url: https://theprey.nl/nl/
+  - main [ref=e25]:
+    - generic [ref=e26]:
+      - generic [ref=e31]: 52.3676°N / 4.9041°E
+      - generic [ref=e33]:
+        - generic [ref=e34]: // Signal Acquired
+        - heading "THE PREY" [level=1] [ref=e35]:
+          - text: THE
+          - emphasis [ref=e36]: PREY
+        - paragraph [ref=e37]: The Prey is a GPS-powered, real-world hide-and-seek game. Prey scatter and survive while one Hunter tracks them down by GPS. Run. Hide. Survive.
+        - paragraph [ref=e38]: GPS-based hide-and-seek. Define the arena. Scatter and hide. Hunt them down before time runs out.
+        - generic [ref=e39]:
+          - link "Read the Rules" [ref=e40] [cursor=pointer]:
+            - /url: /en/rules/
+          - link "How-To Guides" [ref=e41] [cursor=pointer]:
+            - /url: /en/how-to/
+      - link "Become a Tester" [ref=e51] [cursor=pointer]:
+        - /url: /en/become-a-tester/
+        - generic [ref=e52]:
+          - generic [ref=e53]: ★ New ★
+          - generic [ref=e54]: Become a Tester
+      - generic [ref=e56]:
+        - generic [ref=e57]: ● Live //
+        - generic [ref=e58]: SAT-Lock 09 //
+        - generic [ref=e59]: 52.3676°N 4.9041°E //
+        - generic [ref=e60]: Ping 3m //
+        - generic [ref=e61]: T-30:00 //
+        - generic [ref=e62]: Head Start 5:00 //
+        - generic [ref=e63]: Grid Locked //
+        - generic [ref=e64]: Signal Strong //
+        - generic [ref=e65]: ● Live //
+        - generic [ref=e66]: SAT-Lock 09 //
+        - generic [ref=e67]: 52.3676°N 4.9041°E //
+        - generic [ref=e68]: Ping 3m //
+        - generic [ref=e69]: T-30:00 //
+        - generic [ref=e70]: Head Start 5:00 //
+        - generic [ref=e71]: Grid Locked //
+        - generic [ref=e72]: Signal Strong //
+    - generic [ref=e73]:
+      - generic [ref=e74]: The Game
+      - heading "Hunt or be Hunted" [level=2] [ref=e75]
+      - paragraph [ref=e76]: The Prey drops players into a real-world GPS arena. Most players hide and run. One player, the Hunter, tracks and tags. The map updates on a set timer. Every move matters.
+      - paragraph [ref=e77]: Games run for as long as the host sets, 30 minutes by default. Prey have a head start to scatter before the Hunter is set loose. After that, the chase is on.
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - generic [ref=e80]: Head Start
+          - generic [ref=e81]: 5 min
+          - paragraph [ref=e82]: Prey scatter. The Hunter is held in place.
+        - generic [ref=e83]:
+          - generic [ref=e84]: Active Hunt
+          - generic [ref=e85]: ~20 min
+          - paragraph [ref=e86]: GPS pings live. Map updates on the host's timer.
+        - generic [ref=e87]:
+          - generic [ref=e88]: Final Stretch
+          - generic [ref=e89]: 5 min
+          - paragraph [ref=e90]: Updates speed up. Close in or hold on.
+    - generic [ref=e92]:
+      - generic [ref=e93]: Roles
+      - heading "Every Player Has a Job" [level=2] [ref=e94]
+      - generic [ref=e95]:
+        - link "◎ Prey Hide. Move. Survive." [ref=e96] [cursor=pointer]:
+          - /url: /en/roles/prey/
+          - generic [ref=e97]:
+            - generic [ref=e98]: ◎
+            - generic [ref=e99]:
+              - generic [ref=e100]: Prey
+              - generic [ref=e101]: Hide. Move. Survive.
+        - link "⬤ Hunter Track. Close in. Tag." [ref=e102] [cursor=pointer]:
+          - /url: /en/roles/hunter/
+          - generic [ref=e103]:
+            - generic [ref=e104]: ⬤
+            - generic [ref=e105]:
+              - generic [ref=e106]: Hunter
+              - generic [ref=e107]: Track. Close in. Tag.
+        - link "◈ Game Creator Define. Assign. Launch." [ref=e108] [cursor=pointer]:
+          - /url: /en/roles/game-creator/
+          - generic [ref=e109]:
+            - generic [ref=e110]: ◈
+            - generic [ref=e111]:
+              - generic [ref=e112]: Game Creator
+              - generic [ref=e113]: Define. Assign. Launch.
+    - generic [ref=e116]:
+      - link "Rules" [ref=e117] [cursor=pointer]:
+        - /url: /en/rules/
+      - link "Playfield" [ref=e118] [cursor=pointer]:
+        - /url: /en/playfield/
+      - link "FAQ" [ref=e119] [cursor=pointer]:
+        - /url: /en/faq/
+  - contentinfo [ref=e120]:
+    - text: THE PREY // END OF TRANSMISSION
+    - link "Become a Tester" [ref=e121] [cursor=pointer]:
+      - /url: /en/become-a-tester/
+    - link "Privacy" [ref=e122] [cursor=pointer]:
+      - /url: /en/privacy/
+    - link "Account Removal" [ref=e123] [cursor=pointer]:
+      - /url: /en/account-removal/

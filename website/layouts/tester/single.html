@@ -1,0 +1,92 @@
+{{ define "main" }}
+{{- /* Tester recruitment page. Copy is data-driven from front matter so EN/NL
+  share this single layout. The external Play Store + email targets are constant
+  across languages, so they live here as the single source of truth. */ -}}
+{{ $email := "support@theprey.nl" }}
+{{ $testingUrl := "https://play.google.com/apps/testing/nl.hexmaster.theprey" }}
+{{ $storeUrl := "https://play.google.com/store/apps/details?id=nl.hexmaster.theprey" }}
+{{ $mailto := printf "mailto:%s?%s" $email (querify "subject" .Params.mailSubject) }}
+
+<div class="hero">
+  <div class="br tl"></div>
+  <div class="br tr"></div>
+  <div class="br bl"></div>
+  <div class="br brr"></div>
+  <div class="coords">{{ .Params.hero.coords }}</div>
+
+  <div class="hero-grid">
+    <div class="hero-content">
+      <div class="tag">{{ .Params.hero.tag }}</div>
+      <h1>{{ .Params.hero.titlePre }} <em>{{ .Params.hero.titleEm }}</em></h1>
+      <p class="lede">{{ .Description }}</p>
+      <div class="hero-actions">
+        <a href="{{ $mailto }}" class="btn primary">{{ .Params.hero.ctaEmail }}</a>
+        <a href="{{ $storeUrl }}" class="btn ghost" target="_blank" rel="noopener">{{ .Params.hero.ctaStore }}</a>
+      </div>
+    </div>
+    <div class="hero-aside">
+      {{ partial "radar.html" . }}
+    </div>
+  </div>
+</div>
+
+<section class="reveal">
+  <div class="eyebrow">{{ .Params.intro.eyebrow }}</div>
+  <h2>{{ .Params.intro.title }}</h2>
+  {{ range .Params.intro.body }}<p>{{ . | safeHTML }}</p>{{ end }}
+</section>
+
+<div class="signal-divider" aria-hidden="true"></div>
+
+<section class="reveal">
+  <div class="eyebrow">{{ .Params.steps.eyebrow }}</div>
+  <h2>{{ .Params.steps.title }}</h2>
+  <ol class="steps">
+    {{ range .Params.steps.items }}
+    <li><strong>{{ .title }}</strong> {{ .desc | safeHTML }}</li>
+    {{ end }}
+  </ol>
+  <div class="link-row" style="margin-top:28px">
+    <a href="{{ $testingUrl }}" class="btn ghost btn-sm" target="_blank" rel="noopener">{{ .Params.steps.testingBtn }}</a>
+    <a href="{{ $storeUrl }}" class="btn ghost btn-sm" target="_blank" rel="noopener">{{ .Params.steps.storeBtn }}</a>
+  </div>
+</section>
+
+<div class="signal-divider" aria-hidden="true"></div>
+
+<section class="reveal">
+  <div class="eyebrow">{{ .Params.requirements.eyebrow }}</div>
+  <h2>{{ .Params.requirements.title }}</h2>
+  <div class="phase-grid reveal-stagger">
+    {{ range .Params.requirements.items }}
+    <div class="panel">
+      <div class="req-glyph" aria-hidden="true">{{ .glyph }}</div>
+      <h4>{{ .title }}</h4>
+      <p class="phase-desc">{{ .desc | safeHTML }}</p>
+    </div>
+    {{ end }}
+  </div>
+</section>
+
+<section class="reveal">
+  <div class="cta-final">
+    <div class="br tl"></div>
+    <div class="br tr"></div>
+    <div class="br bl"></div>
+    <div class="br brr"></div>
+    <div class="eyebrow">{{ .Params.cta.eyebrow }}</div>
+    <h2>{{ .Params.cta.title }}</h2>
+    <p>{{ .Params.cta.body | safeHTML }}</p>
+    <div class="hero-actions" style="justify-content:center">
+      <a href="{{ $mailto }}" class="btn primary">{{ .Params.cta.button }}</a>
+    </div>
+    <div class="cta-mail">{{ $email }}</div>
+    {{ with .Params.cta.note }}
+    <div class="alert ok cta-note">
+      <div class="ic">✓</div>
+      <div><div class="msg">{{ . | safeHTML }}</div></div>
+    </div>
+    {{ end }}
+  </div>
+</section>
+{{ end }}

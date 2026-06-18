@@ -601,6 +601,134 @@ summary:hover { background: rgba(100, 255, 0, 0.04); }
 .howto-content ol > li strong { color: var(--text); }
 .howto-content ol > li::marker { content: none; }
 
+/* ---- TESTER STARBURST (home hero "New!" sticker) ---- */
+.tester-burst {
+  position: fixed;
+  top: 4rem;
+  right: 2rem;
+  z-index: 200;
+  width: clamp(116px, 13vw, 146px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  text-decoration: none;
+  color: var(--bg-void);
+  background: var(--caution);
+  /* 12-spike seal/starburst */
+  clip-path: polygon(
+    100% 50%, 88.6% 60.4%, 93.3% 75%, 78.3% 78.3%, 75% 93.3%, 60.4% 88.6%,
+    50% 100%, 39.6% 88.6%, 25% 93.3%, 21.7% 78.3%, 6.7% 75%, 11.4% 60.4%,
+    0% 50%, 11.4% 39.6%, 6.7% 25%, 21.7% 21.7%, 25% 6.7%, 39.6% 11.4%,
+    50% 0%, 60.4% 11.4%, 75% 6.7%, 78.3% 21.7%, 93.3% 25%, 88.6% 39.6%
+  );
+  transform: rotate(13deg);
+  transition: transform 0.2s ease;
+  animation: burst-glow 2.2s ease-in-out infinite;
+}
+.tester-burst:hover {
+  transform: rotate(13deg) scale(1.07);
+  text-decoration: none;
+}
+.tester-burst:focus-visible {
+  outline: 2px solid var(--bg-void);
+  outline-offset: -10px;
+}
+.burst-inner {
+  padding: 10px 6px;
+  /* Rests most of the cycle, then a quick attention shake every ~6s. */
+  animation: burst-attention 6s ease-in-out infinite;
+}
+@keyframes burst-attention {
+  0%, 70%, 100% { transform: scale(1) rotate(0); }
+  74% { transform: scale(1.14) rotate(5deg); }
+  78% { transform: scale(1.06) rotate(-5deg); }
+  82% { transform: scale(1.12) rotate(4deg); }
+  86% { transform: scale(1.05) rotate(-3deg); }
+  90% { transform: scale(1) rotate(0); }
+}
+.burst-kicker {
+  display: block;
+  font-family: var(--body);
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.burst-main {
+  display: block;
+  max-width: 8ch;
+  margin: 4px auto 0;
+  font-family: var(--head);
+  font-size: clamp(13px, 1.3vw, 16px);
+  line-height: 1.04;
+  text-transform: uppercase;
+}
+@keyframes burst-glow {
+  0%, 100% { filter: drop-shadow(0 0 7px rgba(255, 179, 0, 0.45)); }
+  50% { filter: drop-shadow(0 0 20px rgba(255, 179, 0, 0.85)); }
+}
+
+@media (max-width: 880px) {
+  /* Drop into flow (centered below the hero copy) so it never covers the title. */
+  .tester-burst {
+    position: static;
+    margin: 30px auto 4px;
+    width: 134px;
+    transform: rotate(8deg);
+  }
+  .tester-burst:hover { transform: rotate(8deg) scale(1.07); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tester-burst { animation: none; filter: drop-shadow(0 0 12px rgba(255, 179, 0, 0.6)); }
+  .burst-inner { animation: none; transform: none; }
+}
+
+/* ---- TESTER PAGE ---- */
+/* glyph badge atop each requirement panel */
+.req-glyph {
+  font-family: var(--head);
+  font-size: 30px;
+  line-height: 1;
+  color: var(--signal);
+  text-shadow: 0 0 16px var(--signal-glow);
+  margin-bottom: 12px;
+}
+.phase-grid .panel h4 { margin-top: 0; }
+
+/* closing call-to-action block — hero-like, centered */
+.cta-final {
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, rgba(100, 255, 0, 0.06), transparent 55%),
+    var(--bg-void);
+  padding: 48px 40px;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+.cta-final .eyebrow { justify-content: center; }
+.cta-final h2 { margin-bottom: 16px; }
+.cta-final p { margin: 0 auto 8px; }
+.cta-mail {
+  font-family: var(--head);
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--signal);
+  text-shadow: 0 0 14px var(--signal-glow);
+  margin-top: 18px;
+}
+.cta-note {
+  max-width: 56ch;
+  margin: 28px auto 0;
+  text-align: left;
+}
+
+@media (max-width: 880px) {
+  .cta-final { padding: 32px 20px; }
+}
+
 /* ---- CONTENT SECTIONS ---- */
 section { margin-bottom: 64px; scroll-margin-top: 30px; }
 
