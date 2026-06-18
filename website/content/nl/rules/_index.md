@@ -20,7 +20,7 @@ Elke duur wordt door de Spelmaker ingesteld bij het aanmaken van het spel — de
 |---|---|---|
 | Voorsprong | 5 minuten | Prooi verspreidt zich en verstopt zich. De Jager wordt op zijn plek gehouden — nog niet bewegen, nog niet taggen. |
 | Actieve Jacht | ~20 minuten | De jacht begint. GPS-pingen van Prooi worden aan de Jager doorgegeven. |
-| Eindfase | Laatste 5 minuten | Waarschuwing gegeven. Alle spelers worden op de hoogte gesteld. |
+| Eindfase | Laatste 5 minuten | Positie-updates versnellen om het net te sluiten. |
 | Totaal | 30 minuten | Spel eindigt. Resultaten worden weergegeven. |
 
 ---

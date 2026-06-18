@@ -32,7 +32,7 @@ phases:
     unit: "min"
     accent: "caution"
     title: "Eindfase"
-    desc: "Waarschuwing afgegeven. Sluit in of houd vol."
+    desc: "Updates versnellen. Sluit in of houd vol."
 
 roles:
   eyebrow: "Rollen"

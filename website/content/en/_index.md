@@ -32,7 +32,7 @@ phases:
     unit: "min"
     accent: "caution"
     title: "Final Stretch"
-    desc: "Warning issued. Close in or hold on."
+    desc: "Updates speed up. Close in or hold on."
 
 roles:
   eyebrow: "Roles"

@@ -20,7 +20,7 @@ Every duration is set by the Game Creator when the game is created — the value
 |---|---|---|
 | Head Start | 5 minutes | Prey scatter and hide. The Hunter is held in place — no moving, no tagging yet. |
 | Active Hunt | ~20 minutes | Hunt begins. Prey GPS pings broadcast to the Hunter. |
-| Final Stretch | Last 5 minutes | Warning issued. All players are notified. |
+| Final Stretch | Last 5 minutes | Position updates speed up to tighten the net. |
 | Total | 30 minutes | Game ends. Results displayed. |
 
 ---
