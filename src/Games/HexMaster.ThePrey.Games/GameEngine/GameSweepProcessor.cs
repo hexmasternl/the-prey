@@ -46,11 +46,26 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
         activity?.SetTag("game.id", gameId);
 
         var game = await _games.GetByIdAsync(gameId, ct);
-        if (game is null || game.Status != GameStatus.InProgress)
+        if (game is null)
             return GameTickResult.None;
 
         var events = new List<IIntegrationEvent>();
         var changed = false;
+
+        // 0. Promote Ready games to InProgress as the FIRST task of every tick.
+        //    StartedAt is backdated 3 s so every derived deadline is already in the past relative to
+        //    this sweep's clock, guaranteeing the first broadcast and timeout passes run immediately.
+        if (game.Status == GameStatus.Ready)
+        {
+            game.BeginPlay(now - TimeSpan.FromSeconds(3));
+            changed = true;
+            events.Add(new GameNotificationIntegrationEvent(game.Id, "state-changed",
+                new { gameId = game.Id, newState = "InProgress" }));
+            activity?.SetTag("game.tick.promoted", true);
+        }
+
+        if (game.Status != GameStatus.InProgress)
+            return GameTickResult.None;
 
         // 1. Player status transitions (folds in the old PlayerStateMonitor responsibility).
         var transitions = game.ApplyTimeoutTransitions(now);

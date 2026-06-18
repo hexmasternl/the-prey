@@ -32,8 +32,10 @@
   <!-- Full-screen map -->
   <div id="map" class="map-container"></div>
 
-  <!-- Hunter head-start countdown (removed automatically when it reaches zero) -->
-  <app-hunter-delay-overlay [hunterMayMoveAt]="hunterMayMoveAt()" />
+  <!-- Waiting-for-start overlay (Ready state) or hunter head-start countdown (InProgress) -->
+  <app-hunter-delay-overlay
+    [waiting]="waitingForStart()"
+    [hunterMayMoveAt]="hunterMayMoveAt()" />
 
   <!-- Spectator banner: shown once tagged/out, while the game keeps running -->
   @if (outReason(); as reason) {
@@ -125,7 +127,7 @@
     <div class="hud-ping-row">
       <span class="hud-ping-label">NEXT UPDATE</span>
       <div class="hud-ping-bar-wrap">
-        <div class="hud-ping-bar" [style.width.%]="(pingCountdown() / (pollIntervalSeconds || 30)) * 100"></div>
+        <div class="hud-ping-bar" [style.width.%]="pingBarWidth()"></div>
       </div>
       <span class="hud-ping-value">{{ pingCountdown() }}s</span>
     </div>

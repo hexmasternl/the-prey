@@ -9,6 +9,8 @@ public sealed record GameStatusDto(
     IReadOnlyList<GameParticipantStatusDto> Participants,
     int GameDurationLeft,
     int NextPingDuration,
+    /// <summary>The participant's current reporting interval in whole seconds — the full duration between consecutive scheduled pings; 0 for non-participants.</summary>
+    int CurrentPingInterval,
     bool IsEndgame,
     int PreysLeft,
     DateTimeOffset? HunterMayMoveAt);

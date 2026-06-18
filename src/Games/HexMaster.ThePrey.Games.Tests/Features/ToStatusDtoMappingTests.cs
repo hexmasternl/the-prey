@@ -8,6 +8,98 @@ namespace HexMaster.ThePrey.Games.Tests.Features;
 /// <summary>Tests for the ToStatusDto mapping path exercised via the GetGameStatusQueryHandler.</summary>
 public sealed class ToStatusDtoMappingTests
 {
+    private static async Task<GameStatusDto?> QueryStatus(Game game, Guid userId)
+    {
+        var repoMock = new Mock<IGameRepository>();
+        var playfieldsMock = new Mock<IPlayfieldInfoProvider>();
+        repoMock.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+        playfieldsMock.Setup(p => p.GetAsync(game.PlayfieldId, It.IsAny<CancellationToken>())).ReturnsAsync((PlayfieldInfo?)null);
+        var handler = new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQueryHandler(repoMock.Object, playfieldsMock.Object);
+        return await handler.Handle(new HexMaster.ThePrey.Games.Features.GetGameStatus.GetGameStatusQuery(game.Id, userId), CancellationToken.None);
+    }
+
+    // ── Theme A: CurrentPingInterval ──────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_ShouldReturnCurrentPingInterval_EqualToDefaultLocationInterval_WhenOutsideFinalStage()
+    {
+        var config = GameFaker.ValidConfiguration(gameDuration: 60, finalStageDuration: 10, defaultLocationInterval: 30);
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5); // well before final stage
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.Equal(30, result!.CurrentPingInterval);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnCurrentPingInterval_EqualToFinalLocationInterval_WhenInFinalStage()
+    {
+        var config = GameFaker.ValidConfiguration(gameDuration: 60, finalStageDuration: 10, finalLocationInterval: 10);
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-55); // 55 min in → final stage (last 10 min)
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.Equal(10, result!.CurrentPingInterval);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnCurrentPingInterval_EqualToPenaltyInterval_WhenParticipantHasActivePenalty()
+    {
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
+        // Apply a penalty that is still active.
+        game.ApplyPenalty(hunterId, DateTimeOffset.UtcNow.AddMinutes(5));
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.Equal(Game.PenaltyReportingIntervalSeconds, result!.CurrentPingInterval);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDuration_WithinCurrentPingInterval_BeforeFirstPing()
+    {
+        var config = GameFaker.ValidConfiguration(defaultLocationInterval: 30);
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
+        // No location recorded yet → NextPingDuration should equal CurrentPingInterval (full interval).
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.InRange(result!.NextPingDuration, 0, result.CurrentPingInterval);
+        Assert.Equal(result.CurrentPingInterval, result.NextPingDuration);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNonZeroPingFields_ForParticipant_AndEnsureMappingGuardIsActive()
+    {
+        // The GetGameStatusQueryHandler blocks non-participants before reaching mapping.
+        // Verify that a participant receives non-zero ping fields (confirming the isParticipant
+        // branch is taken), while a non-participant call correctly throws.
+        var config = GameFaker.ValidConfiguration(defaultLocationInterval: 30);
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
+
+        // Participant: should get non-zero CurrentPingInterval
+        var participantResult = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(participantResult);
+        Assert.True(participantResult!.CurrentPingInterval > 0, "Participant should have non-zero CurrentPingInterval.");
+        Assert.True(participantResult.NextPingDuration >= 0, "NextPingDuration must be >= 0.");
+        Assert.True(participantResult.NextPingDuration <= participantResult.CurrentPingInterval,
+            "NextPingDuration must not exceed CurrentPingInterval.");
+
+        // Non-participant: should be rejected before reaching mapping (access guard test).
+        var nonParticipant = Guid.NewGuid();
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => QueryStatus(game, nonParticipant));
+    }
+
+
     [Fact]
     public async Task Handle_ShouldReturnIsEndgame_True_WhenInFinalStage()
     {
@@ -80,7 +172,8 @@ public sealed class ToStatusDtoMappingTests
         game.JoinLobby(GameFaker.Player(secondPlayer));
         game.SetReady(playerId);
         game.SetReady(secondPlayer);
-        game.Start(playerId, DateTimeOffset.UtcNow.AddMinutes(-5));
+        game.Arm(playerId);
+        game.BeginPlay(DateTimeOffset.UtcNow.AddMinutes(-5));
 
         var repoMock = new Mock<IGameRepository>();
         var playfieldsMock = new Mock<IPlayfieldInfoProvider>();

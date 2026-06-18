@@ -20,8 +20,9 @@ public interface IGameRepository
     Task<IReadOnlyList<Game>> GetAllInProgressAsync(CancellationToken ct);
 
     /// <summary>
-    /// Returns the ids of all games currently in the InProgress state. Used by the sweep so each game
-    /// can be loaded on its own DbContext for safe parallel processing.
+    /// Returns the ids of all games currently in the <see cref="GameStatus.Ready"/> or
+    /// <see cref="GameStatus.InProgress"/> state. Used by the sweep so each game can be loaded on its
+    /// own DbContext for safe parallel processing. Ready games are promoted to InProgress by the sweep.
     /// </summary>
     Task<IReadOnlyList<Guid>> GetInProgressGameIdsAsync(CancellationToken ct);
 

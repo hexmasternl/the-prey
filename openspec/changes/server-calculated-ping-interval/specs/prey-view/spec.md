@@ -23,3 +23,22 @@ The prey view's "NEXT UPDATE" HUD progress bar SHALL render its fill from server
 
 - **WHEN** a status snapshot has `currentPingInterval` of 0 or undefined
 - **THEN** the bar uses a 30-second capacity and does not produce a divide-by-zero or NaN width
+
+### Requirement: Waiting-for-start overlay while the game is Ready
+
+When the prey participant is routed into the prey view for a game whose status is `Ready` (armed by the host but not yet committed by the server sweep), the view SHALL display a full-screen "waiting for game start" overlay styled like the existing hunter-delay overlay (same dark card treatment), conveying that the game will begin shortly. While the overlay is shown the gameplay HUD MAY be hidden or inert; no ping countdown is started because the game clock has not begun. When the server broadcasts the transition to `InProgress`, the view SHALL store the now-running game (including its `hunterMayMoveAt`), remove the waiting overlay, and proceed exactly as it does on a normal start — showing the hunter-delay countdown overlay and beginning status-driven gameplay. All subsequent ping, penalty, and broadcast timing SHALL be taken from server-supplied values; the client SHALL NOT derive these times from its own clock.
+
+#### Scenario: Ready game shows the waiting overlay
+
+- **WHEN** the prey is routed into the prey view while the game status is `Ready`
+- **THEN** a "waiting for game start" overlay is displayed and no ping countdown is running
+
+#### Scenario: InProgress broadcast replaces the waiting overlay with the hunter-delay countdown
+
+- **WHEN** the view is showing the waiting overlay and a broadcast announces the game is now `InProgress`
+- **THEN** the waiting overlay is removed, the hunter-delay countdown overlay is shown using the server-supplied `hunterMayMoveAt`, and the NEXT UPDATE bar begins driving from server-supplied ping timing
+
+#### Scenario: Timing comes only from the server after start
+
+- **WHEN** the game is `InProgress` and the prey view renders its ping countdown, penalty indicator, and time-remaining
+- **THEN** each value is taken from the latest server status snapshot or broadcast, not computed from the device clock

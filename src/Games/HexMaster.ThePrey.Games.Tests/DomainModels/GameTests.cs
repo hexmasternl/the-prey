@@ -77,66 +77,99 @@ public sealed class GameTests
     }
 
     [Fact]
-    public void Start_ShouldDesignateHunterAndPreys()
+    public void Arm_ShouldDesignateHunterAndSetReady()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
         var hunterId = ids[0];
 
-        game.Start(hunterId, Start);
+        game.Arm(hunterId);
 
-        Assert.Equal(GameStatus.InProgress, game.Status);
-        Assert.Equal(Start, game.StartedAt);
+        Assert.Equal(GameStatus.Ready, game.Status);
         Assert.Equal(hunterId, game.HunterUserId);
         Assert.Equal(2, game.Preys.Count);
         Assert.DoesNotContain(game.Preys, id => id == hunterId);
+        Assert.Null(game.StartedAt);
+        Assert.Null(game.EndsAt);
     }
 
     [Fact]
-    public void Start_ShouldThrow_WhenHunterNotInLobby()
+    public void BeginPlay_ShouldTransitionToInProgress_WhenReady()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.Arm(ids[0]);
+
+        game.BeginPlay(Start);
+
+        Assert.Equal(GameStatus.InProgress, game.Status);
+        Assert.Equal(Start, game.StartedAt);
+        Assert.Equal(ids[0], game.HunterUserId);
+        Assert.Equal(2, game.Preys.Count);
+        Assert.DoesNotContain(game.Preys, id => id == ids[0]);
+    }
+
+    [Fact]
+    public void Arm_ShouldThrow_WhenHunterNotInLobby()
     {
         var game = GameFaker.LobbyGameWithPlayers(2, out _);
 
-        Assert.Throws<InvalidOperationException>(() => game.Start(Guid.NewGuid(), Start));
+        Assert.Throws<InvalidOperationException>(() => game.Arm(Guid.NewGuid()));
         Assert.Equal(GameStatus.Lobby, game.Status);
     }
 
     [Fact]
-    public void Start_ShouldThrow_WhenFewerThanTwoPlayers()
+    public void Arm_ShouldThrow_WhenFewerThanTwoPlayers()
     {
         var game = GameFaker.LobbyGameWithPlayers(1, out var ids);
 
-        Assert.Throws<InvalidOperationException>(() => game.Start(ids[0], Start));
+        Assert.Throws<InvalidOperationException>(() => game.Arm(ids[0]));
         Assert.Equal(GameStatus.Lobby, game.Status);
     }
 
     [Fact]
-    public void Start_ShouldThrow_WhenAlreadyStarted()
+    public void Arm_ShouldThrow_WhenAlreadyArmed()
     {
         var game = GameFaker.StartedGame(out var hunterId, out _, Start);
 
-        Assert.Throws<InvalidOperationException>(() => game.Start(hunterId, Start));
+        // Already InProgress — Arm must reject
+        Assert.Throws<InvalidOperationException>(() => game.Arm(hunterId));
     }
 
     [Fact]
-    public void Start_ShouldThrow_WhenANonOwnerPlayerIsNotReady()
+    public void BeginPlay_ShouldThrow_WhenAlreadyInProgress()
+    {
+        var game = GameFaker.StartedGame(out _, out _, Start);
+
+        Assert.Throws<InvalidOperationException>(() => game.BeginPlay(Start));
+    }
+
+    [Fact]
+    public void BeginPlay_ShouldThrow_WhenInLobby()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(2, out _);
+
+        Assert.Throws<InvalidOperationException>(() => game.BeginPlay(Start));
+    }
+
+    [Fact]
+    public void Arm_ShouldThrow_WhenANonOwnerPlayerIsNotReady()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids, markReady: false);
         // Only two of the three players ready up; the third blocks the start.
         game.SetReady(ids[0]);
         game.SetReady(ids[1]);
 
-        Assert.Throws<InvalidOperationException>(() => game.Start(ids[0], Start));
+        Assert.Throws<InvalidOperationException>(() => game.Arm(ids[0]));
         Assert.Equal(GameStatus.Lobby, game.Status);
     }
 
     [Fact]
-    public void Start_ShouldKeepParticipants_NotRecreate()
+    public void Arm_ShouldKeepParticipants_NotRecreate()
     {
-        // Participants from the lobby carry through to in-progress without being cleared.
+        // Participants from the lobby carry through to Ready without being cleared.
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
         Assert.Equal(3, game.Participants.Count);
 
-        game.Start(ids[0], Start);
+        game.Arm(ids[0]);
 
         Assert.Equal(3, game.Participants.Count);
         Assert.All(ids, id => Assert.Contains(game.Participants, p => p.UserId == id));

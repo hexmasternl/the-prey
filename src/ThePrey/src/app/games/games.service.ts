@@ -32,7 +32,7 @@ export interface GameDto {
   gameCode: string;
   playfieldId: string;
   ownerUserId: string;
-  status: string;
+  status: 'Lobby' | 'Ready' | 'InProgress' | 'Completed' | string;
   configuration: GameConfigurationDto;
   participants: ParticipantDto[];
   hunterUserId: string | null;
@@ -80,6 +80,8 @@ export interface GameStatusDto {
   participants: GameParticipantStatusDto[];
   gameDurationLeft: number;
   nextPingDuration: number;
+  /** Server-calculated full ping interval in seconds for the requesting participant (denominator for the NEXT UPDATE bar). */
+  currentPingInterval: number;
   isEndgame: boolean;
   preysLeft: number;
   /** ISO timestamp at which the hunter is allowed to move (start + hunter delay). */

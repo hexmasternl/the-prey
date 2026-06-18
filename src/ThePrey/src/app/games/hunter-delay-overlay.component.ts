@@ -8,15 +8,24 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 
 /**
- * Countdown overlay shown centered over the map until the hunter is allowed to move
- * (`hunterMayMoveAt` from the game status). Ticks locally every second; the absolute
- * timestamp input means every status poll resyncs it for free. Renders nothing when
- * the moment is null or already in the past, and removes itself when it reaches zero.
+ * Overlay shown centered over the map in two modes:
+ *
+ * 1. **Hunter-delay mode** (default): counts down until `hunterMayMoveAt`. Renders
+ *    nothing when the moment is null or already in the past.
+ * 2. **Waiting-for-start mode** (`waiting = true`): shows a steady "waiting for game
+ *    start" message with no countdown digits. Used while the game is in the `Ready`
+ *    state (armed by the host, not yet committed by the sweep).
  */
 @Component({
   selector: 'app-hunter-delay-overlay',
   template: `
-    @if (secondsLeft() > 0) {
+    @if (waiting()) {
+      <div class="delay-overlay">
+        <div class="delay-card">
+          <div class="delay-label">{{ 'WAITING_FOR_START.LABEL' | translate }}</div>
+        </div>
+      </div>
+    } @else if (secondsLeft() > 0) {
       <div class="delay-overlay">
         <div class="delay-card">
           <div class="delay-label">{{ 'HUNTER_DELAY.LABEL' | translate }}</div>
@@ -90,7 +99,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   imports: [TranslatePipe],
 })
 export class HunterDelayOverlayComponent implements OnDestroy {
-  /** ISO timestamp at which the hunter may move; null hides the overlay. */
+  /** ISO timestamp at which the hunter may move; null hides the overlay (in delay mode). */
   readonly hunterMayMoveAt = input<string | null>(null);
 
   /**
@@ -99,6 +108,12 @@ export class HunterDelayOverlayComponent implements OnDestroy {
    * the countdown. Off by default so the prey view keeps the plain countdown.
    */
   readonly showMovementWarning = input(false);
+
+  /**
+   * When true, switches to "waiting for game start" mode: a steady label with no
+   * countdown. Use while the game is in the `Ready` state before InProgress arrives.
+   */
+  readonly waiting = input(false);
 
   private readonly now = signal(Date.now());
   private readonly timer = setInterval(() => this.now.set(Date.now()), 1000);

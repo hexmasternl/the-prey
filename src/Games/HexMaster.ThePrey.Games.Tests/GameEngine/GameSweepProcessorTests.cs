@@ -382,4 +382,133 @@ public sealed class GameSweepProcessorTests
         Assert.Equal(1, result.Broadcasts);
         _games.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    // ── Theme B: Ready → InProgress promotion ─────────────────────────────────
+
+    private static Game ReadyGame(out Guid hunterId, out IReadOnlyList<Guid> preyIds, int playerCount = 3, GameConfiguration? configuration = null)
+    {
+        var game = GameFaker.LobbyGameWithPlayers(playerCount, out var ids, configuration);
+        hunterId = ids[0];
+        preyIds = ids.Skip(1).ToList();
+        game.Arm(hunterId);
+        return game;
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldPromoteReadyGame_ToInProgress_WithBackdatedStartedAt()
+    {
+        var game = ReadyGame(out _, out _);
+        SetupGame(game);
+        var now = Start;
+
+        await _sut.ProcessAsync(game.Id, now, CancellationToken.None);
+
+        Assert.Equal(GameStatus.InProgress, game.Status);
+        Assert.NotNull(game.StartedAt);
+        Assert.Equal(now - TimeSpan.FromSeconds(3), game.StartedAt!.Value);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldSetEndsAt_WhenPromotingReadyGame()
+    {
+        var config = GameFaker.ValidConfiguration(gameDuration: 60);
+        var game = ReadyGame(out _, out _, configuration: config);
+        SetupGame(game);
+        var now = Start;
+
+        await _sut.ProcessAsync(game.Id, now, CancellationToken.None);
+
+        var expectedEndsAt = (now - TimeSpan.FromSeconds(3)).AddMinutes(60);
+        Assert.Equal(expectedEndsAt, game.EndsAt);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldSeedNextScheduledBroadcastOn_WhenPromotingReadyGame()
+    {
+        // BeginPlay seeds NextScheduledBroadcastOn = now - 3s.
+        // Because now - 3s < now, the regular tick is immediately due, so SweepLocations advances the
+        // schedule by DefaultLocationInterval (30 s default) → (now - 3s) + 30s.
+        var game = ReadyGame(out _, out _);
+        SetupGame(game);
+        var now = Start;
+
+        await _sut.ProcessAsync(game.Id, now, CancellationToken.None);
+
+        var backdatedStart = now - TimeSpan.FromSeconds(3);
+        var expectedNextBroadcast = backdatedStart.AddSeconds(GameFaker.ValidConfiguration().DefaultLocationInterval);
+        Assert.Equal(expectedNextBroadcast, game.NextScheduledBroadcastOn);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldPublishStateChangedBroadcast_WhenPromotingReadyGame()
+    {
+        var game = ReadyGame(out _, out _);
+        SetupGame(game);
+
+        await _sut.ProcessAsync(game.Id, Start, CancellationToken.None);
+
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e =>
+                e.GameId == game.Id && e.Name == "state-changed"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldPersistGame_WhenPromotingReadyGame()
+    {
+        var game = ReadyGame(out _, out _);
+        SetupGame(game);
+
+        await _sut.ProcessAsync(game.Id, Start, CancellationToken.None);
+
+        _games.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldContinueTick_AfterPromotion_PersistingGameState()
+    {
+        // A game promoted in the same tick continues through the regular sweep steps.
+        // Even when there are no locations/penalties/timeouts the game is persisted because promotion
+        // marks changed = true, and the game is InProgress by the end of the tick.
+        var game = ReadyGame(out _, out _);
+        SetupGame(game);
+
+        await _sut.ProcessAsync(game.Id, Start, CancellationToken.None);
+
+        // Game was promoted — must be InProgress and persisted.
+        Assert.Equal(GameStatus.InProgress, game.Status);
+        _games.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldBeIdempotent_WhenGameAlreadyInProgress()
+    {
+        // A game already InProgress must NOT be re-stamped or generate a second state-changed broadcast.
+        var game = GameFaker.StartedGame(out _, out _, Start);
+        SetupGame(game);
+        var originalStartedAt = game.StartedAt;
+
+        // Run two ticks.
+        await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
+        await _sut.ProcessAsync(game.Id, Start.AddSeconds(60), CancellationToken.None);
+
+        // StartedAt must not change.
+        Assert.Equal(originalStartedAt, game.StartedAt);
+        // No state-changed GameNotification should ever be published.
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => e.Name == "state-changed"),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldReturnNone_WhenGameIsInLobby()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(2, out _); // Lobby — not Ready, not InProgress
+        SetupGame(game);
+
+        var result = await _sut.ProcessAsync(game.Id, Start, CancellationToken.None);
+
+        Assert.Equal(GameTickResult.None, result);
+        _games.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

@@ -195,6 +195,7 @@
     "OUT_TITLE": "YOU ARE OUT",
     "OUT_MSG": "You left the area for too long.",
     "SPECTATING": "Stay tuned — you'll see how it ends.",
+    "PENALTY_LIVE": "Penalty: You are live!",
     "BACK": "BACK"
   },
   "GAME_OUTCOME": {
@@ -244,5 +245,8 @@
     "HINT": "The hunter must stay put until the countdown ends.",
     "MOVE_WARNING_TITLE": "DO NOT MOVE",
     "MOVE_WARNING_BODY": "If you move during the release delay, you go live for 10 minutes after the countdown ends."
+  },
+  "WAITING_FOR_START": {
+    "LABEL": "WAITING FOR GAME START"
   }
 }
