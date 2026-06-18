@@ -10,10 +10,10 @@ public sealed class PlayFieldTests
     [Fact]
     public void Create_ShouldSucceed_WhenInputIsValid()
     {
-        var playField = PlayField.Create("Vondelpark", OwnerId, PlayFieldFaker.SquarePoints(), isPublic: true);
+        var playField = PlayField.Create("NL, Amsterdam, Vondelpark", OwnerId, PlayFieldFaker.SquarePoints(), isPublic: true);
 
         Assert.NotEqual(Guid.Empty, playField.Id);
-        Assert.Equal("Vondelpark", playField.Name);
+        Assert.Equal("NL, Amsterdam, Vondelpark", playField.Name);
         Assert.Equal(OwnerId, playField.OwnerId);
         Assert.True(playField.IsPublic);
         Assert.Equal(4, playField.Points.Count);
@@ -150,9 +150,9 @@ public sealed class PlayFieldTests
         };
         var ts = DateTimeOffset.UtcNow;
 
-        playField.Update("New Name", true, newPoints, ts);
+        playField.Update("NL, Amsterdam, New Name", true, newPoints, ts);
 
-        Assert.Equal("New Name", playField.Name);
+        Assert.Equal("NL, Amsterdam, New Name", playField.Name);
         Assert.True(playField.IsPublic);
         Assert.Equal(ts, playField.LastModifiedOn);
         Assert.Equal(4, playField.Points.Count);
@@ -180,5 +180,92 @@ public sealed class PlayFieldTests
 
         Assert.Throws<ArgumentException>(() =>
             playField.Update("Valid", false, twoPoints, DateTimeOffset.UtcNow));
+    }
+
+    // ─── IsPublicEligibleName ─────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("NL, Amsterdam, Vondelpark Arena", true)]
+    [InlineData("USA, New York, Central Park & Field", true)]
+    [InlineData("NL, Den Haag, Zuiderpark-West", true)]
+    [InlineData("DE, München, Englischer Garten", true)]
+    [InlineData("FR, Saint-Étienne, Le Parc", true)]
+    [InlineData("D, Berlin, Tiergarten", false)]           // country code too short
+    [InlineData("NLAND, Amsterdam, Park", false)]          // country code too long
+    [InlineData("nl, Amsterdam, Park", false)]             // lowercase country code
+    [InlineData("NL, amsterdam, Park", false)]             // lowercase city
+    [InlineData("NL, Amsterdam", false)]                   // no field name
+    [InlineData("City Park Arena", false)]                 // no convention at all
+    [InlineData("NL, Amsterdam, Park@Home", false)]        // illegal char in field name
+    public void IsPublicEligibleName_ShouldReturnExpected_ForKnownCases(string name, bool expected)
+    {
+        Assert.Equal(expected, PlayField.IsPublicEligibleName(name));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void IsPublicEligibleName_ShouldReturnFalse_WhenNameIsNullOrWhiteSpace(string? name)
+    {
+        Assert.False(PlayField.IsPublicEligibleName(name!));
+    }
+
+    // ─── IsPublic coercion in Create ──────────────────────────────────────────
+
+    [Fact]
+    public void Create_ShouldSetIsPublicFalse_WhenRequestedPublicButNameNotEligible()
+    {
+        var playField = PlayField.Create("Vondelpark", OwnerId, PlayFieldFaker.SquarePoints(), isPublic: true);
+
+        Assert.False(playField.IsPublic);
+    }
+
+    [Fact]
+    public void Create_ShouldSetIsPublicTrue_WhenRequestedPublicAndNameIsEligible()
+    {
+        var playField = PlayField.Create("NL, Amsterdam, Vondelpark", OwnerId, PlayFieldFaker.SquarePoints(), isPublic: true);
+
+        Assert.True(playField.IsPublic);
+    }
+
+    [Fact]
+    public void Create_ShouldSetIsPublicFalse_WhenRequestedPrivateEvenIfNameIsEligible()
+    {
+        var playField = PlayField.Create("NL, Amsterdam, Vondelpark", OwnerId, PlayFieldFaker.SquarePoints(), isPublic: false);
+
+        Assert.False(playField.IsPublic);
+    }
+
+    // ─── IsPublic coercion in Update ─────────────────────────────────────────
+
+    [Fact]
+    public void Update_ShouldSetIsPublicFalse_WhenRequestedPublicButNameNotEligible()
+    {
+        var playField = PlayFieldFaker.CreateValid();
+
+        playField.Update("Vondelpark", true, PlayFieldFaker.SquarePoints(), DateTimeOffset.UtcNow);
+
+        Assert.False(playField.IsPublic);
+    }
+
+    [Fact]
+    public void Update_ShouldSetIsPublicTrue_WhenRequestedPublicAndNameIsEligible()
+    {
+        var playField = PlayFieldFaker.CreateValid();
+
+        playField.Update("NL, Amsterdam, Vondelpark", true, PlayFieldFaker.SquarePoints(), DateTimeOffset.UtcNow);
+
+        Assert.True(playField.IsPublic);
+    }
+
+    [Fact]
+    public void Update_ShouldSetIsPublicFalse_WhenRequestedPrivateEvenIfNameIsEligible()
+    {
+        var playField = PlayFieldFaker.CreateValid();
+
+        playField.Update("NL, Amsterdam, Vondelpark", false, PlayFieldFaker.SquarePoints(), DateTimeOffset.UtcNow);
+
+        Assert.False(playField.IsPublic);
     }
 }

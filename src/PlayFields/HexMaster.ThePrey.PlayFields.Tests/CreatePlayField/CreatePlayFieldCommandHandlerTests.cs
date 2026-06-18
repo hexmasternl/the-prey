@@ -35,12 +35,12 @@ public sealed class CreatePlayFieldCommandHandlerTests
     [Fact]
     public async Task Handle_ShouldCreateAndPersist_WhenCommandIsValid()
     {
-        var command = new CreatePlayFieldCommand(OwnerId, "Vondelpark", true, ValidSquare());
+        var command = new CreatePlayFieldCommand(OwnerId, "NL, Amsterdam, Vondelpark", true, ValidSquare());
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result.PlayField.Id);
-        Assert.Equal("Vondelpark", result.PlayField.Name);
+        Assert.Equal("NL, Amsterdam, Vondelpark", result.PlayField.Name);
         Assert.Equal(OwnerId, result.PlayField.OwnerId);
         Assert.True(result.PlayField.IsPublic);
         Assert.Equal(4, result.PlayField.Points.Count);
@@ -78,5 +78,27 @@ public sealed class CreatePlayFieldCommandHandlerTests
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _handler.Handle(command, CancellationToken.None));
         _mockRepository.Verify(r => r.AddAsync(It.IsAny<PlayField>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCoerceIsPublicToFalse_WhenNameNotEligibleAndIsPublicRequested()
+    {
+        var command = new CreatePlayFieldCommand(OwnerId, "Vondelpark", true, ValidSquare());
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        Assert.False(result.PlayField.IsPublic);
+        _mockRepository.Verify(r => r.AddAsync(It.IsAny<PlayField>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldKeepIsPublicTrue_WhenNameIsEligibleAndIsPublicRequested()
+    {
+        var command = new CreatePlayFieldCommand(OwnerId, "NL, Amsterdam, Vondelpark", true, ValidSquare());
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.PlayField.IsPublic);
+        _mockRepository.Verify(r => r.AddAsync(It.IsAny<PlayField>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

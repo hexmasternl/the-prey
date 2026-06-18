@@ -1,10 +1,12 @@
+using System.Text.RegularExpressions;
+
 namespace HexMaster.ThePrey.PlayFields.DomainModels;
 
 /// <summary>
 /// A named, closed-polygon play area owned by a player. The ordered <see cref="Points"/> define the
 /// polygon edges: each point connects to the next and the last point connects back to the first.
 /// </summary>
-public sealed class PlayField
+public sealed partial class PlayField
 {
     /// <summary>The minimum number of points required to form a polygon.</summary>
     public const int MinimumPoints = 3;
@@ -18,6 +20,18 @@ public sealed class PlayField
     public DateTimeOffset LastModifiedOn { get; private set; }
     public GpsCoordinate? CenterCoordinates { get; private set; }
     public IReadOnlyList<GpsCoordinate> Points => _points.AsReadOnly();
+
+    [GeneratedRegex(
+        @"^[A-Z]{2,4}, \p{Lu}[\p{L} '’.-]*, [\p{L}\p{N}][\p{L}\p{N} &'’.-]*$",
+        RegexOptions.CultureInvariant)]
+    private static partial Regex PublicNameRegex();
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="name"/> (trimmed) satisfies the public-name
+    /// convention <c>CC, City, Fieldname</c> required for a play field to be publicly listed.
+    /// </summary>
+    public static bool IsPublicEligibleName(string name)
+        => !string.IsNullOrWhiteSpace(name) && PublicNameRegex().IsMatch(name.Trim());
 
     private PlayField() { }
 
@@ -50,7 +64,7 @@ public sealed class PlayField
             Id = id ?? Guid.NewGuid(),
             Name = name,
             OwnerId = ownerId,
-            IsPublic = isPublic,
+            IsPublic = isPublic && IsPublicEligibleName(name),
             LastModifiedOn = lastModifiedOn ?? DateTimeOffset.UtcNow
         };
         playField._points.AddRange(points);
@@ -96,7 +110,7 @@ public sealed class PlayField
             throw new ArgumentException($"A play field requires at least {MinimumPoints} points.", nameof(points));
 
         Name = name;
-        IsPublic = isPublic;
+        IsPublic = isPublic && IsPublicEligibleName(name);
         LastModifiedOn = lastModifiedOn;
         _points.Clear();
         _points.AddRange(points);
