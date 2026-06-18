@@ -1,0 +1,1300 @@
+[
+  {
+    "id": "209a9837-1018-4a5a-8271-11778bf0bcd8",
+    "gameCode": "5530",
+    "playfieldId": "85ca210f-1915-4f44-a95e-9e13d9fd9c7f",
+    "ownerUserId": "d830c536-ecdb-422a-9375-1576e93e0fde",
+    "status": "Completed",
+    "configuration": {
+      "gameDuration": 30,
+      "hunterDelayTime": 5,
+      "finalStageDuration": 5,
+      "defaultLocationInterval": 180,
+      "finalLocationInterval": 60,
+      "enablePreyBoundaryPenalties": true,
+      "enableHunterBoundaryPenalty": true
+    },
+    "startedAt": "2026-06-17T17:10:42.572806+00:00",
+    "createdAt": "2026-06-17T17:10:03.030628+00:00",
+    "endsAt": "2026-06-17T17:40:42.572806+00:00",
+    "cleanUpAfter": "2026-06-19T17:10:03.030628+00:00",
+    "completedAt": "2026-06-17T17:40:49.780367+00:00",
+    "outcome": "PreysWin",
+    "hunterUserId": "8c018b04-9815-40d1-a145-63933f1b4bdd",
+    "preys": ["d830c536-ecdb-422a-9375-1576e93e0fde"],
+    "participants": [
+      {
+        "userId": "8c018b04-9815-40d1-a145-63933f1b4bdd",
+        "displayName": "HexMaster",
+        "profilePictureUrl": null,
+        "isReady": true,
+        "state": "Active",
+        "lastLocationAt": "2026-06-17T17:40:23.269+00:00",
+        "location": {
+          "latitude": 52.0481741,
+          "longitude": 4.3316842
+        },
+        "delayAnchorLocation": {
+          "latitude": 52.0518389,
+          "longitude": 4.3395377
+        },
+        "delayPenaltyApplied": false,
+        "isHunter": true,
+        "penalties": [],
+        "locations": [
+          {
+            "id": "d2744605-7b9a-4e63-966a-fdbd9cd640b6",
+            "coordinate": {
+              "latitude": 52.0518389,
+              "longitude": 4.3395377
+            },
+            "recordedAt": "2026-06-17T17:10:45.489+00:00",
+            "checked": true
+          },
+          {
+            "id": "2ad202c5-00ad-4715-9504-804cc312435c",
+            "coordinate": {
+              "latitude": 52.0518128,
+              "longitude": 4.33962
+            },
+            "recordedAt": "2026-06-17T17:13:45.518+00:00",
+            "checked": true
+          },
+          {
+            "id": "2e247daa-862a-4026-b649-1d2709b55379",
+            "coordinate": {
+              "latitude": 52.0511236,
+              "longitude": 4.3390176
+            },
+            "recordedAt": "2026-06-17T17:16:45.709+00:00",
+            "checked": true
+          },
+          {
+            "id": "4600b590-4673-4c68-9612-4eca64c1a441",
+            "coordinate": {
+              "latitude": 52.0496883,
+              "longitude": 4.3353995
+            },
+            "recordedAt": "2026-06-17T17:19:45.712+00:00",
+            "checked": true
+          },
+          {
+            "id": "84b18d58-2788-4cdb-85e4-f8e366065297",
+            "coordinate": {
+              "latitude": 52.0510504,
+              "longitude": 4.3320852
+            },
+            "recordedAt": "2026-06-17T17:22:45.735+00:00",
+            "checked": true
+          },
+          {
+            "id": "215b0d8f-74dd-4503-b8af-d6796d6fc419",
+            "coordinate": {
+              "latitude": 52.0513191,
+              "longitude": 4.3291711
+            },
+            "recordedAt": "2026-06-17T17:25:45.711+00:00",
+            "checked": true
+          },
+          {
+            "id": "08bafc4e-df92-4465-a4e5-6232569223a1",
+            "coordinate": {
+              "latitude": 52.0501118,
+              "longitude": 4.3316643
+            },
+            "recordedAt": "2026-06-17T17:28:45.757+00:00",
+            "checked": true
+          },
+          {
+            "id": "5ab1e5b5-6d00-4fcc-abd4-2064b47d2523",
+            "coordinate": {
+              "latitude": 52.0485027,
+              "longitude": 4.3359512
+            },
+            "recordedAt": "2026-06-17T17:31:46.725+00:00",
+            "checked": true
+          },
+          {
+            "id": "311237bd-e485-47f6-a463-46489cbe9427",
+            "coordinate": {
+              "latitude": 52.0486926,
+              "longitude": 4.3335791
+            },
+            "recordedAt": "2026-06-17T17:34:46.611+00:00",
+            "checked": true
+          },
+          {
+            "id": "ff9591cc-d86f-4895-9fc4-ffc7fea744c7",
+            "coordinate": {
+              "latitude": 52.0496709,
+              "longitude": 4.3318959
+            },
+            "recordedAt": "2026-06-17T17:36:22.396+00:00",
+            "checked": true
+          },
+          {
+            "id": "21e89896-e676-4787-bfb9-304e4f49a91a",
+            "coordinate": {
+              "latitude": 52.0503926,
+              "longitude": 4.3313463
+            },
+            "recordedAt": "2026-06-17T17:37:22.713+00:00",
+            "checked": true
+          },
+          {
+            "id": "00b3b57d-7dbb-4d34-aa1a-3baf26d04dd1",
+            "coordinate": {
+              "latitude": 52.0499503,
+              "longitude": 4.3302071
+            },
+            "recordedAt": "2026-06-17T17:38:23.288+00:00",
+            "checked": true
+          },
+          {
+            "id": "9ce2032b-7fa4-4645-a8f8-4378b4e90632",
+            "coordinate": {
+              "latitude": 52.0488806,
+              "longitude": 4.3308962
+            },
+            "recordedAt": "2026-06-17T17:39:22.965+00:00",
+            "checked": true
+          },
+          {
+            "id": "999a35fb-fa8f-487e-94f2-187690ed0477",
+            "coordinate": {
+              "latitude": 52.0481741,
+              "longitude": 4.3316842
+            },
+            "recordedAt": "2026-06-17T17:40:23.269+00:00",
+            "checked": true
+          }
+        ]
+      },
+      {
+        "userId": "d830c536-ecdb-422a-9375-1576e93e0fde",
+        "displayName": "Julian",
+        "profilePictureUrl": null,
+        "isReady": false,
+        "state": "Active",
+        "lastLocationAt": "2026-06-17T17:39:44.716+00:00",
+        "location": {
+          "latitude": 52.0490841,
+          "longitude": 4.3326609
+        },
+        "delayAnchorLocation": null,
+        "delayPenaltyApplied": false,
+        "isHunter": false,
+        "penalties": [],
+        "locations": [
+          {
+            "id": "fb4e6c5f-f843-40c8-b581-756df6bf9d2a",
+            "coordinate": {
+              "latitude": 52.0518765,
+              "longitude": 4.339457
+            },
+            "recordedAt": "2026-06-17T17:10:43.694+00:00",
+            "checked": true
+          },
+          {
+            "id": "080c73a0-f2d4-4ff8-9ade-641b7c48ec2c",
+            "coordinate": {
+              "latitude": 52.0525677,
+              "longitude": 4.3364861
+            },
+            "recordedAt": "2026-06-17T17:13:43.61+00:00",
+            "checked": true
+          },
+          {
+            "id": "6b2da686-35e4-4af2-a6e7-2119c7192b38",
+            "coordinate": {
+              "latitude": 52.0506086,
+              "longitude": 4.3349518
+            },
+            "recordedAt": "2026-06-17T17:16:43.604+00:00",
+            "checked": true
+          },
+          {
+            "id": "f487abb2-885e-4fe7-8e30-415bb2985106",
+            "coordinate": {
+              "latitude": 52.0501924,
+              "longitude": 4.3319725
+            },
+            "recordedAt": "2026-06-17T17:19:43.604+00:00",
+            "checked": true
+          },
+          {
+            "id": "a23b7379-ae97-4795-9db3-fd933ce36604",
+            "coordinate": {
+              "latitude": 52.0508483,
+              "longitude": 4.3304008
+            },
+            "recordedAt": "2026-06-17T17:22:43.606+00:00",
+            "checked": true
+          },
+          {
+            "id": "8857ba5a-c98f-420a-84e4-786a067dde82",
+            "coordinate": {
+              "latitude": 52.0481875,
+              "longitude": 4.3314932
+            },
+            "recordedAt": "2026-06-17T17:25:43.606+00:00",
+            "checked": true
+          },
+          {
+            "id": "62ff6bd9-d4c1-4ce8-8bc3-0e4d458292cd",
+            "coordinate": {
+              "latitude": 52.0469459,
+              "longitude": 4.3331399
+            },
+            "recordedAt": "2026-06-17T17:28:43.597+00:00",
+            "checked": true
+          },
+          {
+            "id": "9eace515-127f-4dd8-ae9b-b44f2293b1d2",
+            "coordinate": {
+              "latitude": 52.0476721,
+              "longitude": 4.3318292
+            },
+            "recordedAt": "2026-06-17T17:31:44.601+00:00",
+            "checked": true
+          },
+          {
+            "id": "5ba7c04d-b731-468f-9be4-ffe111342514",
+            "coordinate": {
+              "latitude": 52.0492752,
+              "longitude": 4.3304761
+            },
+            "recordedAt": "2026-06-17T17:34:44.611+00:00",
+            "checked": true
+          },
+          {
+            "id": "4bd66051-5ea5-474b-80eb-10c28e45a0b4",
+            "coordinate": {
+              "latitude": 52.0494003,
+              "longitude": 4.3303488
+            },
+            "recordedAt": "2026-06-17T17:37:44.471+00:00",
+            "checked": true
+          },
+          {
+            "id": "107d9854-4e88-4313-bcb3-c2b0d7545a3d",
+            "coordinate": {
+              "latitude": 52.0483408,
+              "longitude": 4.331374
+            },
+            "recordedAt": "2026-06-17T17:38:44.497+00:00",
+            "checked": true
+          },
+          {
+            "id": "eba15e15-e372-497c-ac95-c0555f38415b",
+            "coordinate": {
+              "latitude": 52.0490841,
+              "longitude": 4.3326609
+            },
+            "recordedAt": "2026-06-17T17:39:44.716+00:00",
+            "checked": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bbff0727-8267-4861-9274-d71deb4a6624",
+    "gameCode": "5386",
+    "playfieldId": "d455c73a-7b1d-4064-a33c-990fe06b9c24",
+    "ownerUserId": "d830c536-ecdb-422a-9375-1576e93e0fde",
+    "status": "Completed",
+    "configuration": {
+      "gameDuration": 60,
+      "hunterDelayTime": 10,
+      "finalStageDuration": 10,
+      "defaultLocationInterval": 300,
+      "finalLocationInterval": 180,
+      "enablePreyBoundaryPenalties": true,
+      "enableHunterBoundaryPenalty": true
+    },
+    "startedAt": "2026-06-17T17:43:24.985707+00:00",
+    "createdAt": "2026-06-17T17:42:55.630504+00:00",
+    "endsAt": "2026-06-17T18:43:24.985707+00:00",
+    "cleanUpAfter": "2026-06-19T17:42:55.630504+00:00",
+    "completedAt": "2026-06-17T17:54:25.624478+00:00",
+    "outcome": "HuntersWin",
+    "hunterUserId": "8c018b04-9815-40d1-a145-63933f1b4bdd",
+    "preys": ["d830c536-ecdb-422a-9375-1576e93e0fde"],
+    "participants": [
+      {
+        "userId": "8c018b04-9815-40d1-a145-63933f1b4bdd",
+        "displayName": "HexMaster",
+        "profilePictureUrl": null,
+        "isReady": true,
+        "state": "Active",
+        "lastLocationAt": "2026-06-17T17:54:09.325+00:00",
+        "location": {
+          "latitude": 52.0518396,
+          "longitude": 4.3393384
+        },
+        "delayAnchorLocation": {
+          "latitude": 52.0499713,
+          "longitude": 4.333931
+        },
+        "delayPenaltyApplied": false,
+        "isHunter": true,
+        "penalties": [],
+        "locations": [
+          {
+            "id": "3e967945-6653-4d12-ba29-ad4f790d091f",
+            "coordinate": {
+              "latitude": 52.0499713,
+              "longitude": 4.333931
+            },
+            "recordedAt": "2026-06-17T17:43:25.815+00:00",
+            "checked": true
+          },
+          {
+            "id": "309ecf35-2d14-4eee-9246-4125989b71f5",
+            "coordinate": {
+              "latitude": 52.0518396,
+              "longitude": 4.3393384
+            },
+            "recordedAt": "2026-06-17T17:54:09.325+00:00",
+            "checked": true
+          }
+        ]
+      },
+      {
+        "userId": "d830c536-ecdb-422a-9375-1576e93e0fde",
+        "displayName": "Julian",
+        "profilePictureUrl": null,
+        "isReady": false,
+        "state": "Tagged",
+        "lastLocationAt": "2026-06-17T17:53:29.597+00:00",
+        "location": {
+          "latitude": 52.0516629,
+          "longitude": 4.3392496
+        },
+        "delayAnchorLocation": null,
+        "delayPenaltyApplied": false,
+        "isHunter": false,
+        "penalties": [],
+        "locations": [
+          {
+            "id": "2d3eaf40-57ad-4a80-a926-c8a168391b5a",
+            "coordinate": {
+              "latitude": 52.050066,
+              "longitude": 4.3340666
+            },
+            "recordedAt": "2026-06-17T17:43:30.199+00:00",
+            "checked": true
+          },
+          {
+            "id": "a2ed75cc-1254-4e89-9531-a9ffc27a6918",
+            "coordinate": {
+              "latitude": 52.0504531,
+              "longitude": 4.337525
+            },
+            "recordedAt": "2026-06-17T17:48:29.582+00:00",
+            "checked": true
+          },
+          {
+            "id": "cbef805c-0d07-4432-8805-ce37679e6f2a",
+            "coordinate": {
+              "latitude": 52.0516629,
+              "longitude": 4.3392496
+            },
+            "recordedAt": "2026-06-17T17:53:29.597+00:00",
+            "checked": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f9bac670-d3ed-4600-8612-f9bb6cd22461",
+    "gameCode": "7270",
+    "playfieldId": "dea65340-81ed-4b9b-8fa5-c5bc6f07b11d",
+    "ownerUserId": "79850e21-ff1f-4dfb-be47-c7ff650da663",
+    "status": "Completed",
+    "configuration": {
+      "gameDuration": 30,
+      "hunterDelayTime": 5,
+      "finalStageDuration": 5,
+      "defaultLocationInterval": 180,
+      "finalLocationInterval": 60,
+      "enablePreyBoundaryPenalties": true,
+      "enableHunterBoundaryPenalty": true
+    },
+    "startedAt": "2026-06-17T15:26:06.129767+00:00",
+    "createdAt": "2026-06-17T15:25:20.558944+00:00",
+    "endsAt": "2026-06-17T15:56:06.129767+00:00",
+    "cleanUpAfter": "2026-06-19T15:25:20.558944+00:00",
+    "completedAt": "2026-06-17T15:56:19.783525+00:00",
+    "outcome": "PreysWin",
+    "hunterUserId": "79850e21-ff1f-4dfb-be47-c7ff650da663",
+    "preys": ["8c018b04-9815-40d1-a145-63933f1b4bdd"],
+    "participants": [
+      {
+        "userId": "79850e21-ff1f-4dfb-be47-c7ff650da663",
+        "displayName": "Cant Touch Me",
+        "profilePictureUrl": null,
+        "isReady": false,
+        "state": "Active",
+        "lastLocationAt": "2026-06-17T15:55:09.426+00:00",
+        "location": {
+          "latitude": 52.0302833,
+          "longitude": 4.33433
+        },
+        "delayAnchorLocation": {
+          "latitude": 52.0302983,
+          "longitude": 4.3343517
+        },
+        "delayPenaltyApplied": true,
+        "isHunter": true,
+        "penalties": [
+          {
+            "id": "77aabfb0-5748-48bc-acfd-49ae07d95b90",
+            "endsAt": "2026-06-17T15:41:06.129767+00:00"
+          }
+        ],
+        "locations": [
+          {
+            "id": "5415cb98-937a-496d-abcb-b121adf1af74",
+            "coordinate": {
+              "latitude": 52.0302983,
+              "longitude": 4.3343517
+            },
+            "recordedAt": "2026-06-17T15:26:09.346+00:00",
+            "checked": true
+          },
+          {
+            "id": "81be25a2-ece4-419c-87c0-ebb3c5758896",
+            "coordinate": {
+              "latitude": 52.026815,
+              "longitude": 4.3408517
+            },
+            "recordedAt": "2026-06-17T15:29:09.461+00:00",
+            "checked": true
+          },
+          {
+            "id": "ed72d839-f3e0-42eb-ab30-61c9bd930b0d",
+            "coordinate": {
+              "latitude": 52.026815,
+              "longitude": 4.3408517
+            },
+            "recordedAt": "2026-06-17T15:29:19.464+00:00",
+            "checked": true
+          },
+          {
+            "id": "9158aa6e-84df-4205-88ab-d119704ab250",
+            "coordinate": {
+              "latitude": 52.026815,
+              "longitude": 4.3408517
+            },
+            "recordedAt": "2026-06-17T15:29:29.469+00:00",
+            "checked": true
+          },
+          {
+            "id": "5ef721d8-16ec-47c2-9c4d-f9e411decd8c",
+            "coordinate": {
+              "latitude": 52.030605,
+              "longitude": 4.33413
+            },
+            "recordedAt": "2026-06-17T15:29:38.475+00:00",
+            "checked": true
+          },
+          {
+            "id": "079a8a17-8601-42ed-a1de-2cff6259fdc1",
+            "coordinate": {
+              "latitude": 52.0302885,
+              "longitude": 4.3343232
+            },
+            "recordedAt": "2026-06-17T15:29:49.482+00:00",
+            "checked": true
+          },
+          {
+            "id": "f2c94583-0174-4c8c-a85d-8ce3963aaab2",
+            "coordinate": {
+              "latitude": 52.0302883,
+              "longitude": 4.3343233
+            },
+            "recordedAt": "2026-06-17T15:29:59.491+00:00",
+            "checked": true
+          },
+          {
+            "id": "09500ec5-e2ef-4ec4-8d88-f6893a0741bd",
+            "coordinate": {
+              "latitude": 52.0302883,
+              "longitude": 4.3343233
+            },
+            "recordedAt": "2026-06-17T15:30:09.494+00:00",
+            "checked": true
+          },
+          {
+            "id": "f099811c-53cf-4e57-9d63-f6095d9bd19c",
+            "coordinate": {
+              "latitude": 52.0302883,
+              "longitude": 4.3343233
+            },
+            "recordedAt": "2026-06-17T15:30:19.497+00:00",
+            "checked": true
+          },
+          {
+            "id": "b9d7236f-347b-46a9-938c-7957a132fa25",
+            "coordinate": {
+              "latitude": 52.0302883,
+              "longitude": 4.3343233
+            },
+            "recordedAt": "2026-06-17T15:30:30.506+00:00",
+            "checked": true
+          },
+          {
+            "id": "189d63ab-72aa-470a-aff5-062926175043",
+            "coordinate": {
+              "latitude": 52.032795,
+              "longitude": 4.3366883
+            },
+            "recordedAt": "2026-06-17T15:30:40.512+00:00",
+            "checked": true
+          },
+          {
+            "id": "cbd30c72-4b58-4743-9f27-0f5623d67b18",
+            "coordinate": {
+              "latitude": 52.032795,
+              "longitude": 4.3366883
+            },
+            "recordedAt": "2026-06-17T15:30:49.517+00:00",
+            "checked": true
+          },
+          {
+            "id": "f0057a65-ba36-4f5d-981a-e7e69bd04d0b",
+            "coordinate": {
+              "latitude": 52.0349717,
+              "longitude": 4.33933
+            },
+            "recordedAt": "2026-06-17T15:31:00.527+00:00",
+            "checked": true
+          },
+          {
+            "id": "91ce001c-516f-42be-8d5a-7a8a55449d4f",
+            "coordinate": {
+              "latitude": 52.0349717,
+              "longitude": 4.33933
+            },
+            "recordedAt": "2026-06-17T15:31:10.531+00:00",
+            "checked": true
+          },
+          {
+            "id": "d2b5c94a-bfbe-4f0b-b343-d281dbdf5a6b",
+            "coordinate": {
+              "latitude": 52.0349717,
+              "longitude": 4.33933
+            },
+            "recordedAt": "2026-06-17T15:31:20.534+00:00",
+            "checked": true
+          },
+          {
+            "id": "77bb785f-4a8e-474d-bc7a-f08656fc9688",
+            "coordinate": {
+              "latitude": 52.0349717,
+              "longitude": 4.33933
+            },
+            "recordedAt": "2026-06-17T15:31:29.541+00:00",
+            "checked": true
+          },
+          {
+            "id": "17cbdc1f-921f-4a0a-b8b8-5ba228080572",
+            "coordinate": {
+              "latitude": 52.0349717,
+              "longitude": 4.33933
+            },
+            "recordedAt": "2026-06-17T15:31:39.546+00:00",
+            "checked": true
+          },
+          {
+            "id": "e47e6ce4-92b4-4602-999a-61f5b72e4741",
+            "coordinate": {
+              "latitude": 52.0349717,
+              "longitude": 4.33933
+            },
+            "recordedAt": "2026-06-17T15:31:51.552+00:00",
+            "checked": true
+          },
+          {
+            "id": "46047b1b-978d-4ff4-9f8b-f555b5da1917",
+            "coordinate": {
+              "latitude": 52.0306033,
+              "longitude": 4.3322183
+            },
+            "recordedAt": "2026-06-17T15:32:00.56+00:00",
+            "checked": true
+          },
+          {
+            "id": "86d54fd5-8015-4c90-ab92-168113472d67",
+            "coordinate": {
+              "latitude": 52.0308957,
+              "longitude": 4.3324877
+            },
+            "recordedAt": "2026-06-17T15:32:11.566+00:00",
+            "checked": true
+          },
+          {
+            "id": "3951b6cd-95d0-4e70-b46f-7e78821332f6",
+            "coordinate": {
+              "latitude": 52.0311607,
+              "longitude": 4.3335839
+            },
+            "recordedAt": "2026-06-17T15:32:21.57+00:00",
+            "checked": true
+          },
+          {
+            "id": "ad765e6e-1994-4723-803b-45444d5c802f",
+            "coordinate": {
+              "latitude": 52.0310483,
+              "longitude": 4.3345867
+            },
+            "recordedAt": "2026-06-17T15:32:31.574+00:00",
+            "checked": true
+          },
+          {
+            "id": "1f40755a-3a62-4a0e-8b8b-f5ecce95541c",
+            "coordinate": {
+              "latitude": 52.0318658,
+              "longitude": 4.3357972
+            },
+            "recordedAt": "2026-06-17T15:32:41.582+00:00",
+            "checked": true
+          },
+          {
+            "id": "40dea3fa-7aa5-4a26-9767-23fecea326d7",
+            "coordinate": {
+              "latitude": 52.0324147,
+              "longitude": 4.336228
+            },
+            "recordedAt": "2026-06-17T15:32:51.592+00:00",
+            "checked": true
+          },
+          {
+            "id": "23981790-bcad-4ed0-b15e-db5f4e19d4bd",
+            "coordinate": {
+              "latitude": 52.0327796,
+              "longitude": 4.3366192
+            },
+            "recordedAt": "2026-06-17T15:33:01.596+00:00",
+            "checked": true
+          },
+          {
+            "id": "cfb4dcc6-e564-46aa-a850-08c348b690bc",
+            "coordinate": {
+              "latitude": 52.032785,
+              "longitude": 4.336625
+            },
+            "recordedAt": "2026-06-17T15:33:12.602+00:00",
+            "checked": true
+          },
+          {
+            "id": "389a1d95-5705-4afc-948d-4413af20ec2e",
+            "coordinate": {
+              "latitude": 52.032785,
+              "longitude": 4.336625
+            },
+            "recordedAt": "2026-06-17T15:33:22.609+00:00",
+            "checked": true
+          },
+          {
+            "id": "b3ba57b2-c4b9-4dab-8b83-c2ca0ea7d4d1",
+            "coordinate": {
+              "latitude": 52.032785,
+              "longitude": 4.336625
+            },
+            "recordedAt": "2026-06-17T15:33:32.611+00:00",
+            "checked": true
+          },
+          {
+            "id": "22e2e7b1-50f7-43eb-8ba7-d67950bd8ee6",
+            "coordinate": {
+              "latitude": 52.032785,
+              "longitude": 4.336625
+            },
+            "recordedAt": "2026-06-17T15:33:42.616+00:00",
+            "checked": true
+          },
+          {
+            "id": "fe5dad4c-a546-4a17-ac3f-612ed1657b3c",
+            "coordinate": {
+              "latitude": 52.032785,
+              "longitude": 4.336625
+            },
+            "recordedAt": "2026-06-17T15:33:53.623+00:00",
+            "checked": true
+          },
+          {
+            "id": "2300f6c0-e00f-449d-b243-59abb3b2969f",
+            "coordinate": {
+              "latitude": 52.032585,
+              "longitude": 4.332885
+            },
+            "recordedAt": "2026-06-17T15:34:02.631+00:00",
+            "checked": true
+          },
+          {
+            "id": "8ae84757-3c17-4415-9c5d-f245942db11b",
+            "coordinate": {
+              "latitude": 52.032585,
+              "longitude": 4.332885
+            },
+            "recordedAt": "2026-06-17T15:34:12.638+00:00",
+            "checked": true
+          },
+          {
+            "id": "bb114d14-f654-412b-b2bf-b8b4e12b4b07",
+            "coordinate": {
+              "latitude": 52.032585,
+              "longitude": 4.332885
+            },
+            "recordedAt": "2026-06-17T15:34:23.643+00:00",
+            "checked": true
+          },
+          {
+            "id": "a69e28a0-00e8-4d22-acf8-ab6e766339a1",
+            "coordinate": {
+              "latitude": 52.032585,
+              "longitude": 4.332885
+            },
+            "recordedAt": "2026-06-17T15:34:32.647+00:00",
+            "checked": true
+          },
+          {
+            "id": "14c2867a-b76e-4885-825c-37a65446f781",
+            "coordinate": {
+              "latitude": 52.040145,
+              "longitude": 4.3438567
+            },
+            "recordedAt": "2026-06-17T15:34:43.652+00:00",
+            "checked": true
+          },
+          {
+            "id": "276cae56-a4c8-48e7-974a-1d9e7f876200",
+            "coordinate": {
+              "latitude": 52.040145,
+              "longitude": 4.3438567
+            },
+            "recordedAt": "2026-06-17T15:34:54.66+00:00",
+            "checked": true
+          },
+          {
+            "id": "3f62df29-3f8c-497c-9960-75b4f7d89f9b",
+            "coordinate": {
+              "latitude": 52.040145,
+              "longitude": 4.3438567
+            },
+            "recordedAt": "2026-06-17T15:35:04.665+00:00",
+            "checked": true
+          },
+          {
+            "id": "a05ed96f-a50e-4dbc-9774-35a259e1c1fb",
+            "coordinate": {
+              "latitude": 52.040145,
+              "longitude": 4.3438567
+            },
+            "recordedAt": "2026-06-17T15:35:14.672+00:00",
+            "checked": true
+          },
+          {
+            "id": "83af74e9-e686-4544-8374-23ddb961004e",
+            "coordinate": {
+              "latitude": 52.0365417,
+              "longitude": 4.3418617
+            },
+            "recordedAt": "2026-06-17T15:35:24.677+00:00",
+            "checked": true
+          },
+          {
+            "id": "63ee7e12-2725-4a07-92ed-b10152510062",
+            "coordinate": {
+              "latitude": 52.0365417,
+              "longitude": 4.3418617
+            },
+            "recordedAt": "2026-06-17T15:35:34.683+00:00",
+            "checked": true
+          },
+          {
+            "id": "b3f19f13-6d34-4961-8399-2273ffcdc804",
+            "coordinate": {
+              "latitude": 52.0365417,
+              "longitude": 4.3418617
+            },
+            "recordedAt": "2026-06-17T15:35:44.688+00:00",
+            "checked": true
+          },
+          {
+            "id": "0361d43e-9c1e-40b9-b6b5-9d327ed04c4e",
+            "coordinate": {
+              "latitude": 52.0365417,
+              "longitude": 4.3418617
+            },
+            "recordedAt": "2026-06-17T15:35:54.694+00:00",
+            "checked": true
+          },
+          {
+            "id": "84c8abfa-151a-4132-b1dd-f62a00a4bb4d",
+            "coordinate": {
+              "latitude": 52.035139,
+              "longitude": 4.3395062
+            },
+            "recordedAt": "2026-06-17T15:36:04.701+00:00",
+            "checked": true
+          },
+          {
+            "id": "92eecf38-4d4a-430b-bc2f-8a157a6c8001",
+            "coordinate": {
+              "latitude": 52.0330683,
+              "longitude": 4.3360683
+            },
+            "recordedAt": "2026-06-17T15:36:13.708+00:00",
+            "checked": true
+          },
+          {
+            "id": "04bd1081-bf10-42b3-9153-286817f74eb6",
+            "coordinate": {
+              "latitude": 52.0330683,
+              "longitude": 4.3360683
+            },
+            "recordedAt": "2026-06-17T15:36:25.712+00:00",
+            "checked": true
+          },
+          {
+            "id": "71b30713-c00b-470f-86db-93bc678e6249",
+            "coordinate": {
+              "latitude": 52.0311957,
+              "longitude": 4.33609
+            },
+            "recordedAt": "2026-06-17T15:36:35.719+00:00",
+            "checked": true
+          },
+          {
+            "id": "362790d8-e7d4-4ca8-a109-89f8c49788ec",
+            "coordinate": {
+              "latitude": 52.031195,
+              "longitude": 4.33609
+            },
+            "recordedAt": "2026-06-17T15:36:45.725+00:00",
+            "checked": true
+          },
+          {
+            "id": "251cfb5c-4b6f-4f41-b43b-a6cbbc765348",
+            "coordinate": {
+              "latitude": 52.031195,
+              "longitude": 4.33609
+            },
+            "recordedAt": "2026-06-17T15:36:55.731+00:00",
+            "checked": true
+          },
+          {
+            "id": "49a3b1c8-cd57-4021-a870-0747c6a73011",
+            "coordinate": {
+              "latitude": 52.031195,
+              "longitude": 4.33609
+            },
+            "recordedAt": "2026-06-17T15:37:05.738+00:00",
+            "checked": true
+          },
+          {
+            "id": "b97f3b69-4979-4747-ba26-9c63a5c5b8c9",
+            "coordinate": {
+              "latitude": 52.031195,
+              "longitude": 4.33609
+            },
+            "recordedAt": "2026-06-17T15:37:15.745+00:00",
+            "checked": true
+          },
+          {
+            "id": "b56cd8b6-4e14-42c4-a96d-dd6feaf68846",
+            "coordinate": {
+              "latitude": 52.031195,
+              "longitude": 4.33609
+            },
+            "recordedAt": "2026-06-17T15:37:25.75+00:00",
+            "checked": true
+          },
+          {
+            "id": "5e76dc9c-1f55-4f6d-ab08-0deb0cab8b2d",
+            "coordinate": {
+              "latitude": 52.0325278,
+              "longitude": 4.3377194
+            },
+            "recordedAt": "2026-06-17T15:37:34.76+00:00",
+            "checked": true
+          },
+          {
+            "id": "07a7c13b-88ee-4615-bd47-cc7a129ed1c6",
+            "coordinate": {
+              "latitude": 52.0325283,
+              "longitude": 4.33772
+            },
+            "recordedAt": "2026-06-17T15:37:45.765+00:00",
+            "checked": true
+          },
+          {
+            "id": "fa9cdc63-bcf7-48cb-8efd-0dcf136eb0d0",
+            "coordinate": {
+              "latitude": 52.0325283,
+              "longitude": 4.33772
+            },
+            "recordedAt": "2026-06-17T15:37:55.768+00:00",
+            "checked": true
+          },
+          {
+            "id": "a00fc96b-b137-4606-93c1-6723be6c4fdc",
+            "coordinate": {
+              "latitude": 52.0325283,
+              "longitude": 4.33772
+            },
+            "recordedAt": "2026-06-17T15:38:05.778+00:00",
+            "checked": true
+          },
+          {
+            "id": "6f78d220-ae30-416d-9463-fc520643c068",
+            "coordinate": {
+              "latitude": 52.0325283,
+              "longitude": 4.33772
+            },
+            "recordedAt": "2026-06-17T15:38:15.783+00:00",
+            "checked": true
+          },
+          {
+            "id": "757adb11-490e-48a0-8f66-b7b0b00c2a3b",
+            "coordinate": {
+              "latitude": 52.0325283,
+              "longitude": 4.33772
+            },
+            "recordedAt": "2026-06-17T15:38:25.791+00:00",
+            "checked": true
+          },
+          {
+            "id": "7c61c809-0db9-4afd-ab3d-14bdf72157a3",
+            "coordinate": {
+              "latitude": 52.031865,
+              "longitude": 4.3368917
+            },
+            "recordedAt": "2026-06-17T15:38:36.796+00:00",
+            "checked": true
+          },
+          {
+            "id": "37cdff65-d70f-4eaa-8e8b-8e9658d0f197",
+            "coordinate": {
+              "latitude": 52.03181,
+              "longitude": 4.33694
+            },
+            "recordedAt": "2026-06-17T15:38:46.799+00:00",
+            "checked": true
+          },
+          {
+            "id": "d6c846c9-9953-428b-8015-edd4221bff1a",
+            "coordinate": {
+              "latitude": 52.031797,
+              "longitude": 4.3367888
+            },
+            "recordedAt": "2026-06-17T15:38:55.808+00:00",
+            "checked": true
+          },
+          {
+            "id": "459cbce8-c654-4532-95a4-673545225398",
+            "coordinate": {
+              "latitude": 52.0317967,
+              "longitude": 4.3369383
+            },
+            "recordedAt": "2026-06-17T15:39:06.814+00:00",
+            "checked": true
+          },
+          {
+            "id": "2543ce88-972a-49e0-b07e-5717558aa305",
+            "coordinate": {
+              "latitude": 52.0317967,
+              "longitude": 4.3369383
+            },
+            "recordedAt": "2026-06-17T15:39:16.819+00:00",
+            "checked": true
+          },
+          {
+            "id": "f20f45dc-8577-46fd-b4d7-a414114132a2",
+            "coordinate": {
+              "latitude": 52.032,
+              "longitude": 4.336745
+            },
+            "recordedAt": "2026-06-17T15:39:26.829+00:00",
+            "checked": true
+          },
+          {
+            "id": "070fdc3e-a3aa-444e-8374-bc015cd37b86",
+            "coordinate": {
+              "latitude": 52.032,
+              "longitude": 4.336745
+            },
+            "recordedAt": "2026-06-17T15:39:36.833+00:00",
+            "checked": true
+          },
+          {
+            "id": "931e5d8a-52ed-4458-912e-d56fca73b1e0",
+            "coordinate": {
+              "latitude": 52.0324315,
+              "longitude": 4.3362269
+            },
+            "recordedAt": "2026-06-17T15:39:46.844+00:00",
+            "checked": true
+          },
+          {
+            "id": "f4a5b9e3-7abf-4d7e-899d-e867d52b42d3",
+            "coordinate": {
+              "latitude": 52.0324317,
+              "longitude": 4.3362267
+            },
+            "recordedAt": "2026-06-17T15:39:57.851+00:00",
+            "checked": true
+          },
+          {
+            "id": "3f70014e-506b-4234-8814-8ebb01f66c45",
+            "coordinate": {
+              "latitude": 52.0324317,
+              "longitude": 4.3362267
+            },
+            "recordedAt": "2026-06-17T15:40:07.859+00:00",
+            "checked": true
+          },
+          {
+            "id": "5b273224-798e-413b-8934-4036ce443ee1",
+            "coordinate": {
+              "latitude": 52.0303317,
+              "longitude": 4.3344033
+            },
+            "recordedAt": "2026-06-17T15:40:17.863+00:00",
+            "checked": true
+          },
+          {
+            "id": "443ab5bd-80c0-4345-85af-131b63bd61ee",
+            "coordinate": {
+              "latitude": 52.0303317,
+              "longitude": 4.3344033
+            },
+            "recordedAt": "2026-06-17T15:40:27.869+00:00",
+            "checked": true
+          },
+          {
+            "id": "75c25beb-0fb4-4146-8884-16f3ea1b49a8",
+            "coordinate": {
+              "latitude": 52.0303317,
+              "longitude": 4.3344033
+            },
+            "recordedAt": "2026-06-17T15:40:37.876+00:00",
+            "checked": true
+          },
+          {
+            "id": "f3555c47-65e4-407c-bc89-84921959cd7c",
+            "coordinate": {
+              "latitude": 52.0303317,
+              "longitude": 4.3344033
+            },
+            "recordedAt": "2026-06-17T15:40:46.883+00:00",
+            "checked": true
+          },
+          {
+            "id": "95ef8049-b737-485a-82a7-1c6d0efbc1f2",
+            "coordinate": {
+              "latitude": 52.0303317,
+              "longitude": 4.3344033
+            },
+            "recordedAt": "2026-06-17T15:40:57.891+00:00",
+            "checked": true
+          },
+          {
+            "id": "3226fce7-575d-450f-98fb-43e6cfdd9845",
+            "coordinate": {
+              "latitude": 52.0292817,
+              "longitude": 4.33524
+            },
+            "recordedAt": "2026-06-17T15:41:07.896+00:00",
+            "checked": true
+          },
+          {
+            "id": "2e63dd47-503d-4d62-a2a3-5755883676da",
+            "coordinate": {
+              "latitude": 52.033655,
+              "longitude": 4.33323
+            },
+            "recordedAt": "2026-06-17T15:44:08.01+00:00",
+            "checked": true
+          },
+          {
+            "id": "577c5bd3-b2bb-412b-a16a-a24fdd8ea2a2",
+            "coordinate": {
+              "latitude": 52.0318083,
+              "longitude": 4.3369233
+            },
+            "recordedAt": "2026-06-17T15:47:08.121+00:00",
+            "checked": true
+          },
+          {
+            "id": "236a2ee8-3261-4149-89ab-332a872c1eaf",
+            "coordinate": {
+              "latitude": 52.0302835,
+              "longitude": 4.3338126
+            },
+            "recordedAt": "2026-06-17T15:50:08.236+00:00",
+            "checked": true
+          },
+          {
+            "id": "83dc2c3d-f0b5-4e15-b71c-a45ff1ad5ea1",
+            "coordinate": {
+              "latitude": 52.0303268,
+              "longitude": 4.3344191
+            },
+            "recordedAt": "2026-06-17T15:53:08.346+00:00",
+            "checked": true
+          },
+          {
+            "id": "897bcd5b-6a9a-486e-a141-2123bd927ab6",
+            "coordinate": {
+              "latitude": 52.0318083,
+              "longitude": 4.336925
+            },
+            "recordedAt": "2026-06-17T15:54:08.383+00:00",
+            "checked": true
+          },
+          {
+            "id": "9fee0d25-ba64-4a2c-9602-7a810b6a0ab8",
+            "coordinate": {
+              "latitude": 52.0302833,
+              "longitude": 4.33433
+            },
+            "recordedAt": "2026-06-17T15:55:09.426+00:00",
+            "checked": true
+          }
+        ]
+      },
+      {
+        "userId": "8c018b04-9815-40d1-a145-63933f1b4bdd",
+        "displayName": "HexMaster",
+        "profilePictureUrl": null,
+        "isReady": true,
+        "state": "Active",
+        "lastLocationAt": "2026-06-17T15:55:13.612+00:00",
+        "location": {
+          "latitude": 52.0302595,
+          "longitude": 4.3344236
+        },
+        "delayAnchorLocation": null,
+        "delayPenaltyApplied": false,
+        "isHunter": false,
+        "penalties": [],
+        "locations": [
+          {
+            "id": "1f7d22fd-775a-4e4f-a2bc-83f7a03e7a1d",
+            "coordinate": {
+              "latitude": 52.0303451,
+              "longitude": 4.3342646
+            },
+            "recordedAt": "2026-06-17T15:26:12.263+00:00",
+            "checked": true
+          },
+          {
+            "id": "53f356e7-4c62-4e90-8a70-f40c6ab4a6c1",
+            "coordinate": {
+              "latitude": 52.0302618,
+              "longitude": 4.3344499
+            },
+            "recordedAt": "2026-06-17T15:29:12.516+00:00",
+            "checked": true
+          },
+          {
+            "id": "ee1b3643-4d28-4262-aa7f-7988e5b2410d",
+            "coordinate": {
+              "latitude": 52.0302502,
+              "longitude": 4.3344446
+            },
+            "recordedAt": "2026-06-17T15:32:12.608+00:00",
+            "checked": true
+          },
+          {
+            "id": "8c8b12b1-bb74-47f8-ba86-b09b0f69b426",
+            "coordinate": {
+              "latitude": 52.030245,
+              "longitude": 4.3344094
+            },
+            "recordedAt": "2026-06-17T15:35:12.62+00:00",
+            "checked": true
+          },
+          {
+            "id": "5300e747-975c-4d5c-b615-8104da556379",
+            "coordinate": {
+              "latitude": 52.0302531,
+              "longitude": 4.3344373
+            },
+            "recordedAt": "2026-06-17T15:38:12.593+00:00",
+            "checked": true
+          },
+          {
+            "id": "3f00a9f4-25a3-4fdd-88fc-8a584d47b777",
+            "coordinate": {
+              "latitude": 52.0302369,
+              "longitude": 4.3344471
+            },
+            "recordedAt": "2026-06-17T15:41:12.631+00:00",
+            "checked": true
+          },
+          {
+            "id": "f22982f5-b0f3-4a14-8297-3a490afa256b",
+            "coordinate": {
+              "latitude": 52.0302605,
+              "longitude": 4.3344122
+            },
+            "recordedAt": "2026-06-17T15:44:12.626+00:00",
+            "checked": true
+          },
+          {
+            "id": "3a839a7e-38e8-4119-a987-c1bc92a6b135",
+            "coordinate": {
+              "latitude": 52.0302468,
+              "longitude": 4.3344386
+            },
+            "recordedAt": "2026-06-17T15:47:12.632+00:00",
+            "checked": true
+          },
+          {
+            "id": "2e82349b-00ed-420d-9f81-4858a8d14137",
+            "coordinate": {
+              "latitude": 52.0302652,
+              "longitude": 4.3343885
+            },
+            "recordedAt": "2026-06-17T15:50:12.612+00:00",
+            "checked": true
+          },
+          {
+            "id": "c25c5dfc-c0b0-45d3-b705-afad23670bca",
+            "coordinate": {
+              "latitude": 52.0302511,
+              "longitude": 4.3344401
+            },
+            "recordedAt": "2026-06-17T15:53:12.617+00:00",
+            "checked": true
+          },
+          {
+            "id": "f90763fa-e3f1-41e5-a5bc-40afd3d91baf",
+            "coordinate": {
+              "latitude": 52.0302517,
+              "longitude": 4.3344299
+            },
+            "recordedAt": "2026-06-17T15:54:12.613+00:00",
+            "checked": true
+          },
+          {
+            "id": "d1292fb8-a87d-4c89-9629-f7e9f2f3bc82",
+            "coordinate": {
+              "latitude": 52.0302595,
+              "longitude": 4.3344236
+            },
+            "recordedAt": "2026-06-17T15:55:13.612+00:00",
+            "checked": true
+          }
+        ]
+      }
+    ]
+  }
+]
