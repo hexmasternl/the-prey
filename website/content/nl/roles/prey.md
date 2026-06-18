@@ -30,9 +30,9 @@ De app moet actief blijven op de achtergrond. Locatiedeling is afhankelijk van d
 
 ## Getagd Worden
 
-Een Jager die je fysieke locatie bereikt, kan in de app een tag starten. Je moet de tag bevestigen. Eenmaal bevestigd ben je geëlimineerd en ga je naar toeschouwermodus.
+Een Jager die je fysieke locatie bereikt, tagt je in de app. De tag wordt direct van kracht — je bevestigt niets en je kunt hem niet weigeren. Eenmaal getagd ben je geëlimineerd en ga je naar toeschouwermodus.
 
-Weiger geen eerlijke tag. Het spel vertrouwt op eerlijkheid.
+Taggen is op basis van eerlijkheid: een Jager hoort alleen een Prooi te taggen die hij echt heeft bereikt. Het spel vertrouwt op eerlijkheid.
 
 ---
 

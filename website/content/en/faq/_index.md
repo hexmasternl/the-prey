@@ -21,7 +21,7 @@ The first 10 minutes are for Prey only. Your location is not shared. Use the tim
 {{< /qa >}}
 
 {{< qa q="How does tagging work?" >}}
-A Hunter physically reaches a Prey's location and initiates a tag in the app. The Prey must confirm. Both players must be present. Remote or fake tags are not valid.
+A Hunter physically reaches a Prey's location and taps to tag them in the app. The tag is immediate — only the Hunter confirms it; the Prey does not. Tagging is honour-based, so a Hunter should only tag a Prey they have genuinely reached.
 {{< /qa >}}
 
 {{< qa q="Can I play if my GPS is weak?" >}}

@@ -30,9 +30,9 @@ The app must remain active in the background. Location sharing depends on your d
 
 ## Getting Tagged
 
-A Hunter who reaches your physical location can initiate a tag in the app. You must confirm the tag. Once confirmed, you are eliminated and enter spectator mode.
+A Hunter who reaches your physical location tags you in the app. The tag takes effect immediately — you do not confirm it, and there is no way to refuse it. Once tagged, you are eliminated and enter spectator mode.
 
-Do not deny a fair tag. The game depends on honesty.
+Tagging is honour-based: a Hunter should only tag a Prey they have genuinely reached. The game depends on honesty.
 
 ---
 

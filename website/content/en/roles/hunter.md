@@ -28,9 +28,9 @@ Pins show where the Prey *was* when the last update fired — not where they are
 
 ## Tagging a Prey
 
-When you reach a Prey's physical location, initiate a tag in the app. The Prey must confirm. Once confirmed, that Prey is eliminated.
+When you reach a Prey's physical location, tag them in the app. The tag takes effect immediately — the Prey does not confirm it. That Prey is eliminated.
 
-If a Prey denies a fair tag, call it out to the Game Creator. Do not chase endlessly — the game has a timer.
+There is no in-app way to dispute a tag, so tagging is honour-based: only tag a Prey you have genuinely reached. Do not chase endlessly — the game has a timer.
 
 ---
 

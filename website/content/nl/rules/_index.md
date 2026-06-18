@@ -31,7 +31,7 @@ Prooilocaties worden als GPS-pins op de kaart van de Jager uitgezonden. Updates 
 
 ## Eliminatie
 
-Een Prooi wordt geëlimineerd wanneer een Jager de Prooi fysiek bereikt en de tag in de app bevestigt. Zowel de Jager als de Prooi moeten de tag in de app bevestigen. Eenmaal bevestigd wordt de geëlimineerde Prooi van de kaart verwijderd.
+Een Prooi wordt geëlimineerd wanneer een Jager de Prooi fysiek bereikt en in de app tagt. De tag wordt direct van kracht — alleen de Jager bevestigt de tag, de Prooi niet. Eenmaal getagd wordt de geëlimineerde Prooi van de kaart verwijderd.
 
 Geëlimineerde Prooi kunnen de rest van het spel als toeschouwer volgen.
 

@@ -21,7 +21,7 @@ De eerste 10 minuten zijn alleen voor Prooi. Je locatie wordt niet gedeeld. Gebr
 {{< /qa >}}
 
 {{< qa q="Hoe werkt taggen?" >}}
-Een Jager bereikt fysiek de locatie van een Prooi en start een tag in de app. De Prooi moet bevestigen. Beide spelers moeten aanwezig zijn. Afstandstagging of nep-tags zijn niet geldig.
+Een Jager bereikt fysiek de locatie van een Prooi en tikt om die te taggen in de app. De tag is direct — alleen de Jager bevestigt de tag, de Prooi niet. Taggen is op basis van eerlijkheid, dus een Jager hoort alleen een Prooi te taggen die hij echt heeft bereikt.
 {{< /qa >}}
 
 {{< qa q="Kan ik spelen als mijn GPS zwak is?" >}}

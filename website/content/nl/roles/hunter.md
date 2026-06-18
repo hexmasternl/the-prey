@@ -28,9 +28,9 @@ Pins tonen waar de Prooi *was* toen de laatste update plaatsvond — niet waar z
 
 ## Een Prooi Taggen
 
-Wanneer je de fysieke locatie van een Prooi bereikt, start je een tag in de app. De Prooi moet bevestigen. Eenmaal bevestigd is die Prooi geëlimineerd.
+Wanneer je de fysieke locatie van een Prooi bereikt, tag je die in de app. De tag wordt direct van kracht — de Prooi bevestigt niets. Die Prooi is geëlimineerd.
 
-Als een Prooi een eerlijke tag weigert, meld dit aan de Spelmaker. Jaag niet eindeloos — het spel heeft een timer.
+Er is geen manier in de app om een tag te betwisten, dus taggen is op basis van eerlijkheid: tag alleen een Prooi die je echt hebt bereikt. Jaag niet eindeloos — het spel heeft een timer.
 
 ---
 

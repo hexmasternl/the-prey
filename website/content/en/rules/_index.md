@@ -31,7 +31,7 @@ Prey locations are broadcast as GPS pins on the Hunter's map. Updates arrive at 
 
 ## Elimination
 
-A Prey is eliminated when a Hunter physically reaches them and confirms the tag in the app. Both the Hunter and Prey must confirm the tag in the app. Once confirmed, the eliminated Prey is removed from the map and can no longer be tagged.
+A Prey is eliminated when a Hunter physically reaches them and tags them in the app. The tag takes effect immediately — only the Hunter confirms it; the Prey does not. Once tagged, the eliminated Prey is removed from the map and can no longer be tagged.
 
 Eliminated Prey can see the rest of the game play out in spectator mode.
 
