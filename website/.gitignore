@@ -1,0 +1,4 @@
+# Hugo local build artifacts
+/resources/_gen/
+.hugo_build.lock
+hugo_stats.json

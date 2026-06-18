@@ -3,208 +3,220 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://theprey.nl/en/categories/</loc>
+    <loc>http://localhost:1314/en/account-removal/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/categories/"
+                href="http://localhost:1314/en/account-removal/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/categories/"
+                href="http://localhost:1314/nl/account-removal/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/how-to/create-a-game/</loc>
+    <loc>http://localhost:1314/en/categories/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/how-to/create-a-game/"
+                href="http://localhost:1314/en/categories/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/how-to/create-a-game/"
+                href="http://localhost:1314/nl/categories/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/how-to/draw-a-playfield/</loc>
+    <loc>http://localhost:1314/en/how-to/create-a-game/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/how-to/draw-a-playfield/"
+                href="http://localhost:1314/en/how-to/create-a-game/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/how-to/draw-a-playfield/"
+                href="http://localhost:1314/nl/how-to/create-a-game/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/faq/</loc>
+    <loc>http://localhost:1314/en/how-to/draw-a-playfield/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/faq/"
+                href="http://localhost:1314/en/how-to/draw-a-playfield/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/faq/"
+                href="http://localhost:1314/nl/how-to/draw-a-playfield/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/roles/game-creator/</loc>
+    <loc>http://localhost:1314/en/faq/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/roles/game-creator/"
+                href="http://localhost:1314/en/faq/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/roles/game-creator/"
+                href="http://localhost:1314/nl/faq/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/how-to/gps-signal-lost/</loc>
+    <loc>http://localhost:1314/en/roles/game-creator/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/how-to/gps-signal-lost/"
+                href="http://localhost:1314/en/roles/game-creator/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/how-to/gps-signal-lost/"
+                href="http://localhost:1314/nl/roles/game-creator/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/how-to/</loc>
+    <loc>http://localhost:1314/en/how-to/gps-signal-lost/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/how-to/"
+                href="http://localhost:1314/en/how-to/gps-signal-lost/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/how-to/"
+                href="http://localhost:1314/nl/how-to/gps-signal-lost/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/roles/hunter/</loc>
+    <loc>http://localhost:1314/en/how-to/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/roles/hunter/"
+                href="http://localhost:1314/en/how-to/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/roles/hunter/"
+                href="http://localhost:1314/nl/how-to/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/how-to/join-a-game/</loc>
+    <loc>http://localhost:1314/en/roles/hunter/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/how-to/join-a-game/"
+                href="http://localhost:1314/en/roles/hunter/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/how-to/join-a-game/"
+                href="http://localhost:1314/nl/roles/hunter/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/playfield/</loc>
+    <loc>http://localhost:1314/en/how-to/join-a-game/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/playfield/"
+                href="http://localhost:1314/en/how-to/join-a-game/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/playfield/"
+                href="http://localhost:1314/nl/how-to/join-a-game/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/roles/prey/</loc>
+    <loc>http://localhost:1314/en/playfield/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/roles/prey/"
+                href="http://localhost:1314/en/playfield/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/roles/prey/"
+                href="http://localhost:1314/nl/playfield/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/privacy/</loc>
+    <loc>http://localhost:1314/en/roles/prey/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/privacy/"
+                href="http://localhost:1314/en/roles/prey/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/privacy/"
+                href="http://localhost:1314/nl/roles/prey/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/roles/</loc>
+    <loc>http://localhost:1314/en/privacy/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/roles/"
+                href="http://localhost:1314/en/privacy/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/roles/"
+                href="http://localhost:1314/nl/privacy/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/rules/</loc>
+    <loc>http://localhost:1314/en/roles/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/rules/"
+                href="http://localhost:1314/en/roles/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/rules/"
+                href="http://localhost:1314/nl/roles/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/tags/</loc>
+    <loc>http://localhost:1314/en/rules/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/tags/"
+                href="http://localhost:1314/en/rules/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/tags/"
+                href="http://localhost:1314/nl/rules/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/</loc>
+    <loc>http://localhost:1314/en/tags/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/"
+                href="http://localhost:1314/en/tags/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/"
+                href="http://localhost:1314/nl/tags/"
                 />
   </url><url>
-    <loc>https://theprey.nl/en/how-to/understand-your-role/</loc>
+    <loc>http://localhost:1314/en/</loc>
     <xhtml:link
                 rel="alternate"
                 hreflang="en"
-                href="https://theprey.nl/en/how-to/understand-your-role/"
+                href="http://localhost:1314/en/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="nl"
-                href="https://theprey.nl/nl/how-to/understand-your-role/"
+                href="http://localhost:1314/nl/"
+                />
+  </url><url>
+    <loc>http://localhost:1314/en/how-to/understand-your-role/</loc>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://localhost:1314/en/how-to/understand-your-role/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="nl"
+                href="http://localhost:1314/nl/how-to/understand-your-role/"
                 />
   </url>
 </urlset>
