@@ -31,6 +31,12 @@ public sealed class Game
     /// <summary>How long, in minutes, the penalty for moving during the head-start delay lasts beyond <see cref="HunterMayMoveAt"/>.</summary>
     public const int HunterDelayPenaltyMinutes = 10;
 
+    /// <summary>
+    /// The fixed interval, in seconds, at which every device posts its GPS coordinate.
+    /// The phone always posts at this cadence regardless of game stage or penalties.
+    /// </summary>
+    public const int LocationReportingIntervalSeconds = 10;
+
     private readonly List<GameParticipant> _participants = [];
 
     public Guid Id { get; private set; }
@@ -48,6 +54,13 @@ public sealed class Game
     public DateTimeOffset CleanUpAfter { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; }
     public GameOutcome Outcome { get; private set; }
+
+    /// <summary>
+    /// The game-wide timestamp when the next regular broadcast is due. Seeded to <see cref="StartedAt"/>
+    /// so the first sweep immediately broadcasts every player's known start position. Advanced by
+    /// <see cref="SweepLocations"/> after each regular tick. Null while the game has not started.
+    /// </summary>
+    public DateTimeOffset? NextScheduledBroadcastOn { get; private set; }
 
     /// <summary>
     /// The current hunter's UserId. In Lobby state this is the pre-designated hunter (null until designated).
@@ -108,7 +121,8 @@ public sealed class Game
         DateTimeOffset? endsAt = null,
         DateTimeOffset cleanUpAfter = default,
         DateTimeOffset? completedAt = null,
-        GameOutcome outcome = GameOutcome.Undecided)
+        GameOutcome outcome = GameOutcome.Undecided,
+        DateTimeOffset? nextScheduledBroadcastOn = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
@@ -126,7 +140,8 @@ public sealed class Game
             EndsAt = endsAt,
             CleanUpAfter = cleanUpAfter,
             CompletedAt = completedAt,
-            Outcome = outcome
+            Outcome = outcome,
+            NextScheduledBroadcastOn = nextScheduledBroadcastOn
         };
         game._participants.AddRange(participants);
         return game;
@@ -235,6 +250,7 @@ public sealed class Game
         HunterUserId = hunterUserId;
         StartedAt = startedAt;
         EndsAt = startedAt.AddMinutes(Configuration.GameDuration);
+        NextScheduledBroadcastOn = startedAt;
         Status = GameStatus.InProgress;
     }
 
@@ -388,29 +404,45 @@ public sealed class Game
     }
 
     /// <summary>
-    /// Performs the location pass of a sweep tick: consumes each participant's unchecked GPS readings,
-    /// refreshes their broadcast ("last known") position from the most recent one, and reports every
-    /// consumed coordinate so the caller can assess boundary violations. Participants with an active
-    /// penalty are included on every sweep, even without new readings, so their last-known position
-    /// keeps being broadcast while the penalty lasts. Participants with nothing to report are omitted.
+    /// Performs the location pass of a sweep tick.
+    /// <para>
+    /// A "regular tick" is due when <see cref="NextScheduledBroadcastOn"/> has arrived; on a regular
+    /// tick every participant's latest-known coordinate is broadcast and the schedule advances by
+    /// <see cref="RegularReportingIntervalAt"/> (tightening automatically to
+    /// <see cref="GameConfiguration.FinalLocationInterval"/> once the schedule crosses into the final stage).
+    /// </para>
+    /// <para>
+    /// A participant with an active penalty is ALSO broadcast on every sweep regardless of the
+    /// regular schedule — this never affects <see cref="NextScheduledBroadcastOn"/>.
+    /// </para>
+    /// <para>
+    /// <see cref="GameParticipant.Location"/> (the last-broadcast position) is only updated when the
+    /// participant is actually broadcast this sweep. The full 10-second track remains in
+    /// <see cref="GameParticipant.Locations"/>.
+    /// </para>
     /// </summary>
     public IReadOnlyList<ParticipantLocationSweep> SweepLocations(DateTimeOffset now)
     {
+        var regularDue = NextScheduledBroadcastOn is { } next && now >= next;
+
         var sweeps = new List<ParticipantLocationSweep>();
         foreach (var participant in _participants)
         {
             var consumed = participant.TakeUncheckedLocations();
-            if (consumed.Count > 0)
-                participant.UpdateBroadcastLocation(consumed[^1].Coordinate);
+
+            // Determine the participant's latest-known coordinate from the full history.
+            var latestKnown = participant.LatestKnownLocation ?? participant.Location;
+
+            var shouldBroadcast = (regularDue || participant.HasActivePenalty(now)) && latestKnown is not null;
 
             BroadcastUpdate? broadcast = null;
-            if (participant.Location is { } location
-                && (consumed.Count > 0 || participant.HasActivePenalty(now)))
+            if (shouldBroadcast)
             {
+                participant.UpdateBroadcastLocation(latestKnown!);
                 broadcast = new BroadcastUpdate(
                     participant.UserId,
-                    location.Latitude,
-                    location.Longitude,
+                    participant.Location!.Latitude,
+                    participant.Location.Longitude,
                     participant.State.ToString());
             }
 
@@ -421,6 +453,17 @@ public sealed class Game
                 participant.UserId,
                 broadcast,
                 consumed.Select(r => r.Coordinate).ToList()));
+        }
+
+        // Advance the game-wide schedule after the participant loop.
+        if (regularDue)
+        {
+            while (NextScheduledBroadcastOn is { } scheduled && now >= scheduled)
+            {
+                var interval = RegularReportingIntervalAt(scheduled);
+                if (interval <= 0) break;
+                NextScheduledBroadcastOn = scheduled.AddSeconds(interval);
+            }
         }
 
         return sweeps;

@@ -22,6 +22,14 @@ public sealed class GameParticipant
     /// <summary>The hunter's first measured location during the head-start delay; null for preys and until the first report.</summary>
     public GpsCoordinate? DelayAnchorLocation { get; private set; }
 
+    /// <summary>
+    /// The most recent coordinate from the full location history, ordered by <see cref="LocationReading.RecordedAt"/>.
+    /// Returns null when no readings have been recorded yet. Used by the sweep cycle to determine the
+    /// latest-known position for broadcast without relying solely on the previously broadcast <see cref="Location"/>.
+    /// </summary>
+    internal GpsCoordinate? LatestKnownLocation =>
+        _locations.Count == 0 ? null : _locations.OrderByDescending(r => r.RecordedAt).First().Coordinate;
+
     /// <summary>True once the single delay-violation penalty for this game has been applied.</summary>
     public bool DelayPenaltyApplied { get; private set; }
     public IReadOnlyList<Penalty> Penalties => _penalties.AsReadOnly();

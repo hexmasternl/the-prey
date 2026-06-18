@@ -31,6 +31,7 @@ public sealed class GameEntityTypeConfiguration : IEntityTypeConfiguration<Game>
         builder.Property(g => g.HunterUserId).HasColumnName("HunterUserId");
         builder.Property(g => g.CompletedAt);
         builder.Property(g => g.Outcome).HasConversion<int>().HasDefaultValue(GameOutcome.Undecided);
+        builder.Property(g => g.NextScheduledBroadcastOn).HasColumnName("NextScheduledBroadcastOn").IsRequired(false);
 
         // Computed, behaviour-only members must not be mapped.
         // Participants is the public read-only accessor over the "_participants" backing-field

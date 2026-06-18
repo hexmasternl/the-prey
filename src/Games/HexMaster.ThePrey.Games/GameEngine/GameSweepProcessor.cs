@@ -59,8 +59,9 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
             events.Add(new PlayerStatusChangedIntegrationEvent(game.Id, userId, RoleOf(game, userId), newState.ToString()));
         }
 
-        // 2. Consume new (unchecked) readings and refresh last-known positions. Penalized
-        //    participants are re-broadcast on every sweep, even without new readings.
+        // 2. Consume new (unchecked) readings. The sweep advances NextScheduledBroadcastOn and
+        //    copies the latest coordinate into Location for every participant that is broadcast
+        //    this tick (regular schedule or active penalty).
         var sweeps = game.SweepLocations(now);
         var broadcasts = 0;
         foreach (var sweep in sweeps)
@@ -71,6 +72,7 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
             if (sweep.Broadcast is { } broadcast)
             {
                 broadcasts++;
+                changed = true; // broadcast mutates Location and may advance NextScheduledBroadcastOn
                 events.Add(new PlayerLocationUpdatedIntegrationEvent(
                     game.Id, broadcast.UserId, broadcast.Latitude, broadcast.Longitude, broadcast.State));
             }

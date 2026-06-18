@@ -64,35 +64,24 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
                 new PlayerPenalizedIntegrationEvent(game.Id, command.UserId, delayPenalty.EndsAt, DelayPenaltyReason), ct);
         }
 
+        // Location broadcasts are server-authoritative: only the 30s sweep broadcasts positions.
+        // The handler only publishes the Passive→Active status change (not a location event).
         var isHunter = game.HunterUserId == command.UserId;
-        var participantRole = isHunter ? "Hunter" : "Prey";
-
-        if (isHunter)
+        if (!isHunter)
         {
-            await _eventBus.PublishAsync(game.Id,
-                new ParticipantLocatedEvent(game.Id, command.UserId, participantRole, command.Latitude, command.Longitude, "Active"), ct);
-        }
-        else
-        {
+            var participantRole = "Prey";
             var prey = game.Participants.FirstOrDefault(p => p.UserId == command.UserId);
-            if (prey is not null)
+            if (prey is not null && previousState == PlayerState.Passive && prey.State == PlayerState.Active)
             {
                 await _eventBus.PublishAsync(game.Id,
-                    new ParticipantLocatedEvent(game.Id, command.UserId, participantRole, command.Latitude, command.Longitude, prey.State.ToString()), ct);
-
-                if (previousState == PlayerState.Passive && prey.State == PlayerState.Active)
-                {
-                    await _eventBus.PublishAsync(game.Id,
-                        new ParticipantStatusChangedEvent(game.Id, command.UserId, participantRole, "Active"), ct);
-                }
+                    new ParticipantStatusChangedEvent(game.Id, command.UserId, participantRole, "Active"), ct);
             }
         }
 
-        var nextInterval = game.RegularReportingIntervalAt(now);
         var penaltyEndsAt = game.ActivePenaltyEndsAtFor(command.UserId, now);
         var penaltyInterval = penaltyEndsAt is null ? (int?)null : Game.PenaltyReportingIntervalSeconds;
 
         return new RecordPlayerLocationResult(
-            new RecordLocationResponse(true, nextInterval, penaltyInterval, penaltyEndsAt));
+            new RecordLocationResponse(true, Game.LocationReportingIntervalSeconds, penaltyInterval, penaltyEndsAt));
     }
 }

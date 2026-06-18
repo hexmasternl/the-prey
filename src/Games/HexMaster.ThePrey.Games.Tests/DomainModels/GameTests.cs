@@ -295,4 +295,133 @@ public sealed class GameTests
 
         Assert.Throws<InvalidOperationException>(() => game.Forfeit(preyIds[0]));
     }
+
+    // ── NextScheduledBroadcastOn & SweepLocations ──────────────────────────
+
+    [Fact]
+    public void Start_ShouldSeedNextScheduledBroadcastOn_ToStartedAt()
+    {
+        var game = GameFaker.StartedGame(out _, out _, Start);
+
+        Assert.Equal(Start, game.NextScheduledBroadcastOn);
+    }
+
+    [Fact]
+    public void SweepLocations_ShouldBroadcastAllParticipants_OnRegularTick()
+    {
+        // Regular tick: now >= NextScheduledBroadcastOn (seeded to Start).
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start, playerCount: 3);
+        var now = Start.AddSeconds(30);
+
+        // Both prey and hunter have recorded a location.
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Start.AddSeconds(5));
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(52.2, 5.2), Start.AddSeconds(10));
+        game.RecordLocation(preyIds[1], GpsCoordinate.Create(52.3, 5.3), Start.AddSeconds(15));
+
+        var sweeps = game.SweepLocations(now);
+
+        // All three participants should have a broadcast.
+        Assert.Equal(3, sweeps.Count(s => s.Broadcast is not null));
+        // Location is updated for each broadcast participant.
+        foreach (var participant in game.Participants)
+            Assert.NotNull(participant.Location);
+    }
+
+    [Fact]
+    public void SweepLocations_ShouldCopyLatestReadingIntoLocation_OnRegularTick()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 2);
+        var preyId = preyIds[0];
+        var first = GpsCoordinate.Create(52.1, 5.1);
+        var second = GpsCoordinate.Create(52.2, 5.2);
+
+        game.RecordLocation(preyId, first, Start.AddSeconds(5));
+        game.RecordLocation(preyId, second, Start.AddSeconds(10));
+
+        game.SweepLocations(Start.AddSeconds(30));
+
+        var prey = game.Participants.Single(p => p.UserId == preyId);
+        // Location must be the most recent reading, not the first one.
+        Assert.Equal(second, prey.Location);
+    }
+
+    [Fact]
+    public void SweepLocations_ShouldNotBroadcast_WhenBetweenRegularTicks_AndNoActivePenalty()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 2);
+        var preyId = preyIds[0];
+
+        // Seed the schedule past the first tick without broadcasting.
+        game.SweepLocations(Start.AddSeconds(30)); // advances schedule to Start + 30s
+
+        // Record a new reading after the first tick.
+        game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Start.AddSeconds(35));
+
+        // Sweep at Start+40s — schedule not yet due (next at Start+60s for 30s default interval).
+        var sweeps = game.SweepLocations(Start.AddSeconds(40));
+
+        // No broadcast, but the new coordinate is consumed and reported for boundary checks.
+        Assert.All(sweeps, s => Assert.Null(s.Broadcast));
+        var prey = game.Participants.Single(p => p.UserId == preyId);
+        // Location was not updated because no broadcast happened.
+        Assert.Null(prey.Location);
+    }
+
+    [Fact]
+    public void SweepLocations_ShouldBroadcastPenalizedParticipant_BetweenRegularTicks()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 2);
+        var preyId = preyIds[0];
+
+        // Give the prey a known position first, then apply a penalty.
+        game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Start.AddSeconds(5));
+        // Consume readings via a regular tick to set Location.
+        game.SweepLocations(Start.AddSeconds(30)); // schedule now at Start + 30s
+
+        // Apply penalty (expires in 5 min) and advance time between ticks.
+        game.ApplyPenalty(preyId, Start.AddMinutes(6));
+
+        // Off-beat sweep: schedule next due at Start+60s; now is Start+45s.
+        var nextScheduledBefore = game.NextScheduledBroadcastOn;
+        var sweeps = game.SweepLocations(Start.AddSeconds(45));
+
+        var prey = game.Participants.Single(p => p.UserId == preyId);
+        var preySweep = sweeps.FirstOrDefault(s => s.UserId == preyId);
+        Assert.NotNull(preySweep);
+        Assert.NotNull(preySweep!.Broadcast); // penalized — should broadcast
+        // Schedule must not advance for an off-beat penalty broadcast.
+        Assert.Equal(nextScheduledBefore, game.NextScheduledBroadcastOn);
+    }
+
+    [Fact]
+    public void SweepLocations_ShouldAdvanceSchedule_ByRegularInterval()
+    {
+        // Default config: DefaultLocationInterval = 30s; game started at Start.
+        // NextScheduledBroadcastOn seeded to Start. Sweep at Start+30s.
+        // The while-loop catches up: Start→Start+30s, Start+30s→Start+60s (30s<=30s), then stop.
+        var game = GameFaker.StartedGame(out _, out _, Start, playerCount: 2);
+
+        game.SweepLocations(Start.AddSeconds(30));
+
+        // Schedule advances to the first future slot beyond now.
+        Assert.Equal(Start.AddSeconds(60), game.NextScheduledBroadcastOn);
+    }
+
+    [Fact]
+    public void SweepLocations_ShouldTightenSchedule_WhenCrossesIntoFinalStage()
+    {
+        // DefaultLocationInterval = 30s, FinalLocationInterval = 10s, FinalStageDuration = 10min.
+        // Game 60 min → final stage starts at Start+50min.
+        // Seed: NextScheduledBroadcastOn = Start.
+        // Sweep at Start+50min+5s: schedule was due, interval now in final stage → 10s.
+        var game = GameFaker.StartedGame(out _, out _, Start, playerCount: 2);
+
+        // Advance schedule to a point just inside the final stage.
+        // Simulate many ticks by sweeping at final-stage time.
+        var finalStageTime = Start.AddMinutes(50).AddSeconds(5);
+        game.SweepLocations(finalStageTime);
+
+        // After this sweep NextScheduledBroadcastOn should be > finalStageTime and use 10s increments.
+        Assert.True(game.NextScheduledBroadcastOn > finalStageTime);
+    }
 }
