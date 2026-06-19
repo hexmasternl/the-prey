@@ -41,13 +41,42 @@ internal static class GameMappings
             game.HunterMayMoveAt);
     }
 
+    /// <summary>
+    /// Computes the whole seconds left until the next update for the given participant, using a hybrid rule:
+    /// <list type="bullet">
+    ///   <item><b>Penalised participant</b> — personal cadence anchored to their most recent recorded location:
+    ///         <c>lastLocation.RecordedAt + penaltyInterval - now</c>. Falls back to the full interval when
+    ///         no location has been recorded yet. Clamped to <c>[0, interval]</c>.</item>
+    ///   <item><b>Non-penalised participant</b> — game-wide synced cadence: starting from
+    ///         <see cref="Game.NextScheduledBroadcastOn"/>, advance by <paramref name="interval"/> seconds
+    ///         until the scheduled moment is in the future, then return the seconds remaining. Falls back to
+    ///         <paramref name="interval"/> when <see cref="Game.NextScheduledBroadcastOn"/> is null.
+    ///         Clamped to <c>[0, interval]</c>.</item>
+    /// </list>
+    /// </summary>
     private static int ComputeNextPingDuration(Game game, Guid userId, DateTimeOffset now)
     {
         var interval = game.ReportingIntervalFor(userId, now);
         var participant = game.Participants.FirstOrDefault(p => p.UserId == userId);
-        var lastLocation = participant?.Locations.OrderByDescending(l => l.RecordedAt).FirstOrDefault();
-        if (lastLocation is null) return interval;
-        return (int)Math.Max(0, (lastLocation.RecordedAt.AddSeconds(interval) - now).TotalSeconds);
+
+        if (participant is not null && participant.HasActivePenalty(now))
+        {
+            var lastLocation = participant.Locations.OrderByDescending(l => l.RecordedAt).FirstOrDefault();
+            if (lastLocation is null)
+                return interval;
+            var secondsLeft = (lastLocation.RecordedAt.AddSeconds(interval) - now).TotalSeconds;
+            return (int)Math.Max(0, Math.Min(interval, secondsLeft));
+        }
+
+        if (game.NextScheduledBroadcastOn is null)
+            return interval;
+
+        var scheduled = game.NextScheduledBroadcastOn.Value;
+        while (scheduled <= now)
+            scheduled = scheduled.AddSeconds(interval);
+
+        var remaining = (scheduled - now).TotalSeconds;
+        return (int)Math.Max(0, Math.Min(interval, remaining));
     }
 
     private static int ComputeCurrentPingInterval(Game game, Guid userId, DateTimeOffset now) =>

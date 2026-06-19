@@ -8,6 +8,12 @@ public sealed record GameStatusDto(
     Guid? HunterUserId,
     IReadOnlyList<GameParticipantStatusDto> Participants,
     int GameDurationLeft,
+    /// <summary>
+    /// Server-calculated whole seconds remaining until the next update for this participant.
+    /// The client seeds its countdown bar from this value and ticks it down locally between polls.
+    /// Non-penalised players share the game-wide schedule (same value at the same instant for all);
+    /// penalised players use a personal cadence anchored to their last recorded location.
+    /// </summary>
     int NextPingDuration,
     /// <summary>The participant's current reporting interval in whole seconds — the full duration between consecutive scheduled pings; 0 for non-participants.</summary>
     int CurrentPingInterval,
