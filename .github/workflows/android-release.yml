@@ -36,11 +36,28 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Resolve the refs to diff: head is this run's commit, base is the most
+      # recent tag reachable before it. Falls back to the repo's first commit
+      # when no prior tag exists, so the action never gets handed a ref that
+      # isn't in the runner's history (the cause of the git exit-128 failure).
+      - name: Resolve release-notes refs
+        id: notes_refs
+        run: |
+          head_ref="$GITHUB_SHA"
+          base_ref="$(git describe --tags --abbrev=0 "${head_ref}^" 2>/dev/null || true)"
+          if [ -z "$base_ref" ]; then
+            base_ref="$(git rev-list --max-parents=0 "$head_ref" | tail -n 1)"
+          fi
+          echo "base-ref=$base_ref" >> "$GITHUB_OUTPUT"
+          echo "head-ref=$head_ref" >> "$GITHUB_OUTPUT"
+          echo "Generating release notes for $base_ref..$head_ref"
+
       - name: Generate release notes
         uses: github/copilot-release-notes@v1
+        continue-on-error: true # release-notes are nice-to-have; never block the publish
         with:
-          base-ref: v1.0.0
-          head-ref: v1.1.0
+          base-ref: ${{ steps.notes_refs.outputs.base-ref }}
+          head-ref: ${{ steps.notes_refs.outputs.head-ref }}
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
 
