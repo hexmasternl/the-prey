@@ -323,3 +323,28 @@ ion-header ion-toolbar {
   0%, 100% { --box-shadow: 0 0 12px rgba(var(--tp-signal-rgb), 0.2); }
   50%       { --box-shadow: 0 0 28px rgba(var(--tp-signal-rgb), 0.5); }
 }
+
+// App update required — version gate blocked this client (server returned 409)
+.app-update {
+  margin: 20px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--tp-hunter);
+  border-left-width: 3px;
+  background: rgba(var(--tp-hunter-rgb), 0.08);
+
+  &__title {
+    font-family: var(--tp-head);
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--tp-hunter);
+    text-transform: uppercase;
+  }
+
+  &__body {
+    font-family: var(--tp-body);
+    font-size: 13px;
+    color: var(--tp-text-soft);
+    line-height: 1.6;
+    margin: 4px 0 12px;
+  }
+}

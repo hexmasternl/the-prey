@@ -5,6 +5,7 @@ using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.Games.Features.CheckAppVersion;
 using HexMaster.ThePrey.Games.Features.CreateGame;
 using HexMaster.ThePrey.Games.Features.EndGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
@@ -198,7 +199,36 @@ public static class GameEndpoints
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status401Unauthorized);
 
+        // Version gate — mapped outside the authenticated group so it works regardless of auth
+        // state (a token problem must never mask a required-update signal, and the client checks
+        // this before/independently of login).
+        app.MapPost("/games/version-checker", CheckAppVersion)
+            .WithName("CheckAppVersion")
+            .WithTags("Games")
+            .AllowAnonymous()
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status409Conflict)
+            .ProducesValidationProblem();
+
         return app;
+    }
+
+    private static async Task<IResult> CheckAppVersion(
+        [FromBody] CheckAppVersionRequest request,
+        IQueryHandler<CheckAppVersionQuery, AppVersionCheckResult> handler,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await handler.Handle(new CheckAppVersionQuery(request.CurrentVersion), ct);
+            return result == AppVersionCheckResult.UpdateRequired
+                ? Results.Conflict()
+                : Results.NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return ValidationProblem(ex);
+        }
     }
 
     private static async Task<IResult> CreateGame(

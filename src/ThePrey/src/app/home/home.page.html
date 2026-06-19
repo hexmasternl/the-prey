@@ -38,18 +38,36 @@
       </div>
     }
 
+    <!-- App update required — the version gate blocked this client (server returned 409) -->
+    @if (updateRequired()) {
+      <div class="app-update">
+        <div class="app-update__icon">▲</div>
+        <div>
+          <div class="app-update__title">{{ 'APP_UPDATE.TITLE' | translate }}</div>
+          <div class="app-update__body">{{ 'APP_UPDATE.BODY' | translate }}</div>
+          <ion-button
+            expand="block"
+            color="danger"
+            (click)="openStore()"
+          >
+            {{ 'APP_UPDATE.STORE_LINK' | translate }}
+          </ion-button>
+        </div>
+      </div>
+    }
+
     <!-- Action buttons — only rendered once the user profile is available -->
     @if (userState.profile(); as profile) {
       <div class="buttons">
         @if (activeGameId()) {
-          <ion-button expand="block" color="danger" [disabled]="locationDenied()" (click)="goToActiveGame()">
+          <ion-button expand="block" color="danger" [disabled]="locationDenied() || versionBlocked()" (click)="goToActiveGame()">
             {{ 'HOME.RESUME_GAME' | translate }}
           </ion-button>
         } @else {
           <ion-button
             expand="block"
             color="primary"
-            [disabled]="!activeGameLoaded() || locationDenied()"
+            [disabled]="!activeGameLoaded() || locationDenied() || versionBlocked()"
             (click)="goToPlay()"
           >
             {{ 'HOME.PLAY_NOW' | translate }}
@@ -60,6 +78,7 @@
           expand="block"
           fill="outline"
           color="medium"
+          [disabled]="versionBlocked()"
           (click)="goToPlayfields()"
         >
           {{ 'HOME.PLAYFIELDS' | translate }}
@@ -69,6 +88,7 @@
           expand="block"
           fill="outline"
           color="medium"
+          [disabled]="versionBlocked()"
           (click)="goToSettings()"
         >
           {{ 'HOME.SETTINGS' | translate }}
@@ -78,6 +98,7 @@
           expand="block"
           fill="outline"
           color="medium"
+          [disabled]="versionBlocked()"
           (click)="logout()"
         >
           {{ 'HOME.LOGOUT' | translate }}
@@ -87,6 +108,7 @@
           expand="block"
           fill="outline"
           color="medium"
+          [disabled]="versionBlocked()"
           (click)="quit()"
         >
           {{ 'HOME.QUIT' | translate }}
