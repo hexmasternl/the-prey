@@ -2,10 +2,12 @@ import {
   Component,
   computed,
   effect,
+  ElementRef,
   inject,
   OnDestroy,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -54,6 +56,8 @@ import {
 import { GameLocationService } from './game-location.service';
 import { CompassService } from './compass.service';
 import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
+import { GameTourComponent, TourStep } from './game-tour.component';
+import { TourService } from './tour.service';
 
 @Component({
   selector: 'app-game-hunter',
@@ -76,6 +80,7 @@ import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
     IonRefresherContent,
     TranslatePipe,
     HunterDelayOverlayComponent,
+    GameTourComponent,
   ],
 })
 export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
@@ -87,6 +92,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly compass = inject(CompassService);
   private readonly toastCtrl = inject(ToastController);
   private readonly translate = inject(TranslateService);
+  private readonly tour = inject(TourService);
 
   /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
   readonly heading = this.compass.heading;
@@ -152,6 +158,31 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly nearestDistance = signal<string>('--');
   /** Collapsed by default: only game time + next-ping show until the HUD is tapped. */
   readonly hudExpanded = signal(false);
+
+  /** The collapsed time/HUD bar and the tag button — anchors for the first-time tour. */
+  private readonly hudBarRef = viewChild<ElementRef<HTMLElement>>('hudBar');
+  private readonly tagFabRef = viewChild<ElementRef<HTMLElement>>('tagFab');
+
+  /** True while the one-time hunter tour is showing. */
+  readonly tourActive = signal(false);
+
+  /** Two tour steps: the time bar (tap to expand/collapse), then the tag button. */
+  readonly tourSteps = computed<TourStep[]>(() => [
+    {
+      target: this.hudBarRef()?.nativeElement ?? null,
+      titleKey: 'GAME_TOUR.TIME_BAR_TITLE',
+      bodyKey: 'GAME_TOUR.TIME_BAR_BODY',
+    },
+    {
+      target: this.tagFabRef()?.nativeElement ?? null,
+      titleKey: 'GAME_TOUR.TAG_TITLE',
+      bodyKey: 'GAME_TOUR.TAG_BODY',
+    },
+  ]);
+
+  /** Guard so the tour is evaluated only once per page lifetime. */
+  private tourResolved = false;
+
   /** Epoch ms at which the nearest prey's location was last received, or null when none. */
   readonly nearestUpdatedAt = signal<number | null>(null);
   /**
@@ -238,6 +269,34 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       const h = this.heading();
       if (h !== null) this.applyHeading(h);
     });
+
+    // Offer the one-time hunter tour once the live view is interactive AND the tag button is
+    // usable: warning dismissed, game in progress, and the head-start delay has cleared so both
+    // the time bar and the (now-enabled) tag button are on screen to highlight.
+    effect(() => {
+      const ready =
+        !this.showSurroundingsWarning() &&
+        !this.waitingForStart() &&
+        !this.hunterDelayActive() &&
+        this.secondsRemaining() !== null;
+      if (ready) void this.maybeStartTour();
+    });
+  }
+
+  /** Show the hunter tour once if it has not been seen before. */
+  private async maybeStartTour(): Promise<void> {
+    if (this.tourResolved) return;
+    this.tourResolved = true;
+    if (await this.tour.hasSeen('hunter')) return;
+    // Ensure the HUD is collapsed so the bar anchor exists and the tap hint matches what's shown.
+    this.hudExpanded.set(false);
+    this.tourActive.set(true);
+  }
+
+  /** Tour finished (completed or skipped): hide it and record that hunter has now seen it. */
+  onTourCompleted(): void {
+    this.tourActive.set(false);
+    void this.tour.markSeen('hunter');
   }
 
   dismissSurroundingsWarning(): void {

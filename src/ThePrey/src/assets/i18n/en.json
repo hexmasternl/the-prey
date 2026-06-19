@@ -244,6 +244,15 @@
     "ACKNOWLEDGE": "I HAVE READ THIS BRIEFING AND AGREE TO STAY ALERT AT ALL TIMES",
     "CONTINUE": "CONFIRM AND ENTER FIELD"
   },
+  "GAME_TOUR": {
+    "TIME_BAR_TITLE": "MISSION TIMER",
+    "TIME_BAR_BODY": "This bar shows the time left. Tap it to expand or collapse the HUD.",
+    "TAG_TITLE": "TAG BUTTON",
+    "TAG_BODY": "When a prey is within range, use this to tag them out.",
+    "NEXT": "NEXT",
+    "DONE": "GOT IT",
+    "SKIP": "SKIP"
+  },
   "TAG_MODAL": {
     "TITLE": "TAG PREY",
     "INSTRUCTION": "Select a target to tag them out.",
