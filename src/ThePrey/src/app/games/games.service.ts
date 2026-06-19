@@ -82,6 +82,12 @@ export interface GameStatusDto {
   nextPingDuration: number;
   /** Server-calculated full ping interval in seconds for the requesting participant (denominator for the NEXT UPDATE bar). */
   currentPingInterval: number;
+  /**
+   * Whole seconds until the next sweep tick for a PENALISED participant, clamped 0–30.
+   * Returns 0 when the participant is not penalised. The penalty broadcast cadence is
+   * a fixed 30 seconds, so this acts as the seed/sync value when hasActivePenalty is true.
+   */
+  nextPingDurationWithPenalty: number;
   isEndgame: boolean;
   preysLeft: number;
   /** ISO timestamp at which the hunter is allowed to move (start + hunter delay). */
