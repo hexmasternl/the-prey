@@ -10,8 +10,6 @@ namespace HexMaster.ThePrey.Games.Tests.Features;
 
 public sealed class StartGameCommandHandlerTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 6, 3, 12, 0, 0, TimeSpan.Zero);
-
     private readonly Mock<IGameRepository> _repository = new();
     private readonly Mock<IGameMetrics> _metrics = new();
     private readonly Mock<IGameEventBus> _eventBus = new();
@@ -29,12 +27,11 @@ public sealed class StartGameCommandHandlerTests
             _metrics.Object,
             _eventBus.Object,
             _lobbyEventBus.Object,
-            new FixedTimeProvider(Now),
             Mock.Of<ILogger<StartGameCommandHandler>>());
     }
 
     [Fact]
-    public async Task Handle_ShouldStartGame_WhenOwnerStartsWithValidHunter()
+    public async Task Handle_ShouldArmGame_WhenOwnerStartsWithValidHunter()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
@@ -42,11 +39,43 @@ public sealed class StartGameCommandHandlerTests
         var result = await _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None);
 
         Assert.NotNull(result);
-        Assert.Equal(GameStatus.InProgress.ToString(), result!.Game.Status);
+        // Handler arms the game → Ready; the sweep will promote to InProgress.
+        Assert.Equal(GameStatus.Ready.ToString(), result!.Game.Status);
         Assert.Equal(ids[0], result.Game.HunterUserId);
         Assert.Equal(2, result.Game.Preys.Count);
+        Assert.Null(result.Game.StartedAt);
+        Assert.Null(result.Game.EndsAt);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _metrics.Verify(m => m.RecordGameStarted(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPublishReadyStateChanged_WhenArmed()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None);
+
+        _eventBus.Verify(b => b.PublishAsync(
+            game.Id,
+            It.Is<StateChangedEvent>(e => e.NewState == "Ready"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPublishLobbyGameStartedEvent_WhenArmed()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None);
+
+        _lobbyEventBus.Verify(b => b.PublishAsync(
+            game.Id,
+            "game-started",
+            It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

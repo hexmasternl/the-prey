@@ -13,7 +13,9 @@ internal static class GameMappings
             ? (int)Math.Max(0, (scheduledEndAt.Value - now).TotalSeconds)
             : 0;
 
-        var nextPingDuration = game.IsParticipant(userId) ? ComputeNextPingDuration(game, userId, now) : 0;
+        var isParticipant = game.IsParticipant(userId);
+        var nextPingDuration = isParticipant ? ComputeNextPingDuration(game, userId, now) : 0;
+        var currentPingInterval = isParticipant ? ComputeCurrentPingInterval(game, userId, now) : 0;
         var isEndgame = game.IsInFinalStage(now);
 
         // Build participants list: all participants with computed State ("Active" for hunter).
@@ -33,6 +35,7 @@ internal static class GameMappings
             participantStatuses,
             gameDurationLeft,
             nextPingDuration,
+            currentPingInterval,
             isEndgame,
             preysLeft,
             game.HunterMayMoveAt);
@@ -46,6 +49,9 @@ internal static class GameMappings
         if (lastLocation is null) return interval;
         return (int)Math.Max(0, (lastLocation.RecordedAt.AddSeconds(interval) - now).TotalSeconds);
     }
+
+    private static int ComputeCurrentPingInterval(Game game, Guid userId, DateTimeOffset now) =>
+        game.ReportingIntervalFor(userId, now);
 
     private static GameParticipantStatusDto ToStatusDto(this GameParticipant participant, Game game, DateTimeOffset now)
     {

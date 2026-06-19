@@ -9,11 +9,17 @@ import {
 } from '@angular/core';
 import * as L from 'leaflet';
 import { GpsCoordinateDto } from '../playfield.model';
+import { MAP_COLORS } from '../../shared/map-colors';
 
 @Component({
   selector: 'app-playfield-map',
-  template: `<div #mapContainer style="width:100%;height:220px;"></div>`,
-  styles: [`:host { display: block; }`],
+  template: `<div #mapContainer class="map-canvas"></div>`,
+  styles: [
+    `
+      :host { display: block; }
+      .map-canvas { width: 100%; height: 220px; }
+    `,
+  ],
 })
 export class PlayfieldMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() coordinates: GpsCoordinateDto[] = [];
@@ -73,8 +79,8 @@ export class PlayfieldMapComponent implements AfterViewInit, OnChanges, OnDestro
     if (pts.length >= 3) {
       const latLngs = pts.map((c) => L.latLng(c.latitude, c.longitude));
       this.polygon = L.polygon(latLngs, {
-        color: '#3b82f6',
-        fillColor: '#3b82f6',
+        color: MAP_COLORS.SIGNAL,
+        fillColor: MAP_COLORS.SIGNAL,
         fillOpacity: 0.25,
         weight: 2,
       }).addTo(this.map!);

@@ -11,12 +11,37 @@ ion-segment {
   --background: transparent;
 }
 
+// Segment button: uppercase PT Mono labels at 2px letter-spacing
+ion-segment-button {
+  font-family: var(--tp-body);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  --border-radius: 3px;
+  --color: var(--tp-text-soft);
+  --color-checked: var(--tp-signal);
+  --indicator-color: var(--tp-signal-deep);
+}
+
 ion-item {
   --background: var(--tp-bg-void);
   --color: var(--tp-text);
   --border-color: var(--tp-line);
 }
 
+// Signal-green left-border accent on list rows
+ion-item.item-has-detail,
+ion-list ion-item {
+  border-left: 3px solid var(--tp-signal);
+}
+
+// h2 names in Special Elite
+ion-item ion-label h2 {
+  font-family: var(--tp-head);
+  color: var(--tp-text);
+}
+
+// Sync state wrapper
 .sync-state {
   display: flex;
   flex-direction: column;
@@ -32,10 +57,24 @@ ion-item {
   }
 }
 
+// Sync spinner — dimensions without inline style
+.sync-spinner {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+}
+
+// Empty / hint labels: uppercase PT Mono, ghost color, 2px tracking
 .empty-label {
   font-family: var(--tp-body);
   font-size: 13px;
+  text-transform: uppercase;
   color: var(--tp-text-ghost);
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   text-align: center;
+}
+
+// FAB: signal-green glow + 3px radius (global sets radius; glow is local)
+.tp-fab-primary {
+  box-shadow: 0 0 12px var(--tp-signal-glow);
 }

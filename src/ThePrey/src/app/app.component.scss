@@ -3,10 +3,10 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: var(--tp-bg-void, #0a0c0a);
+  background: var(--tp-bg-void);
 
   ion-spinner {
-    --color: var(--tp-signal, #64ff00);
+    --color: var(--tp-signal);
     width: 48px;
     height: 48px;
   }

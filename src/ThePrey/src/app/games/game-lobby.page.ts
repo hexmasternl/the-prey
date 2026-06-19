@@ -20,7 +20,7 @@ import {
   ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkCircle, chevronBack, personRemove, shareSocial } from 'ionicons/icons';
+import { chevronBack, personRemove, shareSocial } from 'ionicons/icons';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
@@ -85,9 +85,6 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
 
-  /** The host sees a Start button once at least one other operative has joined (2+ total). */
-  readonly canShowStart = computed(() => this.isOwner() && (this.game()?.participants.length ?? 0) >= 2);
-
   /**
    * Whether the game may be started. The server computes this (enough players, a designated hunter,
    * and every non-host operative readied up) and exposes it on the DTO, so the client just reflects it.
@@ -101,7 +98,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   );
 
   constructor() {
-    addIcons({ checkmarkCircle, chevronBack, personRemove, shareSocial });
+    addIcons({ chevronBack, personRemove, shareSocial });
   }
 
   async ionViewWillEnter(): Promise<void> {
@@ -173,22 +170,23 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       return;
     }
 
-    // Reflect the new state locally and confirm the game actually left the lobby
-    // before navigating. Keep the socket open if the status hasn't changed yet.
+    // Reflect the new state locally and confirm the game has left the lobby
+    // (Ready or InProgress both trigger navigation to the role view).
     this.setGameState(game);
     this.syncConfigFromGame(game);
-    if (game.status !== 'InProgress') {
-      this.streamError(`event 'game-started' carried unexpected status '${game.status}' (expected 'InProgress') — not navigating`);
-      return;
-    }
 
-    this.enterStartedGame(game);
+    if (game.status === 'Ready' || game.status === 'InProgress') {
+      this.enterStartedGame(game);
+    } else {
+      this.streamError(`event 'game-started' carried unexpected status '${game.status}' (expected 'Ready' or 'InProgress') — not navigating`);
+    }
   }
 
   /**
-   * The game is verified InProgress — stop the lobby stream, start location tracking and
-   * route the player to their role's view. Reached via the `game-started` event or via a
-   * post-reconnect refresh that discovered the game started while we were disconnected.
+   * The game has left the lobby (Ready or InProgress) — stop the lobby stream and
+   * route the player to their role's view. Location tracking is started only when the
+   * game is InProgress (has a real startedAt); during Ready there is no clock yet.
+   * Reached via the `game-started` event or via a post-reconnect refresh.
    */
   private enterStartedGame(game: GameDto): void {
     const uid = this.currentUserId();
@@ -196,13 +194,13 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
     const isHunter = game.hunterUserId === uid;
     const isPrey = game.preys.includes(uid);
-    this.streamLog(`game in progress — uid=${uid} isHunter=${isHunter} isPrey=${isPrey}`);
+    this.streamLog(`game ${game.status} — uid=${uid} isHunter=${isHunter} isPrey=${isPrey}`);
 
-    // Start background location tracking before navigating so reporting begins the
-    // moment the game starts. The in-game page's ionViewWillEnter is a no-op when a
-    // session for this game is already active (idempotent start).
-    if (isHunter || isPrey) {
-      const startedAt = game.startedAt ? new Date(game.startedAt) : new Date();
+    // Start background location tracking only when the game is actually running
+    // (InProgress has startedAt; Ready does not). The in-game page's ionViewWillEnter
+    // is a no-op when a session for this game is already active (idempotent start).
+    if ((isHunter || isPrey) && game.status === 'InProgress' && game.startedAt) {
+      const startedAt = new Date(game.startedAt);
       const endTime = new Date(startedAt.getTime() + game.configuration.gameDuration * 60_000);
       void this.locationService.start(game.id, endTime);
     }
@@ -214,7 +212,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       this.streamLog(`navigating to play view for game ${game.id}`);
       this.router.navigate(['/games', game.id, 'play'], { replaceUrl: true });
     } else {
-      this.streamError(`game in progress but current user ${uid} is neither hunter nor prey — staying put`);
+      this.streamError(`game left lobby but current user ${uid} is neither hunter nor prey — staying put`);
     }
   }
 
@@ -223,8 +221,8 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       const game = await this.gamesService.getGame(this.gameId());
       this.setGameState(game);
       this.syncConfigFromGame(game);
-      if (game.status === 'InProgress') {
-        this.streamLog('refresh found the game already in progress (missed game-started) — entering game');
+      if (game.status === 'Ready' || game.status === 'InProgress') {
+        this.streamLog(`refresh found game in status '${game.status}' (missed game-started event) — entering game`);
         this.enterStartedGame(game);
       } else if (game.status === 'Completed') {
         this.streamLog('refresh found the game completed — leaving lobby');

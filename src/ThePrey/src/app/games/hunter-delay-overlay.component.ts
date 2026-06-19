@@ -8,15 +8,24 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 
 /**
- * Countdown overlay shown centered over the map until the hunter is allowed to move
- * (`hunterMayMoveAt` from the game status). Ticks locally every second; the absolute
- * timestamp input means every status poll resyncs it for free. Renders nothing when
- * the moment is null or already in the past, and removes itself when it reaches zero.
+ * Overlay shown centered over the map in two modes:
+ *
+ * 1. **Hunter-delay mode** (default): counts down until `hunterMayMoveAt`. Renders
+ *    nothing when the moment is null or already in the past.
+ * 2. **Waiting-for-start mode** (`waiting = true`): shows a steady "waiting for game
+ *    start" message with no countdown digits. Used while the game is in the `Ready`
+ *    state (armed by the host, not yet committed by the sweep).
  */
 @Component({
   selector: 'app-hunter-delay-overlay',
   template: `
-    @if (secondsLeft() > 0) {
+    @if (waiting()) {
+      <div class="delay-overlay">
+        <div class="delay-card">
+          <div class="delay-label">{{ 'WAITING_FOR_START.LABEL' | translate }}</div>
+        </div>
+      </div>
+    } @else if (secondsLeft() > 0) {
       <div class="delay-overlay">
         <div class="delay-card">
           <div class="delay-label">{{ 'HUNTER_DELAY.LABEL' | translate }}</div>
@@ -44,45 +53,48 @@ import { TranslatePipe } from '@ngx-translate/core';
         pointer-events: none;
       }
       .delay-card {
-        background: rgba(10, 14, 10, 0.85);
-        border: 1px solid rgba(100, 255, 0, 0.5);
-        border-radius: 8px;
+        background: rgba(var(--tp-bg-void-rgb), 0.88);
+        border: 1px solid rgba(var(--tp-signal-rgb), 0.5);
+        border-radius: 3px;
         padding: 20px 32px;
         text-align: center;
       }
       .delay-label {
+        font-family: var(--tp-body);
         font-size: 12px;
         letter-spacing: 2px;
         text-transform: uppercase;
-        color: #64ff00;
+        color: var(--tp-signal);
       }
       .delay-countdown {
+        font-family: var(--tp-head);
         font-size: 48px;
-        font-weight: 700;
         font-variant-numeric: tabular-nums;
-        color: #ffffff;
+        color: var(--tp-text);
         line-height: 1.2;
       }
       .delay-hint {
+        font-family: var(--tp-body);
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--tp-text-soft);
       }
       .delay-warning {
         margin-top: 16px;
         padding-top: 12px;
-        border-top: 1px solid rgba(255, 60, 60, 0.4);
+        border-top: 1px solid rgba(var(--tp-hunter-rgb), 0.4);
       }
       .delay-warning-title {
+        font-family: var(--tp-body);
         font-size: 13px;
-        font-weight: 700;
         letter-spacing: 2px;
         text-transform: uppercase;
-        color: #ff3c3c;
+        color: var(--tp-hunter);
       }
       .delay-warning-body {
+        font-family: var(--tp-body);
         margin-top: 4px;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.85);
+        color: var(--tp-text-soft);
         max-width: 240px;
       }
     `,
@@ -90,7 +102,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   imports: [TranslatePipe],
 })
 export class HunterDelayOverlayComponent implements OnDestroy {
-  /** ISO timestamp at which the hunter may move; null hides the overlay. */
+  /** ISO timestamp at which the hunter may move; null hides the overlay (in delay mode). */
   readonly hunterMayMoveAt = input<string | null>(null);
 
   /**
@@ -99,6 +111,12 @@ export class HunterDelayOverlayComponent implements OnDestroy {
    * the countdown. Off by default so the prey view keeps the plain countdown.
    */
   readonly showMovementWarning = input(false);
+
+  /**
+   * When true, switches to "waiting for game start" mode: a steady label with no
+   * countdown. Use while the game is in the `Ready` state before InProgress arrives.
+   */
+  readonly waiting = input(false);
 
   private readonly now = signal(Date.now());
   private readonly timer = setInterval(() => this.now.set(Date.now()), 1000);

@@ -248,7 +248,8 @@ public sealed class GetTagCandidatesQueryHandlerTests
         game.JoinLobby(GameFaker.Player(preyId, expectedName));
         game.SetReady(hunterId);
         game.SetReady(preyId);
-        game.Start(hunterId, Start);
+        game.Arm(hunterId);
+        game.BeginPlay(Start);
 
         game.RecordLocation(hunterId, HunterCoord, Now);
         game.RecordLocation(preyId, NearCoord, Now);

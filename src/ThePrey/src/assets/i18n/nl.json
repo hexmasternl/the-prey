@@ -142,8 +142,10 @@
     "PLAYERS": "AGENTEN",
     "ROLE_HUNTER": "JAGER",
     "ROLE_PREY": "PROOI",
+    "ROLE_OWNER": "EIGENAAR",
     "READY": "GEREED",
     "READY_DONE": "IN POSITIE",
+    "WAIT": "WACHT",
     "YOU": "JIJ",
     "DELETE_PLAYER": "VERWIJDEREN",
     "SETTINGS": "MISSIEPARAMETERS",
@@ -188,6 +190,7 @@
     "GPS_DENIED_MSG": "Locatietoegang is geweigerd. Geef The Prey toegang tot je locatie om in het spel te blijven.",
     "GPS_UNAVAILABLE_TITLE": "GEEN GPS-SIGNAAL",
     "GPS_UNAVAILABLE_MSG": "Geen GPS-fix. Ga naar de open lucht en zorg dat locatie aanstaat.",
+    "GPS_SIGNAL_LOST": "Signaal verloren. Zoek de open lucht.",
     "REPORTING_DEGRADED_TITLE": "POSITIE WORDT NIET BIJGEWERKT",
     "REPORTING_DEGRADED_MSG": "Geen verbinding met de commandopost. Je positie wordt niet gedeeld — controleer je verbinding.",
     "TAGGED_TITLE": "JE BENT GETIKT",
@@ -195,7 +198,16 @@
     "OUT_TITLE": "JE BENT AF",
     "OUT_MSG": "Je was te lang buiten het gebied.",
     "SPECTATING": "Blijf kijken — je ziet hoe het afloopt.",
-    "BACK": "TERUG"
+    "BACK": "TERUG",
+    "STATUS_LIVE": "LIVE",
+    "STATUS_ENDGAME": "EINDFASE",
+    "STATUS_CRITICAL": "KRITIEK",
+    "STATUS_SPECTATING": "TOESCHOUWER",
+    "HUD_TIME": "TIJD",
+    "HUD_PREY": "PROOI",
+    "HUD_DISTANCE": "AFSTAND",
+    "HUD_PENALTY": "STRAF",
+    "HUD_PENALTY_ACTIVE": "ACTIEF"
   },
   "GAME_OUTCOME": {
     "TAG": "// DEBRIEFING",
@@ -244,5 +256,8 @@
     "HINT": "De hunter moet blijven staan tot het aftellen voorbij is.",
     "MOVE_WARNING_TITLE": "NIET BEWEGEN",
     "MOVE_WARNING_BODY": "Als je beweegt tijdens de vrijlatingsvertraging, ga je 10 minuten live nadat het aftellen voorbij is."
+  },
+  "WAITING_FOR_START": {
+    "LABEL": "WACHTEN OP SPELSTART"
   }
 }

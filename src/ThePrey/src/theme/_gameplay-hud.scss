@@ -1,0 +1,150 @@
+// THE PREY — Shared gameplay HUD structural rules
+// ---------------------------------------------------------------------------
+// Provides the three-state threat-escalation CSS variables and the structural
+// chrome shared across the hunter and prey gameplay pages:
+//   - threat-state color variables on ion-content[data-threat]
+//   - .cb corner brackets (scaled to role color via --threat)
+//   - .status-bar / .status-pill / .role-tag (via --threat / --threat-glow)
+//   - .hud-time-flash keyframe for the critical-phase timer flash
+//   - @mixin gameplay-structural-chrome — include inside each page's :host
+//
+// Usage in a page .scss:
+//   @use '../../theme/gameplay-hud' as hud;
+//   @use '../../theme/motion' as motion;
+//   @include hud.structural-chrome;
+// ---------------------------------------------------------------------------
+
+@use 'motion' as motion;
+
+// ── Threat-state color variables ─────────────────────────────────────────────
+// Defined on ion-content so the cascade reaches all absolutely-positioned
+// overlay children. Each page puts [attr.data-threat]="threatState()" on its
+// ion-content; these rules pick it up.
+
+ion-content {
+  --threat:      var(--tp-signal);
+  --threat-glow: var(--tp-signal-glow);
+}
+
+ion-content[data-threat='final'] {
+  --threat:      var(--tp-caution);
+  --threat-glow: var(--tp-caution-glow);
+}
+
+ion-content[data-threat='critical'] {
+  --threat:      var(--tp-hunter);
+  --threat-glow: var(--tp-hunter-glow);
+}
+
+// ── Status pill pulse keyframe ───────────────────────────────────────────────
+// Used by .status-pill inside structural-chrome. Defined at partial root so it
+// is emitted once per page stylesheet that @include-s the mixin.
+
+@keyframes pill-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+// ── Critical-phase timer flash keyframe ──────────────────────────────────────
+// Applied on .hud-time-flash when data-threat="critical".
+// The fallback (prefers-reduced-motion) is handled inside structural-chrome.
+
+@keyframes hud-time-flash {
+  0%, 100% { opacity: 1; color: var(--tp-hunter); text-shadow: 0 0 16px var(--tp-hunter-glow); }
+  50%       { opacity: 0.45; color: var(--tp-hunter); text-shadow: none; }
+}
+
+// ── Shared structural chrome mixin ───────────────────────────────────────────
+// Include this inside a page scss's root (not inside :host) so Angular's
+// emulated-encapsulation attribute is added to the generated selectors and the
+// rules scope correctly to each page's own template.
+
+@mixin structural-chrome {
+
+  // Corner brackets — color tracks --threat so they escalate with the game state
+  .cb {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--threat, var(--tp-signal));
+    z-index: 10;
+    pointer-events: none;
+    transition: border-color 0.6s ease;
+
+    &.tl { top: 8px;    left: 8px;   border-right: 0; border-bottom: 0; }
+    &.tr { top: 8px;    right: 8px;  border-left: 0;  border-bottom: 0; }
+    &.bl { bottom: 8px; left: 8px;   border-right: 0; border-top: 0;    }
+    &.br { bottom: 8px; right: 8px;  border-left: 0;  border-top: 0;    }
+  }
+
+  // Status bar — floating across the top of the map
+  .status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 16px 10px;
+    background: linear-gradient(to bottom, rgba(var(--tp-bg-void-rgb), 0.9), transparent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+  }
+
+  // Live-state pill — border and dot track --threat
+  .status-pill {
+    font-family: var(--tp-body);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--threat, var(--tp-signal));
+    color: var(--threat, var(--tp-signal));
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    animation: pill-pulse 1.5s ease-in-out infinite;
+    transition: border-color 0.6s ease, color 0.6s ease;
+
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 6px currentColor;
+    }
+  }
+
+  // Role badge (HUNTER / PREY) — tracks --threat for the glow
+  .role-tag {
+    font-family: var(--tp-head);
+    font-size: 11px;
+    color: var(--threat, var(--tp-signal));
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 8px var(--threat-glow, var(--tp-signal-glow));
+    transition: color 0.6s ease, text-shadow 0.6s ease;
+  }
+
+  // ── Timer flash (critical phase only) ─────────────────────────────────────
+  // Applied to the .hud-time-value / .hud-value element wrapping the TIME readout.
+  // The ion-content[data-threat="critical"] selector drives this via a class
+  // toggled in the template. We keep the keyframe reference here so it's
+  // co-located with the definition above.
+
+  .hud-time-flash {
+    animation: hud-time-flash 0.8s ease-in-out infinite;
+  }
+
+  // Reduced-motion: kill the pill pulse and the timer flash; keep a static
+  // hunter-red color on the timer so the urgency is still communicated.
+  @include motion.reduce {
+    .status-pill { animation: none; opacity: 1; }
+    .hud-time-flash {
+      animation: none;
+      color: var(--tp-hunter);
+      text-shadow: 0 0 12px var(--tp-hunter-glow);
+    }
+  }
+}

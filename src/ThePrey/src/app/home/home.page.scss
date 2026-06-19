@@ -15,7 +15,7 @@ ion-content {
   overflow: hidden;
   border: 1px solid var(--tp-line);
   background:
-    linear-gradient(135deg, rgba(100, 255, 0, 0.1), transparent 90%),
+    linear-gradient(135deg, rgba(var(--tp-signal-rgb), 0.1), transparent 90%),
     var(--tp-bg-void);
 
   // Slowly panning tactical map. The layer is one tile (1600px) larger than the
@@ -45,7 +45,7 @@ ion-content {
 @media (prefers-color-scheme: light) {
   .hero {
     background:
-      linear-gradient(135deg, rgba(63, 158, 0, 0.14), transparent 90%),
+      linear-gradient(135deg, rgba(var(--tp-signal-rgb), 0.14), transparent 90%),
       var(--tp-bg-void);
 
     &::before {
@@ -167,7 +167,7 @@ h1 {
   padding: 14px 16px;
   border: 1px solid var(--tp-hunter);
   border-left-width: 3px;
-  background: rgba(255, 47, 31, 0.08);
+  background: rgba(var(--tp-hunter-rgb), 0.08);
 
   &__icon {
     font-family: var(--tp-head);

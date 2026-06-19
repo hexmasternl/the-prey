@@ -1,3 +1,5 @@
+@use '../../theme/motion' as motion;
+
 :host {
   display: block;
   background: var(--tp-bg-void);
@@ -26,7 +28,7 @@ ion-header ion-toolbar {
   &__grid {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(circle, rgba(100, 255, 0, 0.06) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(var(--tp-signal-rgb), 0.06) 1px, transparent 1px);
     background-size: 36px 36px;
   }
 
@@ -40,7 +42,7 @@ ion-header ion-toolbar {
     background: conic-gradient(
       from 0deg,
       transparent 0deg,
-      rgba(100, 255, 0, 0.14) 45deg,
+      rgba(var(--tp-signal-rgb), 0.14) 45deg,
       transparent 70deg
     );
     animation: radar-spin 5s linear infinite;
@@ -54,7 +56,7 @@ ion-header ion-toolbar {
     background: linear-gradient(
       to right,
       transparent 0%,
-      rgba(100, 255, 0, 0.55) 50%,
+      rgba(var(--tp-signal-rgb), 0.55) 50%,
       transparent 100%
     );
     animation: scanline-h 12s linear infinite;
@@ -68,7 +70,7 @@ ion-header ion-toolbar {
     background: linear-gradient(
       to bottom,
       transparent 0%,
-      rgba(100, 255, 0, 0.45) 50%,
+      rgba(var(--tp-signal-rgb), 0.45) 50%,
       transparent 100%
     );
     animation: scanline-v 11s linear infinite;
@@ -79,14 +81,14 @@ ion-header ion-toolbar {
 @media (prefers-color-scheme: light) {
   .tac-bg {
     &__grid {
-      background-image: radial-gradient(circle, rgba(31, 77, 0, 0.1) 1px, transparent 1px);
+      background-image: radial-gradient(circle, rgba(var(--tp-signal-rgb), 0.1) 1px, transparent 1px);
     }
 
     &__radar {
       background: conic-gradient(
         from 0deg,
         transparent 0deg,
-        rgba(63, 158, 0, 0.16) 45deg,
+        rgba(var(--tp-signal-rgb), 0.16) 45deg,
         transparent 70deg
       );
     }
@@ -95,7 +97,7 @@ ion-header ion-toolbar {
       background: linear-gradient(
         to right,
         transparent 0%,
-        rgba(63, 158, 0, 0.42) 50%,
+        rgba(var(--tp-signal-rgb), 0.42) 50%,
         transparent 100%
       );
     }
@@ -104,11 +106,19 @@ ion-header ion-toolbar {
       background: linear-gradient(
         to bottom,
         transparent 0%,
-        rgba(63, 158, 0, 0.34) 50%,
+        rgba(var(--tp-signal-rgb), 0.34) 50%,
         transparent 100%
       );
     }
   }
+}
+
+@include motion.reduce {
+  .tac-bg__radar { animation: none; }
+  .tac-bg__scanline { animation: none; }
+  .tac-bg__scanline-v { animation: none; }
+  .ready-btn,
+  .start-btn { animation: none; box-shadow: 0 0 12px var(--tp-signal-glow); }
 }
 
 // ── Loading ──────────────────────────────────────────────────
@@ -285,17 +295,23 @@ ion-header ion-toolbar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 10px 10px 16px;
+  padding: 11px 10px 11px 14px;
+  // Role accent bar on the left edge — green for prey (default), red for hunter.
+  border-left: 3px solid var(--tp-signal);
 
   & + .operative-row {
     border-top: 1px solid color-mix(in srgb, var(--tp-line) 55%, transparent);
+  }
+
+  &--hunter {
+    border-left-color: var(--tp-hunter);
   }
 
   &--clickable {
     cursor: pointer;
 
     &:active {
-      background: rgba(100, 255, 0, 0.05);
+      background: rgba(var(--tp-signal-rgb), 0.05);
     }
   }
 }
@@ -305,33 +321,21 @@ ion-header ion-toolbar {
   min-width: 0;
 }
 
+// Call sign — Special Elite display face per design system
 .operative-name {
-  font-family: var(--tp-body);
-  font-size: 13px;
+  font-family: var(--tp-head);
+  font-size: 16px;
   letter-spacing: 1px;
   color: var(--tp-text);
-  display: flex;
-  align-items: center;
-  gap: 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.you-tag {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--tp-signal-dim);
-  text-transform: uppercase;
-  border: 1px solid rgba(100, 255, 0, 0.3);
-  padding: 1px 4px;
-  flex-shrink: 0;
-}
-
 .operative-meta {
   display: flex;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 5px;
   flex-wrap: wrap;
 }
 
@@ -343,31 +347,46 @@ ion-header ion-toolbar {
   padding: 2px 5px;
 
   &--hunter {
-    color: var(--tp-caution);
-    border: 1px solid rgba(255, 179, 0, 0.4);
+    color: var(--tp-hunter);
+    border: 1px solid rgba(var(--tp-hunter-rgb), 0.4);
   }
 
   &--prey {
     color: var(--tp-prey);
-    border: 1px solid rgba(100, 255, 0, 0.4);
+    border: 1px solid rgba(var(--tp-signal-rgb), 0.4);
   }
 
-  &--ready {
+  &--owner {
+    color: var(--tp-caution);
+    border: 1px solid rgba(var(--tp-caution-rgb), 0.4);
+  }
+
+  &--you {
     color: var(--tp-signal-dim);
-    border: 1px solid rgba(100, 255, 0, 0.3);
+    border: 1px solid rgba(var(--tp-signal-rgb), 0.3);
   }
 }
 
 .operative-end {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-.hunter-icon {
-  font-size: 18px;
-  color: var(--tp-caution);
+// Ready indicator — ghost "WAIT" by default, bright signal-green "READY"
+.ready-status {
+  font-family: var(--tp-body);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--tp-text-ghost);
+  padding-right: 2px;
+
+  &--ready {
+    color: var(--tp-signal);
+    text-shadow: 0 0 10px var(--tp-signal-glow);
+  }
 }
 
 .remove-btn {
@@ -429,6 +448,6 @@ ion-header ion-toolbar {
 }
 
 @keyframes deploy-pulse {
-  0%, 100% { --box-shadow: 0 0 12px rgba(100, 255, 0, 0.2); }
-  50%       { --box-shadow: 0 0 28px rgba(100, 255, 0, 0.5); }
+  0%, 100% { --box-shadow: 0 0 12px rgba(var(--tp-signal-rgb), 0.2); }
+  50%       { --box-shadow: 0 0 28px rgba(var(--tp-signal-rgb), 0.5); }
 }

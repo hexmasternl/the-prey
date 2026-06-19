@@ -233,10 +233,12 @@ public sealed class Game
         && _participants.All(p => p.UserId == OwnerUserId || p.IsReady);
 
     /// <summary>
-    /// Starts the game. Does NOT recreate participants — the existing participants (lobby members)
-    /// become the in-progress roster. Sets the hunter, records timing, and transitions to InProgress.
+    /// Arms the game: validates all start preconditions, designates the hunter, turns every other
+    /// lobby member into a prey, and transitions to <see cref="GameStatus.Ready"/>. Does NOT stamp
+    /// <see cref="StartedAt"/>, <see cref="EndsAt"/>, or <see cref="NextScheduledBroadcastOn"/> —
+    /// those are set by the game engine sweep via <see cref="BeginPlay"/>.
     /// </summary>
-    public void Start(Guid hunterUserId, DateTimeOffset startedAt)
+    public void Arm(Guid hunterUserId)
     {
         if (Status != GameStatus.Lobby)
             throw new InvalidOperationException("Only a game in the lobby can be started.");
@@ -251,6 +253,20 @@ public sealed class Game
             throw new InvalidOperationException("All players must be ready before the game can start.");
 
         HunterUserId = hunterUserId;
+        Status = GameStatus.Ready;
+    }
+
+    /// <summary>
+    /// Commits the game start, stamping <see cref="StartedAt"/>, deriving <see cref="EndsAt"/> and
+    /// <see cref="NextScheduledBroadcastOn"/>, and transitioning to <see cref="GameStatus.InProgress"/>.
+    /// Must only be called from the game engine sweep after <see cref="Arm"/> has been called.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the game is not in the <see cref="GameStatus.Ready"/> state.</exception>
+    public void BeginPlay(DateTimeOffset startedAt)
+    {
+        if (Status != GameStatus.Ready)
+            throw new InvalidOperationException("Only a Ready game can be committed to InProgress.");
+
         StartedAt = startedAt;
         EndsAt = startedAt.AddMinutes(Configuration.GameDuration);
         NextScheduledBroadcastOn = startedAt;
@@ -527,7 +543,7 @@ public sealed class Game
     }
 
     /// <summary>
-    /// Ends the game on behalf of its owner. Allowed from Lobby (cancel) and InProgress (force-complete).
+    /// Ends the game on behalf of its owner. Allowed from Lobby or Ready (cancel) and InProgress (force-complete).
     /// Throws when the game is already Completed.
     /// </summary>
     public void EndByOwner(DateTimeOffset now)
@@ -535,7 +551,7 @@ public sealed class Game
         if (Status == GameStatus.Completed)
             throw new InvalidOperationException("The game has already been completed.");
 
-        var outcome = Status == GameStatus.Lobby ? GameOutcome.Cancelled : ComputeOutcome();
+        var outcome = Status is GameStatus.Lobby or GameStatus.Ready ? GameOutcome.Cancelled : ComputeOutcome();
         ApplyCompletion(now, outcome);
     }
 

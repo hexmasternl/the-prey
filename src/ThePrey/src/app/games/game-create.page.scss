@@ -1,3 +1,5 @@
+@use '../../theme/motion' as motion;
+
 :host {
   display: block;
   background: var(--tp-bg-void);
@@ -25,7 +27,7 @@ ion-header ion-toolbar {
   &__grid {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(circle, rgba(100, 255, 0, 0.06) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(var(--tp-signal-rgb), 0.06) 1px, transparent 1px);
     background-size: 36px 36px;
   }
 
@@ -39,7 +41,7 @@ ion-header ion-toolbar {
     background: conic-gradient(
       from 0deg,
       transparent 0deg,
-      rgba(100, 255, 0, 0.14) 45deg,
+      rgba(var(--tp-signal-rgb), 0.14) 45deg,
       transparent 70deg
     );
     animation: radar-spin 5s linear infinite;
@@ -54,7 +56,7 @@ ion-header ion-toolbar {
     background: linear-gradient(
       to right,
       transparent 0%,
-      rgba(100, 255, 0, 0.55) 50%,
+      rgba(var(--tp-signal-rgb), 0.55) 50%,
       transparent 100%
     );
     animation: scanline-h 12s linear infinite;
@@ -69,7 +71,7 @@ ion-header ion-toolbar {
     background: linear-gradient(
       to bottom,
       transparent 0%,
-      rgba(100, 255, 0, 0.45) 50%,
+      rgba(var(--tp-signal-rgb), 0.45) 50%,
       transparent 100%
     );
     animation: scanline-v 11s linear infinite;
@@ -80,14 +82,14 @@ ion-header ion-toolbar {
 @media (prefers-color-scheme: light) {
   .tac-bg {
     &__grid {
-      background-image: radial-gradient(circle, rgba(31, 77, 0, 0.1) 1px, transparent 1px);
+      background-image: radial-gradient(circle, rgba(var(--tp-signal-rgb), 0.1) 1px, transparent 1px);
     }
 
     &__radar {
       background: conic-gradient(
         from 0deg,
         transparent 0deg,
-        rgba(63, 158, 0, 0.16) 45deg,
+        rgba(var(--tp-signal-rgb), 0.16) 45deg,
         transparent 70deg
       );
     }
@@ -96,7 +98,7 @@ ion-header ion-toolbar {
       background: linear-gradient(
         to right,
         transparent 0%,
-        rgba(63, 158, 0, 0.42) 50%,
+        rgba(var(--tp-signal-rgb), 0.42) 50%,
         transparent 100%
       );
     }
@@ -105,11 +107,18 @@ ion-header ion-toolbar {
       background: linear-gradient(
         to bottom,
         transparent 0%,
-        rgba(63, 158, 0, 0.34) 50%,
+        rgba(var(--tp-signal-rgb), 0.34) 50%,
         transparent 100%
       );
     }
   }
+}
+
+@include motion.reduce {
+  .tac-bg__radar { animation: none; }
+  .tac-bg__scanline { animation: none; }
+  .tac-bg__scanline-v { animation: none; }
+  .deploy-btn { animation: none; box-shadow: 0 0 12px var(--tp-signal-glow); }
 }
 
 // ── Content wrapper ──────────────────────────────────────────
@@ -153,7 +162,7 @@ ion-header ion-toolbar {
   font-family: var(--tp-head);
   font-size: clamp(28px, 8vw, 44px);
   line-height: 1;
-  color: var(--tp-text);
+  color: var(--tp-signal);
   letter-spacing: 1px;
   margin: 0 0 8px;
 }
@@ -169,8 +178,8 @@ ion-header ion-toolbar {
 
 // ── Single bracketed config block ────────────────────────────
 .config-block {
-  position: relative  ;
-  border: 1px solid rgba(57, 64, 47, 0.8);
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--tp-line) 80%, transparent);
 }
 
 // Each row: label left, control right
@@ -181,7 +190,7 @@ ion-header ion-toolbar {
   padding: 10px 14px 10px 16px;
 
   & + .config-field {
-    border-top: 1px solid rgba(57, 64, 47, 0.55);
+    border-top: 1px solid color-mix(in srgb, var(--tp-line) 55%, transparent);
   }
 }
 
@@ -219,7 +228,7 @@ ion-header ion-toolbar {
 .playfield-btn {
   flex: 0 0 148px;
   width: 148px;
-  --border-color: rgba(100, 255, 0, 0.3);
+  --border-color: rgba(var(--tp-signal-rgb), 0.3);
   --border-radius: 2px;
   --color: var(--tp-text);
   --background: transparent;
@@ -270,6 +279,6 @@ ion-header ion-toolbar {
 }
 
 @keyframes deploy-pulse {
-  0%, 100% { --box-shadow: 0 0 12px rgba(100, 255, 0, 0.2); }
-  50%       { --box-shadow: 0 0 28px rgba(100, 255, 0, 0.5); }
+  0%, 100% { --box-shadow: 0 0 12px rgba(var(--tp-signal-rgb), 0.2); }
+  50%       { --box-shadow: 0 0 28px rgba(var(--tp-signal-rgb), 0.5); }
 }

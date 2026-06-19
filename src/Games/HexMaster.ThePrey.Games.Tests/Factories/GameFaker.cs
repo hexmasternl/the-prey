@@ -83,7 +83,8 @@ internal static class GameFaker
         var game = LobbyGameWithPlayers(playerCount, out var ids, configuration);
         hunterId = ids[0];
         preyIds = ids.Skip(1).ToList();
-        game.Start(hunterId, startedAt);
+        game.Arm(hunterId);
+        game.BeginPlay(startedAt);
         return game;
     }
 }

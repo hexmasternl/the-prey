@@ -1,3 +1,5 @@
+@use '../../theme/motion' as motion;
+
 // ─── Shell ───────────────────────────────────────────────────────────────────
 
 ion-header {
@@ -10,6 +12,16 @@ ion-header {
 
 ion-content {
   --background: var(--tp-bg-void);
+}
+
+// ─── Title ───────────────────────────────────────────────────────────────────
+
+ion-title {
+  font-family: var(--tp-head);
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--tp-text);
 }
 
 // ─── Back button ─────────────────────────────────────────────────────────────
@@ -50,6 +62,13 @@ ion-content {
   50% { opacity: 0.3; }
 }
 
+@include motion.reduce {
+  .sync-status .saving {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 // ─── Form layout ─────────────────────────────────────────────────────────────
 
 .settings-form {
@@ -72,10 +91,11 @@ ion-content {
   margin-bottom: 12px;
 }
 
+// PT Mono uppercase with letter-spacing per design-system spec
 .section-label {
-  font-family: var(--tp-head);
+  font-family: var(--tp-body);
   font-size: 11px;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--tp-signal-dim);
 }
@@ -84,7 +104,7 @@ ion-content {
   font-family: var(--tp-body);
   font-size: 11px;
   color: var(--tp-text-ghost);
-  transition: color 0.2s;
+  transition: color 0.2s ease;
 
   &.warn {
     color: var(--tp-caution);
@@ -95,7 +115,7 @@ ion-content {
   }
 }
 
-// ─── Text input ──────────────────────────────────────────────────────────────
+// ─── Text input (ion-input replacing raw <input>) ────────────────────────────
 
 .input-wrap {
   display: flex;
@@ -106,13 +126,8 @@ ion-content {
   padding: 0 14px;
   border-radius: 3px;
   transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
-
-  &.focused {
-    border-color: var(--tp-signal-dim);
-    box-shadow: 0 0 0 2px var(--tp-signal-glow);
-  }
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 
   &.invalid {
     border-color: var(--tp-hunter);
@@ -126,19 +141,30 @@ ion-content {
   flex-shrink: 0;
 }
 
-.input-wrap input {
+// ion-input — dark inset background, signal-green focus highlight
+.callsign-input {
   flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
+  --background: transparent;
+  --color: var(--tp-text);
+  --placeholder-color: var(--tp-text-ghost);
+  --placeholder-opacity: 1;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --highlight-color-focused: var(--tp-signal);
+  --highlight-color-valid: var(--tp-signal-dim);
+  --highlight-color-invalid: var(--tp-hunter);
+  // Remove ion-input's own bottom border — the parent .input-wrap provides the border
+  --border-width: 0;
   font-family: var(--tp-body);
   font-size: 18px;
-  color: var(--tp-text);
-  padding: 14px 0;
+}
 
-  &::placeholder {
-    color: var(--tp-text-ghost);
-  }
+// Signal glow on parent wrap when ion-input receives focus
+.input-wrap:has(ion-input.has-focus) {
+  border-color: var(--tp-signal-dim);
+  box-shadow: 0 0 0 2px var(--tp-signal-glow);
 }
 
 // ─── Field messages ──────────────────────────────────────────────────────────
@@ -168,56 +194,45 @@ ion-content {
   margin: 8px 0 32px;
 }
 
-// ─── Language grid ───────────────────────────────────────────────────────────
+// ─── Language segment (replaces raw <button> grid) ───────────────────────────
 
-.lang-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.lang-segment {
+  --background: var(--tp-bg-surface);
+  border: 1px solid var(--tp-line);
+  border-radius: 3px;
+
+  // Active indicator underline uses signal green
+  --indicator-color: var(--tp-signal);
+  --indicator-height: 2px;
 }
 
-.lang-btn {
+.lang-seg-btn {
+  --color: var(--tp-text-ghost);
+  --color-checked: var(--tp-signal);
+  --border-radius: 3px;
+  --background: transparent;
+  --background-checked: var(--tp-bg-surface-2);
+  --indicator-color: var(--tp-signal);
+  min-height: 72px;
+
+  // Active glow
+  &.segment-button-checked {
+    box-shadow: inset 0 0 14px rgba(var(--tp-signal-rgb), 0.08);
+  }
+}
+
+.lang-seg-label {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 18px 12px;
-  background: var(--tp-bg-surface);
-  border: 1px solid var(--tp-line);
-  border-radius: 3px;
-  cursor: pointer;
-  transition: all 0.2s;
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-
-  &:hover:not(.active) {
-    border-color: var(--tp-text-ghost);
-    background: var(--tp-bg-surface-2);
-  }
-
-  &.active {
-    background: var(--tp-bg-surface-2);
-    border-color: var(--tp-signal);
-    box-shadow: 0 0 12px var(--tp-signal-glow);
-
-    .lang-code {
-      color: var(--tp-signal);
-    }
-
-    .lang-name {
-      color: var(--tp-text-soft);
-    }
-  }
+  gap: 4px;
 }
 
 .lang-code {
   font-family: var(--tp-head);
   font-size: 22px;
-  color: var(--tp-text-ghost);
   letter-spacing: 3px;
-  margin-bottom: 4px;
-  transition: color 0.2s;
+  // color is governed by --color / --color-checked on the segment button
 }
 
 .lang-name {
@@ -225,7 +240,4 @@ ion-content {
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--tp-text-ghost);
-  transition: color 0.2s;
 }
-

@@ -1,7 +1,55 @@
-.selected-row {
-  --background: var(--ion-color-primary-tint);
+ion-toolbar {
+  --background: var(--tp-bg-void);
+  --color: var(--tp-text);
 }
 
+ion-content {
+  --background: var(--tp-bg-void);
+}
+
+ion-item {
+  --background: var(--tp-bg-void);
+  --color: var(--tp-text);
+  --border-color: var(--tp-line);
+}
+
+// Selection highlight — signal-deep background + signal left border (NOT primary-tint)
+.selected-row {
+  --background: var(--tp-signal-deep);
+  border-left: 3px solid var(--tp-signal);
+}
+
+// h2 item names — Special Elite
+.item-name {
+  font-family: var(--tp-head);
+  color: var(--tp-text);
+}
+
+// Searchbar token surface
+.tp-searchbar {
+  --background: var(--tp-bg-surface);
+  --color: var(--tp-text);
+  --placeholder-color: var(--tp-text-ghost);
+  --icon-color: var(--tp-text-soft);
+  --border-radius: 3px;
+  --box-shadow: none;
+}
+
+// Cancel button — ghost outline 3px
+.cancel-btn {
+  --border-radius: 3px;
+}
+
+// Confirm button — solid primary, signal glow, 3px, Special Elite label
+.confirm-btn {
+  --border-radius: 3px;
+  margin: 8px 16px;
+  box-shadow: 0 0 12px var(--tp-signal-glow);
+  font-family: var(--tp-head);
+  letter-spacing: 1px;
+}
+
+// State / empty center
 .state-center {
   display: flex;
   justify-content: center;
@@ -10,9 +58,12 @@
   padding: 2rem;
 }
 
+// Empty label — uppercase PT Mono, ghost, 2px tracking
 .empty-label {
-  color: var(--ion-color-medium);
+  font-family: var(--tp-body);
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--tp-text-ghost);
+  letter-spacing: 2px;
   text-align: center;
-  font-size: 0.9rem;
-  letter-spacing: 0.05em;
 }

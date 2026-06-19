@@ -39,7 +39,7 @@ public sealed class GameLifecycleTests
         Assert.InRange(game.CleanUpAfter, before.AddHours(48), after.AddHours(48));
     }
 
-    // ── Task 5.2: EndsAt set on Start ─────────────────────────────────────────
+    // ── Task 5.2: EndsAt set on BeginPlay ────────────────────────────────────
 
     [Fact]
     public void Create_ShouldLeaveEndsAt_Null()
@@ -50,24 +50,39 @@ public sealed class GameLifecycleTests
     }
 
     [Fact]
-    public void Start_ShouldSetEndsAt_ToStartedAtPlusGameDuration()
+    public void Arm_ShouldLeaveEndsAt_Null()
     {
         var config = GameFaker.ValidConfiguration(gameDuration: 60);
         var game = GameFaker.LobbyGameWithPlayers(2, out var ids, config);
 
-        game.Start(ids[0], Start);
+        game.Arm(ids[0]);
+
+        Assert.Null(game.EndsAt);
+        Assert.Null(game.StartedAt);
+        Assert.Equal(GameStatus.Ready, game.Status);
+    }
+
+    [Fact]
+    public void BeginPlay_ShouldSetEndsAt_ToStartedAtPlusGameDuration()
+    {
+        var config = GameFaker.ValidConfiguration(gameDuration: 60);
+        var game = GameFaker.LobbyGameWithPlayers(2, out var ids, config);
+
+        game.Arm(ids[0]);
+        game.BeginPlay(Start);
 
         Assert.Equal(Start.AddMinutes(60), game.EndsAt);
     }
 
     [Fact]
-    public void Start_ShouldSetEndsAt_MatchingConfiguredGameDuration()
+    public void BeginPlay_ShouldSetEndsAt_MatchingConfiguredGameDuration()
     {
         var config = GameFaker.ValidConfiguration(gameDuration: 30);
         var game = GameFaker.LobbyGameWithPlayers(2, out var ids, config);
         var startTime = new DateTimeOffset(2026, 6, 9, 15, 0, 0, TimeSpan.Zero);
 
-        game.Start(ids[0], startTime);
+        game.Arm(ids[0]);
+        game.BeginPlay(startTime);
 
         Assert.Equal(startTime.AddMinutes(30), game.EndsAt);
     }

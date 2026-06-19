@@ -21,8 +21,10 @@ import { App } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
+import { computeThreatState, ThreatState } from './threat-state';
+import { MAP_COLORS } from '../shared/map-colors';
 import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload, GameEndedPayload } from './game-stream.service';
 import { GameLocationService } from './game-location.service';
 import { CompassService } from './compass.service';
@@ -58,6 +60,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly locationService = inject(GameLocationService);
   private readonly userState      = inject(UserStateService);
   private readonly compass        = inject(CompassService);
+  private readonly translate      = inject(TranslateService);
 
   /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
   readonly heading = this.compass.heading;
@@ -68,6 +71,44 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   /** Seconds left in the game, resynced from the server each poll and ticked down locally every second. */
   readonly secondsRemaining = signal<number | null>(null);
   readonly timeRemaining   = computed(() => this.formatDuration(this.secondsRemaining()));
+
+  /** True when the server has flagged the game as being in its final stage. */
+  readonly isEndgame = signal(false);
+
+  /**
+   * Three-state threat level derived from remaining time and the endgame flag.
+   * Drives [attr.data-threat] on ion-content so the shared HUD chrome escalates.
+   *   normal   → signal green   (standard play)
+   *   final    → caution amber  (endgame stage active)
+   *   critical → hunter red     (≤60 seconds left)
+   *
+   * NOTE: Proximity-based escalation (hunter-is-near) is intentionally absent.
+   * The prey client does NOT receive hunter distance in real-time — the status
+   * poll only supplies secondsRemaining and isEndgame. A proximity-driven
+   * escalation path requires the backend to push hunter distance to prey players,
+   * which is a separate, deferred feature.
+   */
+  readonly threatState = computed<ThreatState>(() =>
+    computeThreatState(this.secondsRemaining(), this.isEndgame()),
+  );
+
+  /**
+   * Status pill label for the prey status bar. Reflects the player's in-game
+   * state (hidden/active, spectating) and the threat phase.
+   *   active + normal   → 'GAME_PROGRESS.STATUS_LIVE'
+   *   active + final    → 'GAME_PROGRESS.STATUS_ENDGAME'
+   *   active + critical → 'GAME_PROGRESS.STATUS_CRITICAL'
+   *   spectating (tagged/out) → 'GAME_PROGRESS.STATUS_SPECTATING'
+   */
+  readonly statusPillLabel = computed(() => {
+    if (this.outReason() !== null) return 'GAME_PROGRESS.STATUS_SPECTATING';
+    switch (this.threatState()) {
+      case 'critical': return 'GAME_PROGRESS.STATUS_CRITICAL';
+      case 'final':    return 'GAME_PROGRESS.STATUS_ENDGAME';
+      default:         return 'GAME_PROGRESS.STATUS_LIVE';
+    }
+  });
+
   readonly preysLeft       = signal(0);
   readonly hasActivePenalty = signal(false);
   readonly gpsAlert        = signal<string | null>(null);
@@ -79,6 +120,15 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly outReason       = signal<'tagged' | 'out' | null>(null);
   /** Seconds until the next status poll, ticked down every second for the HUD. */
   readonly pingCountdown   = signal(30);
+  /** Server-supplied full ping interval (seconds) used as the NEXT UPDATE bar denominator. */
+  currentPingInterval = 30;
+  /** True while the game is in the Ready state (armed but not yet started by the sweep). */
+  readonly waitingForStart = signal(false);
+  /** NEXT UPDATE bar fill percentage: countdown / currentPingInterval, clamped 0–100. */
+  readonly pingBarWidth = computed(() => {
+    const pct = (this.pingCountdown() / (this.currentPingInterval || 30)) * 100;
+    return Math.min(100, Math.max(0, isNaN(pct) ? 0 : pct));
+  });
   /** Collapsed by default: only the remaining game time shows until the HUD is tapped. */
   readonly hudExpanded     = signal(false);
   /** ISO timestamp at which the hunter may move, from the status poll; drives the countdown overlay. */
@@ -159,10 +209,30 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     this.startMapWatch();
     void this.compass.start();
 
+    // Check if we're entering a game that is still in the Ready state (armed by the host
+    // but not yet committed by the sweep). If so, show the waiting overlay immediately
+    // and skip the ping countdown until InProgress arrives via stream.
+    await this.checkReadyState();
+
     await this.pollStatus();
     this.startDurationTimer();
     this.connectStream();
     void this.registerResumeListener();
+  }
+
+  /**
+   * Check whether the game is currently in the Ready state. If so, set waitingForStart
+   * so the overlay is shown and the ping countdown is suppressed until InProgress arrives.
+   */
+  private async checkReadyState(): Promise<void> {
+    try {
+      const game = await this.gamesService.getGame(this.gameId);
+      if (game.status === 'Ready') {
+        this.waitingForStart.set(true);
+      }
+    } catch {
+      // Non-fatal — pollStatus will handle any further issues.
+    }
   }
 
   /**
@@ -285,7 +355,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       { enableHighAccuracy: true, maximumAge: 5_000 },
       (position, err) => {
         if (err || !position) {
-          this.gpsAlert.set('Signal lost. Find open sky.');
+          this.gpsAlert.set(this.translate.instant('GAME_PROGRESS.GPS_SIGNAL_LOST'));
           return;
         }
         this.gpsAlert.set(null);
@@ -363,10 +433,17 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       const status = await this.gamesService.getGameStatus(this.gameId);
       this.applyStatus(status);
 
+      // Capture the server-supplied ping interval for the NEXT UPDATE bar denominator.
+      this.currentPingInterval = status.currentPingInterval || 30;
+
       // The native Android service manages its own interval autonomously —
       // we only use nextPingDuration here to pace the Angular-side UI poll.
       this.pollIntervalSeconds = status.nextPingDuration || 30;
-      this.startPingCountdown(this.pollIntervalSeconds);
+
+      // Only start the ping countdown when the game is actually running.
+      if (!this.waitingForStart()) {
+        this.startPingCountdown(status.nextPingDuration || 30);
+      }
       this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1_000);
     } catch {
       // The status endpoint only serves in-progress games, so an error here may mean the
@@ -381,6 +458,8 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
    * Authoritative fallback for a missed `game-ended` event: fetch the full game record and,
    * if it has completed, hand off to the outcome screen. Returns true when the game has ended
    * (navigation triggered), false otherwise. Idempotent via `handleGameEnded`'s guard.
+   * Also sets `waitingForStart` if the game is still in the Ready state (status poll failed
+   * because the game is not yet InProgress).
    */
   private async checkGameEndedOnServer(): Promise<boolean> {
     try {
@@ -392,6 +471,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
         this.handleGameEnded({ gameId: this.gameId, outcome: game.outcome, survivorCount });
         return true;
       }
+      if (game.status === 'Ready') {
+        // The game was armed but the sweep hasn't promoted it yet. Show the waiting overlay.
+        this.waitingForStart.set(true);
+      }
     } catch {
       // Game record unreachable — let the caller retry.
     }
@@ -400,6 +483,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private applyStatus(status: GameStatusDto): void {
     this.secondsRemaining.set(status.gameDurationLeft);
+    this.isEndgame.set(status.isEndgame ?? false);
     this.preysLeft.set(status.preysLeft);
     this.hunterMayMoveAt.set(status.hunterMayMoveAt ?? null);
     this.hunterUserId = status.hunterUserId;
@@ -416,6 +500,36 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
     this.drawPlayfield(status.playfieldCoordinates);
     this.updateOtherBlips(status.participants);
+  }
+
+  /**
+   * Handle a game-state transition broadcast from the stream. When the game moves from
+   * Ready to InProgress, remove the waiting overlay, seed the ping countdown, and let
+   * normal gameplay begin. The next status poll will supply the full HUD values.
+   */
+  private handleStateChanged(): void {
+    if (this.waitingForStart()) {
+      // Trigger an immediate status poll so the InProgress values (hunterMayMoveAt etc.)
+      // are applied without waiting for the next scheduled tick.
+      this.clearPoll();
+      void this.pollStatusForInProgress();
+    }
+  }
+
+  private async pollStatusForInProgress(): Promise<void> {
+    try {
+      const status = await this.gamesService.getGameStatus(this.gameId);
+      this.currentPingInterval = status.currentPingInterval || 30;
+      this.pollIntervalSeconds = status.nextPingDuration || 30;
+      this.applyStatus(status);
+      // Game is now InProgress — lift the waiting overlay and start the countdown.
+      this.waitingForStart.set(false);
+      this.startPingCountdown(status.nextPingDuration || 30);
+      this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1_000);
+    } catch {
+      // Status endpoint not yet serving (game still transitioning) — retry shortly.
+      this.pollTimer = setTimeout(() => this.pollStatus(), 5_000);
+    }
   }
 
   /**
@@ -448,10 +562,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   /** Hunter → red; other preys → orange (grey once Tagged/Out). */
   private blipOptionsFor(userId: string, state: string): L.CircleMarkerOptions {
     if (userId === this.hunterUserId) {
-      return { radius: 7, color: '#ff2f1f', fillColor: '#ff2f1f', fillOpacity: 0.9, weight: 2 };
+      return { radius: 7, color: MAP_COLORS.HUNTER, fillColor: MAP_COLORS.HUNTER, fillOpacity: 0.9, weight: 2 };
     }
     const isInactive = state === 'Tagged' || state === 'Out';
-    const colour = isInactive ? '#888888' : '#ff9500';
+    const colour = isInactive ? MAP_COLORS.TAGGED : MAP_COLORS.CAUTION;
     return { radius: 6, color: colour, fillColor: colour, fillOpacity: isInactive ? 0.4 : 0.9, weight: 2 };
   }
 
@@ -461,10 +575,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
     const latlngs = coords.map(c => [c.latitude, c.longitude] as L.LatLngExpression);
     this.playfieldPolygon = L.polygon(latlngs, {
-      color: '#64ff00',     // opaque border
+      color: MAP_COLORS.SIGNAL,   // opaque border
       weight: 3,
       opacity: 1,
-      fillColor: '#64ff00', // transparent fill: faint tint, map shows through
+      fillColor: MAP_COLORS.SIGNAL, // transparent fill: faint tint, map shows through
       fillOpacity: 0.1,
     }).addTo(this.map);
 
@@ -553,7 +667,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     });
 
     this.streamService.on('state-changed', () => {
-      // Status poll will pick up the new state on the next tick
+      this.handleStateChanged();
     });
 
     this.streamService.on<GameEndedPayload>('game-ended', (payload) => {

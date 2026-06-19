@@ -46,7 +46,8 @@ Always use Ionic components before falling back to plain HTML elements:
 - Apply `ChangeDetectionStrategy.OnPush` where appropriate for performance
 
 ### 3. Theming & Styling
-- Use Ionic CSS custom properties (e.g., `--ion-color-primary`, `--ion-font-family`) for all theming; never hard-code color values
+- **Before building or styling any UI in this project, invoke the `the-prey-design-system` skill.** It documents The Prey's tactical phosphor-green design language, the canonical `--tp-*` / `--ion-*` tokens, the typography rules (Special Elite for numeric readouts, PT Mono UPPERCASE labels), and points to the visual style manual at `designs/the-prey-design-system.html`.
+- Use Ionic CSS custom properties (e.g., `--ion-color-primary`, `--ion-font-family`) and the project's `--tp-*` design tokens for all theming; never hard-code color values
 - Define custom theme tokens in `src/theme/variables.scss`
 - Use `ion-content`, `ion-header`, `ion-footer`, and `ion-toolbar` for page layout structure
 - Apply platform-specific styles using `.ios` and `.md` CSS selectors when necessary
