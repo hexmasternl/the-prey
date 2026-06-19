@@ -198,6 +198,7 @@
 
   <!-- Tag prey action — unavailable until the hunter head-start delay has passed -->
   <button
+    #tagFab
     class="tag-fab"
     [disabled]="hunterDelayActive()"
     (click)="openTagModal()"
@@ -239,7 +240,7 @@
     </div>
     <button class="hud-toggle" (click)="toggleHud()">▾ {{ 'GAME_PROGRESS.HUD_HIDE' | translate }}</button>
     } @else {
-    <div class="hud-bar" (click)="toggleHud()">
+    <div #hudBar class="hud-bar" (click)="toggleHud()">
       <span class="hud-bar-label">{{ 'GAME_PROGRESS.HUD_TIME' | translate }}</span>
       <span class="hud-bar-time" [class.hud-time-flash]="threatState() === 'critical'">{{ timeRemaining() }}</span>
       <div class="hud-bar-ping">
@@ -252,4 +253,9 @@
     </div>
     }
   </div>
+
+  <!-- One-time hunter tour: highlights the time/HUD bar, then the tag button -->
+  @if (tourActive()) {
+    <app-game-tour [steps]="tourSteps()" (completed)="onTourCompleted()" />
+  }
 </ion-content>

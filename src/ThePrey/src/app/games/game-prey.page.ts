@@ -2,10 +2,12 @@ import {
   Component,
   computed,
   effect,
+  ElementRef,
   inject,
   OnDestroy,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -49,6 +51,8 @@ import {
 import { GameLocationService } from './game-location.service';
 import { CompassService } from './compass.service';
 import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
+import { GameTourComponent, TourStep } from './game-tour.component';
+import { TourService } from './tour.service';
 import { UserStateService } from '../users/user-state.service';
 
 @Component({
@@ -70,6 +74,7 @@ import { UserStateService } from '../users/user-state.service';
     IonRefresherContent,
     TranslatePipe,
     HunterDelayOverlayComponent,
+    GameTourComponent,
   ],
 })
 export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
@@ -81,6 +86,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly userState = inject(UserStateService);
   private readonly compass = inject(CompassService);
   private readonly translate = inject(TranslateService);
+  private readonly tour = inject(TourService);
 
   /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
   readonly heading = this.compass.heading;
@@ -175,6 +181,24 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   });
   /** Collapsed by default: only the remaining game time shows until the HUD is tapped. */
   readonly hudExpanded = signal(false);
+
+  /** The collapsed time/HUD bar element — the anchor for the first-time tour. */
+  private readonly hudBarRef = viewChild<ElementRef<HTMLElement>>('hudBar');
+
+  /** True while the one-time prey tour is showing. */
+  readonly tourActive = signal(false);
+
+  /** Single tour step: highlight the time bar and explain it can be tapped to expand/collapse. */
+  readonly tourSteps = computed<TourStep[]>(() => [
+    {
+      target: this.hudBarRef()?.nativeElement ?? null,
+      titleKey: 'GAME_TOUR.TIME_BAR_TITLE',
+      bodyKey: 'GAME_TOUR.TIME_BAR_BODY',
+    },
+  ]);
+
+  /** Guard so the tour is evaluated only once per page lifetime. */
+  private tourResolved = false;
   /** ISO timestamp at which the hunter may move, from the status poll; drives the countdown overlay. */
   readonly hunterMayMoveAt = signal<string | null>(null);
   /** True when background location reporting could not be (re)started for this game. */
@@ -228,6 +252,32 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       const h = this.heading();
       if (h !== null) this.applyHeading(h);
     });
+
+    // Offer the one-time prey tour once the live view is interactive: the surroundings warning
+    // dismissed, the game actually in progress (not the Ready wait), so the time bar is on screen.
+    effect(() => {
+      const ready =
+        !this.showSurroundingsWarning() &&
+        !this.waitingForStart() &&
+        this.secondsRemaining() !== null;
+      if (ready) void this.maybeStartTour();
+    });
+  }
+
+  /** Show the prey tour once if it has not been seen before. */
+  private async maybeStartTour(): Promise<void> {
+    if (this.tourResolved) return;
+    this.tourResolved = true;
+    if (await this.tour.hasSeen('prey')) return;
+    // Ensure the HUD is collapsed so the bar anchor exists and the tap hint matches what's shown.
+    this.hudExpanded.set(false);
+    this.tourActive.set(true);
+  }
+
+  /** Tour finished (completed or skipped): hide it and record that prey has now seen it. */
+  onTourCompleted(): void {
+    this.tourActive.set(false);
+    void this.tour.markSeen('prey');
   }
 
   dismissSurroundingsWarning(): void {

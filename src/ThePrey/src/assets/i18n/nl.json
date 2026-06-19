@@ -244,6 +244,15 @@
     "ACKNOWLEDGE": "IK HEB DEZE BRIEFING GELEZEN EN GA AKKOORD OM ALTIJD ALERT TE BLIJVEN",
     "CONTINUE": "BEVESTIGEN EN HET VELD IN"
   },
+  "GAME_TOUR": {
+    "TIME_BAR_TITLE": "MISSIETIMER",
+    "TIME_BAR_BODY": "Deze balk toont de resterende tijd. Tik erop om de HUD uit of in te klappen.",
+    "TAG_TITLE": "TAG-KNOP",
+    "TAG_BODY": "Wanneer een prooi binnen bereik is, gebruik je dit om ze te taggen.",
+    "NEXT": "VOLGENDE",
+    "DONE": "BEGREPEN",
+    "SKIP": "OVERSLAAN"
+  },
   "TAG_MODAL": {
     "TITLE": "PROOI TAGGEN",
     "INSTRUCTION": "Kies een doelwit om te taggen.",
