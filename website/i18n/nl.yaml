@@ -7,6 +7,8 @@ nav_playfield: "Speelveld"
 nav_faq: "FAQ"
 nav_howto: "Handleiding"
 
+badge_new: "Nieuw"
+
 nav_menu_label: "Menu"
 lang_switch_label: "Wissel taal"
 
@@ -14,5 +16,6 @@ translation_pending_title: "Vertaling Lopend"
 translation_pending_msg: "Deze pagina is alleen beschikbaar in het Engels. Een Nederlandse vertaling volgt binnenkort."
 
 footer_copy: "EINDE TRANSMISSIE"
+footer_become_tester: "Word Tester"
 footer_privacy: "Privacy"
 footer_account_removal: "Account verwijderen"

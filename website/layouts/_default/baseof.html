@@ -40,6 +40,11 @@
     {{ block "main" . }}{{ end }}
   </main>
 
+  {{/* Desktop "New!" tester badge — fixed to the viewport. Must live outside
+       <main> (.site-main keeps an identity transform from its enter animation,
+       which would otherwise capture position:fixed). */}}
+  {{ if .IsHome }}{{ partial "tester-burst.html" (dict "variant" "fixed") }}{{ end }}
+
   {{ partial "footer.html" . }}
 
 </div>
