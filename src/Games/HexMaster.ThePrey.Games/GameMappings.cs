@@ -15,6 +15,7 @@ internal static class GameMappings
 
         var isParticipant = game.IsParticipant(userId);
         var nextPingDuration = isParticipant ? ComputeNextPingDuration(game, userId, now) : 0;
+        var nextPingDurationWithPenalty = isParticipant ? ComputeNextPingDurationWithPenalty(game, userId, now) : 0;
         var currentPingInterval = isParticipant ? ComputeCurrentPingInterval(game, userId, now) : 0;
         var isEndgame = game.IsInFinalStage(now);
 
@@ -35,6 +36,7 @@ internal static class GameMappings
             participantStatuses,
             gameDurationLeft,
             nextPingDuration,
+            nextPingDurationWithPenalty,
             currentPingInterval,
             isEndgame,
             preysLeft,
@@ -81,6 +83,24 @@ internal static class GameMappings
 
     private static int ComputeCurrentPingInterval(Game game, Guid userId, DateTimeOffset now) =>
         game.ReportingIntervalFor(userId, now);
+
+    /// <summary>
+    /// Computes the whole seconds remaining until the next sweep tick for a penalised participant,
+    /// clamped to [0, <see cref="Game.SweepIntervalSeconds"/>]. Returns 0 for non-penalised
+    /// participants. The client seeds its fixed-30-second penalty countdown bar from this value.
+    /// </summary>
+    private static int ComputeNextPingDurationWithPenalty(Game game, Guid userId, DateTimeOffset now)
+    {
+        var participant = game.Participants.FirstOrDefault(p => p.UserId == userId);
+        if (participant is null || !participant.HasActivePenalty(now))
+            return 0;
+
+        if (game.LastSweptOn is null)
+            return Game.SweepIntervalSeconds;
+
+        var secondsLeft = (game.LastSweptOn.Value.AddSeconds(Game.SweepIntervalSeconds) - now).TotalSeconds;
+        return (int)Math.Max(0, Math.Min(Game.SweepIntervalSeconds, secondsLeft));
+    }
 
     private static GameParticipantStatusDto ToStatusDto(this GameParticipant participant, Game game, DateTimeOffset now)
     {

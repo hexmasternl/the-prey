@@ -36,6 +36,17 @@ ion-content[data-threat='critical'] {
   --threat-glow: var(--tp-hunter-glow);
 }
 
+// Light mode: the status bar sits on a pale-green fill where the (already dimmed)
+// signal green loses contrast. Deepen the bar's green for the normal state — the
+// amber/red escalation states already read fine on the light fill, so leave them.
+@media (prefers-color-scheme: light) {
+  ion-content:not([data-threat='final']):not([data-threat='critical']) {
+    .status-pill,
+    .role-tag { --threat: var(--tp-signal-deep); }
+    .link-tag.link-on { color: var(--tp-signal-deep); }
+  }
+}
+
 // ── Status pill pulse keyframe ───────────────────────────────────────────────
 // Used by .status-pill inside structural-chrome. Defined at partial root so it
 // is emitted once per page stylesheet that @include-s the mixin.
@@ -80,20 +91,24 @@ ion-content[data-threat='critical'] {
     pointer-events: none;
     transition: border-color 0.6s ease;
 
-    &.tl { top: 8px;    left: 8px;   border-right: 0; border-bottom: 0; }
-    &.tr { top: 8px;    right: 8px;  border-left: 0;  border-bottom: 0; }
+    // Top brackets clear the device's top safe-area inset (OS status bar / notch).
+    &.tl { top: calc(8px + var(--ion-safe-area-top, env(safe-area-inset-top, 0px))); left: 8px;   border-right: 0; border-bottom: 0; }
+    &.tr { top: calc(8px + var(--ion-safe-area-top, env(safe-area-inset-top, 0px))); right: 8px;  border-left: 0;  border-bottom: 0; }
     &.bl { bottom: 8px; left: 8px;   border-right: 0; border-top: 0;    }
     &.br { bottom: 8px; right: 8px;  border-left: 0;  border-top: 0;    }
   }
 
-  // Status bar — floating across the top of the map
+  // Status bar — floating across the top of the map. The gradient still starts at
+  // top:0 (so it fades behind the OS status bar / notch), but the pill + role tag
+  // are pushed below the device's top safe-area inset so they aren't overlaid by
+  // the native status bar on edge-to-edge devices (e.g. Pixel 9).
   .status-bar {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    padding: 12px 16px 10px;
-    background: linear-gradient(to bottom, rgba(var(--tp-bg-void-rgb), 0.9), transparent);
+    padding: calc(12px + var(--ion-safe-area-top, env(safe-area-inset-top, 0px))) 16px 10px;
+    background: var(--tp-statusbar-bg);
     display: flex;
     align-items: center;
     justify-content: space-between;

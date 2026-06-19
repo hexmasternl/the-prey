@@ -15,6 +15,12 @@ public sealed record GameStatusDto(
     /// penalised players use a personal cadence anchored to their last recorded location.
     /// </summary>
     int NextPingDuration,
+    /// <summary>
+    /// Whole seconds remaining until the next sweep tick for a penalised participant, clamped to
+    /// [0, 30]. The client uses this to seed a fixed-30-second penalty countdown bar.
+    /// Always 0 for non-penalised participants and non-participants.
+    /// </summary>
+    int NextPingDurationWithPenalty,
     /// <summary>The participant's current reporting interval in whole seconds — the full duration between consecutive scheduled pings; 0 for non-participants.</summary>
     int CurrentPingInterval,
     bool IsEndgame,

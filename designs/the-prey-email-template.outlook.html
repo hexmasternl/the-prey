@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--
+  ============================================================================
+  THE PREY — Transactional Email Template (Outlook-hardened)
+  ============================================================================
+  Same phosphor-green tactical look as the-prey-email-template.html, but built
+  for the Outlook desktop (Windows) Word rendering engine and other strict
+  clients. Differences from the modern template:
+
+    * No web fonts        -> 'Courier New', Courier, monospace everywhere
+                             (Special Elite / PT Mono never load in Outlook).
+    * No box-shadow glow   -> emulated with a solid green border / fill.
+    * No border-radius     -> Outlook squares all corners; layout assumes square.
+    * No CSS background     -> every cell uses the bgcolor attribute.
+    * VML button + MSO      -> "ghost" tables fix the 600px width in Outlook.
+      ghost tables
+    * All structural sizes  -> fixed pixel widths, role="presentation" tables.
+
+  Use this version when your audience is Outlook-heavy (corporate/Windows) or
+  when you want one template that renders identically across the widest range
+  of clients. For richer rendering on Apple/Gmail, send the modern template.
+
+  PLACEHOLDERS (replace server-side; mustache-style, swap for your engine)
+    {{SUBJECT}} {{PREHEADER}} {{EYEBROW}} {{HEADLINE}} {{INTRO}} {{BODY_HTML}}
+    {{CTA_LABEL}} {{CTA_URL}} {{DETAIL_LABEL}} {{DETAIL_VALUE}}
+    {{FOOTER_NOTE}} {{YEAR}} {{UNSUBSCRIBE_URL}}
+
+  DESIGN TOKENS
+    bg #181b17 · panel #0c0e0c · green #64ff00 · green-deep #3f9e00
+    text #dcf6d2 · muted #8c9a83 · dim #5a6553 · border #39402f / #2a2f24
+  ============================================================================
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>{{SUBJECT}}</title>
+
+  <!--[if gte mso 9]>
+  <xml>
+    <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+  </xml>
+  <![endif]-->
+
+  <!--[if mso]>
+  <style type="text/css">
+    table, td, div, p, a, h1, span { font-family: 'Courier New', Courier, monospace !important; }
+  </style>
+  <![endif]-->
+
+  <style type="text/css">
+    body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+    table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; border-collapse:collapse; }
+    img { border:0; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
+    body { margin:0; padding:0; width:100% !important; height:100% !important; background-color:#181b17; }
+    a { text-decoration:none; }
+
+    @media only screen and (max-width:620px) {
+      .container { width:100% !important; }
+      .px        { padding-left:22px !important; padding-right:22px !important; }
+      .headline  { font-size:24px !important; line-height:30px !important; }
+    }
+  </style>
+</head>
+
+<body style="margin:0; padding:0; background-color:#181b17;">
+
+  <!-- Preheader -->
+  <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#181b17;">
+    {{PREHEADER}}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#181b17" style="background-color:#181b17;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+
+        <!--[if mso]>
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td>
+        <![endif]-->
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="container" style="width:600px; max-width:600px;">
+
+          <!-- ===== Brand bar ===== -->
+          <tr>
+            <td align="center" style="padding:0 0 20px 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td valign="middle" style="padding-right:10px;">
+                    <!-- Square green crosshair tile (Outlook-safe; no radius/shadow) -->
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="34">
+                      <tr>
+                        <td width="34" height="34" align="center" valign="middle" bgcolor="#0c0e0c" style="width:34px; height:34px; border:2px solid #64ff00; color:#64ff00; font-family:'Courier New',Courier,monospace; font-size:18px; line-height:18px;">&#10753;</td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td valign="middle">
+                    <div style="font-family:'Courier New',Courier,monospace; color:#64ff00; font-size:22px; font-weight:bold; letter-spacing:4px; text-transform:uppercase;">THE&nbsp;PREY</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ===== Card frame ===== -->
+          <tr>
+            <td bgcolor="#0c0e0c" style="background-color:#0c0e0c; border:1px solid #39402f;">
+
+              <!-- status strip -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="border-bottom:1px solid #2a2f24; padding:12px 32px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="left" style="font-family:'Courier New',Courier,monospace; color:#5a6553; font-size:11px; letter-spacing:2px; text-transform:uppercase;">// SECURE CHANNEL</td>
+                        <td align="right" style="font-family:'Courier New',Courier,monospace; color:#64ff00; font-size:11px; letter-spacing:2px; text-transform:uppercase;">&#9679; ONLINE</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- body -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="px" style="padding:34px 40px 8px 40px;">
+                    <div style="font-family:'Courier New',Courier,monospace; color:#3f9e00; font-size:12px; letter-spacing:3px; text-transform:uppercase; margin:0 0 12px 0;">{{EYEBROW}}</div>
+                    <h1 class="headline" style="font-family:'Courier New',Courier,monospace; color:#dcf6d2; font-size:28px; line-height:34px; letter-spacing:1px; text-transform:uppercase; margin:0 0 18px 0; font-weight:bold;">{{HEADLINE}}</h1>
+                    <p style="font-family:'Courier New',Courier,monospace; color:#8c9a83; font-size:15px; line-height:24px; margin:0 0 16px 0;">{{INTRO}}</p>
+                    <div style="font-family:'Courier New',Courier,monospace; color:#8c9a83; font-size:15px; line-height:24px;">{{BODY_HTML}}</div>
+                  </td>
+                </tr>
+
+                <!-- detail / code panel (remove row server-side if unused) -->
+                <tr>
+                  <td class="px" style="padding:12px 40px 4px 40px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#181b17" style="background-color:#181b17; border:1px solid #39402f;">
+                      <tr>
+                        <td align="center" style="padding:18px 20px;">
+                          <div style="font-family:'Courier New',Courier,monospace; color:#5a6553; font-size:11px; letter-spacing:2px; text-transform:uppercase; margin:0 0 8px 0;">{{DETAIL_LABEL}}</div>
+                          <div style="font-family:'Courier New',Courier,monospace; color:#64ff00; font-size:24px; font-weight:bold; letter-spacing:6px;">{{DETAIL_VALUE}}</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- CTA (VML for Outlook, anchor for everything else) -->
+                <tr>
+                  <td class="px" align="center" style="padding:28px 40px 8px 40px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{CTA_URL}}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="0%" strokecolor="#64ff00" fillcolor="#64ff00">
+                      <w:anchorlock/>
+                      <center style="color:#0c0e0c;font-family:'Courier New',Courier,monospace;font-size:14px;font-weight:bold;letter-spacing:2px;">{{CTA_LABEL}}</center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="{{CTA_URL}}" target="_blank" style="background-color:#64ff00; border:1px solid #64ff00; color:#0c0e0c; display:inline-block; font-family:'Courier New',Courier,monospace; font-size:14px; font-weight:bold; letter-spacing:2px; text-transform:uppercase; line-height:46px; padding:0 36px; text-align:center;">{{CTA_LABEL}}</a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+
+                <!-- fallback link -->
+                <tr>
+                  <td class="px" align="center" style="padding:6px 40px 32px 40px;">
+                    <p style="font-family:'Courier New',Courier,monospace; color:#5a6553; font-size:12px; line-height:20px; margin:0; word-break:break-all;">
+                      Button not working? Copy this URL:<br />
+                      <a href="{{CTA_URL}}" target="_blank" style="color:#64ff00; text-decoration:underline;">{{CTA_URL}}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- ===== Footer ===== -->
+          <tr>
+            <td align="center" style="padding:22px 24px 8px 24px;">
+              <p style="font-family:'Courier New',Courier,monospace; color:#5a6553; font-size:12px; line-height:20px; margin:0 0 10px 0;">{{FOOTER_NOTE}}</p>
+              <p style="font-family:'Courier New',Courier,monospace; color:#39402f; font-size:11px; line-height:18px; letter-spacing:1px; margin:0;">
+                &copy; {{YEAR}} THE PREY &nbsp;&middot;&nbsp; theprey.nl<br />
+                <a href="{{UNSUBSCRIBE_URL}}" style="color:#5a6553; text-decoration:underline;">Unsubscribe</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+        <!--[if mso]>
+        </td></tr></table>
+        <![endif]-->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

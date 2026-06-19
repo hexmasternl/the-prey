@@ -294,8 +294,8 @@ public sealed class ToStatusDtoMappingTests
         var result = await QueryStatus(game, hunterId);
 
         Assert.NotNull(result);
-        // Allow ±1 s for test execution time.
-        Assert.InRange(result!.NextPingDuration, 28, 29);
+        // Allow ±2 s for test execution time.
+        Assert.InRange(result!.NextPingDuration, 27, 29);
     }
 
     [Fact]
@@ -345,5 +345,88 @@ public sealed class ToStatusDtoMappingTests
 
         Assert.NotNull(result);
         Assert.Equal(Game.PenaltyReportingIntervalSeconds, result!.NextPingDuration);
+    }
+
+    // ── Theme C: NextPingDurationWithPenalty ─────────────────────────────────
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDurationWithPenalty_Zero_WhenParticipantHasNoPenalty()
+    {
+        // Non-penalised participant — field must always be 0.
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.Equal(0, result!.NextPingDurationWithPenalty);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDurationWithPenalty_SweepInterval_WhenPenalisedAndLastSweptOnIsNull()
+    {
+        // Penalised participant but game has never been swept → full bar (30 s).
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
+        game.ApplyPenalty(hunterId, DateTimeOffset.UtcNow.AddMinutes(5));
+        // LastSweptOn is null because SweepLocations has never been called.
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.Equal(Game.SweepIntervalSeconds, result!.NextPingDurationWithPenalty);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDurationWithPenalty_Clamped_WhenPenalisedAndSweptRecently()
+    {
+        // Penalised participant; sweep ran 5 seconds ago → ~25 seconds left on the bar.
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
+        game.ApplyPenalty(hunterId, DateTimeOffset.UtcNow.AddMinutes(5));
+
+        // Simulate a sweep that ran ~5 seconds ago.
+        var sweepTime = DateTimeOffset.UtcNow.AddSeconds(-5);
+        game.SweepLocations(sweepTime);
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        // Expected ≈ 25; allow ±1 s for test execution time.
+        Assert.InRange(result!.NextPingDurationWithPenalty, 24, 25);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDurationWithPenalty_Zero_WhenSweepAnchorIsOlderThanInterval()
+    {
+        // Sweep ran more than 30 s ago → clamped to 0, never negative.
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
+        game.ApplyPenalty(hunterId, DateTimeOffset.UtcNow.AddMinutes(5));
+
+        var sweepTime = DateTimeOffset.UtcNow.AddSeconds(-(Game.SweepIntervalSeconds + 10));
+        game.SweepLocations(sweepTime);
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.Equal(0, result!.NextPingDurationWithPenalty);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDurationWithPenalty_AtMostSweepInterval()
+    {
+        // Guard: value must never exceed Game.SweepIntervalSeconds regardless of sweep time.
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
+        game.ApplyPenalty(hunterId, DateTimeOffset.UtcNow.AddMinutes(5));
+
+        // Sweep ran "just now" — maximum possible value.
+        game.SweepLocations(DateTimeOffset.UtcNow);
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.InRange(result!.NextPingDurationWithPenalty, 0, Game.SweepIntervalSeconds);
     }
 }

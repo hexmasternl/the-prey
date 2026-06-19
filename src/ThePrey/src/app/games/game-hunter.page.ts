@@ -126,9 +126,12 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
    */
   readonly statusPillLabel = computed(() => {
     switch (this.threatState()) {
-      case 'critical': return 'GAME_PROGRESS.STATUS_CRITICAL';
-      case 'final':    return 'GAME_PROGRESS.STATUS_ENDGAME';
-      default:         return 'GAME_PROGRESS.STATUS_LIVE';
+      case 'critical':
+        return 'GAME_PROGRESS.STATUS_CRITICAL';
+      case 'final':
+        return 'GAME_PROGRESS.STATUS_ENDGAME';
+      default:
+        return 'GAME_PROGRESS.STATUS_LIVE';
     }
   });
 
@@ -167,6 +170,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   currentPingInterval = 30;
   /** True while the game is in the Ready state (armed but not yet started by the sweep). */
   readonly waitingForStart = signal(false);
+  /** Fixed bar duration (seconds) used as MAX when the player is under a boundary penalty. */
+  private readonly PENALTY_BAR_SECONDS = 30;
   /** NEXT UPDATE bar fill percentage: countdown / currentPingInterval, clamped 0–100. */
   readonly pingBarWidth = computed(() => {
     const pct = (this.pingCountdown() / (this.currentPingInterval || 30)) * 100;
@@ -472,8 +477,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       await this.gamesService.tagPlayer(this.gameId, prey.userId);
       this.resetTagConfirmation();
     } catch (err) {
-      const isOutOfRange = err instanceof HttpErrorResponse && err.status === 409;
-      const messageKey = isOutOfRange ? 'TAG_MODAL.OUT_OF_RANGE' : 'TAG_MODAL.TAG_FAILED';
+      const isOutOfRange =
+        err instanceof HttpErrorResponse && err.status === 409;
+      const messageKey = isOutOfRange
+        ? 'TAG_MODAL.OUT_OF_RANGE'
+        : 'TAG_MODAL.TAG_FAILED';
       const toast = await this.toastCtrl.create({
         message: this.translate.instant(messageKey),
         duration: 4000,
@@ -538,7 +546,9 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         { enableHighAccuracy: true, maximumAge: 5000 },
         (position, err) => {
           if (err || !position) {
-            this.gpsAlert.set(this.translate.instant('GAME_PROGRESS.GPS_SIGNAL_LOST'));
+            this.gpsAlert.set(
+              this.translate.instant('GAME_PROGRESS.GPS_SIGNAL_LOST'),
+            );
             if (this.selfMarker) {
               this.selfMarker.remove();
               this.selfMarker = null;
@@ -579,7 +589,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       html:
         '<div class="self-arrow">' +
         '<svg viewBox="0 0 24 24" width="30" height="30">' +
-        '<path d="M12 2 L20 21 L12 16 L4 21 Z" /></svg></div>',
+        `<path d="M12 2 L20 21 L12 16 L4 21 Z" fill="${MAP_COLORS.SIGNAL_DEEP}" stroke="${MAP_COLORS.SIGNAL}" stroke-width="1" stroke-linejoin="round" /></svg></div>`,
       iconSize: [30, 30],
       iconAnchor: [15, 15],
     });
@@ -600,7 +610,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
    */
   private applyHeading(heading: number): void {
     if (!this.selfArrowEl) return;
-    const delta = ((heading - this.renderedHeading) % 360 + 540) % 360 - 180;
+    const delta =
+      ((((heading - this.renderedHeading) % 360) + 540) % 360) - 180;
     this.renderedHeading += delta;
     this.selfArrowEl.style.transform = `rotate(${this.renderedHeading}deg)`;
   }
@@ -620,14 +631,24 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       // ensureTracking short-circuits once the location service is broadcasting.
       void this.ensureTracking();
 
-      // Capture the server-supplied ping interval for the NEXT UPDATE bar denominator.
-      this.currentPingInterval = status.currentPingInterval || 30;
+      // Choose bar regime: penalised players run on a fixed 30-second cadence;
+      // everyone else uses the server-supplied interval.
+      // applyStatus() (called above) has already refreshed hasActivePenalty.
+      const penalised = this.hasActivePenalty();
+      const barMax = penalised
+        ? this.PENALTY_BAR_SECONDS
+        : status.currentPingInterval || 30;
+      const sync = penalised
+        ? (status.nextPingDurationWithPenalty ?? barMax)
+        : (status.nextPingDuration ?? barMax);
 
-      this.pollIntervalSeconds = status.nextPingDuration || 30;
+      this.currentPingInterval = barMax; // NEXT UPDATE bar denominator
+      this.pollIntervalSeconds = barMax; // steady poll cadence, decoupled from boundary time
 
       // Only start the ping countdown when the game is actually running.
       if (!this.waitingForStart()) {
-        this.startPingCountdown(status.nextPingDuration || 30);
+        // A sync of 0 means a broadcast is imminent — start a fresh full sweep.
+        this.startPingCountdown(sync > 0 ? sync : barMax, barMax);
       }
       this.pollTimer = setTimeout(
         () => this.pollStatus(),
@@ -824,12 +845,17 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     }
   }
 
-  private startPingCountdown(seconds: number): void {
+  /**
+   * Tick the next-update countdown down once per second until the next poll resyncs it.
+   * When the counter reaches 0 it rolls over to `max` for a clean full sweep rather than
+   * sticking at 0 until the poll fires.
+   */
+  private startPingCountdown(seconds: number, max: number): void {
     this.clearPingInterval();
     this.pingCountdown.set(seconds);
     this.pingIntervalTimer = setInterval(() => {
-      const next = Math.max(0, this.pingCountdown() - 1);
-      this.pingCountdown.set(next);
+      const next = this.pingCountdown() - 1;
+      this.pingCountdown.set(next >= 0 ? next : max);
     }, 1000);
   }
 
@@ -874,8 +900,16 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         const isInactive = newState === 'Tagged' || newState === 'Out';
         marker.setStyle(
           isInactive
-            ? { color: MAP_COLORS.TAGGED, fillColor: MAP_COLORS.TAGGED, fillOpacity: 0.7 }
-            : { color: MAP_COLORS.HUNTER, fillColor: MAP_COLORS.HUNTER, fillOpacity: 0.9 },
+            ? {
+                color: MAP_COLORS.TAGGED,
+                fillColor: MAP_COLORS.TAGGED,
+                fillOpacity: 0.7,
+              }
+            : {
+                color: MAP_COLORS.HUNTER,
+                fillColor: MAP_COLORS.HUNTER,
+                fillOpacity: 0.9,
+              },
         );
       }
       const activeCount = [...this.participantStates.values()].filter(
@@ -899,12 +933,19 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       },
     );
 
-    // Hunter penalty (e.g. for leaving the playfield)
+    // Hunter penalty (e.g. for leaving the playfield) — switch to the 30-second penalty
+    // regime immediately so the bar reflects the new cadence without waiting for the next poll.
     this.streamService.on<PlayerPenalizedPayload>(
       'player-penalized',
       (payload) => {
         if (payload.userId === this.currentUserId) {
           this.hasActivePenalty.set(true);
+          this.currentPingInterval = this.PENALTY_BAR_SECONDS;
+          this.pollIntervalSeconds = this.PENALTY_BAR_SECONDS;
+          this.startPingCountdown(
+            this.PENALTY_BAR_SECONDS,
+            this.PENALTY_BAR_SECONDS,
+          );
         }
       },
     );
@@ -938,16 +979,30 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       if (!this.currentUserId && status.hunterUserId) {
         this.currentUserId = status.hunterUserId;
       }
-      this.currentPingInterval = status.currentPingInterval || 30;
-      this.pollIntervalSeconds = status.nextPingDuration || 30;
       this.applyStatus(status);
       // Game is now InProgress — lift the waiting overlay and start the countdown.
       this.waitingForStart.set(false);
       // The game just went live; start broadcasting location now (we entered during Ready,
       // when startedAt was null and ensureTracking could not start). Idempotent.
       void this.ensureTracking();
-      this.startPingCountdown(status.nextPingDuration || 30);
-      this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1_000);
+
+      // Apply the same regime logic as the main pollStatus path.
+      // applyStatus() above has already refreshed hasActivePenalty.
+      const penalised = this.hasActivePenalty();
+      const barMax = penalised
+        ? this.PENALTY_BAR_SECONDS
+        : status.currentPingInterval || 30;
+      const sync = penalised
+        ? (status.nextPingDurationWithPenalty ?? barMax)
+        : (status.nextPingDuration ?? barMax);
+
+      this.currentPingInterval = barMax;
+      this.pollIntervalSeconds = barMax;
+      this.startPingCountdown(sync > 0 ? sync : barMax, barMax);
+      this.pollTimer = setTimeout(
+        () => this.pollStatus(),
+        this.pollIntervalSeconds * 1_000,
+      );
     } catch {
       // Status endpoint not yet serving (game still transitioning) — retry shortly.
       this.pollTimer = setTimeout(() => this.pollStatus(), 5_000);

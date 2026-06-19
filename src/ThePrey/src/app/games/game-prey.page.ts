@@ -1,4 +1,12 @@
-import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent,
@@ -22,10 +30,22 @@ import type { PluginListenerHandle } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { GameDto, GameParticipantStatusDto, GameStatusDto, GamesService } from './games.service';
+import {
+  GameDto,
+  GameParticipantStatusDto,
+  GameStatusDto,
+  GamesService,
+} from './games.service';
 import { computeThreatState, ThreatState } from './threat-state';
 import { MAP_COLORS } from '../shared/map-colors';
-import { GameStreamService, PlayerLocationUpdatedPayload, PlayerStatusChangedPayload, ParticipantStatusChangedPayload, PlayerPenalizedPayload, GameEndedPayload } from './game-stream.service';
+import {
+  GameStreamService,
+  PlayerLocationUpdatedPayload,
+  PlayerStatusChangedPayload,
+  ParticipantStatusChangedPayload,
+  PlayerPenalizedPayload,
+  GameEndedPayload,
+} from './game-stream.service';
 import { GameLocationService } from './game-location.service';
 import { CompassService } from './compass.service';
 import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
@@ -53,14 +73,14 @@ import { UserStateService } from '../users/user-state.service';
   ],
 })
 export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
-  private readonly route          = inject(ActivatedRoute);
-  private readonly router         = inject(Router);
-  private readonly gamesService   = inject(GamesService);
-  private readonly streamService  = inject(GameStreamService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly gamesService = inject(GamesService);
+  private readonly streamService = inject(GameStreamService);
   private readonly locationService = inject(GameLocationService);
-  private readonly userState      = inject(UserStateService);
-  private readonly compass        = inject(CompassService);
-  private readonly translate      = inject(TranslateService);
+  private readonly userState = inject(UserStateService);
+  private readonly compass = inject(CompassService);
+  private readonly translate = inject(TranslateService);
 
   /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
   readonly heading = this.compass.heading;
@@ -70,7 +90,9 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   /** Seconds left in the game, resynced from the server each poll and ticked down locally every second. */
   readonly secondsRemaining = signal<number | null>(null);
-  readonly timeRemaining   = computed(() => this.formatDuration(this.secondsRemaining()));
+  readonly timeRemaining = computed(() =>
+    this.formatDuration(this.secondsRemaining()),
+  );
 
   /** True when the server has flagged the game as being in its final stage. */
   readonly isEndgame = signal(false);
@@ -103,22 +125,25 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly statusPillLabel = computed(() => {
     if (this.outReason() !== null) return 'GAME_PROGRESS.STATUS_SPECTATING';
     switch (this.threatState()) {
-      case 'critical': return 'GAME_PROGRESS.STATUS_CRITICAL';
-      case 'final':    return 'GAME_PROGRESS.STATUS_ENDGAME';
-      default:         return 'GAME_PROGRESS.STATUS_LIVE';
+      case 'critical':
+        return 'GAME_PROGRESS.STATUS_CRITICAL';
+      case 'final':
+        return 'GAME_PROGRESS.STATUS_ENDGAME';
+      default:
+        return 'GAME_PROGRESS.STATUS_LIVE';
     }
   });
 
-  readonly preysLeft       = signal(0);
+  readonly preysLeft = signal(0);
   readonly hasActivePenalty = signal(false);
-  readonly gpsAlert        = signal<string | null>(null);
+  readonly gpsAlert = signal<string | null>(null);
   /**
    * Distance to the hunter, computed locally from our own GPS fix and the hunter's
    * last-known blip position ('--' until both are known). The prey is not sent hunter
    * distance by the server, so this is derived client-side and is only as fresh as the
    * hunter's last broadcast — hence the companion "Ns ago" descriptor below.
    */
-  readonly hunterDistance  = signal<string>('--');
+  readonly hunterDistance = signal<string>('--');
   /** Epoch ms at which the hunter's location was last received, or null when unknown. */
   readonly hunterUpdatedAt = signal<number | null>(null);
   /** Ticked every second by the duration timer so measuredAgo recomputes live. */
@@ -134,20 +159,22 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
    * the spectator overlay; the player stays connected and keeps receiving updates until
    * the game itself ends (`game-ended`), at which point everyone lands on the outcome screen.
    */
-  readonly outReason       = signal<'tagged' | 'out' | null>(null);
+  readonly outReason = signal<'tagged' | 'out' | null>(null);
   /** Seconds until the next status poll, ticked down every second for the HUD. */
-  readonly pingCountdown   = signal(30);
+  readonly pingCountdown = signal(30);
   /** Server-supplied full ping interval (seconds) used as the NEXT UPDATE bar denominator. */
   currentPingInterval = 30;
   /** True while the game is in the Ready state (armed but not yet started by the sweep). */
   readonly waitingForStart = signal(false);
+  /** Fixed bar duration (seconds) used as MAX when the player is under a boundary penalty. */
+  private readonly PENALTY_BAR_SECONDS = 30;
   /** NEXT UPDATE bar fill percentage: countdown / currentPingInterval, clamped 0–100. */
   readonly pingBarWidth = computed(() => {
     const pct = (this.pingCountdown() / (this.currentPingInterval || 30)) * 100;
     return Math.min(100, Math.max(0, isNaN(pct) ? 0 : pct));
   });
   /** Collapsed by default: only the remaining game time shows until the HUD is tapped. */
-  readonly hudExpanded     = signal(false);
+  readonly hudExpanded = signal(false);
   /** ISO timestamp at which the hunter may move, from the status poll; drives the countdown overlay. */
   readonly hunterMayMoveAt = signal<string | null>(null);
   /** True when background location reporting could not be (re)started for this game. */
@@ -266,11 +293,14 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
    * plugin fires `appStateChange` on native resume and on web via document visibility.
    */
   private async registerResumeListener(): Promise<void> {
-    this.resumeListener = await App.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) {
-        this.resyncOnResume();
-      }
-    });
+    this.resumeListener = await App.addListener(
+      'appStateChange',
+      ({ isActive }) => {
+        if (isActive) {
+          this.resyncOnResume();
+        }
+      },
+    );
   }
 
   private resyncOnResume(): void {
@@ -297,7 +327,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   toggleHud(): void {
-    this.hudExpanded.update(v => !v);
+    this.hudExpanded.update((v) => !v);
   }
 
   ngOnDestroy(): void {
@@ -323,8 +353,11 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     }
 
     // 1. Recover from a persisted session (e.g. after the OS killed the app).
-    const storedId = (await Preferences.get({ key: 'game.tracking.gameId' })).value;
-    const storedEnd = (await Preferences.get({ key: 'game.tracking.gameEndTime' })).value;
+    const storedId = (await Preferences.get({ key: 'game.tracking.gameId' }))
+      .value;
+    const storedEnd = (
+      await Preferences.get({ key: 'game.tracking.gameEndTime' })
+    ).value;
     if (storedId === this.gameId && storedEnd) {
       const end = new Date(storedEnd);
       if (end.getTime() > Date.now()) {
@@ -371,7 +404,10 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       return new Date(game.endsAt);
     }
     if (game.startedAt) {
-      return new Date(new Date(game.startedAt).getTime() + game.configuration.gameDuration * 60_000);
+      return new Date(
+        new Date(game.startedAt).getTime() +
+          game.configuration.gameDuration * 60_000,
+      );
     }
     return null;
   }
@@ -382,7 +418,9 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private initMap(): void {
     this.map = L.map('map', { zoomControl: false, attributionControl: false });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(
+      this.map,
+    );
     this.map.setView([52.0, 5.0], 15);
     // ion-content[fullscreen] only sizes the #map container after this runs, so
     // Leaflet caches a wrong (often zero) viewport. Recompute on the next tick so
@@ -400,7 +438,9 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       { enableHighAccuracy: true, maximumAge: 5_000 },
       (position, err) => {
         if (err || !position) {
-          this.gpsAlert.set(this.translate.instant('GAME_PROGRESS.GPS_SIGNAL_LOST'));
+          this.gpsAlert.set(
+            this.translate.instant('GAME_PROGRESS.GPS_SIGNAL_LOST'),
+          );
           return;
         }
         this.gpsAlert.set(null);
@@ -424,12 +464,14 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
         if (!this.playfieldPolygon) {
           this.map.setView(latlng);
         }
-      }
-    ).then((watchId) => {
-      this.mapWatchId = watchId;
-    }).catch(() => {
-      this.gpsAlert.set('Signal lost. Find open sky.');
-    });
+      },
+    )
+      .then((watchId) => {
+        this.mapWatchId = watchId;
+      })
+      .catch(() => {
+        this.gpsAlert.set('Signal lost. Find open sky.');
+      });
   }
 
   private stopMapWatch(): void {
@@ -446,7 +488,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       html:
         '<div class="self-arrow">' +
         '<svg viewBox="0 0 24 24" width="32" height="32">' +
-        '<path d="M12 2 L20 21 L12 16 L4 21 Z" /></svg></div>',
+        `<path d="M12 2 L20 21 L12 16 L4 21 Z" fill="${MAP_COLORS.SIGNAL_DEEP}" stroke="${MAP_COLORS.SIGNAL}" stroke-width="1" stroke-linejoin="round" /></svg></div>`,
       iconSize: [32, 32],
       iconAnchor: [16, 16],
     });
@@ -454,7 +496,8 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   /** Grab the arrow's inner element after the marker mounts and orient it immediately. */
   private captureSelfArrow(): void {
-    this.playerArrowEl = this.playerMarker?.getElement()?.querySelector('.self-arrow') ?? null;
+    this.playerArrowEl =
+      this.playerMarker?.getElement()?.querySelector('.self-arrow') ?? null;
     const h = this.heading();
     if (h !== null) this.applyHeading(h);
   }
@@ -466,7 +509,8 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
    */
   private applyHeading(heading: number): void {
     if (!this.playerArrowEl) return;
-    const delta = ((heading - this.renderedHeading) % 360 + 540) % 360 - 180;
+    const delta =
+      ((((heading - this.renderedHeading) % 360) + 540) % 360) - 180;
     this.renderedHeading += delta;
     this.playerArrowEl.style.transform = `rotate(${this.renderedHeading}deg)`;
   }
@@ -486,18 +530,29 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       // ensureTracking short-circuits once the location service is broadcasting.
       void this.ensureTracking();
 
-      // Capture the server-supplied ping interval for the NEXT UPDATE bar denominator.
-      this.currentPingInterval = status.currentPingInterval || 30;
+      // Choose bar regime: penalised players run on a fixed 30-second cadence;
+      // everyone else uses the server-supplied interval.
+      // applyStatus() (called above) has already refreshed hasActivePenalty.
+      const penalised = this.hasActivePenalty();
+      const barMax = penalised
+        ? this.PENALTY_BAR_SECONDS
+        : status.currentPingInterval || 30;
+      const sync = penalised
+        ? (status.nextPingDurationWithPenalty ?? barMax)
+        : (status.nextPingDuration ?? barMax);
 
-      // The native Android service manages its own interval autonomously —
-      // we only use nextPingDuration here to pace the Angular-side UI poll.
-      this.pollIntervalSeconds = status.nextPingDuration || 30;
+      this.currentPingInterval = barMax; // NEXT UPDATE bar denominator
+      this.pollIntervalSeconds = barMax; // steady poll cadence, decoupled from boundary time
 
       // Only start the ping countdown when the game is actually running.
       if (!this.waitingForStart()) {
-        this.startPingCountdown(status.nextPingDuration || 30);
+        // A sync of 0 means a broadcast is imminent — start a fresh full sweep.
+        this.startPingCountdown(sync > 0 ? sync : barMax, barMax);
       }
-      this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1_000);
+      this.pollTimer = setTimeout(
+        () => this.pollStatus(),
+        this.pollIntervalSeconds * 1_000,
+      );
     } catch {
       // The status endpoint only serves in-progress games, so an error here may mean the
       // game ended while we were backgrounded/disconnected and we missed `game-ended`.
@@ -519,9 +574,15 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       const game = await this.gamesService.getGame(this.gameId);
       if (game.status === 'Completed') {
         const survivorCount = game.participants.filter(
-          p => p.userId !== game.hunterUserId && (p.state === 'Active' || p.state === 'Passive'),
+          (p) =>
+            p.userId !== game.hunterUserId &&
+            (p.state === 'Active' || p.state === 'Passive'),
         ).length;
-        this.handleGameEnded({ gameId: this.gameId, outcome: game.outcome, survivorCount });
+        this.handleGameEnded({
+          gameId: this.gameId,
+          outcome: game.outcome,
+          survivorCount,
+        });
         return true;
       }
       if (game.status === 'Ready') {
@@ -541,9 +602,12 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     this.hunterMayMoveAt.set(status.hunterMayMoveAt ?? null);
     this.hunterUserId = status.hunterUserId;
 
-    const preys = status.participants.filter(p => p.userId !== status.hunterUserId);
+    const preys = status.participants.filter(
+      (p) => p.userId !== status.hunterUserId,
+    );
 
-    const me = status.participants.find(p => p.userId === this.currentUserId) ?? null;
+    const me =
+      status.participants.find((p) => p.userId === this.currentUserId) ?? null;
     this.hasActivePenalty.set(me?.hasActivePenalty ?? false);
 
     // Seed local state map from snapshot
@@ -572,16 +636,30 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private async pollStatusForInProgress(): Promise<void> {
     try {
       const status = await this.gamesService.getGameStatus(this.gameId);
-      this.currentPingInterval = status.currentPingInterval || 30;
-      this.pollIntervalSeconds = status.nextPingDuration || 30;
       this.applyStatus(status);
       // Game is now InProgress — lift the waiting overlay and start the countdown.
       this.waitingForStart.set(false);
       // The game just went live; start broadcasting location now (we entered during Ready,
       // when startedAt was null and ensureTracking could not start). Idempotent.
       void this.ensureTracking();
-      this.startPingCountdown(status.nextPingDuration || 30);
-      this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1_000);
+
+      // Apply the same regime logic as the main pollStatus path.
+      // applyStatus() above has already refreshed hasActivePenalty.
+      const penalised = this.hasActivePenalty();
+      const barMax = penalised
+        ? this.PENALTY_BAR_SECONDS
+        : status.currentPingInterval || 30;
+      const sync = penalised
+        ? (status.nextPingDurationWithPenalty ?? barMax)
+        : (status.nextPingDuration ?? barMax);
+
+      this.currentPingInterval = barMax;
+      this.pollIntervalSeconds = barMax;
+      this.startPingCountdown(sync > 0 ? sync : barMax, barMax);
+      this.pollTimer = setTimeout(
+        () => this.pollStatus(),
+        this.pollIntervalSeconds * 1_000,
+      );
     } catch {
       // Status endpoint not yet serving (game still transitioning) — retry shortly.
       this.pollTimer = setTimeout(() => this.pollStatus(), 5_000);
@@ -598,12 +676,22 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       if (p.userId === this.currentUserId) continue;
       if (!p.lastKnownLocation) continue;
       this.participantStates.set(p.userId, p.state);
-      this.upsertOtherBlip(p.userId, p.lastKnownLocation.latitude, p.lastKnownLocation.longitude, p.state);
+      this.upsertOtherBlip(
+        p.userId,
+        p.lastKnownLocation.latitude,
+        p.lastKnownLocation.longitude,
+        p.state,
+      );
     }
   }
 
   /** Create or move a player blip, colouring it by role (hunter vs. other prey). */
-  private upsertOtherBlip(userId: string, lat: number, lng: number, state: string): void {
+  private upsertOtherBlip(
+    userId: string,
+    lat: number,
+    lng: number,
+    state: string,
+  ): void {
     const latlng: L.LatLngExpression = [lat, lng];
     const options = this.blipOptionsFor(userId, state);
     const existing = this.otherMarkers.get(userId);
@@ -611,13 +699,20 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       existing.setLatLng(latlng);
       existing.setStyle(options);
     } else {
-      this.otherMarkers.set(userId, L.circleMarker(latlng, options).addTo(this.map));
+      this.otherMarkers.set(
+        userId,
+        L.circleMarker(latlng, options).addTo(this.map),
+      );
     }
 
     // Track the hunter's position + receipt time so the HUD can show distance-to-hunter
     // and how long ago that fix arrived. Stamp the time only on a genuine move.
     if (userId === this.hunterUserId) {
-      if (!this.hunterLatLng || this.hunterLatLng.lat !== lat || this.hunterLatLng.lng !== lng) {
+      if (
+        !this.hunterLatLng ||
+        this.hunterLatLng.lat !== lat ||
+        this.hunterLatLng.lng !== lng
+      ) {
         this.hunterLastUpdate = Date.now();
       }
       this.hunterLatLng = L.latLng(lat, lng);
@@ -632,27 +727,45 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       this.hunterUpdatedAt.set(null);
       return;
     }
-    this.hunterDistance.set(`${Math.round(this.selfLatLng.distanceTo(this.hunterLatLng))}m`);
+    this.hunterDistance.set(
+      `${Math.round(this.selfLatLng.distanceTo(this.hunterLatLng))}m`,
+    );
     this.hunterUpdatedAt.set(this.hunterLastUpdate);
   }
 
   /** Hunter → red; other preys → orange (grey once Tagged/Out). */
   private blipOptionsFor(userId: string, state: string): L.CircleMarkerOptions {
     if (userId === this.hunterUserId) {
-      return { radius: 7, color: MAP_COLORS.HUNTER, fillColor: MAP_COLORS.HUNTER, fillOpacity: 0.9, weight: 2 };
+      return {
+        radius: 7,
+        color: MAP_COLORS.HUNTER,
+        fillColor: MAP_COLORS.HUNTER,
+        fillOpacity: 0.9,
+        weight: 2,
+      };
     }
     const isInactive = state === 'Tagged' || state === 'Out';
     const colour = isInactive ? MAP_COLORS.TAGGED : MAP_COLORS.CAUTION;
-    return { radius: 6, color: colour, fillColor: colour, fillOpacity: isInactive ? 0.4 : 0.9, weight: 2 };
+    return {
+      radius: 6,
+      color: colour,
+      fillColor: colour,
+      fillOpacity: isInactive ? 0.4 : 0.9,
+      weight: 2,
+    };
   }
 
-  private drawPlayfield(coords: { latitude: number; longitude: number }[]): void {
+  private drawPlayfield(
+    coords: { latitude: number; longitude: number }[],
+  ): void {
     if (this.playfieldPolygon) return;
     if (coords.length < 3) return; // a polygon needs at least three vertices
 
-    const latlngs = coords.map(c => [c.latitude, c.longitude] as L.LatLngExpression);
+    const latlngs = coords.map(
+      (c) => [c.latitude, c.longitude] as L.LatLngExpression,
+    );
     this.playfieldPolygon = L.polygon(latlngs, {
-      color: MAP_COLORS.SIGNAL,   // opaque border
+      color: MAP_COLORS.SIGNAL, // opaque border
       weight: 3,
       opacity: 1,
       fillColor: MAP_COLORS.SIGNAL, // transparent fill: faint tint, map shows through
@@ -662,7 +775,9 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     // Ensure the container size is current before framing the field, then keep
     // the whole polygon in view (the GPS watch no longer recenters once it exists).
     this.map.invalidateSize();
-    this.map.fitBounds(this.playfieldPolygon.getBounds(), { padding: [24, 24] });
+    this.map.fitBounds(this.playfieldPolygon.getBounds(), {
+      padding: [24, 24],
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -697,12 +812,23 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
     // Live location pushes from the sweep (~every 30 s). Our own marker is driven by
     // the GPS watch, so skip self; everyone else is (re)plotted with their role colour.
-    this.streamService.on<PlayerLocationUpdatedPayload>('player-location-updated', (payload) => {
-      if (payload.userId === this.currentUserId) return;
-      const state = payload.participantState ?? this.participantStates.get(payload.userId) ?? 'Active';
-      this.participantStates.set(payload.userId, state);
-      this.upsertOtherBlip(payload.userId, payload.latitude, payload.longitude, state);
-    });
+    this.streamService.on<PlayerLocationUpdatedPayload>(
+      'player-location-updated',
+      (payload) => {
+        if (payload.userId === this.currentUserId) return;
+        const state =
+          payload.participantState ??
+          this.participantStates.get(payload.userId) ??
+          'Active';
+        this.participantStates.set(payload.userId, state);
+        this.upsertOtherBlip(
+          payload.userId,
+          payload.latitude,
+          payload.longitude,
+          state,
+        );
+      },
+    );
 
     // Status changes arrive from either event name — treat them identically.
     const onStatusChanged = (userId: string, newState: string): void => {
@@ -715,7 +841,9 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       }
 
       // Recalculate preys-remaining count
-      const activeCount = [...this.participantStates.values()].filter(s => s === 'Active' || s === 'Passive').length;
+      const activeCount = [...this.participantStates.values()].filter(
+        (s) => s === 'Active' || s === 'Passive',
+      ).length;
       this.preysLeft.set(activeCount);
 
       // React when our own state changes — switch to spectator mode but stay connected.
@@ -728,20 +856,36 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
       }
     };
 
-    this.streamService.on<PlayerStatusChangedPayload>('player-status-changed', (payload) => {
-      onStatusChanged(payload.userId, payload.newState);
-    });
+    this.streamService.on<PlayerStatusChangedPayload>(
+      'player-status-changed',
+      (payload) => {
+        onStatusChanged(payload.userId, payload.newState);
+      },
+    );
 
-    this.streamService.on<ParticipantStatusChangedPayload>('participant-status-changed', (payload) => {
-      onStatusChanged(payload.participantId, payload.newState);
-    });
+    this.streamService.on<ParticipantStatusChangedPayload>(
+      'participant-status-changed',
+      (payload) => {
+        onStatusChanged(payload.participantId, payload.newState);
+      },
+    );
 
-    // Own penalty notification
-    this.streamService.on<PlayerPenalizedPayload>('player-penalized', (payload) => {
-      if (payload.userId === this.currentUserId) {
-        this.hasActivePenalty.set(true);
-      }
-    });
+    // Own penalty notification — switch to the 30-second penalty regime immediately
+    // so the bar reflects the new cadence without waiting for the next poll.
+    this.streamService.on<PlayerPenalizedPayload>(
+      'player-penalized',
+      (payload) => {
+        if (payload.userId === this.currentUserId) {
+          this.hasActivePenalty.set(true);
+          this.currentPingInterval = this.PENALTY_BAR_SECONDS;
+          this.pollIntervalSeconds = this.PENALTY_BAR_SECONDS;
+          this.startPingCountdown(
+            this.PENALTY_BAR_SECONDS,
+            this.PENALTY_BAR_SECONDS,
+          );
+        }
+      },
+    );
 
     this.streamService.on('state-changed', () => {
       this.handleStateChanged();
@@ -796,7 +940,9 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
 
   private formatDuration(seconds: number | null): string {
     if (seconds === null) return '--:--';
-    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const mins = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, '0');
     const secs = (seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
   }
@@ -819,12 +965,17 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     }
   }
 
-  /** Tick the next-update countdown down once per second until the next poll resyncs it. */
-  private startPingCountdown(seconds: number): void {
+  /**
+   * Tick the next-update countdown down once per second until the next poll resyncs it.
+   * When the counter reaches 0 it rolls over to `max` for a clean full sweep rather than
+   * sticking at 0 until the poll fires.
+   */
+  private startPingCountdown(seconds: number, max: number): void {
     this.clearPingInterval();
     this.pingCountdown.set(seconds);
     this.pingIntervalTimer = setInterval(() => {
-      this.pingCountdown.set(Math.max(0, this.pingCountdown() - 1));
+      const next = this.pingCountdown() - 1;
+      this.pingCountdown.set(next >= 0 ? next : max);
     }, 1000);
   }
 

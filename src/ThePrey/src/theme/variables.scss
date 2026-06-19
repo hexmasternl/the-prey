@@ -44,6 +44,8 @@
   --tp-caution-glow:   rgba(255, 179, 0, 0.35);
   // Void scrim for overlay backdrops
   --tp-scrim:          rgba(0, 0, 0, 0.78);
+  // Floating gameplay status-bar fill — near-black, lightly translucent (dark mode)
+  --tp-statusbar-bg:   rgba(0, 0, 0, 0.7);
 
   // ── Text ────────────────────────────────────────────────────
   --tp-text:           #dcf6d2;
@@ -70,6 +72,8 @@
     // Surface RGB channels track the light surfaces above
     --tp-bg-void-rgb:    232, 236, 227;
     --tp-bg-surface-rgb: 232, 236, 227;
+    // Status-bar fill — very light green, lightly translucent (light mode)
+    --tp-statusbar-bg:   rgba(214, 238, 194, 0.85);
   }
 }
 

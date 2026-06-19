@@ -1,3 +1,4 @@
+using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.GameEngine;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -12,7 +13,7 @@ namespace HexMaster.ThePrey.Games.BackgroundServices;
 /// </summary>
 public sealed class GameTickService : BackgroundService
 {
-    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(Game.SweepIntervalSeconds);
 
     private readonly IGameTickRunner _runner;
     private readonly ILogger<GameTickService> _logger;

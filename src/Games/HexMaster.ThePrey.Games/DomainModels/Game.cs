@@ -40,6 +40,9 @@ public sealed class Game
     /// </summary>
     public const int LocationReportingIntervalSeconds = 10;
 
+    /// <summary>The sweep cadence in seconds — how often the game tick service runs a sweep.</summary>
+    public const int SweepIntervalSeconds = 30;
+
     private readonly List<GameParticipant> _participants = [];
 
     public Guid Id { get; private set; }
@@ -64,6 +67,13 @@ public sealed class Game
     /// <see cref="SweepLocations"/> after each regular tick. Null while the game has not started.
     /// </summary>
     public DateTimeOffset? NextScheduledBroadcastOn { get; private set; }
+
+    /// <summary>
+    /// Timestamp of the most recent sweep tick, stamped by <see cref="SweepLocations"/>.
+    /// Used by the status mapping to compute <c>NextPingDurationWithPenalty</c> for penalised participants.
+    /// Null until the first sweep has run.
+    /// </summary>
+    public DateTimeOffset? LastSweptOn { get; private set; }
 
     /// <summary>
     /// The current hunter's UserId. In Lobby state this is the pre-designated hunter (null until designated).
@@ -125,7 +135,8 @@ public sealed class Game
         DateTimeOffset cleanUpAfter = default,
         DateTimeOffset? completedAt = null,
         GameOutcome outcome = GameOutcome.Undecided,
-        DateTimeOffset? nextScheduledBroadcastOn = null)
+        DateTimeOffset? nextScheduledBroadcastOn = null,
+        DateTimeOffset? lastSweptOn = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
@@ -144,7 +155,8 @@ public sealed class Game
             CleanUpAfter = cleanUpAfter,
             CompletedAt = completedAt,
             Outcome = outcome,
-            NextScheduledBroadcastOn = nextScheduledBroadcastOn
+            NextScheduledBroadcastOn = nextScheduledBroadcastOn,
+            LastSweptOn = lastSweptOn
         };
         game._participants.AddRange(participants);
         return game;
@@ -483,6 +495,8 @@ public sealed class Game
     /// </summary>
     public IReadOnlyList<ParticipantLocationSweep> SweepLocations(DateTimeOffset now)
     {
+        LastSweptOn = now;
+
         var regularDue = NextScheduledBroadcastOn is { } next && now >= next;
 
         var sweeps = new List<ParticipantLocationSweep>();
