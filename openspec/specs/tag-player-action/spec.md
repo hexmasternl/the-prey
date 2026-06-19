@@ -13,18 +13,29 @@ The system SHALL validate:
 1. The authenticated caller is the hunter of the specified game.
 2. The game is in `InProgress` state.
 3. The target participant exists in the game, has role `Prey`, and has `PlayerState` of `Active` or `Passive`.
+4. The target prey is within tagging range: the distance between the hunter's most recent emitted location and the target prey's most recent emitted location SHALL be less than or equal to 50 meters. Distance SHALL be computed using the great-circle (Haversine) distance, using the latest reading by recorded timestamp from each participant's location history.
 
 On success the system SHALL set the target participant's `PlayerState` to `Tagged` (irreversible) and publish a `participant-status-changed` event via `IGameEventBus`.
 
 #### Scenario: Hunter successfully tags an Active prey
 
-- **WHEN** the authenticated hunter calls POST /games/{gameId}/participants/{participantId}/tag and the target prey is Active
+- **WHEN** the authenticated hunter calls POST /games/{gameId}/participants/{participantId}/tag and the target prey is Active and within 50 m
 - **THEN** the system returns HTTP 204, sets the prey's PlayerState to Tagged, and publishes a participant-status-changed event
 
 #### Scenario: Hunter successfully tags a Passive prey
 
-- **WHEN** the authenticated hunter calls POST /games/{gameId}/participants/{participantId}/tag and the target prey is Passive
+- **WHEN** the authenticated hunter calls POST /games/{gameId}/participants/{participantId}/tag and the target prey is Passive and within 50 m
 - **THEN** the system returns HTTP 204, sets the prey's PlayerState to Tagged, and publishes a participant-status-changed event
+
+#### Scenario: Tagging a prey that is out of range is rejected with 409
+
+- **WHEN** the hunter calls the tag endpoint for an Active or Passive prey whose most recent emitted location is more than 50 m from the hunter's most recent emitted location
+- **THEN** the system returns HTTP 409 Conflict and the prey's state is unchanged
+
+#### Scenario: Tagging when the hunter has no emitted location is rejected with 409
+
+- **WHEN** the hunter calls the tag endpoint but the hunter's location history is empty
+- **THEN** the system returns HTTP 409 Conflict
 
 #### Scenario: Non-hunter caller is rejected with 403
 
@@ -53,17 +64,22 @@ On success the system SHALL set the target participant's `PlayerState` to `Tagge
 
 ### Requirement: Hunter HUD displays Tag Player button
 
-The hunter view SHALL display a "Tag Player" button in the HUD. When tapped, the application SHALL request `GET /games/{gameId}/status` to retrieve the current participant list, then present a modal or action sheet listing only prey participants whose `State` is `Active` or `Passive`. After the hunter selects a prey and confirms, the application SHALL call `POST /games/{gameId}/participants/{participantId}/tag`. The button SHALL be disabled while a tagging request is in flight.
+The hunter view SHALL display a "Tag Player" button in the HUD. When tapped, the application SHALL request `GET /games/{gameId}/tag-candidates` to retrieve the preys currently within tagging range, then present a modal or action sheet listing only the returned candidate preys. After the hunter selects a prey and confirms, the application SHALL call `POST /games/{gameId}/participants/{participantId}/tag`. The button SHALL be disabled while a tagging request is in flight.
 
 #### Scenario: Tag Player button visible in hunter HUD
 
 - **WHEN** the hunter view is active and the game is InProgress
 - **THEN** a "Tag Player" button is visible in the HUD panel
 
-#### Scenario: Tag Player list shows only Active and Passive preys
+#### Scenario: Tag Player list shows only preys returned by the tag-candidates endpoint
 
 - **WHEN** the hunter taps "Tag Player"
-- **THEN** the presented list contains only preys with State Active or Passive; Tagged and Out preys are excluded
+- **THEN** the application fetches GET /games/{gameId}/tag-candidates and the presented list contains exactly the preys returned (those within 50 m and in state Active or Passive)
+
+#### Scenario: No preys in range shows an empty-state message
+
+- **WHEN** the hunter taps "Tag Player" and the tag-candidates endpoint returns no candidates
+- **THEN** the presented list shows a "no preys in range" message and no prey is selectable
 
 #### Scenario: Confirming selection calls the tag endpoint
 
