@@ -20,7 +20,7 @@ import {
   ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkCircle, chevronBack, personRemove, shareSocial } from 'ionicons/icons';
+import { chevronBack, personRemove, shareSocial } from 'ionicons/icons';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
@@ -85,9 +85,6 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
 
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
 
-  /** The host sees a Start button once at least one other operative has joined (2+ total). */
-  readonly canShowStart = computed(() => this.isOwner() && (this.game()?.participants.length ?? 0) >= 2);
-
   /**
    * Whether the game may be started. The server computes this (enough players, a designated hunter,
    * and every non-host operative readied up) and exposes it on the DTO, so the client just reflects it.
@@ -101,7 +98,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   );
 
   constructor() {
-    addIcons({ checkmarkCircle, chevronBack, personRemove, shareSocial });
+    addIcons({ chevronBack, personRemove, shareSocial });
   }
 
   async ionViewWillEnter(): Promise<void> {
