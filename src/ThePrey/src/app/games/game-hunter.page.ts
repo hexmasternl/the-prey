@@ -147,6 +147,20 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly preysLeft = signal(0);
   readonly hasActivePenalty = signal(false);
   readonly nearestDistance = signal<string>('--');
+  /** Collapsed by default: only game time + next-ping show until the HUD is tapped. */
+  readonly hudExpanded = signal(false);
+  /** Epoch ms at which the nearest prey's location was last received, or null when none. */
+  readonly nearestUpdatedAt = signal<number | null>(null);
+  /**
+   * Whole seconds since the nearest prey's location was last received — the "Ns ago"
+   * descriptor under the distance readout. null when no prey is in range. Recomputed
+   * each second via nowTick.
+   */
+  readonly measuredAgo = computed<number | null>(() => {
+    const t = this.nearestUpdatedAt();
+    if (t === null) return null;
+    return Math.max(0, Math.floor((this.nowTick() - t) / 1000));
+  });
   readonly gpsAlert = signal<string | null>(null);
   readonly pingCountdown = signal(30);
   /** Server-supplied full ping interval (seconds) used as the NEXT UPDATE bar denominator. */
@@ -197,6 +211,8 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private renderedHeading = 0;
   private playfieldPolygon: L.Polygon | null = null;
   private preyMarkers = new Map<string, L.CircleMarker>();
+  /** Epoch ms when each prey's location was last received, keyed by userId. */
+  private preyLastUpdate = new Map<string, number>();
   /** Local participant state map keyed by userId */
   private participantStates = new Map<string, string>();
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
@@ -386,6 +402,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       );
     }
     return null;
+  }
+
+  toggleHud(): void {
+    this.hudExpanded.update((v) => !v);
   }
 
   recenter(): void {
@@ -736,29 +756,45 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
     const existing = this.preyMarkers.get(userId);
     if (existing) {
+      // Stamp the receipt time only when the position actually moved, so the
+      // "Ns ago" descriptor reflects a genuinely fresh fix rather than every poll.
+      const prev = existing.getLatLng();
+      if (prev.lat !== lat || prev.lng !== lng) {
+        this.preyLastUpdate.set(userId, Date.now());
+      }
       existing.setLatLng(latlng);
       existing.setStyle(options);
     } else {
       const marker = L.circleMarker(latlng, options).addTo(this.map);
       this.preyMarkers.set(userId, marker);
+      this.preyLastUpdate.set(userId, Date.now());
     }
   }
 
   private updateNearestDistance(): void {
     if (!this.selfLatLng || this.preyMarkers.size === 0) {
       this.nearestDistance.set('--');
+      this.nearestUpdatedAt.set(null);
       return;
     }
     let minMetres = Infinity;
+    let nearestUserId: string | null = null;
     for (const [userId, marker] of this.preyMarkers.entries()) {
       const state = this.participantStates.get(userId) ?? 'Active';
       if (state === 'Tagged' || state === 'Out') continue;
       const d = this.selfLatLng.distanceTo(marker.getLatLng());
-      if (d < minMetres) minMetres = d;
+      if (d < minMetres) {
+        minMetres = d;
+        nearestUserId = userId;
+      }
     }
-    this.nearestDistance.set(
-      minMetres === Infinity ? '--' : `${Math.round(minMetres)}m`,
-    );
+    if (nearestUserId === null) {
+      this.nearestDistance.set('--');
+      this.nearestUpdatedAt.set(null);
+      return;
+    }
+    this.nearestDistance.set(`${Math.round(minMetres)}m`);
+    this.nearestUpdatedAt.set(this.preyLastUpdate.get(nearestUserId) ?? null);
   }
 
   private formatDuration(seconds: number | null): string {

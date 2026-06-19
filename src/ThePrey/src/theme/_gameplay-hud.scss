@@ -54,6 +54,15 @@ ion-content[data-threat='critical'] {
   50%       { opacity: 0.45; color: var(--tp-hunter); text-shadow: none; }
 }
 
+// ── On-target emphasis keyframe ──────────────────────────────────────────────
+// Applied to the distance cell's value when the hunter closes within 30 m of a
+// prey. Only the hunter view toggles the .hud-on-target class.
+
+@keyframes hud-on-target-pulse {
+  0%, 100% { text-shadow: 0 0 14px var(--tp-signal-glow); }
+  50%       { text-shadow: 0 0 24px var(--tp-signal-glow); }
+}
+
 // ── Shared structural chrome mixin ───────────────────────────────────────────
 // Include this inside a page scss's root (not inside :host) so Angular's
 // emulated-encapsulation attribute is added to the generated selectors and the
@@ -137,14 +146,221 @@ ion-content[data-threat='critical'] {
     animation: hud-time-flash 0.8s ease-in-out infinite;
   }
 
+  // ── Penalty override pill ──────────────────────────────────────────────────
+  // When the player is serving a penalty their location is broadcast every cycle.
+  // The normal live-state pill is replaced by a filled-red pill that pulses faster
+  // to signal the player is exposed (see design system §14).
+  .status-pill.penalty-pill {
+    background: var(--tp-hunter);
+    border-color: var(--tp-hunter);
+    color: var(--tp-bg-void);
+    animation: pill-pulse 0.7s ease-in-out infinite;
+  }
+
+  // Right-hand status-bar cluster: role tag + live-link indicator.
+  .status-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  // ── HUD panel (collapsible) ────────────────────────────────────────────────
+  // Pins the vitals a player checks constantly. Collapses to a single bar — game
+  // time + the next-ping countdown — and expands to the full three-cell readout
+  // on tap (design system §13). Shared verbatim by the hunter and prey views; the
+  // ping bar/value adopt the current threat color.
+  .hud-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: linear-gradient(to top, rgba(var(--tp-bg-void-rgb), 0.97) 85%, transparent);
+    padding: 12px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    font-family: var(--tp-body);
+  }
+
+  // Three-cell readout: game time, opponent distance, active preys.
+  .hud-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+    border: 1px solid var(--tp-line);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .hud-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: rgba(var(--tp-bg-void-rgb), 0.7);
+    padding: 9px 6px;
+    border-right: 1px solid var(--tp-line);
+
+    &:last-child { border-right: none; }
+
+    .hud-label {
+      font-family: var(--tp-body);
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--tp-text-ghost);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .hud-value {
+      font-family: var(--tp-head);
+      font-size: 20px;
+      line-height: 1;
+      color: var(--tp-signal);
+      text-shadow: 0 0 12px var(--tp-signal-glow);
+    }
+
+    // Lowercase descriptor under each value (remaining / Ns ago / active). A min
+    // height reserves the row so cells stay aligned when the descriptor is empty.
+    .hud-sub {
+      font-family: var(--tp-body);
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: var(--tp-text-soft);
+      margin-top: 5px;
+      min-height: 11px;
+    }
+
+    // Hunter-only "on target" emphasis (within 30 m of a prey).
+    &.hud-on-target .hud-value {
+      animation: hud-on-target-pulse 1s ease-in-out infinite;
+    }
+  }
+
+  // Next-ping strip — bar and value adopt the current threat color.
+  .hud-ping-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--tp-line);
+    border-radius: 3px;
+    background: rgba(var(--tp-bg-void-rgb), 0.7);
+    padding: 8px 14px;
+    margin-bottom: 8px;
+  }
+
+  .hud-ping-label {
+    font-family: var(--tp-body);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--tp-text-ghost);
+    text-transform: uppercase;
+  }
+
+  .hud-ping-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--tp-line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .hud-ping-bar {
+    height: 100%;
+    background: var(--threat, var(--tp-signal));
+    box-shadow: 0 0 6px var(--threat-glow, var(--tp-signal-glow));
+    border-radius: 2px;
+    transition: width 1s linear, background-color 0.6s ease;
+  }
+
+  .hud-ping-value {
+    font-family: var(--tp-head);
+    font-size: 16px;
+    color: var(--threat, var(--tp-signal));
+    text-shadow: 0 0 8px var(--threat-glow, var(--tp-signal-glow));
+    min-width: 36px;
+    text-align: right;
+    transition: color 0.6s ease;
+  }
+
+  // Centered HIDE toggle shown beneath the expanded readout.
+  .hud-toggle {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 2px 0 0;
+    font-family: var(--tp-body);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--tp-text-soft);
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  // Collapsed single bar: game time + next-ping countdown + expand caret.
+  .hud-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    padding: 2px;
+
+    .hud-bar-label {
+      font-family: var(--tp-body);
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--tp-text-ghost);
+      text-transform: uppercase;
+    }
+
+    .hud-bar-time {
+      font-family: var(--tp-head);
+      font-size: 22px;
+      line-height: 1;
+      color: var(--threat, var(--tp-signal));
+      text-shadow: 0 0 12px var(--threat-glow, var(--tp-signal-glow));
+      transition: color 0.6s ease, text-shadow 0.6s ease;
+    }
+
+    .hud-bar-ping {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-end;
+
+      .hud-ping-bar-wrap { max-width: 120px; }
+    }
+
+    .hud-bar-ping-value {
+      font-family: var(--tp-head);
+      font-size: 14px;
+      color: var(--threat, var(--tp-signal));
+      min-width: 30px;
+      text-align: right;
+    }
+
+    .hud-caret {
+      font-size: 12px;
+      color: var(--tp-text-soft);
+    }
+  }
+
   // Reduced-motion: kill the pill pulse and the timer flash; keep a static
   // hunter-red color on the timer so the urgency is still communicated.
   @include motion.reduce {
     .status-pill { animation: none; opacity: 1; }
+    .status-pill.penalty-pill { animation: none; }
     .hud-time-flash {
       animation: none;
       color: var(--tp-hunter);
       text-shadow: 0 0 12px var(--tp-hunter-glow);
     }
+    .hud-cell.hud-on-target .hud-value {
+      animation: none;
+      text-shadow: 0 0 14px var(--tp-signal-glow);
+    }
+    .hud-ping-bar { transition: none; }
   }
 }

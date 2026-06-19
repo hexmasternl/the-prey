@@ -39,6 +39,13 @@
 // Custom palette — must follow dark.system.css so our tokens take precedence
 @use 'theme/variables';
 
+// Shared gameplay HUD + status-bar chrome. Emitted once here (globally) rather
+// than @include-d per page, so the rules aren't duplicated into every gameplay
+// component's stylesheet (which blew the anyComponentStyle budget). The class
+// names are gameplay-only, and component-scoped rules (e.g. game-outcome's own
+// .cb) still win on specificity.
+@use 'theme/gameplay-hud' as hud;
+
 /* ════════════════════════════════════════════════════════════════
  *  TACTICAL PRIMITIVES — shared, globally-scoped
  *  Conventions and overlay themes the whole app references so pages
@@ -53,6 +60,10 @@ ion-button {
 ion-fab-button {
   --border-radius: 3px;
 }
+
+/* Corner brackets, status bar/pill, and the collapsible gameplay HUD — emitted
+ * once for the whole app (see the @use note above). */
+@include hud.structural-chrome;
 
 /* ── Themed Ionic overlays ──────────────────────────────────────
  * Ionic teleports overlays to the app root, escaping component style
