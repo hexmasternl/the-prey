@@ -82,10 +82,10 @@
   z-index: 11;
 }
 
-/* Alert banner */
+/* Alert banner — offset below the status bar and the device top safe-area inset. */
 .alert-banner {
   position: absolute;
-  top: 52px;
+  top: calc(52px + var(--ion-safe-area-top, env(safe-area-inset-top, 0px)));
   left: 16px;
   right: 16px;
   z-index: 10;
