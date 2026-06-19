@@ -84,8 +84,8 @@
 }
 
 :global(.self-arrow svg path) {
-  fill: var(--tp-signal);
-  stroke: var(--tp-bg-void);
+  fill: var(--tp-signal-deep);
+  stroke: var(--tp-signal);
   stroke-width: 1.5;
   stroke-linejoin: round;
 }

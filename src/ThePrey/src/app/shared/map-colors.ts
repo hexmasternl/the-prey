@@ -12,6 +12,8 @@
 export const MAP_COLORS = {
   /** Signal green — playfield areas, prey, safe/own geometry (--tp-signal). */
   SIGNAL: '#64ff00',
+  /** Signal deep — dark-green fill beneath a bright signal border, e.g. the self arrow (--tp-signal-deep). */
+  SIGNAL_DEEP: '#1f4d00',
   /** Threat red — hunter / destructive geometry (--tp-hunter). */
   HUNTER: '#ff2f1f',
   /** Caution amber — warnings, other-prey blips (--tp-caution). */
