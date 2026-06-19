@@ -26,6 +26,7 @@ import { environment } from '../../environments/environment';
 import { getCallbackUri } from '../auth.utils';
 import { UserStateService } from '../users/user-state.service';
 import { GameStatusDto, GamesService } from '../games/games.service';
+import { openPlayStore } from '../shared/app-update.util';
 
 @Component({
   selector: 'app-home',
@@ -65,6 +66,19 @@ export class HomePage implements OnInit, OnDestroy {
   /** False until the first /games/active request resolves; gates the Play Now button. */
   readonly activeGameLoaded = signal(false);
 
+  /** False until the version check resolves; the menu stays disabled until then. */
+  readonly versionChecked = signal(false);
+
+  /** True only when the server returned 409 — the app must be updated to continue. */
+  readonly updateRequired = signal(false);
+
+  /**
+   * Menu actions are disabled by default: while the version check is in flight
+   * (`!versionChecked()`) and whenever an update is required. Any non-409 outcome resolves the
+   * check and clears the block, so a backend hiccup only briefly delays the buttons.
+   */
+  readonly versionBlocked = computed(() => !this.versionChecked() || this.updateRequired());
+
   readonly callsignChars = computed(() =>
     (this.userState.profile()?.callsign ?? '')
       .toUpperCase()
@@ -91,7 +105,26 @@ export class HomePage implements OnInit, OnDestroy {
     // renders the profile is already available.
     this.checkActiveGame();
     this.startLocationWatch();
-    this.loadAppVersion();
+    // Resolve the real native version first, then gate the menu on the version check.
+    void this.loadAppVersion().then(() => this.runVersionCheck());
+  }
+
+  /**
+   * Post the local version to the server gate. The menu is disabled until this resolves;
+   * only a 409 keeps it disabled (updateRequired), every other outcome enables it (fail-open).
+   */
+  private async runVersionCheck(): Promise<void> {
+    try {
+      const result = await this.gamesService.checkAppVersion(this.appVersion());
+      this.updateRequired.set(result === 'update-required');
+    } finally {
+      this.versionChecked.set(true);
+    }
+  }
+
+  /** Open the Play Store listing from the update-required banner. */
+  openStore(): Promise<void> {
+    return openPlayStore();
   }
 
   /**

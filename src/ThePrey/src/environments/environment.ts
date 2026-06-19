@@ -6,6 +6,9 @@ export const environment = {
   version: '0.0.1',
   apiUrl:
     'https://gateway.jollyfield-ab1afcde.westeurope.azurecontainerapps.io',
+  // Play Store listing opened from the "update required" banner when the version gate blocks.
+  playStoreUrl:
+    'https://play.google.com/store/apps/details?id=nl.hexmaster.theprey',
   auth0: {
     domain: 'theprey.eu.auth0.com',
     clientId: 'tJrm2nPrAX4kES7XEnjUsL38cqbAbraJ',

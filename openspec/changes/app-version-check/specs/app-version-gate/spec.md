@@ -65,31 +65,55 @@ metric dimension.
 - **WHEN** a version check completes
 - **THEN** an activity is recorded whose outcome tag is one of `up_to_date` or `update_required`
 
-### Requirement: Main screen disables menu and prompts to update when below minimum
+### Requirement: Home and game-join screens gate their actions on the version check
 
-The client SHALL post its local app version to `POST /games/version-checker` once when the main
-(home) screen loads. The client SHALL change behavior only on an HTTP `409 Conflict` response:
-it SHALL disable all main-menu actions and SHALL show a message instructing the user to update
-the app in the app store. For every other outcome — `204`, `404`, `400`, or a network/parse
-error — the client SHALL leave the main menu fully enabled (the gate fails open).
+The client SHALL post its local app version to `POST /games/version-checker` once when the home
+(main) screen loads and once when the game-join screen loads. On both screens the action buttons
+SHALL be **disabled by default** while the check is in flight, and SHALL become enabled the moment
+the check resolves to anything other than `409 Conflict`. Only an HTTP `409 Conflict` response
+SHALL keep the buttons disabled. For every other outcome — `204`, `404`, `400`, or a network/parse
+error — the buttons SHALL be enabled (the gate fails open). These version-gate conditions apply in
+addition to each screen's existing enable/disable conditions.
+
+#### Scenario: Buttons disabled until the check returns
+
+- **WHEN** a screen loads and the version-checker call has not yet returned
+- **THEN** the screen's action buttons are disabled
 
 #### Scenario: Update required
 
 - **WHEN** the version-checker call returns `409 Conflict`
-- **THEN** all main-menu action buttons are disabled
-- **AND** a message telling the user to update the app in the store is displayed
+- **THEN** the screen's action buttons remain disabled
+- **AND** a message telling the user to update the app is displayed with a link to the Play Store
 
 #### Scenario: App is up to date
 
 - **WHEN** the version-checker call returns `204 No Content`
-- **THEN** the main menu is fully enabled and no update message is shown
+- **THEN** the screen's action buttons are enabled (subject to the screen's other conditions) and no update message is shown
 
 #### Scenario: Backend predates the endpoint
 
 - **WHEN** the version-checker call returns `404 Not Found`
-- **THEN** the main menu is fully enabled and no update message is shown
+- **THEN** the screen's action buttons are enabled (subject to the screen's other conditions) and no update message is shown
 
 #### Scenario: Network or server error
 
 - **WHEN** the version-checker call fails with a network error or a non-409 error status
-- **THEN** the main menu is fully enabled and no update message is shown
+- **THEN** the screen's action buttons are enabled (subject to the screen's other conditions) and no update message is shown
+
+#### Scenario: Gate applies to both screens
+
+- **WHEN** the version-checker returns `409 Conflict`
+- **THEN** the home screen's menu actions and the game-join screen's join action are both kept disabled with the update message and Play Store link shown
+
+### Requirement: Update message links to the Play Store
+
+When the version gate blocks a screen, the displayed update message SHALL include an action that
+opens the app's Play Store listing. The store URL SHALL be sourced from client configuration rather
+than hard-coded in page logic.
+
+#### Scenario: Opening the store
+
+- **WHEN** the update message is shown and the user activates the Play Store link
+- **THEN** the app's Play Store listing is opened
+

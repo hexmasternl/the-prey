@@ -1,8 +1,14 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+
+/**
+ * Outcome of the app version gate. `'update-required'` is returned ONLY for a server 409;
+ * every other outcome (204, 404, network/parse error) resolves to `'ok'` so the gate fails open.
+ */
+export type VersionCheckResult = 'ok' | 'update-required';
 
 export interface CreateGameRequest {
   playfieldId: string;
@@ -234,6 +240,28 @@ export class GamesService {
   tagPlayer(gameId: string, participantId: string): Promise<void> {
     return firstValueFrom(
       this.http.post<void>(`${this.apiBase}/${gameId}/participants/${participantId}/tag`, {})
+    );
+  }
+
+  /**
+   * Post the local app version to the server-side version gate. Resolves to `'update-required'`
+   * only on a `409 Conflict`; a `204`, `404`, or any network/parse error resolves to `'ok'`,
+   * so a backend hiccup never blocks the app (fail-open).
+   */
+  checkAppVersion(version: string): Promise<VersionCheckResult> {
+    return firstValueFrom(
+      this.http
+        .post(`${this.apiBase}/version-checker`, { 'current-version': version })
+        .pipe(
+          map((): VersionCheckResult => 'ok'),
+          catchError((err: unknown) =>
+            of<VersionCheckResult>(
+              err instanceof HttpErrorResponse && err.status === 409
+                ? 'update-required'
+                : 'ok',
+            ),
+          ),
+        ),
     );
   }
 }

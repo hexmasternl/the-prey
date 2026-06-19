@@ -27,6 +27,11 @@
     "LOCATION_DENIED_TITLE": "LOCATION ACCESS DENIED",
     "LOCATION_DENIED_BODY": "The Prey cannot be played without location access. Grant location permission to The Prey in your device settings to enter the field."
   },
+  "APP_UPDATE": {
+    "TITLE": "UPDATE REQUIRED",
+    "BODY": "A newer version of The Prey is required to continue. Update the app to re-enter the field.",
+    "STORE_LINK": "UPDATE IN PLAY STORE"
+  },
   "PLAYFIELD_DETAIL": {
     "TITLE": "PLAYFIELD",
     "BACK": "BACK",

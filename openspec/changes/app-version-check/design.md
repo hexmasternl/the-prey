@@ -20,15 +20,17 @@ sides agree.
 **Goals:**
 - Server-side, runtime-configurable minimum supported client version with no redeploy required.
 - A single `POST /games/version-checker` endpoint that returns 204 (ok) or 409 (must update).
-- Client gate on the main screen that, on a 409, disables all menu actions and shows an
-  "update in the store" message.
-- Fail-open: any non-409 outcome (204, 404, network/parse error) leaves the menu fully usable.
+- Client gate on the **home** and **game-join** screens whose action buttons are disabled by
+  default, enabled once the check resolves to anything other than 409, and kept disabled on a
+  409 alongside an "update the app" message with a Play Store link.
+- Fail-open: any non-409 outcome (204, 404, network/parse error) enables the buttons.
 
 **Non-Goals:**
-- No store-listing deep links or auto-update flow — the message is informational only.
+- No auto-update flow — the message links to the Play Store but does not install.
 - No platform-specific (iOS vs Android) minimum versions — a single minimum applies to all.
-- No forced re-check loop or polling — the check runs once on home-screen load.
-- No gating of any other screen or endpoint — only the main menu reacts.
+  (The store URL is configurable, leaving room for an App Store URL later.)
+- No forced re-check loop or polling — the check runs once per page load.
+- No gating of any screen beyond home and game-join.
 
 ## Decisions
 
@@ -71,16 +73,37 @@ A single key, e.g. `Games:MinimumAppVersion`, holds the minimum as `"x.x.x"`. Re
 - *Missing/empty key* → treat as "no minimum configured" → every client is up to date (204).
   This keeps the feature dormant and fail-open until an operator sets the key.
 
-### 5. Client gate: run once on home load, react only to 409
-`GamesService.checkAppVersion(version)` POSTs the body and resolves to a small result the page
-can switch on. The home page calls it in `ngOnInit` (alongside the existing active-game and
-version reads) and sets an `updateRequired` signal **only** on an HTTP 409. The template:
-- binds `[disabled]` of every menu `ion-button` to `updateRequired()` (combined with existing
-  disable conditions), and
-- renders an "update the app in the store" banner (new i18n strings) when `updateRequired()`.
-All other outcomes — 204, 404 (older backend without the endpoint), 400, or a network error —
-leave `updateRequired()` false. The service swallows non-409 errors (mirrors `getActiveGame`'s
-`catchError(() => of(...))` pattern) so the gate fails open.
+### 5. Client gate: disabled by default, applied to home AND game-join, react only to 409
+`GamesService.checkAppVersion(version)` POSTs the body and resolves to a small result the pages
+can switch on (e.g. `'ok' | 'update-required'`). Both the **home** page and the **game-join**
+page run the check on load (home: `ngOnInit`; join: `ionViewWillEnter`) and model a tri-state
+gate via two signals:
+- `versionChecked` — starts `false`, set `true` once the check resolves *in any way*.
+- `updateRequired` — set `true` **only** on an HTTP 409.
+
+The gate is **disabled by default**: action buttons are disabled while `!versionChecked()`
+(check in flight) and stay disabled when `updateRequired()`. They become usable the moment the
+check resolves to anything other than 409. Concretely each page exposes a
+`versionBlocked = computed(() => !versionChecked() || updateRequired())` that is OR-ed into every
+button's existing `[disabled]` condition (home's menu buttons; join's `canJoin`).
+
+The service swallows **all non-409 errors** (mirroring `getActiveGame`'s
+`catchError(() => of(...))` pattern) and resolves to `'ok'`, so 204, 404 (older backend without
+the endpoint), 400, and network errors all enable the buttons — the gate fails open. The brief
+disabled window while the request is in flight is the only added latency, and it overlaps the
+existing profile/active-game loads that already gate the buttons.
+
+When `updateRequired()`, each page renders an "update the app" banner (new i18n strings) with a
+button/link that opens the Play Store via `Browser.open({ url })` (Capacitor Browser, already
+used by the home page).
+
+### 6. Play Store link via configured URL
+The store link target is read from `environment.playStoreUrl` (a new field, set per build/flavor)
+rather than hard-coded, so the package id lives in one place and a future iOS App Store URL can
+be added without touching page logic. On native, the link opens with Capacitor `Browser.open`;
+on the web it falls back to the same URL.
+- *Why config, not hard-coded?* The Play Store URL embeds the app's package id, which is a
+  deployment detail, not page logic.
 
 ## Risks / Trade-offs
 
@@ -91,6 +114,9 @@ leave `updateRequired()` false. The service swallows non-409 errors (mirrors `ge
   page already falls back to `environment.version`; the client sends whatever version it has, and
   any parse failure on the server returns 400 → fail open. The gate primarily targets native
   builds.
+- **Disabled-by-default delays the buttons until the check returns** → Mitigation: the check runs
+  in parallel with the existing profile/active-game loads that already gate the buttons, so it
+  adds no perceptible delay; any error resolves the gate immediately to enabled.
 - **Fail-open means a compromised/blocked endpoint can't enforce updates** → Accepted trade-off:
   bricking the app on any backend or network failure is worse than briefly allowing an outdated
   client. Enforcement is best-effort by design.

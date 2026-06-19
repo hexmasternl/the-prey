@@ -27,6 +27,9 @@ param landingZone {
   webPubSub: string
 }
 
+@description('Minimum supported client app version enforced by the Games version gate (config key Games:MinimumAppVersion)')
+param minimumAppVersion string = '1.0.14'
+
 @description('PostgreSQL administrator login')
 param pgAdminLogin string = 'thepreyadmin'
 
@@ -93,6 +96,17 @@ module gamesData 'modules/games-data.bicep' = {
     environmentName: environmentName
     pgAdminLogin: pgAdminLogin
     pgAdminPassword: pgAdminPassword
+  }
+}
+
+// Games version gate — minimum supported client version written to the shared App Configuration
+// (in the landing-zone resource group, where the store lives).
+module gamesAppConfig 'modules/games-app-config.bicep' = {
+  name: 'gamesAppConfig'
+  scope: resourceGroup(landingZone.resourceGroup)
+  params: {
+    appConfigName: landingZone.appConfig
+    minimumAppVersion: minimumAppVersion
   }
 }
 

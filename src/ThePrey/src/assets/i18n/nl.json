@@ -27,6 +27,11 @@
     "LOCATION_DENIED_TITLE": "LOCATIETOEGANG GEWEIGERD",
     "LOCATION_DENIED_BODY": "The Prey kan niet worden gespeeld zonder locatietoegang. Geef The Prey toestemming voor locatie in de instellingen van je toestel om het veld te betreden."
   },
+  "APP_UPDATE": {
+    "TITLE": "UPDATE VEREIST",
+    "BODY": "Er is een nieuwere versie van The Prey nodig om door te gaan. Werk de app bij om opnieuw het veld te betreden.",
+    "STORE_LINK": "UPDATEN IN PLAY STORE"
+  },
   "PLAYFIELD_DETAIL": {
     "TITLE": "SPEELVELD",
     "BACK": "TERUG",

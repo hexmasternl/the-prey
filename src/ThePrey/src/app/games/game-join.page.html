@@ -94,6 +94,17 @@
     </div>
     }
 
+    <!-- App update required — the version gate blocked this client (server returned 409) -->
+    @if (updateRequired()) {
+    <div class="app-update">
+      <div class="app-update__title">{{ 'APP_UPDATE.TITLE' | translate }}</div>
+      <div class="app-update__body">{{ 'APP_UPDATE.BODY' | translate }}</div>
+      <ion-button expand="block" color="danger" (click)="openStore()">
+        {{ 'APP_UPDATE.STORE_LINK' | translate }}
+      </ion-button>
+    </div>
+    }
+
     <!-- Join button -->
     <div class="deploy-zone">
       <ion-button

@@ -17,12 +17,15 @@ apps from starting a game and tells the user to update, without shipping a new c
 - The minimum version is read from Azure App Configuration (already wired into the Games API
   via `AddServiceDefaults` / `UseAppConfigurationRefresh`), so it can be changed at runtime
   with no redeploy.
-- On the client **home (main) screen**, the app posts its local version to the endpoint on
-  load and reacts only to a **409**:
-  - All main-menu actions (Play Now / Resume Game, Playfields, Settings, etc.) are disabled.
-  - An "update the app in the store" message is shown.
-  - Any other outcome (204, 404 for a server that predates the endpoint, or a network error)
-    leaves the menu fully enabled — the gate fails open so a backend hiccup never bricks the app.
+- On the client **home (main) screen** and the **game-join screen**, the app posts its local
+  version to the endpoint on load. The page's action buttons are **disabled by default** and
+  only become usable once the check resolves:
+  - The buttons start **disabled** until the version check returns.
+  - Any non-409 outcome (204, 404 for a server that predates the endpoint, a network error, or
+    any other error) **enables** the buttons — the gate fails open so a backend hiccup never
+    bricks the app.
+  - **Only a 409** keeps the buttons disabled and shows a clear "update the app" message that
+    includes a link to the Play Store.
 
 ## Capabilities
 
@@ -43,7 +46,9 @@ apps from starting a game and tells the user to update, without shipping a new c
 - **Configuration** — a new Azure App Configuration key holding the minimum supported app
   version (e.g. `Games:MinimumAppVersion`).
 - **Client** — `src/ThePrey` `games.service.ts` (new `checkAppVersion` call), `home.page.ts` /
-  `home.page.html` (version gate state + disabled menu + update banner), i18n resource files
-  (new strings for the update message).
-- **No breaking changes** — the gate fails open; existing clients are unaffected until the
-  minimum version is configured above their version.
+  `home.page.html` and `game-join.page.ts` / `game-join.page.html` (disabled-by-default version
+  gate + update banner with Play Store link), `environment.ts` (Play Store URL), i18n resource
+  files (new strings for the update message and store link).
+- **No breaking changes** — the gate fails open on any non-409 outcome; existing clients are
+  unaffected until the minimum version is configured above their version. Buttons are only
+  briefly disabled while the check is in flight.

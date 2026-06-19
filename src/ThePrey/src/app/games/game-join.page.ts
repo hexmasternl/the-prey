@@ -18,6 +18,7 @@ import { chevronBack } from 'ionicons/icons';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GameDto, GamesService } from './games.service';
 import { UserStateService } from '../users/user-state.service';
+import { getAppVersion, openPlayStore } from '../shared/app-update.util';
 
 @Component({
   selector: 'app-game-join',
@@ -56,6 +57,18 @@ export class GameJoinPage implements ViewWillEnter {
   /** Translation key for a join failure shown to the user (full lobby, server error, …); null when none. */
   readonly joinErrorKey = signal<string | null>(null);
 
+  /** False until the version check resolves; the Join button stays disabled until then. */
+  readonly versionChecked = signal(false);
+
+  /** True only when the server returned 409 — the app must be updated to continue. */
+  readonly updateRequired = signal(false);
+
+  /**
+   * Disabled by default: blocks the Join button while the version check is in flight
+   * (`!versionChecked()`) and whenever an update is required. Any non-409 outcome clears it.
+   */
+  readonly versionBlocked = computed(() => !this.versionChecked() || this.updateRequired());
+
   readonly callsign = computed(() => this.userState.profile()?.callsign ?? null);
 
   readonly canJoin = computed(
@@ -66,10 +79,14 @@ export class GameJoinPage implements ViewWillEnter {
       this.callsign() != null &&
       this.game() != null &&
       !this.gameNotFound() &&
-      !this.gameStarted(),
+      !this.gameStarted() &&
+      !this.versionBlocked(),
   );
 
   async ionViewWillEnter(): Promise<void> {
+    // Gate the Join button on the version check (disabled by default until it resolves).
+    void this.runVersionCheck();
+
     const id = this.gameId();
     if (!id) {
       this.gameNotFound.set(true);
@@ -173,6 +190,25 @@ export class GameJoinPage implements ViewWillEnter {
     } finally {
       this.isSubmitting.set(false);
     }
+  }
+
+  /**
+   * Post the local version to the server gate. The Join button is disabled until this resolves;
+   * only a 409 keeps it disabled (updateRequired), every other outcome enables it (fail-open).
+   */
+  private async runVersionCheck(): Promise<void> {
+    try {
+      const version = await getAppVersion();
+      const result = await this.gamesService.checkAppVersion(version);
+      this.updateRequired.set(result === 'update-required');
+    } finally {
+      this.versionChecked.set(true);
+    }
+  }
+
+  /** Open the Play Store listing from the update-required banner. */
+  openStore(): Promise<void> {
+    return openPlayStore();
   }
 
   back(): void {
