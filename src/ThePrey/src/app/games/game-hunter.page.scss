@@ -1,11 +1,8 @@
 @use '../../theme/motion' as motion;
-@use '../../theme/gameplay-hud' as hud;
 
 // ── No local @mixin tactical-theme — all colors resolved from global --tp-* tokens ──
-
-// Include shared structural chrome (corner brackets, status bar, pill, role tag,
-// timer flash keyframe, and reduced-motion fallbacks).
-@include hud.structural-chrome;
+// Shared structural chrome (corner brackets, status bar/pill, collapsible HUD) is
+// emitted globally from global.scss; this file holds only hunter-specific styles.
 
 :host {
   display: block;
@@ -67,9 +64,8 @@
   stroke-linejoin: round;
 }
 
-/* Location reporting status pill in the status bar. */
+/* Location reporting status pill in the status bar (inside .status-right). */
 .link-tag {
-  margin-left: auto;
   font-family: var(--tp-body);
   font-size: 10px;
   letter-spacing: 1.5px;
@@ -362,117 +358,11 @@
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
-/* HUD panel */
-.hud-panel {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(var(--tp-bg-void-rgb), 0.97) 85%, transparent);
-  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
-  z-index: 10;
-}
-
-.hud-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
-  border: 1px solid var(--tp-line);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.hud-cell {
-  background: rgba(var(--tp-bg-void-rgb), 0.7);
-  padding: 10px 14px;
-  border-right: 1px solid var(--tp-line);
-  border-bottom: 1px solid var(--tp-line);
-
-  &:nth-child(even) { border-right: none; }
-  &:nth-last-child(-n+2) { border-bottom: none; }
-
-  .hud-label {
-    font-family: var(--tp-body);
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--tp-text-ghost);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .hud-value {
-    font-family: var(--tp-head);
-    font-size: 22px;
-    line-height: 1;
-    color: var(--tp-signal);
-    text-shadow: 0 0 12px var(--tp-signal-glow);
-  }
-
-  &.hud-penalty .hud-value {
-    color: var(--tp-caution);
-    text-shadow: 0 0 12px var(--tp-caution-glow);
-  }
-
-  /* On-target: hunter is within 30 m of the nearest prey — emphasise the distance cell. */
-  &.hud-on-target .hud-value {
-    color: var(--tp-signal);
-    text-shadow: 0 0 14px var(--tp-signal-glow);
-    animation: hud-on-target-pulse 1s ease-in-out infinite;
-  }
-}
-
-@keyframes hud-on-target-pulse {
-  0%, 100% { text-shadow: 0 0 14px var(--tp-signal-glow); }
-  50%       { text-shadow: 0 0 24px var(--tp-signal-glow); }
-}
-
-/* Ping row */
-.hud-ping-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--tp-line);
-  border-radius: 3px;
-  background: rgba(var(--tp-bg-void-rgb), 0.7);
-  padding: 8px 14px;
-}
-
-.hud-ping-label {
-  font-family: var(--tp-body);
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--tp-text-ghost);
-  text-transform: uppercase;
-}
-
-.hud-ping-bar-wrap {
-  flex: 1;
-  height: 4px;
-  background: var(--tp-line);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.hud-ping-bar {
-  height: 100%;
-  background: var(--tp-hunter);
-  box-shadow: 0 0 6px var(--tp-hunter-glow);
-  border-radius: 2px;
-  transition: width 1s linear;
-}
-
-.hud-ping-value {
-  font-family: var(--tp-head);
-  font-size: 16px;
-  color: var(--tp-hunter);
-  text-shadow: 0 0 8px var(--tp-hunter-glow);
-  min-width: 36px;
-  text-align: right;
-}
+// HUD panel, grid, ping row, collapsed bar and the on-target pulse are provided
+// by the shared hud.structural-chrome mixin (theme/_gameplay-hud.scss).
 
 @include motion.reduce {
   .tag-fab { animation: none; box-shadow: 0 0 14px var(--tp-hunter-glow); }
-  // .status-pill and .hud-time-flash are covered by hud.structural-chrome's @include motion.reduce block.
-  .hud-cell.hud-on-target .hud-value { animation: none; text-shadow: 0 0 14px var(--tp-signal-glow); }
+  // .status-pill, .hud-time-flash, .hud-on-target and .hud-ping-bar reduced-motion
+  // fallbacks are covered by hud.structural-chrome's @include motion.reduce block.
 }

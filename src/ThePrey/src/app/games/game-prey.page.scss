@@ -1,11 +1,6 @@
-@use '../../theme/motion' as motion;
-@use '../../theme/gameplay-hud' as hud;
-
 // ── No local :host shadow-token block — all colors resolved from global --tp-* tokens ──
-
-// Include shared structural chrome (corner brackets, status bar, pill, role tag,
-// timer flash keyframe, and reduced-motion fallbacks).
-@include hud.structural-chrome;
+// Shared structural chrome (corner brackets, status bar/pill, collapsible HUD) is
+// emitted globally from global.scss; this file holds only prey-specific styles.
 
 :host {
   display: block;
@@ -48,9 +43,8 @@
   );
 }
 
-/* Location reporting status indicator in the status bar (mirrors hunter .link-tag). */
+/* Location reporting status indicator in the status bar (inside .status-right). */
 .link-tag {
-  margin-left: auto;
   font-family: var(--tp-body);
   font-size: 10px;
   letter-spacing: 1.5px;
@@ -166,148 +160,8 @@
   }
 }
 
-.hud-panel {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  background: rgba(var(--tp-bg-void-rgb), 0.92);
-  border-top: 1px solid var(--tp-line);
-  padding: 0 12px calc(8px + env(safe-area-inset-bottom, 0px));
-  font-family: var(--tp-body);
-}
-
-/* Always-visible row: remaining game time + expand/collapse handle */
-.hud-time-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 4px;
-  cursor: pointer;
-  user-select: none;
-
-  .hud-label {
-    font-family: var(--tp-body);
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--tp-text-soft);
-    text-transform: uppercase;
-  }
-
-  .hud-time-value {
-    flex: 1;
-    font-family: var(--tp-head);
-    font-size: 22px;
-    color: var(--threat, var(--tp-signal));
-    text-shadow: 0 0 12px var(--threat-glow, var(--tp-signal-glow));
-    line-height: 1;
-    letter-spacing: 1px;
-    transition: color 0.6s ease, text-shadow 0.6s ease;
-  }
-
-  .hud-caret {
-    font-size: 12px;
-    color: var(--tp-text-soft);
-  }
-}
-
-/* Secondary HUD cells, shown above the time row when expanded */
-.hud-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 2px;
-  border: 1px solid var(--tp-line);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 10px;
-}
-
-.hud-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(var(--tp-bg-void-rgb), 0.7);
-  padding: 10px 8px;
-  border-right: 1px solid var(--tp-line);
-
-  &:last-child {
-    border-right: none;
-  }
-
-  .hud-label {
-    font-family: var(--tp-body);
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--tp-text-soft);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .hud-value {
-    font-family: var(--tp-head);
-    font-size: 18px;
-    color: var(--tp-signal);
-    text-shadow: 0 0 10px var(--tp-signal-glow);
-    line-height: 1;
-  }
-
-  &.hud-penalty .hud-value {
-    color: var(--tp-caution);
-    text-shadow: 0 0 10px var(--tp-caution-glow);
-  }
-
-  /* LINK cell: green + glow when location reporting is live, dim when off. */
-  &.hud-link-on .hud-value {
-    color: var(--tp-signal);
-    text-shadow: 0 0 10px var(--tp-signal-glow);
-  }
-}
-
-/* Next-update countdown, shown at the bottom when expanded */
-.hud-ping-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--tp-line);
-  border-radius: 3px;
-  background: rgba(var(--tp-bg-void-rgb), 0.7);
-  padding: 8px 14px;
-  margin-bottom: 10px;
-}
-
-.hud-ping-label {
-  font-family: var(--tp-body);
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--tp-text-soft);
-  text-transform: uppercase;
-}
-
-.hud-ping-bar-wrap {
-  flex: 1;
-  height: 4px;
-  background: var(--tp-line);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.hud-ping-bar {
-  height: 100%;
-  background: var(--tp-signal);
-  box-shadow: 0 0 6px var(--tp-signal-glow);
-  border-radius: 2px;
-  transition: width 1s linear;
-}
-
-.hud-ping-value {
-  font-family: var(--tp-head);
-  font-size: 16px;
-  color: var(--tp-signal);
-  text-shadow: 0 0 8px var(--tp-signal-glow);
-  min-width: 36px;
-  text-align: right;
-}
+// HUD panel, grid, ping row, collapsed bar and the threat-colored readouts are
+// provided by the shared hud.structural-chrome mixin (theme/_gameplay-hud.scss).
 
 /* Tracking-inactive warning reuses the .alert-banner.alert-warn styling. */
 .track-warn {
@@ -316,10 +170,4 @@
 
 .surroundings-warning-footer {
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-}
-
-@include motion.reduce {
-  .hud-ping-bar { transition: none; }
-  .hud-time-value { transition: none; }
-  // .status-pill and .hud-time-flash are covered by hud.structural-chrome's reduce block.
 }

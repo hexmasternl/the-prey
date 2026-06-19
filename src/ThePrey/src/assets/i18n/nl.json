@@ -203,11 +203,16 @@
     "STATUS_ENDGAME": "EINDFASE",
     "STATUS_CRITICAL": "KRITIEK",
     "STATUS_SPECTATING": "TOESCHOUWER",
-    "HUD_TIME": "TIJD",
-    "HUD_PREY": "PROOI",
-    "HUD_DISTANCE": "AFSTAND",
-    "HUD_PENALTY": "STRAF",
-    "HUD_PENALTY_ACTIVE": "ACTIEF"
+    "HUD_TIME": "SPELTIJD",
+    "HUD_REMAINING": "resterend",
+    "HUD_TARGET": "DOELWIT",
+    "HUD_HUNTER": "JAGER",
+    "HUD_PREYS": "PROOIEN",
+    "HUD_ACTIVE": "actief",
+    "HUD_AGO": "{{seconds}}s geleden",
+    "HUD_NEXT_PING": "VOLGENDE PING",
+    "HUD_HIDE": "VERBERG",
+    "PENALTY_LIVE": "STRAF · ZICHTBAAR"
   },
   "GAME_OUTCOME": {
     "TAG": "// DEBRIEFING",

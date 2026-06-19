@@ -135,9 +135,15 @@
 
   <!-- Status bar -->
   <div class="status-bar">
-    <span class="status-pill">{{ statusPillLabel() | translate }}</span>
-    <span class="role-tag">{{ 'GAME_PROGRESS.ROLE_HUNTER' | translate }}</span>
-    <span class="link-tag" [class.link-on]="isTracking()">{{ isTracking() ? 'LIVE' : 'OFF' }}</span>
+    @if (hasActivePenalty()) {
+      <span class="status-pill penalty-pill">{{ 'GAME_PROGRESS.PENALTY_LIVE' | translate }}</span>
+    } @else {
+      <span class="status-pill">{{ statusPillLabel() | translate }}</span>
+    }
+    <div class="status-right">
+      <span class="role-tag">{{ 'GAME_PROGRESS.ROLE_HUNTER' | translate }}</span>
+      <span class="link-tag" [class.link-on]="isTracking()">{{ isTracking() ? 'LIVE' : 'OFF' }}</span>
+    </div>
   </div>
 
   <!-- Location permission / availability error (background reporting) -->
@@ -200,32 +206,50 @@
     <span class="tag-fab-label">{{ 'TAG_MODAL.BUTTON' | translate }}</span>
   </button>
 
-  <!-- HUD panel -->
-  <div class="hud-panel">
+  <!-- HUD panel (collapsible): game time + nearest-prey distance + active preys -->
+  <div class="hud-panel" [class.expanded]="hudExpanded()">
+    @if (hudExpanded()) {
     <div class="hud-grid">
       <div class="hud-cell">
         <div class="hud-label">{{ 'GAME_PROGRESS.HUD_TIME' | translate }}</div>
         <div class="hud-value" [class.hud-time-flash]="threatState() === 'critical'">{{ timeRemaining() }}</div>
-      </div>
-      <div class="hud-cell">
-        <div class="hud-label">{{ 'GAME_PROGRESS.HUD_PREY' | translate }}</div>
-        <div class="hud-value">{{ preysLeft() }}</div>
+        <div class="hud-sub">{{ 'GAME_PROGRESS.HUD_REMAINING' | translate }}</div>
       </div>
       <div class="hud-cell" [class.hud-on-target]="onTarget()">
-        <div class="hud-label">{{ 'GAME_PROGRESS.HUD_DISTANCE' | translate }}</div>
+        <div class="hud-label">{{ 'GAME_PROGRESS.HUD_TARGET' | translate }}</div>
         <div class="hud-value">{{ nearestDistance() }}</div>
+        <div class="hud-sub">
+          @if (measuredAgo() !== null) {
+            {{ 'GAME_PROGRESS.HUD_AGO' | translate: { seconds: measuredAgo() } }}
+          }
+        </div>
       </div>
-      <div class="hud-cell" [class.hud-penalty]="hasActivePenalty()">
-        <div class="hud-label">{{ 'GAME_PROGRESS.HUD_PENALTY' | translate }}</div>
-        <div class="hud-value">{{ hasActivePenalty() ? ('GAME_PROGRESS.HUD_PENALTY_ACTIVE' | translate) : '—' }}</div>
+      <div class="hud-cell">
+        <div class="hud-label">{{ 'GAME_PROGRESS.HUD_PREYS' | translate }}</div>
+        <div class="hud-value">{{ preysLeft() }}</div>
+        <div class="hud-sub">{{ 'GAME_PROGRESS.HUD_ACTIVE' | translate }}</div>
       </div>
     </div>
     <div class="hud-ping-row">
-      <span class="hud-ping-label">NEXT UPDATE</span>
+      <span class="hud-ping-label">{{ 'GAME_PROGRESS.HUD_NEXT_PING' | translate }}</span>
       <div class="hud-ping-bar-wrap">
         <div class="hud-ping-bar" [style.width.%]="pingBarWidth()"></div>
       </div>
       <span class="hud-ping-value">{{ pingCountdown() }}s</span>
     </div>
+    <button class="hud-toggle" (click)="toggleHud()">▾ {{ 'GAME_PROGRESS.HUD_HIDE' | translate }}</button>
+    } @else {
+    <div class="hud-bar" (click)="toggleHud()">
+      <span class="hud-bar-label">{{ 'GAME_PROGRESS.HUD_TIME' | translate }}</span>
+      <span class="hud-bar-time" [class.hud-time-flash]="threatState() === 'critical'">{{ timeRemaining() }}</span>
+      <div class="hud-bar-ping">
+        <div class="hud-ping-bar-wrap">
+          <div class="hud-ping-bar" [style.width.%]="pingBarWidth()"></div>
+        </div>
+        <span class="hud-bar-ping-value">{{ pingCountdown() }}s</span>
+      </div>
+      <span class="hud-caret">▴</span>
+    </div>
+    }
   </div>
 </ion-content>

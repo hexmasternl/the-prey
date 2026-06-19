@@ -203,11 +203,16 @@
     "STATUS_ENDGAME": "ENDGAME",
     "STATUS_CRITICAL": "CRITICAL",
     "STATUS_SPECTATING": "SPECTATING",
-    "HUD_TIME": "TIME",
-    "HUD_PREY": "PREY",
-    "HUD_DISTANCE": "DISTANCE",
-    "HUD_PENALTY": "PENALTY",
-    "HUD_PENALTY_ACTIVE": "ACTIVE"
+    "HUD_TIME": "GAME TIME",
+    "HUD_REMAINING": "remaining",
+    "HUD_TARGET": "TARGET",
+    "HUD_HUNTER": "HUNTER",
+    "HUD_PREYS": "PREYS",
+    "HUD_ACTIVE": "active",
+    "HUD_AGO": "{{seconds}}s ago",
+    "HUD_NEXT_PING": "NEXT PING",
+    "HUD_HIDE": "HIDE",
+    "PENALTY_LIVE": "PENALTY · LIVE"
   },
   "GAME_OUTCOME": {
     "TAG": "// DEBRIEF",

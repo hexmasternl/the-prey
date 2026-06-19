@@ -113,6 +113,23 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly hasActivePenalty = signal(false);
   readonly gpsAlert        = signal<string | null>(null);
   /**
+   * Distance to the hunter, computed locally from our own GPS fix and the hunter's
+   * last-known blip position ('--' until both are known). The prey is not sent hunter
+   * distance by the server, so this is derived client-side and is only as fresh as the
+   * hunter's last broadcast — hence the companion "Ns ago" descriptor below.
+   */
+  readonly hunterDistance  = signal<string>('--');
+  /** Epoch ms at which the hunter's location was last received, or null when unknown. */
+  readonly hunterUpdatedAt = signal<number | null>(null);
+  /** Ticked every second by the duration timer so measuredAgo recomputes live. */
+  private readonly nowTick = signal(Date.now());
+  /** Whole seconds since the hunter's location was last received — the "Ns ago" descriptor. */
+  readonly measuredAgo = computed<number | null>(() => {
+    const t = this.hunterUpdatedAt();
+    if (t === null) return null;
+    return Math.max(0, Math.floor((this.nowTick() - t) / 1000));
+  });
+  /**
    * Set once this player is tagged or ruled out while the game is still running. Drives
    * the spectator overlay; the player stays connected and keeps receiving updates until
    * the game itself ends (`game-ended`), at which point everyone lands on the outcome screen.
@@ -153,6 +170,11 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private otherMarkers = new Map<string, L.CircleMarker>();
   /** The hunter's userId, captured from the status snapshot — used to colour blips. */
   private hunterUserId: string | null = null;
+  /** Our own last GPS fix, used to compute distance to the hunter. */
+  private selfLatLng: L.LatLng | null = null;
+  /** The hunter's last-known position and the epoch ms at which it was received. */
+  private hunterLatLng: L.LatLng | null = null;
+  private hunterLastUpdate: number | null = null;
   private playfieldPolygon: L.Polygon | null = null;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private durationTimer: ReturnType<typeof setInterval> | null = null;
@@ -384,6 +406,8 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
         this.gpsAlert.set(null);
         const { latitude, longitude } = position.coords;
         const latlng: L.LatLngExpression = [latitude, longitude];
+        this.selfLatLng = L.latLng(latitude, longitude);
+        this.updateHunterDistance();
         if (this.playerMarker) {
           this.playerMarker.setLatLng(latlng);
         } else {
@@ -589,6 +613,27 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
     } else {
       this.otherMarkers.set(userId, L.circleMarker(latlng, options).addTo(this.map));
     }
+
+    // Track the hunter's position + receipt time so the HUD can show distance-to-hunter
+    // and how long ago that fix arrived. Stamp the time only on a genuine move.
+    if (userId === this.hunterUserId) {
+      if (!this.hunterLatLng || this.hunterLatLng.lat !== lat || this.hunterLatLng.lng !== lng) {
+        this.hunterLastUpdate = Date.now();
+      }
+      this.hunterLatLng = L.latLng(lat, lng);
+      this.updateHunterDistance();
+    }
+  }
+
+  /** Recompute distance to the hunter from our own fix and the hunter's last-known blip. */
+  private updateHunterDistance(): void {
+    if (!this.selfLatLng || !this.hunterLatLng) {
+      this.hunterDistance.set('--');
+      this.hunterUpdatedAt.set(null);
+      return;
+    }
+    this.hunterDistance.set(`${Math.round(this.selfLatLng.distanceTo(this.hunterLatLng))}m`);
+    this.hunterUpdatedAt.set(this.hunterLastUpdate);
   }
 
   /** Hunter → red; other preys → orange (grey once Tagged/Out). */
@@ -760,6 +805,7 @@ export class GamePreyPage implements OnInit, OnDestroy, ViewWillEnter {
   private startDurationTimer(): void {
     this.clearDurationTimer();
     this.durationTimer = setInterval(() => {
+      this.nowTick.set(Date.now());
       const s = this.secondsRemaining();
       if (s === null) return;
       this.secondsRemaining.set(Math.max(0, s - 1));
