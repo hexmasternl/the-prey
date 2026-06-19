@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  THE PREY — Transactional Email Template (modern / responsive)
+  ============================================================================
+  Tactical phosphor-green aesthetic matching designs/the-prey-design-system.html
+
+  PURPOSE
+    Drop-in HTML email body for server-sent mail (verification, invites,
+    game alerts, password reset, etc.). Table-based, inline-styled, and
+    progressively enhanced for modern clients (Apple Mail, iOS Mail, Gmail
+    web/app, Yahoo, Spark). Outlook desktop renders an acceptable, slightly
+    flatter version — for a fully Outlook-hardened build use
+    the-prey-email-template.outlook.html.
+
+  PLACEHOLDERS (replace server-side; mustache-style, swap for your engine)
+    {{SUBJECT}}        Browser/tab + accessible title
+    {{PREHEADER}}      Inbox preview snippet (hidden in body)
+    {{EYEBROW}}        Small label above the headline (e.g. INCOMING TRANSMISSION)
+    {{HEADLINE}}       Main heading (e.g. VERIFY YOUR OPERATIVE ID)
+    {{INTRO}}          Lead paragraph
+    {{BODY_HTML}}      Optional extra paragraph(s); pass "" if unused
+    {{CTA_LABEL}}      Button text (e.g. CONFIRM CALLSIGN)
+    {{CTA_URL}}        Button + fallback link href
+    {{DETAIL_LABEL}}   Mono detail panel label (e.g. SESSION CODE) — pass "" to hide block
+    {{DETAIL_VALUE}}   Mono detail panel value (e.g. 7F-22-Q9)
+    {{FOOTER_NOTE}}    Small print (e.g. "If you didn't request this, ignore it.")
+    {{YEAR}}           Copyright year
+    {{UNSUBSCRIBE_URL}} Unsubscribe / preferences link
+
+  DESIGN TOKENS
+    bg #181b17 · panel #0c0e0c · green #64ff00 · green-deep #3f9e00
+    text #dcf6d2 · muted #8c9a83 · dim #5a6553 · border #39402f / #2a2f24
+    display: 'Special Elite' · body: 'PT Mono' · fallback: 'Courier New', monospace
+  ============================================================================
+-->
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+  <title>{{SUBJECT}}</title>
+
+  <!-- Web fonts (ignored by Outlook desktop & many clients; mono fallback below) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=PT+Mono&family=Special+Elite&display=swap" rel="stylesheet">
+
+  <!--[if mso]>
+  <style type="text/css">
+    table, td, div, p, a { font-family: 'Courier New', Courier, monospace !important; }
+  </style>
+  <![endif]-->
+
+  <style type="text/css">
+    /* ---- resets ---- */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; }
+    img { -ms-interpolation-mode: bicubic; border: 0; line-height: 100%; outline: none; text-decoration: none; }
+    body { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; }
+    a { text-decoration: none; }
+
+    /* ---- theme ---- */
+    .body-bg   { background-color: #181b17; }
+    .frame     { background-color: #0c0e0c; border: 1px solid #39402f; }
+    .display   { font-family: 'Special Elite', 'Courier New', Courier, monospace; }
+    .mono      { font-family: 'PT Mono', 'Courier New', Courier, monospace; }
+    .glow      { text-shadow: 0 0 18px rgba(100,255,0,0.35); }
+
+    /* ---- link colors ---- */
+    a.text-link { color: #64ff00 !important; text-decoration: underline; }
+
+    /* ---- responsive ---- */
+    @media only screen and (max-width: 620px) {
+      .container { width: 100% !important; }
+      .px        { padding-left: 24px !important; padding-right: 24px !important; }
+      .headline  { font-size: 26px !important; line-height: 32px !important; }
+      .btn-a     { display: block !important; }
+    }
+
+    /* ---- dark mode hint (clients that respect it) ---- */
+    @media (prefers-color-scheme: dark) {
+      .body-bg { background-color: #181b17 !important; }
+    }
+  </style>
+</head>
+
+<body class="body-bg" style="margin:0; padding:0; background-color:#181b17;">
+
+  <!-- Preheader: shown in inbox preview, hidden in the body -->
+  <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#181b17; opacity:0;">
+    {{PREHEADER}}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+  </div>
+
+  <!-- Outer wrapper -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="body-bg" style="background-color:#181b17;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+
+        <!-- Container -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="container" style="width:600px; max-width:600px;">
+
+          <!-- ===== Brand bar ===== -->
+          <tr>
+            <td align="center" style="padding:0 0 20px 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <!-- Crosshair mark (CSS-drawn ring; degrades to a green dot) -->
+                  <td valign="middle" style="padding-right:12px;">
+                    <div style="width:34px; height:34px; border:2px solid #64ff00; border-radius:50%; line-height:30px; text-align:center; color:#64ff00; font-size:18px; box-shadow:0 0 14px rgba(100,255,0,0.35);">&#10753;</div>
+                  </td>
+                  <td valign="middle">
+                    <div class="display glow" style="font-family:'Special Elite','Courier New',Courier,monospace; color:#64ff00; font-size:22px; letter-spacing:4px; text-transform:uppercase;">THE&nbsp;PREY</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ===== Card frame ===== -->
+          <tr>
+            <td class="frame" style="background-color:#0c0e0c; border:1px solid #39402f; border-radius:6px;">
+
+              <!-- top status strip -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="border-bottom:1px solid #2a2f24; padding:12px 32px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td class="mono" align="left" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#5a6553; font-size:11px; letter-spacing:2px; text-transform:uppercase;">// SECURE CHANNEL</td>
+                        <td class="mono" align="right" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#64ff00; font-size:11px; letter-spacing:2px; text-transform:uppercase;">&#9679; ONLINE</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- body content -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="px" style="padding:36px 40px 8px 40px;">
+                    <div class="mono" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#3f9e00; font-size:12px; letter-spacing:3px; text-transform:uppercase; margin:0 0 12px 0;">{{EYEBROW}}</div>
+                    <h1 class="display headline glow" style="font-family:'Special Elite','Courier New',Courier,monospace; color:#dcf6d2; font-size:30px; line-height:36px; letter-spacing:1px; text-transform:uppercase; margin:0 0 18px 0; font-weight:normal;">{{HEADLINE}}</h1>
+                    <p class="mono" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#8c9a83; font-size:15px; line-height:24px; margin:0 0 16px 0;">{{INTRO}}</p>
+                    <div class="mono" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#8c9a83; font-size:15px; line-height:24px;">{{BODY_HTML}}</div>
+                  </td>
+                </tr>
+
+                <!-- detail / code panel (hide entire row server-side if not needed) -->
+                <tr>
+                  <td class="px" style="padding:12px 40px 4px 40px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#181b17; border:1px solid #39402f; border-radius:4px;">
+                      <tr>
+                        <td align="center" style="padding:18px 20px;">
+                          <div class="mono" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#5a6553; font-size:11px; letter-spacing:2px; text-transform:uppercase; margin:0 0 8px 0;">{{DETAIL_LABEL}}</div>
+                          <div class="mono glow" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#64ff00; font-size:24px; letter-spacing:6px;">{{DETAIL_VALUE}}</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- CTA -->
+                <tr>
+                  <td class="px" align="center" style="padding:28px 40px 8px 40px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{CTA_URL}}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="8%" strokecolor="#64ff00" fillcolor="#64ff00">
+                      <w:anchorlock/>
+                      <center style="color:#0c0e0c;font-family:'Courier New',monospace;font-size:14px;font-weight:bold;letter-spacing:2px;">{{CTA_LABEL}}</center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a class="btn-a mono" href="{{CTA_URL}}" target="_blank" style="background-color:#64ff00; border:1px solid #64ff00; border-radius:4px; color:#0c0e0c; display:inline-block; font-family:'PT Mono','Courier New',Courier,monospace; font-size:14px; font-weight:bold; letter-spacing:2px; text-transform:uppercase; line-height:46px; padding:0 36px; text-align:center; box-shadow:0 0 22px rgba(100,255,0,0.35);">{{CTA_LABEL}}</a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+
+                <!-- fallback link -->
+                <tr>
+                  <td class="px" align="center" style="padding:6px 40px 32px 40px;">
+                    <p class="mono" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#5a6553; font-size:12px; line-height:20px; margin:0; word-break:break-all;">
+                      Button not working? Copy this URL:<br>
+                      <a class="text-link" href="{{CTA_URL}}" target="_blank" style="color:#64ff00; text-decoration:underline;">{{CTA_URL}}</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- ===== Footer ===== -->
+          <tr>
+            <td align="center" style="padding:22px 24px 8px 24px;">
+              <p class="mono" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#5a6553; font-size:12px; line-height:20px; margin:0 0 10px 0;">{{FOOTER_NOTE}}</p>
+              <p class="mono" style="font-family:'PT Mono','Courier New',Courier,monospace; color:#39402f; font-size:11px; line-height:18px; letter-spacing:1px; margin:0;">
+                &copy; {{YEAR}} THE PREY &nbsp;&middot;&nbsp; theprey.nl<br>
+                <a class="text-link" href="{{UNSUBSCRIBE_URL}}" style="color:#5a6553; text-decoration:underline;">Unsubscribe</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- /Container -->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
