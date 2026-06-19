@@ -11,6 +11,16 @@
   display: block;
 }
 
+// Light-mode field palette: HUD surfaces turn pale, so bright phosphor green
+// (--tp-signal) loses contrast. Remap signal to the darker --tp-signal-dim tint
+// for the whole gameplay subtree — this cascades to the shared chrome's --threat
+// (normal state), the HUD readouts, and the self-dot.
+@media (prefers-color-scheme: light) {
+  :host {
+    --tp-signal: var(--tp-signal-dim);
+  }
+}
+
 .prey-view {
   --background: var(--tp-bg-void);
   font-family: var(--tp-body);

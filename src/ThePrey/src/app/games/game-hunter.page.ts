@@ -35,6 +35,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
+  GameDto,
   GameParticipantStatusDto,
   GameStatusDto,
   GamesService,
@@ -345,23 +346,46 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     // 2. No (valid) stored context — derive the end time from the live game.
     try {
       const game = await this.gamesService.getGame(this.gameId);
-      if (game.startedAt) {
-        const end = new Date(
-          new Date(game.startedAt).getTime() +
-            game.configuration.gameDuration * 60_000,
-        );
-        if (end.getTime() > Date.now()) {
-          await this.locationService.start(this.gameId, end);
-          this.trackingInactive.set(false);
-          return;
-        }
+      const end = this.deriveGameEnd(game);
+      if (end && end.getTime() > Date.now()) {
+        await this.locationService.start(this.gameId, end);
+        this.trackingInactive.set(false);
+        return;
       }
-    } catch {
-      // fall through to the inactive warning
+      // Game record reached, but we declined to start. Log why so a live "Location
+      // reporting inactive" banner on an in-progress game can be diagnosed.
+      console.warn('[ensureTracking] not starting tracking', {
+        status: game.status,
+        startedAt: game.startedAt,
+        endsAt: game.endsAt,
+        derivedEnd: end?.toISOString() ?? null,
+        now: new Date().toISOString(),
+      });
+    } catch (err) {
+      // getGame failed entirely (network / 5xx / deserialization) — fall through to the warning.
+      console.warn('[ensureTracking] getGame failed', err);
     }
 
     // 3. Nothing to resume — surface a non-blocking warning.
     this.trackingInactive.set(true);
+  }
+
+  /**
+   * Resolve the game's end instant, trusting the server-authoritative `endsAt` and only
+   * falling back to recomputing from `startedAt + gameDuration` when the server did not
+   * supply it (older payloads). Returns null when neither is available.
+   */
+  private deriveGameEnd(game: GameDto): Date | null {
+    if (game.endsAt) {
+      return new Date(game.endsAt);
+    }
+    if (game.startedAt) {
+      return new Date(
+        new Date(game.startedAt).getTime() +
+          game.configuration.gameDuration * 60_000,
+      );
+    }
+    return null;
   }
 
   recenter(): void {
@@ -569,6 +593,12 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         this.currentUserId = status.hunterUserId;
       }
       this.applyStatus(status);
+
+      // A successful status poll means the game is InProgress (the status endpoint only
+      // serves running games). If we entered during the Ready state, startedAt was null
+      // and tracking never started — (re)start it now that the game is live. Idempotent:
+      // ensureTracking short-circuits once the location service is broadcasting.
+      void this.ensureTracking();
 
       // Capture the server-supplied ping interval for the NEXT UPDATE bar denominator.
       this.currentPingInterval = status.currentPingInterval || 30;
@@ -877,6 +907,9 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       this.applyStatus(status);
       // Game is now InProgress — lift the waiting overlay and start the countdown.
       this.waitingForStart.set(false);
+      // The game just went live; start broadcasting location now (we entered during Ready,
+      // when startedAt was null and ensureTracking could not start). Idempotent.
+      void this.ensureTracking();
       this.startPingCountdown(status.nextPingDuration || 30);
       this.pollTimer = setTimeout(() => this.pollStatus(), this.pollIntervalSeconds * 1_000);
     } catch {

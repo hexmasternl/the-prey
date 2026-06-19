@@ -92,10 +92,19 @@ import { TranslatePipe } from '@ngx-translate/core';
       }
       .delay-warning-body {
         font-family: var(--tp-body);
-        margin-top: 4px;
+        margin: 4px auto 0;
         font-size: 12px;
         color: var(--tp-text-soft);
         max-width: 240px;
+      }
+
+      // Light-mode field palette: the card surface turns pale, so bright
+      // phosphor green (--tp-signal) loses contrast. Drop to the darker
+      // --tp-signal-dim tint for green text to stay legible.
+      @media (prefers-color-scheme: light) {
+        .delay-label {
+          color: var(--tp-signal-dim);
+        }
       }
     `,
   ],
