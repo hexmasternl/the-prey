@@ -66,13 +66,13 @@ public sealed class ToStatusDtoMappingTests
         var config = GameFaker.ValidConfiguration(defaultLocationInterval: 30);
         var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
         var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
-        // No location recorded yet → NextPingDuration should equal CurrentPingInterval (full interval).
+        // No location recorded yet, non-penalised → NextPingDuration is driven by the game-wide schedule,
+        // so it is somewhere in [0, CurrentPingInterval].
 
         var result = await QueryStatus(game, hunterId);
 
         Assert.NotNull(result);
         Assert.InRange(result!.NextPingDuration, 0, result.CurrentPingInterval);
-        Assert.Equal(result.CurrentPingInterval, result.NextPingDuration);
     }
 
     [Fact]
@@ -273,5 +273,77 @@ public sealed class ToStatusDtoMappingTests
         Assert.NotNull(result);
         // 3 preys, 1 Tagged, 1 Out → PreysLeft = 1 Active
         Assert.Equal(1, result!.PreysLeft);
+    }
+
+    // ── Theme B: NextPingDuration hybrid rule ────────────────────────────────
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDuration_EqualToSecondsUntilScheduledBroadcast_WhenNonPenalisedAndBroadcastInFuture()
+    {
+        // Arrange: game just started at "now - 1 second" so NextScheduledBroadcastOn == startedAt.
+        // With interval=30 the normalisation loop will advance it to startedAt+30 (29 seconds away).
+        var interval = 30;
+        var config = GameFaker.ValidConfiguration(defaultLocationInterval: interval);
+        var now = DateTimeOffset.UtcNow;
+        var startedAt = now.AddSeconds(-1);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
+        // NextScheduledBroadcastOn == startedAt (1 second in the past).
+        // After normalisation: scheduled = startedAt + 30s = now + 29s.
+        // Expected NextPingDuration == 29.
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        // Allow ±1 s for test execution time.
+        Assert.InRange(result!.NextPingDuration, 28, 29);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDuration_WithinInterval_WhenNonPenalisedAndScheduledBroadcastIsStale()
+    {
+        // Arrange: game started long ago → NextScheduledBroadcastOn is well in the past.
+        // The normalisation loop must produce a value in [0, interval], never negative.
+        var interval = 30;
+        var config = GameFaker.ValidConfiguration(defaultLocationInterval: interval);
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-10);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt, configuration: config);
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.InRange(result!.NextPingDuration, 0, interval);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDuration_EqualToSecondsUntilPersonalDeadline_WhenPenalisedAndHasLocation()
+    {
+        // Arrange: penalty interval is 10 s. Record a location 4 seconds ago → 6 seconds left.
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
+        var locationTime = DateTimeOffset.UtcNow.AddSeconds(-4);
+        game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), locationTime);
+        game.ApplyPenalty(hunterId, DateTimeOffset.UtcNow.AddMinutes(5));
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        // secondsLeft = locationTime + 10 - now ≈ 6; allow ±1 s for execution time.
+        Assert.InRange(result!.NextPingDuration, 5, 6);
+        Assert.Equal(Game.PenaltyReportingIntervalSeconds, result.CurrentPingInterval);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnNextPingDuration_EqualToPenaltyInterval_WhenPenalisedAndNoLocationRecorded()
+    {
+        // Arrange: active penalty, but participant has never emitted a location.
+        var startedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var game = GameFaker.StartedGame(out var hunterId, out _, startedAt);
+        game.ApplyPenalty(hunterId, DateTimeOffset.UtcNow.AddMinutes(5));
+        // No RecordLocation call.
+
+        var result = await QueryStatus(game, hunterId);
+
+        Assert.NotNull(result);
+        Assert.Equal(Game.PenaltyReportingIntervalSeconds, result!.NextPingDuration);
     }
 }
