@@ -5,7 +5,7 @@ def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 def appVersionCode = (project.findProperty("versionCode") ?: "1").toString().toInteger()
-def appVersionName = (project.findProperty("versionName") ?: "1.0").toString()
+def appVersionName = (project.findProperty("versionName") ?: "1.0.14").toString()
 
 android {
     namespace = "nl.hexmaster.theprey"
@@ -39,7 +39,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    
+
 }
 
 repositories {
