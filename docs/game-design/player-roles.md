@@ -1,66 +1,63 @@
 # Player Roles
 
-## Overview
-
-Every player in a game is assigned exactly one of two roles before the game starts. The game creator assigns all roles manually after all players have joined.
+A game has exactly **one Hunter** and **one or more Prey**. The game **owner** (creator) sets up the lobby, designates the Hunter, and starts the game. The owner also plays — as either the Hunter or a Prey.
 
 ---
 
 ## Prey
 
-Preys are the fugitives. Their goal is to stay hidden within the playfield for the full duration of the game.
+Prey are the fugitives. Their goal is to stay `Active` (hidden and untagged) within the playfield for the full game.
 
 ### Responsibilities
-- Scatter and hide during the 10-minute head start.
-- Remain within the playfield boundaries (honor system in v1).
-- Receive notifications when their GPS location has been shared with hunters.
-- Accept being tagged by a hunter when found.
+- Scatter and hide during the head-start window.
+- Stay inside the playfield (leaving triggers an out-of-bounds penalty → `Passive`, and ultimately `Out`).
+- Keep the app reporting location so they are not timed out for inactivity.
+- Accept being tagged when the hunter physically reaches them.
 
-### App Experience During Game
-- Countdown timer showing remaining head start and total game time.
-- Notification at the 10-minute mark when their location is first broadcast.
-- Notification every 60 seconds during the final 5 minutes when location is shared.
-- Can see own location on the map.
-- Cannot see hunter locations.
+### In-game experience
+- Map centered on the prey with the playfield boundary overlay; the prey sees their own position.
+- A **threat/proximity** indicator hints how close the hunter is (the server gives prey a hunter-distance signal rather than an exact hunter position).
+- Notifications/status for: location being broadcast, penalties (with countdown), and game end.
+- The prey does **not** see other prey's exact positions or the hunter's exact position.
 
-### Background Service
-The app continues broadcasting location even when running in the background or when the screen is off. The required permissions must be granted during onboarding.
+### Background location
+On Android the app runs a foreground service (`@capacitor-community/background-geolocation`) so location keeps reporting when the app is backgrounded or the screen is off. Reporting cadence is **server-driven** — the prey reports as often as the server asks. Permissions must be granted during onboarding.
 
 ---
 
 ## Hunter
 
-Hunters are the chasers. Their goal is to physically tag all preys before the game timer expires.
+The single Hunter is the chaser. Their goal is to tag every prey before the timer expires.
 
 ### Responsibilities
-- Wait at the start location during the 10-minute head start.
-- Use incoming GPS updates to track and find preys.
-- Physically tag a prey and confirm the tag in the app.
+- Hold position during the start-delay window (moving early triggers a move-during-delay penalty → `Passive`).
+- Use incoming prey GPS broadcasts to track and close in.
+- Physically reach a prey and confirm the tag in the app.
 
-### App Experience During Game
-- Countdown timer showing remaining head start and total game time.
-- Live map showing hunter's own location.
-- Prey location pins appear on the map as GPS updates arrive.
-- Pins update in real time as new locations are pushed.
-- Notification when a prey is tagged (by any hunter).
+### In-game experience
+- Live map with the hunter's own position plus **prey location pins** that update as broadcasts arrive (prey locations are delivered only to the hunter).
+- A **compass / radar** aid and a **tag-candidates** prompt listing prey currently within tagging range.
+- Tag confirmation via the in-app action; a successful tag removes that prey from play.
 
 ---
 
-## Game Creator
+## Game owner
 
-The player who creates the game has additional responsibilities before the game starts:
+The player who creates the game has lobby responsibilities before the start:
 
-1. **Define the playfield** — draw the boundary on the map.
-2. **Share the game code** — distribute the code so others can join.
-3. **Assign roles** — drag players into the Hunter or Prey group.
-4. **Start the game** — press Start once all roles are assigned.
+1. **Choose a playfield** — pick an existing playfield (own or public) or create one.
+2. **Share the game code** — distribute the join code / deep link so others can join.
+3. **Designate the hunter** — assign exactly one player as the Hunter (`POST /games/{id}/hunter`).
+4. **Manage the lobby** — update settings, remove players, wait for everyone to ready up.
+5. **Start the game** — once a hunter is designated and players are ready.
 
-The game creator also plays as either a Hunter or Prey (their choice when assigning roles).
+The owner can also force-end the game (`POST /games/{id}/end`).
 
 ---
 
-## Role Assignment Rules
+## Role & lobby rules
 
-- At least one Hunter and one Prey are required to start the game.
-- Roles can be reassigned freely until the game is started.
-- Once the game starts, roles are locked for the duration.
+- A game needs at least one Hunter and one Prey to start.
+- The hunter can be (re)designated freely in the lobby; once the game starts, roles are locked.
+- Players can leave/forfeit at any time (`POST /games/{id}/leave`); the owner can remove a lobby member before start.
+- Player states (`Active` / `Passive` / `Out` / `Tagged`) are managed by the server-side game engine during play — see [game-mechanics.md](./game-mechanics.md#player-states).

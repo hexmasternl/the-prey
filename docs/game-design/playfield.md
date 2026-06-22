@@ -33,9 +33,15 @@ A playfield is a geographic polygon drawn on a map that defines the legal bounda
 
 ## Saving a Playfield
 
-- Playfields are stored on the server linked to the creator's account.
-- A saved playfield has a **name**, a **polygon geometry** (list of lat/lon coordinates), and a **creation timestamp**.
-- Previously saved playfields are listed in the **My Playfields** section of the app.
+- Playfields are stored on the server (Azure Table Storage, the PlayFields module) linked to the creator's account.
+- A saved playfield has a **name**, a **polygon geometry** (list of lat/lon coordinates), and timestamps.
+- Previously saved playfields are listed in the **My Playfields** section of the app and edited via the map-based area editor (Leaflet).
+- Edits use **last-write-wins** on `LastUpdatedOn`: the server rejects a stale update with `409 Conflict`, so an offline-capable client can reconcile rather than silently overwrite a newer version.
+
+## Public Playfields
+
+- A playfield can be searchable by other players. The app can search public playfields via `GET /playfields/public?query=...` (minimum 2 characters).
+- This lets an owner reuse a well-known area another player already mapped, instead of redrawing it.
 
 ---
 

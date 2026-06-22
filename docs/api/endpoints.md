@@ -1,32 +1,105 @@
-# API Reference
+# REST API Reference
 
-Base URL: `https://<server>/api`
-
-All endpoints require a valid Bearer token unless noted otherwise.
-
----
+All modules sit behind the gateway. Public base URL: `https://api.theprey.nl` (locally the Aspire YARP gateway on `http://localhost:5000`). Routes are grouped by module: `/games`, `/playfields`, `/users`, `/notifications`.
 
 ## Authentication
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/auth/register` | Register a new player account |
-| `POST` | `/auth/login` | Authenticate and receive a JWT |
-| `POST` | `/auth/device-token` | Register or update push notification device token |
+There are **no** `register` / `login` endpoints — authentication is delegated entirely to **Auth0**. The client performs the OIDC flow with Auth0 and sends the resulting access token as `Authorization: Bearer <jwt>` on every request. Tokens are validated against authority `https://theprey.eu.auth0.com/` and audience `https://api.theprey.nl`. The caller's identity is the `sub` claim.
+
+SSE stream endpoints accept the token as a `?token=<jwt>` query parameter instead, because browser `EventSource` cannot set headers (see [realtime.md](./realtime.md)).
+
+`/internal/...` endpoints are **not** public — they are reached only via Dapr service invocation between modules and are not exposed through the gateway.
 
 ---
 
-## Playfields
+## Games (`/games`)
 
-| Method | Endpoint | Description |
+| Method | Route | Description |
 |---|---|---|
-| `GET` | `/playfields` | List all playfields for the authenticated player |
-| `POST` | `/playfields` | Create a new playfield |
-| `GET` | `/playfields/{id}` | Get playfield details |
-| `PUT` | `/playfields/{id}` | Update a playfield name or polygon |
-| `DELETE` | `/playfields/{id}` | Delete a playfield |
+| `POST` | `/games` | Create a new game (returns id + join code) |
+| `GET` | `/games` | List the caller's games |
+| `GET` | `/games/active` | Get the caller's active game, if any |
+| `GET` | `/games/{id}` | Get full game detail (participants, state) |
+| `GET` | `/games/{id}/state` | Role-specific live state map (hunter distance for prey; prey locations for hunter) |
+| `GET` | `/games/{id}/status` | Poll game status (participants, timers) |
+| `POST` | `/games/{id}/lobby` | Join a game by id |
+| `POST` | `/games/{id}/join` | Join a game by code |
+| `DELETE` | `/games/{id}/lobby/{userId}` | Remove (kick) a lobby member — owner only |
+| `POST` | `/games/{id}/lobby/ready` | Toggle the caller's ready state |
+| `POST` | `/games/{id}/hunter` | Designate the hunter — owner only |
+| `PUT` | `/games/{id}/config` | Update game settings — owner only |
+| `POST` | `/games/{id}/start` | Arm/start the game — owner only |
+| `POST` | `/games/{id}/locations` | Submit a GPS reading; response carries the next reporting interval |
+| `GET` | `/games/{id}/tag-candidates` | List players the hunter is currently close enough to tag |
+| `POST` | `/games/{id}/participants/{participantId}/tag` | Confirm a tag — hunter only |
+| `POST` | `/games/{id}/end` | Force-end the game — owner only |
+| `POST` | `/games/{id}/leave` | Leave / forfeit the game |
+| `GET` | `/games/{id}/notifications/token` | Mint a short-lived, group-scoped Web PubSub access token |
+| `GET` | `/games/{id}/lobby/stream` | **SSE** lobby event stream — see [realtime.md](./realtime.md) |
+| `GET` | `/games/{id}/stream` | **SSE** in-game event stream — see [realtime.md](./realtime.md) |
+| `POST` | `/games/version-checker` | Client version gate; `409` if below `Games:MinimumAppVersion` |
+| `GET` | `/games/export/today` | Export games played today (feature-flagged / operational) |
 
-### `POST /playfields` — Request Body
+**Internal (Dapr only):** `GET /internal/games/{gameId}/members/{userId}` — membership check used by Notifications.
+
+### `POST /games` — request
+
+```json
+{ "playfieldId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "durationMinutes": 60 }
+```
+
+### `POST /games` — response
+
+```json
+{ "gameId": "7c9e6679-7425-40de-944b-e07fc1f90ae7", "code": "HX-4291", "state": "Lobby" }
+```
+
+### `POST /games/{id}/join` — request
+
+```json
+{ "code": "HX-4291" }
+```
+
+### `POST /games/{id}/hunter` — request
+
+Designates a single hunter (the game model is one hunter vs. many prey):
+
+```json
+{ "userId": "player-uuid-here" }
+```
+
+### `POST /games/{id}/locations` — request / response
+
+```json
+// request
+{ "latitude": 52.3702, "longitude": 4.8952, "accuracy": 5.0, "timestamp": "2026-06-22T14:00:00Z" }
+```
+
+```json
+// response — server-driven cadence
+{ "nextLocationIntervalSeconds": 30, "penaltyIntervalSeconds": null }
+```
+
+### `POST /games/{id}/participants/{participantId}/tag`
+
+No body. Returns `204` on success, `409` if the target cannot currently be tagged (e.g. `Passive` or already `Tagged`), `403` if the caller is not the hunter.
+
+---
+
+## PlayFields (`/playfields`)
+
+| Method | Route | Description |
+|---|---|---|
+| `POST` | `/playfields` | Create a playfield |
+| `PUT` | `/playfields/{id}` | Upsert a playfield (optimistic concurrency) |
+| `GET` | `/playfields/{id}` | Get a playfield |
+| `GET` | `/playfields` | List the caller's playfields |
+| `GET` | `/playfields/public?query=...` | Search public playfields (min 2 chars) |
+| `DELETE` | `/playfields/{id}` | Delete a playfield — owner only |
+
+**Internal (Dapr only):** `GET /internal/playfields/{id}`.
+
+### `POST /playfields` — request
 
 ```json
 {
@@ -39,112 +112,49 @@ All endpoints require a valid Bearer token unless noted otherwise.
 }
 ```
 
+`PUT /playfields/{id}` carries a `LastUpdatedOn`; the server applies **last-write-wins** and rejects a stale write with `409 Conflict` so offline-capable clients can reconcile.
+
 ---
 
-## Games
+## Users (`/users`)
 
-| Method | Endpoint | Description |
+| Method | Route | Description |
 |---|---|---|
-| `POST` | `/games` | Create a new game on a playfield |
-| `GET` | `/games/{id}` | Get game state and player list |
-| `POST` | `/games/join` | Join a game using a game code |
-| `POST` | `/games/{id}/roles` | Assign roles (creator only) |
-| `POST` | `/games/{id}/start` | Start the game (creator only) |
-| `POST` | `/games/{id}/end` | Force-end the game (creator only) |
-| `POST` | `/games/{id}/leave` | Leave/forfeit the game |
-| `GET` | `/games/{id}/lobby/stream` | **SSE** stream of lobby events (see [realtime.md](./realtime.md)) |
-| `GET` | `/games/{id}/stream` | **SSE** stream of in-game events (see [realtime.md](./realtime.md)) |
+| `POST` | `/users` | Create or upsert the caller's user record |
+| `GET` | `/users/me` | Get the current user |
+| `PUT` | `/users/me` | Update the current user |
+| `PUT` | `/users/settings` | Update settings (callsign, language) |
 
-> Real-time events are delivered over **Server-Sent Events**, not SignalR/WebSockets. The two
-> `…/stream` endpoints keep an HTTP connection open and emit `text/event-stream` events.
-> Because `EventSource` cannot set headers, the JWT is passed as `?token=<jwt>`. See
-> [realtime.md](./realtime.md) for event names and payloads.
-
-### `POST /games` — Request Body
-
-```json
-{
-  "playfieldId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "durationMinutes": 60
-}
-```
-
-### `POST /games` — Response
-
-```json
-{
-  "gameId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-  "code": "HX-4291",
-  "state": "WaitingForPlayers"
-}
-```
-
-### `POST /games/join` — Request Body
-
-```json
-{
-  "code": "HX-4291"
-}
-```
-
-### `POST /games/{id}/roles` — Request Body
-
-```json
-{
-  "assignments": [
-    { "playerId": "...", "role": "Hunter" },
-    { "playerId": "...", "role": "Prey" }
-  ]
-}
-```
+**Internal (Dapr only):** `GET /internal/users/{subjectId}` — resolve a user by Auth0 subject id.
 
 ---
 
-## Location
+## Notifications (`/notifications`)
 
-| Method | Endpoint | Description |
+These endpoints are **Dapr pub/sub delivery targets**, not a public API — the Dapr sidecar POSTs subscribed events to them. They are documented here for completeness; clients never call them.
+
+| Method | Route | Topic |
 |---|---|---|
-| `POST` | `/games/{id}/location` | Submit current GPS location (prey only) |
-
-### `POST /games/{id}/location` — Request Body
-
-```json
-{
-  "lat": 52.3702,
-  "lon": 4.8952,
-  "accuracy": 5.0,
-  "timestamp": "2025-06-01T14:00:00Z"
-}
-```
-
-The server rejects location updates during the head start phase and enforces the 60-second minimum interval during the final stretch.
+| `POST` | `/notifications/events/player-location-updated` | `player-location-updated` |
+| `POST` | `/notifications/events/player-status-changed` | `player-status-changed` |
+| `POST` | `/notifications/events/player-penalized` | `player-penalized` |
+| `POST` | `/notifications/events/game-ended` | `game-ended` |
+| `POST` | `/notifications/events/game-notification` | `game-notification` |
+| `POST` | `/notifications/events/lobby-notification` | `lobby-notification` |
 
 ---
 
-## Tagging
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/games/{id}/tag` | Confirm a prey has been physically tagged (hunter only) |
-
-### `POST /games/{id}/tag` — Request Body
-
-```json
-{
-  "preyId": "player-uuid-here"
-}
-```
-
----
-
-## HTTP Status Codes
+## HTTP status codes
 
 | Code | Meaning |
 |---|---|
 | `200 OK` | Success |
 | `201 Created` | Resource created |
-| `400 Bad Request` | Validation error or business rule violation |
+| `204 No Content` | Success, no body (e.g. tag, leave, end, delete) |
+| `400 Bad Request` | Validation error or business-rule violation |
 | `401 Unauthorized` | Missing or invalid token |
-| `403 Forbidden` | Action not permitted for this role or state |
+| `403 Forbidden` | Not permitted for this role/state (e.g. non-owner, non-hunter, non-participant) |
 | `404 Not Found` | Resource does not exist |
-| `409 Conflict` | e.g., game already started, player already joined |
+| `409 Conflict` | State conflict (stale write, already started/joined, untaggable target, below min version) |
+
+> An interactive OpenAPI UI is available per module via **Scalar** in development.
