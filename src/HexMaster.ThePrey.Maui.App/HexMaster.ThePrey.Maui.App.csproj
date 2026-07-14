@@ -28,10 +28,10 @@
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<!-- Display name -->
-		<ApplicationTitle>HexMaster.ThePrey.Maui.App</ApplicationTitle>
+		<ApplicationTitle>ThePrey</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.hexmaster.theprey.maui.app</ApplicationId>
+		<ApplicationId>nl.hexmaster.theprey.maui.app</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -48,26 +48,37 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<!-- App Icon — brand wolf-in-crosshair mark on The Prey void-black (TpBgVoid). -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#0c0e0c" />
 
-		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<!-- Splash Screen — same mark, same void-black base as the in-app splash (no hand-off flash). -->
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0c0e0c" BaseSize="180,180" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
+		<!-- Tactical operations-grid map used as the in-app splash background. Do not upscale
+		     the full-HD source; render at its native size so the raster stays crisp. -->
+		<MauiImage Update="Resources\Images\theprey_background.png" Resize="False" BaseSize="1920,1080" />
 		
-		<!-- Custom Fonts -->
+		<!-- Custom Fonts. Drop tactical monospace faces (SpecialElite-Regular.ttf, PTMono-Regular.ttf)
+		     into Resources\Fonts to upgrade from the system-monospace fallback; the glob picks them up. -->
 		<MauiFont Include="Resources\Fonts\*" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+
+		<!-- App configuration (Auth0 + backend). Embedded so it is read synchronously at startup.
+		     Contains NO secrets: the Auth0 native client is a public PKCE client. -->
+		<EmbeddedResource Include="appsettings.json" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.10" />
 	</ItemGroup>
 
 </Project>
