@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.WelcomePage"
+             Shell.NavBarIsVisible="False"
+             Title="Welcome">
+
+    <!-- Fancy tactical splash: void-black base, full-bleed operations-grid map,
+         then the boot hero + status on top. All three layers share one grid cell. -->
+    <Grid>
+
+        <!-- Layer 1: void-black base (matches the native splash color) -->
+        <BoxView Style="{StaticResource SplashBase}" />
+
+        <!-- Layer 2: dimmed tactical elevation map, full-bleed -->
+        <Image Source="theprey_background.png"
+               Style="{StaticResource SplashMapBackground}"
+               SemanticProperties.Description="Tactical operations grid" />
+
+        <!-- Layer 3: boot hero + status -->
+        <Grid RowDefinitions="*, Auto, *" Padding="28">
+
+            <!-- Hero + slogan + description -->
+            <VerticalStackLayout Grid.Row="1" Spacing="26" HorizontalOptions="Center">
+
+              <!-- Logo + wordmark + tagline, framed by corner brackets -->
+              <Grid RowDefinitions="Auto"
+                    ColumnDefinitions="Auto"
+                    HorizontalOptions="Center">
+
+                <!-- Corner-bracket chrome -->
+                <BoxView Style="{StaticResource CornerBracket}" WidthRequest="28" HeightRequest="2"
+                         HorizontalOptions="Start" VerticalOptions="Start" />
+                <BoxView Style="{StaticResource CornerBracket}" WidthRequest="2" HeightRequest="28"
+                         HorizontalOptions="Start" VerticalOptions="Start" />
+                <BoxView Style="{StaticResource CornerBracket}" WidthRequest="28" HeightRequest="2"
+                         HorizontalOptions="End" VerticalOptions="Start" />
+                <BoxView Style="{StaticResource CornerBracket}" WidthRequest="2" HeightRequest="28"
+                         HorizontalOptions="End" VerticalOptions="Start" />
+                <BoxView Style="{StaticResource CornerBracket}" WidthRequest="28" HeightRequest="2"
+                         HorizontalOptions="Start" VerticalOptions="End" />
+                <BoxView Style="{StaticResource CornerBracket}" WidthRequest="2" HeightRequest="28"
+                         HorizontalOptions="Start" VerticalOptions="End" />
+                <BoxView Style="{StaticResource CornerBracket}" WidthRequest="28" HeightRequest="2"
+                         HorizontalOptions="End" VerticalOptions="End" />
+                <BoxView Style="{StaticResource CornerBracket}" WidthRequest="2" HeightRequest="28"
+                         HorizontalOptions="End" VerticalOptions="End" />
+
+                <VerticalStackLayout Spacing="18" Padding="36,44" HorizontalOptions="Center">
+                    <Image Source="theprey_logo.png"
+                           Style="{StaticResource SplashLogo}"
+                           SemanticProperties.Description="The Prey logo" />
+
+                    <Label Text="THE PREY" Style="{StaticResource TacticalTitle}" />
+                    <Label Text="LOCATION-BASED FIELD OPERATIONS"
+                           Style="{StaticResource HudLabel}" />
+                </VerticalStackLayout>
+              </Grid>
+
+              <!-- Two-line slogan: default word + signal-green accent word -->
+              <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                  <Label Style="{StaticResource SloganLine}">
+                      <Label.FormattedText>
+                          <FormattedString>
+                              <Span Text="STAY " Style="{StaticResource SloganWord}" />
+                              <Span Text="HIDDEN" Style="{StaticResource SloganAccent}" />
+                          </FormattedString>
+                      </Label.FormattedText>
+                  </Label>
+                  <Label Style="{StaticResource SloganLine}">
+                      <Label.FormattedText>
+                          <FormattedString>
+                              <Span Text="HUNT " Style="{StaticResource SloganWord}" />
+                              <Span Text="SMART" Style="{StaticResource SloganAccent}" />
+                          </FormattedString>
+                      </Label.FormattedText>
+                  </Label>
+              </VerticalStackLayout>
+
+              <!-- Dim descriptive tagline (PT Mono) -->
+              <Label Style="{StaticResource SloganDescription}"
+                     Text="A GPS_based, real-world hide-and-seek game. Enter the playfield, Don't get caught." />
+
+            </VerticalStackLayout>
+
+            <!-- Boot status -->
+            <VerticalStackLayout Grid.Row="2" Spacing="16"
+                                 VerticalOptions="End" HorizontalOptions="Center"
+                                 Padding="0,0,0,24">
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   HorizontalOptions="Center" />
+                <Label Text="{Binding StatusMessage}" Style="{StaticResource StatusLabel}" />
+            </VerticalStackLayout>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>
