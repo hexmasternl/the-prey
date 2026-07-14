@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.HomePage"
+             Shell.NavBarIsVisible="False"
+             Title="Main Menu">
+
+    <!-- Layered hub: void base, slowly panning tactical map, then the menu content. -->
+    <Grid>
+
+        <!-- Layer 1: void-black base -->
+        <BoxView Style="{StaticResource SplashBase}" />
+
+        <!-- Layer 2: oversized, dimmed map that pans behind the content -->
+        <Image x:Name="MapBackground"
+               Source="theprey_background.png"
+               Style="{StaticResource MenuMapBackground}"
+               SemanticProperties.Description="Tactical operations grid" />
+
+        <!-- Layer 3: header / hero / actions -->
+        <Grid RowDefinitions="Auto, *, Auto" Padding="28,44">
+
+            <!-- Header: title (left) + telemetry readout (right) -->
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="16">
+                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Start">
+                    <Label Text="{Binding GpsReadout}" Style="{StaticResource HudReadout}" />
+                    <Label Text="{Binding FieldManualVersion}" Style="{StaticResource HudReadout}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Hero: two-line slogan + tagline, left-aligned and vertically centered -->
+            <VerticalStackLayout Grid.Row="1" Spacing="0"
+                                 HorizontalOptions="Start" VerticalOptions="Center">
+                <Label Style="{StaticResource MenuSloganLine}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="STAY " Style="{StaticResource SloganWord}" />
+                            <Span Text="HIDDEN." Style="{StaticResource SloganAccent}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+                <Label Style="{StaticResource MenuSloganLine}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="HUNT " Style="{StaticResource SloganWord}" />
+                            <Span Text="SMART." Style="{StaticResource SloganAccent}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+                <Label Style="{StaticResource MenuTagline}"
+                       Text="A GPS-based, real-world hide-and-seek game. Enter the playfield. Don't get caught." />
+            </VerticalStackLayout>
+
+            <!-- Actions: bottom-aligned button roster -->
+            <VerticalStackLayout Grid.Row="2" Spacing="12" VerticalOptions="End">
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   HorizontalOptions="Center" />
+
+                <Button Text="LOG IN"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding LogInCommand}"
+                        IsVisible="{Binding ShowLogIn}" />
+
+                <Button Text="RESUME GAME"
+                        Style="{StaticResource HunterButton}"
+                        Command="{Binding ResumeGameCommand}"
+                        IsVisible="{Binding ShowResume}" />
+
+                <Button Text="START GAME"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding StartGameCommand}"
+                        IsVisible="{Binding ShowStart}" />
+
+                <Button Text="PLAYFIELDS"
+                        Style="{StaticResource OutlineButton}"
+                        Command="{Binding PlayfieldsCommand}" />
+
+                <Button Text="SETTINGS"
+                        Style="{StaticResource OutlineButton}"
+                        Command="{Binding SettingsCommand}" />
+
+                <Button Text="LOG OUT"
+                        Style="{StaticResource OutlineButton}"
+                        Command="{Binding LogOutCommand}" />
+
+                <Button Text="EXIT"
+                        Style="{StaticResource OutlineButton}"
+                        Command="{Binding ExitCommand}"
+                        IsVisible="{Binding ShowExit}" />
+
+            </VerticalStackLayout>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>
