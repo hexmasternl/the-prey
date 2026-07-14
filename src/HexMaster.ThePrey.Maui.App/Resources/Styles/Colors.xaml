@@ -41,4 +41,34 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+
+    <!-- ============================================================= -->
+    <!-- The Prey tactical phosphor-green design tokens (tp-* family).  -->
+    <!-- Mirrors src/ThePrey/src/theme/variables.scss. The ONLY place   -->
+    <!-- these colors are defined; reference them by key everywhere.    -->
+    <!-- ============================================================= -->
+    <Color x:Key="TpBgVoid">#0c0e0c</Color>
+    <Color x:Key="TpBgBase">#181b17</Color>
+    <Color x:Key="TpBgSurface">#23271f</Color>
+    <Color x:Key="TpBgSurface2">#2d3328</Color>
+    <Color x:Key="TpLine">#39402f</Color>
+    <Color x:Key="TpLineSoft">#2a2f24</Color>
+    <Color x:Key="TpSignal">#64ff00</Color>
+    <Color x:Key="TpSignalDim">#3f9e00</Color>
+    <Color x:Key="TpSignalDeep">#1f4d00</Color>
+    <Color x:Key="TpHunter">#ff2f1f</Color>
+    <Color x:Key="TpHunterDim">#a01408</Color>
+    <Color x:Key="TpCaution">#ffb300</Color>
+    <Color x:Key="TpInfo">#13e0c8</Color>
+    <Color x:Key="TpText">#dcf6d2</Color>
+    <Color x:Key="TpTextSoft">#8c9a83</Color>
+    <Color x:Key="TpTextGhost">#5a6553</Color>
+
+    <SolidColorBrush x:Key="TpBgVoidBrush" Color="{StaticResource TpBgVoid}"/>
+    <SolidColorBrush x:Key="TpBgBaseBrush" Color="{StaticResource TpBgBase}"/>
+    <SolidColorBrush x:Key="TpBgSurfaceBrush" Color="{StaticResource TpBgSurface}"/>
+    <SolidColorBrush x:Key="TpLineBrush" Color="{StaticResource TpLine}"/>
+    <SolidColorBrush x:Key="TpSignalBrush" Color="{StaticResource TpSignal}"/>
+    <SolidColorBrush x:Key="TpHunterBrush" Color="{StaticResource TpHunter}"/>
+    <SolidColorBrush x:Key="TpCautionBrush" Color="{StaticResource TpCaution}"/>
 </ResourceDictionary>
