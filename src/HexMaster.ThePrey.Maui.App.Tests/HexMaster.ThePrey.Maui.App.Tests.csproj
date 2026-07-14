@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="10.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    The MAUI app project targets platform TFMs (net10.0-android/ios/...) and cannot be referenced
+    from a plain net10.0 test project. The classes under test are platform-agnostic (plain .NET),
+    so we link their sources here to test the real implementation against real dependencies.
+    Files that touch MAUI-only APIs (SecureStorage, WebAuthenticator, Shell) are deliberately excluded.
+  -->
+  <ItemGroup>
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Configuration\ThePreyClientOptions.cs" Link="Linked\ThePreyClientOptions.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\ITokenStore.cs" Link="Linked\ITokenStore.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Authentication\IAuth0TokenClient.cs" Link="Linked\IAuth0TokenClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Authentication\Auth0TokenClient.cs" Link="Linked\Auth0TokenClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStatus.cs" Link="Linked\GameStatus.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\IGameApiClient.cs" Link="Linked\IGameApiClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameApiClient.cs" Link="Linked\GameApiClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\ISessionService.cs" Link="Linked\ISessionService.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\SessionService.cs" Link="Linked\SessionService.cs" />
+
+    <!-- Main-menu view model and its plain collaborators. The MAUI implementations of these
+         interfaces (Shell/Geolocation/AppInfo/WebAuthenticator) are deliberately excluded. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Authentication\IInteractiveLoginService.cs" Link="Linked\IInteractiveLoginService.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IMenuNavigator.cs" Link="Linked\IMenuNavigator.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IApplicationExit.cs" Link="Linked\IApplicationExit.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IAppVersionProvider.cs" Link="Linked\IAppVersionProvider.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GpsFix.cs" Link="Linked\GpsFix.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\IGpsReader.cs" Link="Linked\IGpsReader.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GpsCoordinateFormatter.cs" Link="Linked\GpsCoordinateFormatter.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\ObservableObject.cs" Link="Linked\ObservableObject.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\RelayCommand.cs" Link="Linked\RelayCommand.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\MainMenuViewModel.cs" Link="Linked\MainMenuViewModel.cs" />
+  </ItemGroup>
+
+</Project>
