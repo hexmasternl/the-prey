@@ -3,12 +3,13 @@
     x:Class="HexMaster.ThePrey.Maui.App.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:HexMaster.ThePrey.Maui.App"
-    Title="HexMaster.ThePrey.Maui.App">
+    xmlns:pages="clr-namespace:HexMaster.ThePrey.Maui.App.Pages"
+    FlyoutBehavior="Disabled"
+    Title="The Prey">
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Title="Welcome"
+        ContentTemplate="{DataTemplate pages:WelcomePage}"
+        Route="welcome" />
 
 </Shell>
