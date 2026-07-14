@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.StartGamePage"
+             Shell.NavBarIsVisible="False"
+             Title="Start Game">
+
+    <VerticalStackLayout Spacing="18" Padding="28" VerticalOptions="Center">
+        <Label Text="START OPERATION" Style="{StaticResource TacticalTitle}" />
+        <Label Text="MISSION SETUP" Style="{StaticResource HudLabel}" />
+        <Label Text="Configure and launch a new operation. (Coming soon.)"
+               Style="{StaticResource TacticalBody}" />
+    </VerticalStackLayout>
+
+</ContentPage>
