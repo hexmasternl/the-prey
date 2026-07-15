@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.DefineAreaPage"
+             x:DataType="vm:DefineAreaViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:Translate DefineArea_Title}">
+
+    <Grid>
+
+        <!-- Host for the Mapsui MapControl, created and attached in code-behind so the third-party
+             control never has to be inflated from XAML. Fills the whole page. -->
+        <Grid x:Name="MapHost" />
+
+        <!-- Top overlay: hint (left) and Clear-all action (right, shown once any vertex exists). -->
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12"
+              Margin="20,20,20,0"
+              HorizontalOptions="Fill" VerticalOptions="Start">
+            <Label Grid.Column="0"
+                   Text="{loc:Translate DefineArea_Hint}"
+                   Style="{StaticResource MapHint}"
+                   VerticalOptions="Center" />
+            <Button Grid.Column="1"
+                    Text="{loc:Translate DefineArea_Clear}"
+                    Style="{StaticResource MapActionClear}"
+                    IsVisible="{Binding HasVertices}"
+                    Command="{Binding ClearCommand}" />
+        </Grid>
+
+        <!-- Action bar overlay -->
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12"
+              Margin="20,0,20,28"
+              HorizontalOptions="Fill" VerticalOptions="End">
+
+            <Button Grid.Column="0"
+                    Text="{loc:Translate DefineArea_Cancel}"
+                    Style="{StaticResource MapActionCancel}"
+                    Command="{Binding CancelCommand}" />
+
+            <Button Grid.Column="1"
+                    x:Name="TrashButton"
+                    Text="{loc:Translate DefineArea_Delete}"
+                    Style="{StaticResource MapActionTrash}"
+                    IsVisible="{Binding HasSelection}"
+                    Clicked="OnTrashClicked" />
+
+            <Button Grid.Column="2"
+                    Text="{loc:Translate DefineArea_Save}"
+                    Style="{StaticResource MapActionSave}"
+                    Command="{Binding SaveCommand}" />
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

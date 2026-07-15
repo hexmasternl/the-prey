@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.EditPlayfieldPage"
+             x:DataType="vm:EditPlayfieldViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:Translate EditPlayfield_Title}">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <!-- Edit form (shown once the playfield has loaded) -->
+        <ScrollView Grid.Row="0" IsVisible="{Binding IsLoaded}">
+            <VerticalStackLayout Spacing="24" Padding="28,44,28,16">
+
+                <Label Text="{loc:Translate EditPlayfield_Title}" Style="{StaticResource TacticalTitle}" />
+                <Label Text="{loc:Translate EditPlayfield_Subtitle}" Style="{StaticResource HudLabel}" />
+
+                <!-- Name -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{loc:Translate CreatePlayfield_Name_Label}"
+                           Style="{StaticResource SettingsFieldLabel}" />
+                    <Entry Text="{Binding Name}"
+                           Placeholder="{loc:Translate CreatePlayfield_Name_Placeholder}"
+                           Style="{StaticResource CreateNameEntry}" />
+                </VerticalStackLayout>
+
+                <!-- Visibility -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{loc:Translate CreatePlayfield_Visibility_Label}"
+                           Style="{StaticResource SettingsFieldLabel}" />
+                    <HorizontalStackLayout Spacing="14" HorizontalOptions="Start">
+                        <Label Text="{loc:Translate CreatePlayfield_Visibility_Private}"
+                               Style="{StaticResource VisibilitySegmentLabel}" />
+                        <Switch IsToggled="{Binding IsPublic}"
+                                IsEnabled="{Binding CanTogglePublic}"
+                                Style="{StaticResource VisibilityToggle}" />
+                        <Label Text="{loc:Translate CreatePlayfield_Visibility_Public}"
+                               Style="{StaticResource VisibilitySegmentLabel}" />
+                    </HorizontalStackLayout>
+                    <Label Text="{loc:Translate CreatePlayfield_Visibility_Hint}"
+                           Style="{StaticResource CreateHint}" />
+                </VerticalStackLayout>
+
+                <!-- Set area -->
+                <VerticalStackLayout Spacing="8">
+                    <Button Text="{loc:Translate EditPlayfield_SetArea}"
+                            Style="{StaticResource DefineAreaButton}"
+                            Command="{Binding SetAreaCommand}" />
+                    <Label Text="{loc:Translate CreatePlayfield_Area_Defined}"
+                           Style="{StaticResource CreateAreaDefined}"
+                           IsVisible="{Binding HasArea}" />
+                </VerticalStackLayout>
+
+                <!-- Status -->
+                <Label Text="{loc:Translate EditPlayfield_ValidationError}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding HasValidationError}" />
+                <Label Text="{loc:Translate EditPlayfield_Error}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding HasError}" />
+
+                <!-- Stale-write conflict: message + reload -->
+                <VerticalStackLayout Spacing="10" IsVisible="{Binding HasConflict}">
+                    <Label Text="{loc:Translate EditPlayfield_Conflict}"
+                           Style="{StaticResource AlertLabel}" />
+                    <Button Text="{loc:Translate EditPlayfield_Reload}"
+                            Style="{StaticResource DefineAreaButton}"
+                            Command="{Binding ReloadCommand}" />
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Load-error view (page unusable for editing) -->
+        <VerticalStackLayout Grid.Row="0"
+                             IsVisible="{Binding HasLoadError}"
+                             Spacing="18" Padding="28"
+                             HorizontalOptions="Center" VerticalOptions="Center">
+            <Label Text="{loc:Translate EditPlayfield_Subtitle}" Style="{StaticResource HudLabel}" />
+            <Label Text="{loc:Translate EditPlayfield_LoadError}" Style="{StaticResource AlertLabel}" />
+            <Button Text="{loc:Translate EditPlayfield_Cancel}"
+                    Style="{StaticResource CreateCancelButton}"
+                    Command="{Binding CancelCommand}" />
+        </VerticalStackLayout>
+
+        <!-- Bottom action bar (only while editable) -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="12" Padding="28,8,28,28"
+              IsVisible="{Binding IsLoaded}">
+            <Button Grid.Column="0"
+                    Text="{loc:Translate EditPlayfield_Cancel}"
+                    Style="{StaticResource CreateCancelButton}"
+                    Command="{Binding CancelCommand}" />
+            <Button Grid.Column="1"
+                    Text="{loc:Translate EditPlayfield_Save}"
+                    Style="{StaticResource CreateSaveButton}"
+                    Command="{Binding SaveCommand}" />
+        </Grid>
+
+        <!-- Busy overlay while loading or saving -->
+        <ActivityIndicator Grid.RowSpan="2"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+
+    </Grid>
+
+</ContentPage>

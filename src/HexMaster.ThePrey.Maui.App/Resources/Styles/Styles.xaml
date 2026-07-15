@@ -399,6 +399,95 @@
     <!-- Framed, filled public-search input (mirrors the settings entry). -->
     <Style TargetType="Entry" x:Key="LocationSearchField" BasedOn="{StaticResource SettingsEntry}" />
 
+    <!-- Destructive swipe action revealed on a Private-list row: hunter-red fill. SwipeItem (a MenuItem)
+         has no TextColor property, so its glyph/text is rendered light by the platform against this
+         hunter-red background; the color token lives here, never inline on the page. -->
+    <Style TargetType="SwipeItem" x:Key="DeleteSwipeItem">
+        <Setter Property="BackgroundColor" Value="{StaticResource TpHunter}" />
+    </Style>
+
+    <!-- ============================================================= -->
+    <!-- Create playfield — form fields, visibility toggle, area        -->
+    <!-- indicator, and the create / area-editor action buttons.        -->
+    <!-- All reuse the Tp* tokens; the pages carry no literals.          -->
+    <!-- ============================================================= -->
+
+    <!-- Circular "+" action on the Private tab that opens the create page. Signal-green filled,
+         void glyph — a floating action anchored bottom-right over the list. -->
+    <Style TargetType="Button" x:Key="PlayfieldsAddButton" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="CharacterSpacing" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="WidthRequest" Value="60" />
+        <Setter Property="HeightRequest" Value="60" />
+        <Setter Property="CornerRadius" Value="30" />
+        <Setter Property="HorizontalOptions" Value="End" />
+        <Setter Property="VerticalOptions" Value="End" />
+        <Setter Property="Shadow" Value="{StaticResource SignalGlow}" />
+    </Style>
+
+    <!-- Playfield-name entry (mirrors the settings entry). -->
+    <Style TargetType="Entry" x:Key="CreateNameEntry" BasedOn="{StaticResource SettingsEntry}" />
+
+    <!-- Public/Private toggle + its flanking segment labels (reuse the language-toggle look). -->
+    <Style TargetType="Switch" x:Key="VisibilityToggle" BasedOn="{StaticResource LanguageToggle}" />
+    <Style TargetType="Label" x:Key="VisibilitySegmentLabel" BasedOn="{StaticResource LanguageSegmentLabel}" />
+
+    <!-- Dim hint explaining the name pattern that unlocks the public option. -->
+    <Style TargetType="Label" x:Key="CreateHint" BasedOn="{StaticResource SettingsStatusHint}" />
+
+    <!-- "Area defined" (signal-green) / "no area" (ghost) indicator states. -->
+    <Style TargetType="Label" x:Key="CreateAreaDefined" BasedOn="{StaticResource SettingsFieldLabel}">
+        <Setter Property="TextColor" Value="{StaticResource TpSignal}" />
+    </Style>
+    <Style TargetType="Label" x:Key="CreateAreaNone" BasedOn="{StaticResource SettingsFieldLabel}">
+        <Setter Property="TextColor" Value="{StaticResource TpTextGhost}" />
+    </Style>
+
+    <!-- Create-form action buttons (full-size CTAs). -->
+    <Style TargetType="Button" x:Key="DefineAreaButton" BasedOn="{StaticResource OutlineButton}" />
+    <Style TargetType="Button" x:Key="CreateSaveButton" BasedOn="{StaticResource PrimaryButton}" />
+    <Style TargetType="Button" x:Key="CreateCancelButton" BasedOn="{StaticResource OutlineButton}" />
+
+    <!-- Compact action buttons overlaid on the area-editor map. Smaller than the full-size CTAs so
+         they sit over the map; colors/variants inherit from the shared button styles. -->
+    <Style TargetType="Button" x:Key="MapActionButtonBase">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="MinimumHeightRequest" Value="46" />
+    </Style>
+    <Style TargetType="Button" x:Key="MapActionSave" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="MinimumHeightRequest" Value="46" />
+    </Style>
+    <Style TargetType="Button" x:Key="MapActionCancel" BasedOn="{StaticResource OutlineButton}">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="MinimumHeightRequest" Value="46" />
+    </Style>
+    <Style TargetType="Button" x:Key="MapActionTrash" BasedOn="{StaticResource HunterButton}">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="MinimumHeightRequest" Value="46" />
+    </Style>
+    <!-- Clear-all action in the editor's top overlay (removes every vertex at once). -->
+    <Style TargetType="Button" x:Key="MapActionClear" BasedOn="{StaticResource OutlineButton}">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="MinimumHeightRequest" Value="40" />
+    </Style>
+
+    <!-- HUD hint line for the area editor, over the map. -->
+    <Style TargetType="Label" x:Key="MapHint" BasedOn="{StaticResource HudLabel}">
+        <Setter Property="TextColor" Value="{StaticResource TpText}" />
+    </Style>
+
     <Style TargetType="ActivityIndicator">
         <Setter Property="Color" Value="{StaticResource TpSignal}" />
     </Style>

@@ -111,6 +111,49 @@
   <data name="Playfields_Search_Prompt" xml:space="preserve"><value>Typ minstens drie tekens om openbare speelvelden te zoeken.</value></data>
   <data name="Playfields_Search_NoResults" xml:space="preserve"><value>Geen openbare speelvelden gevonden.</value></data>
   <data name="Playfields_Search_Error" xml:space="preserve"><value>Zoeken mislukt. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="Playfields_Create_Description" xml:space="preserve"><value>Speelveld maken</value></data>
+  <data name="Playfields_Delete_ConfirmTitle" xml:space="preserve"><value>Speelveld verwijderen?</value></data>
+  <data name="Playfields_Delete_ConfirmMessage" xml:space="preserve"><value>Hiermee verwijder je dit speelveld definitief. Dit kan niet ongedaan worden gemaakt.</value></data>
+  <data name="Playfields_Delete_ConfirmAccept" xml:space="preserve"><value>Verwijderen</value></data>
+  <data name="Playfields_Delete_ConfirmCancel" xml:space="preserve"><value>Annuleren</value></data>
+  <data name="Playfields_Delete_Error" xml:space="preserve"><value>Kan het speelveld niet verwijderen. Het staat nog in je lijst — probeer opnieuw.</value></data>
+
+  <!-- Create playfield -->
+  <data name="CreatePlayfield_Title" xml:space="preserve"><value>SPEELVELD MAKEN</value></data>
+  <data name="CreatePlayfield_Subtitle" xml:space="preserve"><value>OPERATIONEEL GEBIED BEPALEN</value></data>
+  <data name="CreatePlayfield_Name_Label" xml:space="preserve"><value>NAAM</value></data>
+  <data name="CreatePlayfield_Name_Placeholder" xml:space="preserve"><value>Land, stad, naam — bijv. NL, Amsterdam, Stadspark</value></data>
+  <data name="CreatePlayfield_Visibility_Label" xml:space="preserve"><value>ZICHTBAARHEID</value></data>
+  <data name="CreatePlayfield_Visibility_Private" xml:space="preserve"><value>PRIVÉ</value></data>
+  <data name="CreatePlayfield_Visibility_Public" xml:space="preserve"><value>OPENBAAR</value></data>
+  <data name="CreatePlayfield_Visibility_Hint" xml:space="preserve"><value>Gebruik “Land, Stad, Naam” om openbaar te kunnen publiceren.</value></data>
+  <data name="CreatePlayfield_DefineArea" xml:space="preserve"><value>GEBIED BEPALEN</value></data>
+  <data name="CreatePlayfield_Area_Defined" xml:space="preserve"><value>GEBIED BEPAALD</value></data>
+  <data name="CreatePlayfield_Area_None" xml:space="preserve"><value>GEEN GEBIED BEPAALD</value></data>
+  <data name="CreatePlayfield_Save" xml:space="preserve"><value>OPSLAAN</value></data>
+  <data name="CreatePlayfield_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="CreatePlayfield_Error" xml:space="preserve"><value>Kan het speelveld niet aanmaken. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="CreatePlayfield_ValidationError" xml:space="preserve"><value>Het speelveld kon niet worden aangemaakt. Controleer de naam en het gebied en probeer opnieuw.</value></data>
+
+  <!-- Area editor -->
+  <data name="DefineArea_Title" xml:space="preserve"><value>GEBIED BEPALEN</value></data>
+  <data name="DefineArea_Hint" xml:space="preserve"><value>Tik om punten te plaatsen. Tik een punt aan om te selecteren, sleep om te verplaatsen.</value></data>
+  <data name="DefineArea_Save" xml:space="preserve"><value>OPSLAAN</value></data>
+  <data name="DefineArea_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="DefineArea_Delete" xml:space="preserve"><value>VERWIJDEREN</value></data>
+  <data name="DefineArea_Clear" xml:space="preserve"><value>WISSEN</value></data>
+
+  <!-- Edit playfield -->
+  <data name="EditPlayfield_Title" xml:space="preserve"><value>SPEELVELD BEWERKEN</value></data>
+  <data name="EditPlayfield_Subtitle" xml:space="preserve"><value>OPERATIONEEL GEBIED BIJWERKEN</value></data>
+  <data name="EditPlayfield_SetArea" xml:space="preserve"><value>GEBIED INSTELLEN</value></data>
+  <data name="EditPlayfield_Save" xml:space="preserve"><value>OPSLAAN</value></data>
+  <data name="EditPlayfield_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="EditPlayfield_Reload" xml:space="preserve"><value>HERLADEN</value></data>
+  <data name="EditPlayfield_LoadError" xml:space="preserve"><value>Kan dit speelveld niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="EditPlayfield_Error" xml:space="preserve"><value>Kan je wijzigingen niet opslaan. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="EditPlayfield_ValidationError" xml:space="preserve"><value>Het speelveld kon niet worden opgeslagen. Controleer de naam en het gebied en probeer opnieuw.</value></data>
+  <data name="EditPlayfield_Conflict" xml:space="preserve"><value>Dit speelveld is elders gewijzigd. Herlaad om de nieuwste versie op te halen en pas je wijziging opnieuw toe.</value></data>
 
   <!-- Settings -->
   <data name="Settings_Title" xml:space="preserve"><value>INSTELLINGEN</value></data>

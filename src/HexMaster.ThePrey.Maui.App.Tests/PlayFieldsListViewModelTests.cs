@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Authentication;
+using HexMaster.ThePrey.Maui.App.Services.Dialogs;
+using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Storage;
 using HexMaster.ThePrey.Maui.App.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,12 +16,22 @@ public class PlayFieldsListViewModelTests
     private readonly Mock<IPlayFieldApiClient> _api = new();
     private readonly Mock<IPlayFieldCache> _cache = new();
     private readonly Mock<IAccessTokenProvider> _tokens = new();
+    private readonly Mock<IConfirmationDialog> _confirm = new();
+    private readonly Mock<ILocalizationService> _localization = new();
     private readonly FakeTimeProvider _time = new();
+
+    public PlayFieldsListViewModelTests()
+    {
+        // Resolve any localization key to the key itself so dialog copy is deterministic in tests.
+        _localization.Setup(l => l[It.IsAny<string>()]).Returns((string key) => key);
+    }
 
     private PlayFieldsListViewModel CreateSut() => new(
         _api.Object,
         _cache.Object,
         _tokens.Object,
+        _confirm.Object,
+        _localization.Object,
         _time,
         NullLogger<PlayFieldsListViewModel>.Instance);
 
@@ -312,5 +324,157 @@ public class PlayFieldsListViewModelTests
 
         await WaitFor(() => sut.PublicHasError, "unauthorized shows the error state");
         _tokens.Verify(t => t.Invalidate(), Times.AtLeastOnce);
+    }
+
+    // ---- Swipe-to-delete flow ----
+
+    private void SetupConfirm(bool confirmed) =>
+        _confirm.Setup(c => c.ConfirmAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(confirmed);
+
+    private PlayFieldListItem SeedPrivate(PlayFieldsListViewModel sut, string name)
+    {
+        var summary = new PlayFieldSummary(Guid.NewGuid(), name, false);
+        sut.AppendPrivate(summary);
+        return sut.PrivatePlayFields.First(i => i.Id == summary.Id);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldSendNoRequestAndKeepItem_WhenConfirmationCancelled()
+    {
+        SetupConfirm(false);
+        SetupToken();
+        var sut = CreateSut();
+        var item = SeedPrivate(sut, "Keep-Me");
+
+        await sut.DeletePlayFieldAsync(item);
+
+        Assert.Contains(item, sut.PrivatePlayFields);
+        Assert.False(sut.DeleteError);
+        _tokens.Verify(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _api.Verify(a => a.DeletePlayFieldAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldRemoveItem_WhenConfirmedAndSuccess()
+    {
+        SetupConfirm(true);
+        SetupToken();
+        _api.Setup(a => a.DeletePlayFieldAsync(It.IsAny<Guid>(), "token", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DeletePlayFieldResult.Success);
+        var sut = CreateSut();
+        var item = SeedPrivate(sut, "Delete-Me");
+
+        await sut.DeletePlayFieldAsync(item);
+
+        Assert.DoesNotContain(item, sut.PrivatePlayFields);
+        Assert.False(sut.DeleteError);
+        _api.Verify(a => a.DeletePlayFieldAsync(item.Id, "token", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldRemoveItem_WhenConfirmedAndNotFound()
+    {
+        SetupConfirm(true);
+        SetupToken();
+        _api.Setup(a => a.DeletePlayFieldAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DeletePlayFieldResult.NotFound);
+        var sut = CreateSut();
+        var item = SeedPrivate(sut, "Already-Gone");
+
+        await sut.DeletePlayFieldAsync(item);
+
+        Assert.DoesNotContain(item, sut.PrivatePlayFields);
+        Assert.False(sut.DeleteError);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldSetErrorAndKeepItem_WhenNoAccessToken()
+    {
+        SetupConfirm(true);
+        SetupToken(null);
+        var sut = CreateSut();
+        var item = SeedPrivate(sut, "Keep-Me");
+
+        await sut.DeletePlayFieldAsync(item);
+
+        Assert.Contains(item, sut.PrivatePlayFields);
+        Assert.True(sut.DeleteError);
+        _api.Verify(a => a.DeletePlayFieldAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldInvalidateTokenSetErrorAndKeepItem_WhenUnauthorized()
+    {
+        SetupConfirm(true);
+        SetupToken();
+        _api.Setup(a => a.DeletePlayFieldAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DeletePlayFieldResult.Unauthorized);
+        var sut = CreateSut();
+        var item = SeedPrivate(sut, "Keep-Me");
+
+        await sut.DeletePlayFieldAsync(item);
+
+        Assert.Contains(item, sut.PrivatePlayFields);
+        Assert.True(sut.DeleteError);
+        _tokens.Verify(t => t.Invalidate(), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(DeletePlayFieldOutcome.Forbidden)]
+    [InlineData(DeletePlayFieldOutcome.Error)]
+    public async Task Delete_ShouldSetErrorAndKeepItem_WhenForbiddenOrError(DeletePlayFieldOutcome outcome)
+    {
+        SetupConfirm(true);
+        SetupToken();
+        _api.Setup(a => a.DeletePlayFieldAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DeletePlayFieldResult(outcome));
+        var sut = CreateSut();
+        var item = SeedPrivate(sut, "Keep-Me");
+
+        await sut.DeletePlayFieldAsync(item);
+
+        Assert.Contains(item, sut.PrivatePlayFields);
+        Assert.True(sut.DeleteError);
+        _tokens.Verify(t => t.Invalidate(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldRemoveOnlyTheTargetedItem_WhenMultiplePresent()
+    {
+        SetupConfirm(true);
+        SetupToken();
+        _api.Setup(a => a.DeletePlayFieldAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DeletePlayFieldResult.Success);
+        var sut = CreateSut();
+        var alpha = SeedPrivate(sut, "Alpha");
+        var bravo = SeedPrivate(sut, "Bravo");
+        var charlie = SeedPrivate(sut, "Charlie");
+
+        await sut.DeletePlayFieldAsync(bravo);
+
+        Assert.Equal(new[] { alpha, charlie }, sut.PrivatePlayFields);
+        _api.Verify(a => a.DeletePlayFieldAsync(bravo.Id, "token", It.IsAny<CancellationToken>()), Times.Once);
+        _api.Verify(a => a.DeletePlayFieldAsync(alpha.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldClearPreviousError_OnNewAttempt()
+    {
+        SetupConfirm(true);
+        SetupToken();
+        _api.SetupSequence(a => a.DeletePlayFieldAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DeletePlayFieldResult.Error)
+            .ReturnsAsync(DeletePlayFieldResult.Success);
+        var sut = CreateSut();
+        var item = SeedPrivate(sut, "Retry-Me");
+
+        await sut.DeletePlayFieldAsync(item);
+        Assert.True(sut.DeleteError);
+
+        await sut.DeletePlayFieldAsync(item);
+        Assert.False(sut.DeleteError);
+        Assert.DoesNotContain(item, sut.PrivatePlayFields);
     }
 }

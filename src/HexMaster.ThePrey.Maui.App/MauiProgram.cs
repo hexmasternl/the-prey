@@ -6,6 +6,7 @@ using HexMaster.ThePrey.Maui.App.Pages;
 using HexMaster.ThePrey.Maui.App.Services;
 using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Authentication;
+using HexMaster.ThePrey.Maui.App.Services.Dialogs;
 using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
@@ -15,6 +16,7 @@ using HexMaster.ThePrey.Maui.App.Services.Storage;
 using HexMaster.ThePrey.Maui.App.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 
 namespace HexMaster.ThePrey.Maui.App
 {
@@ -25,6 +27,9 @@ namespace HexMaster.ThePrey.Maui.App
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                // Mapsui renders through SkiaSharp; this call registers the SkiaSharp handlers the
+                // area-editor MapControl needs (without it the control fails to render at runtime).
+                .UseSkiaSharp()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -100,6 +105,16 @@ namespace HexMaster.ThePrey.Maui.App
 
             // Menu-facing platform adapters (kept behind interfaces so view models stay testable).
             services.AddSingleton<IMenuNavigator, ShellMenuNavigator>();
+
+            // Confirm/cancel dialog seam (the delete flow's confirmation gate).
+            services.AddSingleton<IConfirmationDialog, ConfirmationDialog>();
+
+            // Create / area-editor navigation seam. One Shell-backed singleton carries the result
+            // hand-off for both directions, exposed under both interfaces.
+            services.AddSingleton<ShellPlayfieldNavigator>();
+            services.AddSingleton<ICreatePlayfieldNavigator>(sp => sp.GetRequiredService<ShellPlayfieldNavigator>());
+            services.AddSingleton<IEditPlayfieldNavigator>(sp => sp.GetRequiredService<ShellPlayfieldNavigator>());
+            services.AddSingleton<IAreaEditorNavigator>(sp => sp.GetRequiredService<ShellPlayfieldNavigator>());
             services.AddSingleton<IApplicationExit, ApplicationExit>();
             services.AddSingleton<IAppVersionProvider, MauiAppVersionProvider>();
             services.AddSingleton<IGpsReader, MauiGpsReader>();
@@ -137,6 +152,9 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<MainMenuViewModel>();
             services.AddTransient<SettingsViewModel>();
             services.AddTransient<PlayFieldsListViewModel>();
+            services.AddTransient<CreatePlayfieldViewModel>();
+            services.AddTransient<EditPlayfieldViewModel>();
+            services.AddTransient<DefineAreaViewModel>();
 
             // Pages.
             services.AddTransient<WelcomePage>();
@@ -146,6 +164,9 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<StartGamePage>();
             services.AddTransient<PlayfieldsPage>();
             services.AddTransient<SettingsPage>();
+            services.AddTransient<CreatePlayfieldPage>();
+            services.AddTransient<EditPlayfieldPage>();
+            services.AddTransient<DefineAreaPage>();
         }
 
         private static string EnsureTrailingSlash(string url) =>

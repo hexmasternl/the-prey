@@ -4,6 +4,7 @@
              xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
              xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
              x:Class="HexMaster.ThePrey.Maui.App.Pages.PlayfieldsPage"
+             x:Name="PlayfieldsRoot"
              x:DataType="vm:PlayFieldsListViewModel"
              Shell.NavBarIsVisible="False"
              Title="{loc:Translate Playfields_Title}">
@@ -38,19 +39,35 @@
                     </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="vm:PlayFieldListItem">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="4,10">
-                                <Label Grid.Column="0"
-                                       Text="{Binding Name}"
-                                       Style="{StaticResource LocationItemName}" />
-                                <Label Grid.Column="1"
-                                       Text="{loc:Translate Playfields_Badge_Public}"
-                                       Style="{StaticResource LocationBadgePublic}"
-                                       IsVisible="{Binding IsPublic}" />
-                                <Label Grid.Column="1"
-                                       Text="{loc:Translate Playfields_Badge_Private}"
-                                       Style="{StaticResource LocationBadgePrivate}"
-                                       IsVisible="{Binding IsPrivate}" />
-                            </Grid>
+                            <!-- Left-swipe reveals a single destructive Delete action (Private list only). -->
+                            <SwipeView>
+                                <SwipeView.RightItems>
+                                    <SwipeItems Mode="Reveal">
+                                        <SwipeItem Text="{loc:Translate Playfields_Delete_ConfirmAccept}"
+                                                   Style="{StaticResource DeleteSwipeItem}"
+                                                   IsDestructive="True"
+                                                   Command="{Binding BindingContext.DeletePlayFieldCommand, Source={x:Reference PlayfieldsRoot}}"
+                                                   CommandParameter="{Binding .}" />
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
+                                <!-- Tapping a private item opens it for editing. -->
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="4,10">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnPrivateItemTapped" />
+                                    </Grid.GestureRecognizers>
+                                    <Label Grid.Column="0"
+                                           Text="{Binding Name}"
+                                           Style="{StaticResource LocationItemName}" />
+                                    <Label Grid.Column="1"
+                                           Text="{loc:Translate Playfields_Badge_Public}"
+                                           Style="{StaticResource LocationBadgePublic}"
+                                           IsVisible="{Binding IsPublic}" />
+                                    <Label Grid.Column="1"
+                                           Text="{loc:Translate Playfields_Badge_Private}"
+                                           Style="{StaticResource LocationBadgePrivate}"
+                                           IsVisible="{Binding IsPrivate}" />
+                                </Grid>
+                            </SwipeView>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
@@ -66,6 +83,18 @@
                        Style="{StaticResource AlertLabel}"
                        IsVisible="{Binding PrivateHasError}"
                        VerticalOptions="Center" />
+
+                <!-- Non-blocking delete-failure indication (item kept; bottom-anchored over the list). -->
+                <Label Text="{loc:Translate Playfields_Delete_Error}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding DeleteError}"
+                       VerticalOptions="End" />
+
+                <!-- Create action — present in the list and empty states alike. -->
+                <Button Text="+"
+                        Style="{StaticResource PlayfieldsAddButton}"
+                        SemanticProperties.Description="{loc:Translate Playfields_Create_Description}"
+                        Clicked="OnCreateClicked" />
             </Grid>
 
             <!-- Public tab -->

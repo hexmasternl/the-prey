@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Authentication;
+using HexMaster.ThePrey.Maui.App.Services.Dialogs;
+using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Storage;
 using Microsoft.Extensions.Logging;
 
@@ -25,6 +27,8 @@ public sealed class PlayFieldsListViewModel : ObservableObject
     private readonly IPlayFieldApiClient _playFieldApi;
     private readonly IPlayFieldCache _cache;
     private readonly IAccessTokenProvider _accessTokenProvider;
+    private readonly IConfirmationDialog _confirmationDialog;
+    private readonly ILocalizationService _localization;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<PlayFieldsListViewModel> _logger;
 
@@ -35,6 +39,7 @@ public sealed class PlayFieldsListViewModel : ObservableObject
     private bool _isBusy;
     private bool _privateIsEmpty;
     private bool _privateHasError;
+    private bool _deleteError;
     private bool _publicShowPrompt = true;
     private bool _publicNoResults;
     private bool _publicHasError;
@@ -43,17 +48,22 @@ public sealed class PlayFieldsListViewModel : ObservableObject
         IPlayFieldApiClient playFieldApi,
         IPlayFieldCache cache,
         IAccessTokenProvider accessTokenProvider,
+        IConfirmationDialog confirmationDialog,
+        ILocalizationService localization,
         TimeProvider timeProvider,
         ILogger<PlayFieldsListViewModel> logger)
     {
         _playFieldApi = playFieldApi;
         _cache = cache;
         _accessTokenProvider = accessTokenProvider;
+        _confirmationDialog = confirmationDialog;
+        _localization = localization;
         _timeProvider = timeProvider;
         _logger = logger;
 
         SelectPrivateCommand = new RelayCommand(() => { SelectedTab = PlayFieldsTab.Private; return Task.CompletedTask; });
         SelectPublicCommand = new RelayCommand(() => { SelectedTab = PlayFieldsTab.Public; return Task.CompletedTask; });
+        DeletePlayFieldCommand = new RelayCommand<PlayFieldListItem>(item => DeletePlayFieldAsync(item));
     }
 
     /// <summary>The user's own playfields (Private tab). Populated cache-first, then from the backend.</summary>
@@ -67,6 +77,9 @@ public sealed class PlayFieldsListViewModel : ObservableObject
 
     /// <summary>Switches to the Public tab.</summary>
     public ICommand SelectPublicCommand { get; }
+
+    /// <summary>Deletes the passed Private-list playfield after a confirmation dialog (swipe-to-delete).</summary>
+    public ICommand DeletePlayFieldCommand { get; }
 
     /// <summary>The active tab. Defaults to <see cref="PlayFieldsTab.Private"/>.</summary>
     public PlayFieldsTab SelectedTab
@@ -118,6 +131,17 @@ public sealed class PlayFieldsListViewModel : ObservableObject
     {
         get => _privateHasError;
         private set => SetProperty(ref _privateHasError, value);
+    }
+
+    /// <summary>
+    /// True when the last delete attempt failed (no token, unauthorized, forbidden, or network/error):
+    /// the page binds this to a non-blocking indication and the item is kept. Cleared at the start of
+    /// the next delete attempt.
+    /// </summary>
+    public bool DeleteError
+    {
+        get => _deleteError;
+        private set => SetProperty(ref _deleteError, value);
     }
 
     /// <summary>True when the query is too short (or empty): the idle/prompt state, no request sent.</summary>
@@ -196,6 +220,100 @@ public sealed class PlayFieldsListViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    /// <summary>
+    /// Appends a newly created playfield to the Private list without a full reload (the append-UX after a
+    /// successful create). Clears the empty/error states so the new item is shown immediately.
+    /// </summary>
+    public void AppendPrivate(PlayFieldSummary summary)
+    {
+        PrivatePlayFields.Add(new PlayFieldListItem(summary));
+        PrivateIsEmpty = false;
+        PrivateHasError = false;
+    }
+
+    /// <summary>
+    /// Replaces the matching Private-list item (by id) in place after a successful edit — preserving scroll
+    /// position and avoiding a full reload. Falls back to appending when the item isn't present (e.g. the
+    /// list hasn't loaded yet) so the edit is still reflected.
+    /// </summary>
+    public void ReplacePrivate(PlayFieldSummary summary)
+    {
+        for (var i = 0; i < PrivatePlayFields.Count; i++)
+        {
+            if (PrivatePlayFields[i].Id == summary.Id)
+            {
+                PrivatePlayFields[i] = new PlayFieldListItem(summary);
+                PrivateHasError = false;
+                return;
+            }
+        }
+
+        AppendPrivate(summary);
+    }
+
+    /// <summary>
+    /// The swipe-to-delete flow for one Private-list playfield: confirm → authenticate → delete →
+    /// mutate the list. Removes the item only on <see cref="DeletePlayFieldOutcome.Success"/> or
+    /// <see cref="DeletePlayFieldOutcome.NotFound"/> (the playfield is gone either way); every other
+    /// outcome keeps the item and raises <see cref="DeleteError"/>. Never removes optimistically.
+    /// </summary>
+    public async Task DeletePlayFieldAsync(PlayFieldListItem item, CancellationToken ct = default)
+    {
+        if (item is null)
+            return;
+
+        // Cleared at the start of every attempt so a stale error never lingers.
+        DeleteError = false;
+
+        var confirmed = await _confirmationDialog.ConfirmAsync(
+            _localization["Playfields_Delete_ConfirmTitle"],
+            _localization["Playfields_Delete_ConfirmMessage"],
+            _localization["Playfields_Delete_ConfirmAccept"],
+            _localization["Playfields_Delete_ConfirmCancel"]);
+        if (!confirmed)
+            return; // Cancel is a true no-op: no request, item stays.
+
+        try
+        {
+            var token = await _accessTokenProvider.GetAccessTokenAsync(ct);
+            if (token is null)
+            {
+                DeleteError = true; // No session to authenticate the delete — keep the item.
+                return;
+            }
+
+            var result = await _playFieldApi.DeletePlayFieldAsync(item.Id, token, ct);
+            switch (result.Outcome)
+            {
+                case DeletePlayFieldOutcome.Success:
+                case DeletePlayFieldOutcome.NotFound:
+                    RemovePrivate(item);
+                    break;
+
+                case DeletePlayFieldOutcome.Unauthorized:
+                    _accessTokenProvider.Invalidate();
+                    DeleteError = true;
+                    break;
+
+                default: // Forbidden / Error — keep the item, surface the error.
+                    DeleteError = true;
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to delete a private playfield.");
+            DeleteError = true;
+        }
+    }
+
+    // Removes the item from the private list by identity, converging the UI to the backend truth.
+    private void RemovePrivate(PlayFieldListItem item)
+    {
+        PrivatePlayFields.Remove(item);
+        PrivateIsEmpty = PrivatePlayFields.Count == 0;
     }
 
     // Keep a cached list on screen; only surface the error state when there was nothing cached.

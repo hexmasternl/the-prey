@@ -75,6 +75,14 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
+		<!-- Interactive map for the playfield area editor (Mapsui MapControl + SkiaSharp rendering).
+		     Requires .UseSkiaSharp() in MauiProgram. -->
+		<PackageReference Include="Mapsui.Maui" Version="5.1.0" />
+		<!-- Mapsui's core package only has point geometry (PointFeature); the area editor's polygon
+		     fill/outline needs an NTS Polygon wrapped in Mapsui.Nts's GeometryFeature. -->
+		<PackageReference Include="Mapsui.Nts" Version="5.1.0" />
+		<!-- OpenStreetMap tile basemap for the area editor (Mapsui.Tiling.OpenStreetMap.CreateTileLayer). -->
+		<PackageReference Include="Mapsui.Tiling" Version="5.1.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.10" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />

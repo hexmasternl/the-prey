@@ -111,6 +111,49 @@
   <data name="Playfields_Search_Prompt" xml:space="preserve"><value>Type at least three characters to search public playfields.</value></data>
   <data name="Playfields_Search_NoResults" xml:space="preserve"><value>No public playfields match your search.</value></data>
   <data name="Playfields_Search_Error" xml:space="preserve"><value>Search failed. Check your connection and try again.</value></data>
+  <data name="Playfields_Create_Description" xml:space="preserve"><value>Create playfield</value></data>
+  <data name="Playfields_Delete_ConfirmTitle" xml:space="preserve"><value>Delete playfield?</value></data>
+  <data name="Playfields_Delete_ConfirmMessage" xml:space="preserve"><value>This permanently deletes this playfield. This can't be undone.</value></data>
+  <data name="Playfields_Delete_ConfirmAccept" xml:space="preserve"><value>Delete</value></data>
+  <data name="Playfields_Delete_ConfirmCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Playfields_Delete_Error" xml:space="preserve"><value>Could not delete the playfield. It's still in your list — try again.</value></data>
+
+  <!-- Create playfield -->
+  <data name="CreatePlayfield_Title" xml:space="preserve"><value>CREATE PLAYFIELD</value></data>
+  <data name="CreatePlayfield_Subtitle" xml:space="preserve"><value>DEFINE OPERATIONAL AREA</value></data>
+  <data name="CreatePlayfield_Name_Label" xml:space="preserve"><value>NAME</value></data>
+  <data name="CreatePlayfield_Name_Placeholder" xml:space="preserve"><value>Country, city, name — e.g. NL, Amsterdam, City park</value></data>
+  <data name="CreatePlayfield_Visibility_Label" xml:space="preserve"><value>VISIBILITY</value></data>
+  <data name="CreatePlayfield_Visibility_Private" xml:space="preserve"><value>PRIVATE</value></data>
+  <data name="CreatePlayfield_Visibility_Public" xml:space="preserve"><value>PUBLIC</value></data>
+  <data name="CreatePlayfield_Visibility_Hint" xml:space="preserve"><value>Use “Country, City, Name” to allow publishing publicly.</value></data>
+  <data name="CreatePlayfield_DefineArea" xml:space="preserve"><value>DEFINE AREA</value></data>
+  <data name="CreatePlayfield_Area_Defined" xml:space="preserve"><value>AREA DEFINED</value></data>
+  <data name="CreatePlayfield_Area_None" xml:space="preserve"><value>NO AREA DEFINED</value></data>
+  <data name="CreatePlayfield_Save" xml:space="preserve"><value>SAVE</value></data>
+  <data name="CreatePlayfield_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="CreatePlayfield_Error" xml:space="preserve"><value>Could not create the playfield. Check your connection and try again.</value></data>
+  <data name="CreatePlayfield_ValidationError" xml:space="preserve"><value>The playfield could not be created. Check the name and area, then try again.</value></data>
+
+  <!-- Area editor -->
+  <data name="DefineArea_Title" xml:space="preserve"><value>DEFINE AREA</value></data>
+  <data name="DefineArea_Hint" xml:space="preserve"><value>Tap to drop points. Tap a point to select, drag to move.</value></data>
+  <data name="DefineArea_Save" xml:space="preserve"><value>SAVE</value></data>
+  <data name="DefineArea_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="DefineArea_Delete" xml:space="preserve"><value>DELETE</value></data>
+  <data name="DefineArea_Clear" xml:space="preserve"><value>CLEAR</value></data>
+
+  <!-- Edit playfield -->
+  <data name="EditPlayfield_Title" xml:space="preserve"><value>EDIT PLAYFIELD</value></data>
+  <data name="EditPlayfield_Subtitle" xml:space="preserve"><value>UPDATE OPERATIONAL AREA</value></data>
+  <data name="EditPlayfield_SetArea" xml:space="preserve"><value>SET AREA</value></data>
+  <data name="EditPlayfield_Save" xml:space="preserve"><value>SAVE</value></data>
+  <data name="EditPlayfield_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="EditPlayfield_Reload" xml:space="preserve"><value>RELOAD</value></data>
+  <data name="EditPlayfield_LoadError" xml:space="preserve"><value>Could not load this playfield. Check your connection and try again.</value></data>
+  <data name="EditPlayfield_Error" xml:space="preserve"><value>Could not save your changes. Check your connection and try again.</value></data>
+  <data name="EditPlayfield_ValidationError" xml:space="preserve"><value>The playfield could not be saved. Check the name and area, then try again.</value></data>
+  <data name="EditPlayfield_Conflict" xml:space="preserve"><value>This playfield changed elsewhere. Reload to get the latest, then re-apply your edit.</value></data>
 
   <!-- Settings -->
   <data name="Settings_Title" xml:space="preserve"><value>SETTINGS</value></data>

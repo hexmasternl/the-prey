@@ -18,9 +18,13 @@ public sealed class PlayFieldListItem
 {
     public PlayFieldListItem(PlayFieldSummary summary)
     {
+        Id = summary.Id;
         Name = summary.Name;
         IsPublic = summary.IsPublic;
     }
+
+    /// <summary>The playfield's identifier, so a removal targets the exact backend record.</summary>
+    public Guid Id { get; }
 
     public string Name { get; }
 

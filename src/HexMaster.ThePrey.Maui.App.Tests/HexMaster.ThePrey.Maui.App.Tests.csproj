@@ -64,9 +64,12 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\PlayFieldSummary.cs" Link="Linked\PlayFieldSummary.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\IPlayFieldApiClient.cs" Link="Linked\IPlayFieldApiClient.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\PlayFieldApiClient.cs" Link="Linked\PlayFieldApiClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\DeletePlayFieldResult.cs" Link="Linked\DeletePlayFieldResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Dialogs\IConfirmationDialog.cs" Link="Linked\IConfirmationDialog.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Storage\IPlayFieldCache.cs" Link="Linked\IPlayFieldCache.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Storage\PlayFieldCache.cs" Link="Linked\PlayFieldCache.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\PlayFieldListItem.cs" Link="Linked\PlayFieldListItem.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\RelayCommand.Generic.cs" Link="Linked\RelayCommand.Generic.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\PlayFieldsListViewModel.cs" Link="Linked\PlayFieldsListViewModel.cs" />
 
     <!-- Main-menu view model and its plain collaborators. The MAUI implementations of these
@@ -81,6 +84,25 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\ObservableObject.cs" Link="Linked\ObservableObject.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\RelayCommand.cs" Link="Linked\RelayCommand.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\MainMenuViewModel.cs" Link="Linked\MainMenuViewModel.cs" />
+
+    <!-- Create-playfield feature: client models + create call, the name validator, the two navigation
+         seams (interfaces only — the Shell implementation is MAUI-only and excluded), and the create /
+         area-editor view models. All plain .NET. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GpsCoordinate.cs" Link="Linked\GpsCoordinate.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\CreatePlayFieldResult.cs" Link="Linked\CreatePlayFieldResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\ICreatePlayfieldNavigator.cs" Link="Linked\ICreatePlayfieldNavigator.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IAreaEditorNavigator.cs" Link="Linked\IAreaEditorNavigator.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\PlayfieldNameValidator.cs" Link="Linked\PlayfieldNameValidator.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\DefineAreaViewModel.cs" Link="Linked\DefineAreaViewModel.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\CreatePlayfieldViewModel.cs" Link="Linked\CreatePlayfieldViewModel.cs" />
+
+    <!-- Edit-playfield feature: get-by-id + update models/results, the edit navigation seam (interface
+         only), and the edit view model. All plain .NET. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\PlayFieldDetails.cs" Link="Linked\PlayFieldDetails.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GetPlayFieldResult.cs" Link="Linked\GetPlayFieldResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\UpdatePlayFieldResult.cs" Link="Linked\UpdatePlayFieldResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IEditPlayfieldNavigator.cs" Link="Linked\IEditPlayfieldNavigator.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\EditPlayfieldViewModel.cs" Link="Linked\EditPlayfieldViewModel.cs" />
   </ItemGroup>
 
 </Project>
