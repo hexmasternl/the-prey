@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Main menu -->
+  <data name="Menu_LogIn" xml:space="preserve"><value>INLOGGEN</value></data>
+  <data name="Menu_ResumeGame" xml:space="preserve"><value>SPEL HERVATTEN</value></data>
+  <data name="Menu_StartGame" xml:space="preserve"><value>SPEL STARTEN</value></data>
+  <data name="Menu_Playfields" xml:space="preserve"><value>SPEELVELDEN</value></data>
+  <data name="Menu_Settings" xml:space="preserve"><value>INSTELLINGEN</value></data>
+  <data name="Menu_LogOut" xml:space="preserve"><value>UITLOGGEN</value></data>
+  <data name="Menu_Exit" xml:space="preserve"><value>AFSLUITEN</value></data>
+  <data name="Menu_SloganLine1Lead" xml:space="preserve"><value>BLIJF </value></data>
+  <data name="Menu_SloganLine1Accent" xml:space="preserve"><value>VERBORGEN.</value></data>
+  <data name="Menu_SloganLine2Lead" xml:space="preserve"><value>JAAG </value></data>
+  <data name="Menu_SloganLine2Accent" xml:space="preserve"><value>SLIM.</value></data>
+  <data name="Menu_Tagline" xml:space="preserve"><value>Een gps-gebaseerd verstoppertje in de echte wereld. Betreed het speelveld. Laat je niet pakken.</value></data>
+
+  <!-- Welcome / splash -->
+  <data name="Welcome_Subtitle" xml:space="preserve"><value>LOCATIEGEBASEERDE VELDOPERATIES</value></data>
+  <data name="Welcome_SloganLine1Lead" xml:space="preserve"><value>BLIJF </value></data>
+  <data name="Welcome_SloganLine1Accent" xml:space="preserve"><value>VERBORGEN</value></data>
+  <data name="Welcome_SloganLine2Lead" xml:space="preserve"><value>JAAG </value></data>
+  <data name="Welcome_SloganLine2Accent" xml:space="preserve"><value>SLIM</value></data>
+  <data name="Welcome_Tagline" xml:space="preserve"><value>Een gps-gebaseerd verstoppertje in de echte wereld. Betreed het speelveld. Laat je niet pakken.</value></data>
+
+  <!-- Login -->
+  <data name="Login_Title" xml:space="preserve"><value>TOEGANG VEREIST</value></data>
+  <data name="Login_Body" xml:space="preserve"><value>Meld je aan om je signaal te vestigen en te controleren op actieve operaties.</value></data>
+  <data name="Login_Button" xml:space="preserve"><value>INLOGGEN</value></data>
+  <data name="Login_Establishing" xml:space="preserve"><value>SIGNAAL VESTIGEN…</value></data>
+
+  <!-- Game -->
+  <data name="Game_Title" xml:space="preserve"><value>OPERATIE ACTIEF</value></data>
+  <data name="Game_Subtitle" xml:space="preserve"><value>SIGNAAL VERGRENDELD</value></data>
+  <data name="Game_Body" xml:space="preserve"><value>Landingspagina voor het actieve spel — de live operatie-HUD komt hier. (Binnenkort beschikbaar.)</value></data>
+
+  <!-- Start game -->
+  <data name="StartGame_Title" xml:space="preserve"><value>OPERATIE STARTEN</value></data>
+  <data name="StartGame_Subtitle" xml:space="preserve"><value>MISSIE-INSTELLING</value></data>
+  <data name="StartGame_Body" xml:space="preserve"><value>Configureer en start een nieuwe operatie. (Binnenkort beschikbaar.)</value></data>
+
+  <!-- Playfields -->
+  <data name="Playfields_Title" xml:space="preserve"><value>SPEELVELDEN</value></data>
+  <data name="Playfields_Subtitle" xml:space="preserve"><value>OPERATIONELE GEBIEDEN</value></data>
+  <data name="Playfields_Body" xml:space="preserve"><value>Maak en beheer speelveldgebieden. (Binnenkort beschikbaar.)</value></data>
+
+  <!-- Settings -->
+  <data name="Settings_Title" xml:space="preserve"><value>INSTELLINGEN</value></data>
+  <data name="Settings_Subtitle" xml:space="preserve"><value>SYSTEEMCONFIGURATIE</value></data>
+  <data name="Settings_DisplayName_Label" xml:space="preserve"><value>WEERGAVENAAM</value></data>
+  <data name="Settings_DisplayName_Placeholder" xml:space="preserve"><value>Voer je weergavenaam in</value></data>
+  <data name="Settings_DisplayName_Required" xml:space="preserve"><value>Weergavenaam is verplicht.</value></data>
+  <data name="Settings_Language_Label" xml:space="preserve"><value>TAAL</value></data>
+  <data name="Settings_Status_Saving" xml:space="preserve"><value>OPSLAAN…</value></data>
+  <data name="Settings_Status_Saved" xml:space="preserve"><value>OPGESLAGEN</value></data>
+  <data name="Settings_Status_Error" xml:space="preserve"><value>OPSLAAN MISLUKT — WIJZIGING NIET BEWAARD</value></data>
+  <data name="Settings_LoadError" xml:space="preserve"><value>Kan je instellingen niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+</root>

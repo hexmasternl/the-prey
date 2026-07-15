@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.8.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
@@ -43,6 +44,20 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameApiClient.cs" Link="Linked\GameApiClient.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\ISessionService.cs" Link="Linked\ISessionService.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\SessionService.cs" Link="Linked\SessionService.cs" />
+
+    <!-- Users API client, access-token provider, localization, and the settings view model.
+         All are plain .NET; the MAUI-only bits (TranslateExtension, PreferencesLanguageStore) are excluded. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\UserSettings.cs" Link="Linked\UserSettings.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\IUserApiClient.cs" Link="Linked\IUserApiClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\UserApiClient.cs" Link="Linked\UserApiClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Authentication\IAccessTokenProvider.cs" Link="Linked\IAccessTokenProvider.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Authentication\AccessTokenProvider.cs" Link="Linked\AccessTokenProvider.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Localization\ILocalizationService.cs" Link="Linked\ILocalizationService.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Localization\LocalizationService.cs" Link="Linked\LocalizationService.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Localization\ILanguageStore.cs" Link="Linked\ILanguageStore.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Localization\ILanguageResolver.cs" Link="Linked\ILanguageResolver.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Localization\LanguageResolver.cs" Link="Linked\LanguageResolver.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\SettingsViewModel.cs" Link="Linked\SettingsViewModel.cs" />
 
     <!-- Main-menu view model and its plain collaborators. The MAUI implementations of these
          interfaces (Shell/Geolocation/AppInfo/WebAuthenticator) are deliberately excluded. -->

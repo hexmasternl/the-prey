@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
              x:Class="HexMaster.ThePrey.Maui.App.Pages.HomePage"
              Shell.NavBarIsVisible="False"
              Title="Main Menu">
@@ -34,21 +35,21 @@
                 <Label Style="{StaticResource MenuSloganLine}">
                     <Label.FormattedText>
                         <FormattedString>
-                            <Span Text="STAY " Style="{StaticResource SloganWord}" />
-                            <Span Text="HIDDEN." Style="{StaticResource SloganAccent}" />
+                            <Span Text="{loc:Translate Menu_SloganLine1Lead}" Style="{StaticResource SloganWord}" />
+                            <Span Text="{loc:Translate Menu_SloganLine1Accent}" Style="{StaticResource SloganAccent}" />
                         </FormattedString>
                     </Label.FormattedText>
                 </Label>
                 <Label Style="{StaticResource MenuSloganLine}">
                     <Label.FormattedText>
                         <FormattedString>
-                            <Span Text="HUNT " Style="{StaticResource SloganWord}" />
-                            <Span Text="SMART." Style="{StaticResource SloganAccent}" />
+                            <Span Text="{loc:Translate Menu_SloganLine2Lead}" Style="{StaticResource SloganWord}" />
+                            <Span Text="{loc:Translate Menu_SloganLine2Accent}" Style="{StaticResource SloganAccent}" />
                         </FormattedString>
                     </Label.FormattedText>
                 </Label>
                 <Label Style="{StaticResource MenuTagline}"
-                       Text="A GPS-based, real-world hide-and-seek game. Enter the playfield. Don't get caught." />
+                       Text="{loc:Translate Menu_Tagline}" />
             </VerticalStackLayout>
 
             <!-- Actions: bottom-aligned button roster -->
@@ -58,34 +59,34 @@
                                    IsVisible="{Binding IsBusy}"
                                    HorizontalOptions="Center" />
 
-                <Button Text="LOG IN"
+                <Button Text="{loc:Translate Menu_LogIn}"
                         Style="{StaticResource PrimaryButton}"
                         Command="{Binding LogInCommand}"
                         IsVisible="{Binding ShowLogIn}" />
 
-                <Button Text="RESUME GAME"
+                <Button Text="{loc:Translate Menu_ResumeGame}"
                         Style="{StaticResource HunterButton}"
                         Command="{Binding ResumeGameCommand}"
                         IsVisible="{Binding ShowResume}" />
 
-                <Button Text="START GAME"
+                <Button Text="{loc:Translate Menu_StartGame}"
                         Style="{StaticResource PrimaryButton}"
                         Command="{Binding StartGameCommand}"
                         IsVisible="{Binding ShowStart}" />
 
-                <Button Text="PLAYFIELDS"
+                <Button Text="{loc:Translate Menu_Playfields}"
                         Style="{StaticResource OutlineButton}"
                         Command="{Binding PlayfieldsCommand}" />
 
-                <Button Text="SETTINGS"
+                <Button Text="{loc:Translate Menu_Settings}"
                         Style="{StaticResource OutlineButton}"
                         Command="{Binding SettingsCommand}" />
 
-                <Button Text="LOG OUT"
+                <Button Text="{loc:Translate Menu_LogOut}"
                         Style="{StaticResource OutlineButton}"
                         Command="{Binding LogOutCommand}" />
 
-                <Button Text="EXIT"
+                <Button Text="{loc:Translate Menu_Exit}"
                         Style="{StaticResource OutlineButton}"
                         Command="{Binding ExitCommand}"
                         IsVisible="{Binding ShowExit}" />

@@ -9,6 +9,9 @@ internal sealed class StubHttpMessageHandler : HttpMessageHandler
 
     public HttpRequestMessage? LastRequest { get; private set; }
 
+    /// <summary>The body of the last request, captured before the client disposes it.</summary>
+    public string? LastRequestBody { get; private set; }
+
     private StubHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responder) => _responder = responder;
 
     public static StubHttpMessageHandler Returns(HttpStatusCode status, string? json = null) =>
@@ -23,9 +26,12 @@ internal sealed class StubHttpMessageHandler : HttpMessageHandler
     public static StubHttpMessageHandler Throws(Exception exception) =>
         new(_ => throw exception);
 
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         LastRequest = request;
-        return Task.FromResult(_responder(request));
+        if (request.Content is not null)
+            LastRequestBody = await request.Content.ReadAsStringAsync(cancellationToken);
+
+        return _responder(request);
     }
 }

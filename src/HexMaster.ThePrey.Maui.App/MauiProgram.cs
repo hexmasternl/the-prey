@@ -1,9 +1,12 @@
+using System.Globalization;
 using System.Reflection;
+using System.Resources;
 using HexMaster.ThePrey.Maui.App.Configuration;
 using HexMaster.ThePrey.Maui.App.Pages;
 using HexMaster.ThePrey.Maui.App.Services;
 using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Authentication;
+using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
 using HexMaster.ThePrey.Maui.App.Services.Platform;
@@ -67,11 +70,27 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton(SecureStorage.Default);
             services.AddSingleton(WebAuthenticator.Default);
             services.AddSingleton(Geolocation.Default);
+            services.AddSingleton(Preferences.Default);
+
+            // Testable clock for debounced auto-save.
+            services.AddSingleton(TimeProvider.System);
 
             // Session infrastructure.
             services.AddSingleton<ITokenStore, SecureStorageTokenStore>();
             services.AddSingleton<ISessionService, SessionService>();
+            services.AddSingleton<IAccessTokenProvider, AccessTokenProvider>();
             services.AddTransient<IInteractiveLoginService, InteractiveLoginService>();
+
+            // Localization — one runtime-switchable service over the embedded string resources,
+            // a locally persisted preference, and a device-language-defaulting resolver.
+            var resourceManager = new ResourceManager(
+                "HexMaster.ThePrey.Maui.App.Resources.Strings.AppResources",
+                typeof(MauiProgram).Assembly);
+            services.AddSingleton<ILocalizationService>(new LocalizationService(resourceManager));
+            services.AddSingleton<ILanguageStore, PreferencesLanguageStore>();
+            services.AddSingleton<ILanguageResolver>(sp => new LanguageResolver(
+                sp.GetRequiredService<ILanguageStore>(),
+                () => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName));
 
             // Menu-facing platform adapters (kept behind interfaces so view models stay testable).
             services.AddSingleton<IMenuNavigator, ShellMenuNavigator>();
@@ -92,10 +111,18 @@ namespace HexMaster.ThePrey.Maui.App
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
 
+            // Backend users API client (typed HttpClient).
+            services.AddHttpClient<IUserApiClient, UserApiClient>(client =>
+            {
+                client.BaseAddress = new Uri(EnsureTrailingSlash(options.BackendBaseUrl));
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
+
             // View models.
             services.AddTransient<WelcomeViewModel>();
             services.AddTransient<LoginViewModel>();
             services.AddTransient<MainMenuViewModel>();
+            services.AddTransient<SettingsViewModel>();
 
             // Pages.
             services.AddTransient<WelcomePage>();

@@ -1,15 +1,69 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
              x:Class="HexMaster.ThePrey.Maui.App.Pages.SettingsPage"
              Shell.NavBarIsVisible="False"
-             Title="Settings">
+             Title="{loc:Translate Settings_Title}">
 
-    <VerticalStackLayout Spacing="18" Padding="28" VerticalOptions="Center">
-        <Label Text="SETTINGS" Style="{StaticResource TacticalTitle}" />
-        <Label Text="SYSTEM CONFIG" Style="{StaticResource HudLabel}" />
-        <Label Text="Adjust app and operative settings. (Coming soon.)"
-               Style="{StaticResource TacticalBody}" />
-    </VerticalStackLayout>
+    <Grid>
+
+        <!-- Settings form -->
+        <ScrollView>
+            <VerticalStackLayout Spacing="24" Padding="28,44">
+
+                <Label Text="{loc:Translate Settings_Title}" Style="{StaticResource TacticalTitle}" />
+                <Label Text="{loc:Translate Settings_Subtitle}" Style="{StaticResource HudLabel}" />
+
+                <!-- Display name -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{loc:Translate Settings_DisplayName_Label}"
+                           Style="{StaticResource SettingsFieldLabel}" />
+                    <Entry Text="{Binding DisplayName}"
+                           Placeholder="{loc:Translate Settings_DisplayName_Placeholder}"
+                           Style="{StaticResource SettingsEntry}" />
+
+                    <Label Text="{loc:Translate Settings_DisplayName_Required}"
+                           Style="{StaticResource SettingsStatusError}"
+                           IsVisible="{Binding DisplayNameRequired}" />
+                    <Label Text="{loc:Translate Settings_Status_Saving}"
+                           Style="{StaticResource SettingsStatusSaving}"
+                           IsVisible="{Binding IsSaving}" />
+                    <Label Text="{loc:Translate Settings_Status_Saved}"
+                           Style="{StaticResource SettingsStatusSaved}"
+                           IsVisible="{Binding IsSaved}" />
+                    <Label Text="{loc:Translate Settings_Status_Error}"
+                           Style="{StaticResource SettingsStatusError}"
+                           IsVisible="{Binding HasSaveError}" />
+                </VerticalStackLayout>
+
+                <!-- Language -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{loc:Translate Settings_Language_Label}"
+                           Style="{StaticResource SettingsFieldLabel}" />
+                    <HorizontalStackLayout Spacing="14" HorizontalOptions="Start">
+                        <Label Text="EN" Style="{StaticResource LanguageSegmentLabel}" />
+                        <Switch IsToggled="{Binding IsDutch}" Style="{StaticResource LanguageToggle}" />
+                        <Label Text="NL" Style="{StaticResource LanguageSegmentLabel}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Load-error view -->
+        <VerticalStackLayout IsVisible="{Binding HasLoadError}"
+                             Spacing="18" Padding="28"
+                             HorizontalOptions="Center" VerticalOptions="Center">
+            <Label Text="{loc:Translate Settings_Subtitle}" Style="{StaticResource HudLabel}" />
+            <Label Text="{loc:Translate Settings_LoadError}" Style="{StaticResource AlertLabel}" />
+        </VerticalStackLayout>
+
+        <!-- Busy indicator -->
+        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+
+    </Grid>
 
 </ContentPage>

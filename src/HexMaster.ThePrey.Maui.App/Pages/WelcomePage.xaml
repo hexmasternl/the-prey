@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
              x:Class="HexMaster.ThePrey.Maui.App.Pages.WelcomePage"
              Shell.NavBarIsVisible="False"
              Title="Welcome">
@@ -52,7 +53,7 @@
                            SemanticProperties.Description="The Prey logo" />
 
                     <Label Text="THE PREY" Style="{StaticResource TacticalTitle}" />
-                    <Label Text="LOCATION-BASED FIELD OPERATIONS"
+                    <Label Text="{loc:Translate Welcome_Subtitle}"
                            Style="{StaticResource HudLabel}" />
                 </VerticalStackLayout>
               </Grid>
@@ -62,16 +63,16 @@
                   <Label Style="{StaticResource SloganLine}">
                       <Label.FormattedText>
                           <FormattedString>
-                              <Span Text="STAY " Style="{StaticResource SloganWord}" />
-                              <Span Text="HIDDEN" Style="{StaticResource SloganAccent}" />
+                              <Span Text="{loc:Translate Welcome_SloganLine1Lead}" Style="{StaticResource SloganWord}" />
+                              <Span Text="{loc:Translate Welcome_SloganLine1Accent}" Style="{StaticResource SloganAccent}" />
                           </FormattedString>
                       </Label.FormattedText>
                   </Label>
                   <Label Style="{StaticResource SloganLine}">
                       <Label.FormattedText>
                           <FormattedString>
-                              <Span Text="HUNT " Style="{StaticResource SloganWord}" />
-                              <Span Text="SMART" Style="{StaticResource SloganAccent}" />
+                              <Span Text="{loc:Translate Welcome_SloganLine2Lead}" Style="{StaticResource SloganWord}" />
+                              <Span Text="{loc:Translate Welcome_SloganLine2Accent}" Style="{StaticResource SloganAccent}" />
                           </FormattedString>
                       </Label.FormattedText>
                   </Label>
@@ -79,7 +80,7 @@
 
               <!-- Dim descriptive tagline (PT Mono) -->
               <Label Style="{StaticResource SloganDescription}"
-                     Text="A GPS_based, real-world hide-and-seek game. Enter the playfield, Don't get caught." />
+                     Text="{loc:Translate Welcome_Tagline}" />
 
             </VerticalStackLayout>
 

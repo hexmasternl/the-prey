@@ -257,6 +257,68 @@
         <Setter Property="HorizontalTextAlignment" Value="Start" />
     </Style>
 
+    <!-- ============================================================= -->
+    <!-- Settings — form-field, language-toggle, and status/hint styles.-->
+    <!-- All reuse the Tp* tokens; no page carries these literals.       -->
+    <!-- ============================================================= -->
+
+    <!-- Uppercase, letter-spaced field label (left-aligned). -->
+    <Style TargetType="Label" x:Key="SettingsFieldLabel">
+        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpTextSoft}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="CharacterSpacing" Value="3" />
+        <Setter Property="HorizontalTextAlignment" Value="Start" />
+    </Style>
+
+    <!-- Framed, filled entry for the display-name field. -->
+    <Style TargetType="Entry" x:Key="SettingsEntry">
+        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpText}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource TpBgSurface}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource TpTextGhost}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="MinimumHeightRequest" Value="52" />
+    </Style>
+
+    <!-- Small saving/saved/error hint under a field. Base + colored variants. -->
+    <Style TargetType="Label" x:Key="SettingsStatusHint">
+        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpTextSoft}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="HorizontalTextAlignment" Value="Start" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="SettingsStatusSaving" BasedOn="{StaticResource SettingsStatusHint}">
+        <Setter Property="TextColor" Value="{StaticResource TpTextSoft}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="SettingsStatusSaved" BasedOn="{StaticResource SettingsStatusHint}">
+        <Setter Property="TextColor" Value="{StaticResource TpSignal}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="SettingsStatusError" BasedOn="{StaticResource SettingsStatusHint}">
+        <Setter Property="TextColor" Value="{StaticResource TpCaution}" />
+    </Style>
+
+    <!-- Two-state EN/NL language toggle (Switch): off = EN, on = NL. -->
+    <Style TargetType="Switch" x:Key="LanguageToggle">
+        <Setter Property="OnColor" Value="{StaticResource TpSignal}" />
+        <Setter Property="ThumbColor" Value="{StaticResource TpText}" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <!-- EN / NL labels flanking the toggle (display face). -->
+    <Style TargetType="Label" x:Key="LanguageSegmentLabel">
+        <Setter Property="FontFamily" Value="{StaticResource TpDisplayFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpText}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="VerticalTextAlignment" Value="Center" />
+    </Style>
+
     <Style TargetType="ActivityIndicator">
         <Setter Property="Color" Value="{StaticResource TpSignal}" />
     </Style>
