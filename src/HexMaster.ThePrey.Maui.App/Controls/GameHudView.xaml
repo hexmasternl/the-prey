@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
+             x:Class="HexMaster.ThePrey.Maui.App.Controls.GameHudView"
+             x:DataType="vm:GameHudViewModel">
+
+    <!-- Transparent host so the map shows through; the HUD panel and icon buttons anchor to the bottom. -->
+    <Grid RowDefinitions="Auto,Auto"
+          VerticalOptions="End"
+          BackgroundColor="Transparent"
+          Padding="12,0,12,12"
+          RowSpacing="8">
+
+        <!-- Right-aligned icon buttons above the HUD: Center toggle and hunter-only Tag. -->
+        <HorizontalStackLayout Grid.Row="0" HorizontalOptions="End" Spacing="8">
+            <Button Text="{loc:Translate Hud_Center}"
+                    Command="{Binding ToggleCenterCommand}"
+                    Style="{StaticResource HudCenterButton}"
+                    SemanticProperties.Description="{loc:Translate Hud_Center}" />
+            <Button Text="{loc:Translate Hud_Tag}"
+                    Command="{Binding TagCommand}"
+                    IsVisible="{Binding IsHunter}"
+                    Style="{StaticResource HudTagButton}"
+                    SemanticProperties.Description="{loc:Translate Hud_Tag}" />
+        </HorizontalStackLayout>
+
+        <!-- The HUD overlay panel. -->
+        <Border Grid.Row="1" Style="{StaticResource HudOverlayPanel}">
+            <VerticalStackLayout Spacing="10">
+
+                <!-- Collapsed content: tap to expand. -->
+                <VerticalStackLayout IsVisible="{Binding IsCollapsed}" Spacing="8">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ExpandCommand}" />
+                    </VerticalStackLayout.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Grid.Column="0"
+                               Style="{StaticResource HudClock}"
+                               HorizontalOptions="Start"
+                               Text="{Binding GameTimeRemainingText}" />
+                        <Label Grid.Column="1"
+                               Style="{StaticResource HudPingCaption}"
+                               HorizontalOptions="End"
+                               Text="{Binding NextPingRemainingText}" />
+                    </Grid>
+                    <ProgressBar Style="{StaticResource HudProgressBar}"
+                                 Progress="{Binding NextPingProgress}" />
+                </VerticalStackLayout>
+
+                <!-- Expanded content: three captioned metrics, full-width ping bar, collapse button. -->
+                <VerticalStackLayout IsVisible="{Binding IsExpanded}" Spacing="12">
+                    <Grid ColumnDefinitions="*,*,*">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Style="{StaticResource HudMetricValue}" Text="{Binding GameTimeRemainingText}" />
+                            <Label Style="{StaticResource HudMetricCaption}" Text="{loc:Translate Hud_Caption_TimeRemaining}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Style="{StaticResource HudMetricValue}" Text="{Binding PreysActiveText}" />
+                            <Label Style="{StaticResource HudMetricCaption}" Text="{loc:Translate Hud_Caption_Preys}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="2">
+                            <Label Style="{StaticResource HudMetricValue}" Text="{Binding DistanceText}" />
+                            <Label Style="{StaticResource HudMetricCaption}" Text="{loc:Translate Hud_Caption_Distance}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Label Grid.Column="0"
+                                   Style="{StaticResource HudPingCaption}"
+                                   Text="{loc:Translate Hud_NextPing}" />
+                            <Label Grid.Column="1"
+                                   Style="{StaticResource HudPingCaption}"
+                                   HorizontalOptions="End"
+                                   Text="{Binding NextPingRemainingText}" />
+                        </Grid>
+                        <ProgressBar Style="{StaticResource HudProgressBar}"
+                                     Progress="{Binding NextPingProgress}" />
+                    </VerticalStackLayout>
+
+                    <Button Style="{StaticResource HudCollapseButton}"
+                            Text="{loc:Translate Hud_Collapse}"
+                            Command="{Binding CollapseCommand}" />
+                </VerticalStackLayout>
+
+                <!-- Transient feedback (tag messages / errors). -->
+                <Label Style="{StaticResource HudStatusMessage}"
+                       Text="{Binding StatusMessage}"
+                       IsVisible="{Binding HasStatusMessage}" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentView>

@@ -31,9 +31,16 @@ public sealed record GameConfigurationDetails(
     int DefaultLocationInterval,
     int FinalLocationInterval);
 
-/// <summary>One participant as the lobby lists it: name, ready flag, and lobby/game state.</summary>
+/// <summary>
+/// One participant as the lobby lists it: name, ready flag, and lobby/game state. The trailing
+/// <see cref="Latitude"/>/<see cref="Longitude"/>/<see cref="PenaltyEndsAt"/> fields are populated by
+/// the in-game real-time channel (they are absent from lobby snapshots and default to <c>null</c>).
+/// </summary>
 public sealed record GameParticipantDetails(
     Guid UserId,
     string DisplayName,
     bool IsReady,
-    string State);
+    string State,
+    double? Latitude = null,
+    double? Longitude = null,
+    DateTimeOffset? PenaltyEndsAt = null);

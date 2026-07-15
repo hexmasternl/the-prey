@@ -22,6 +22,7 @@ namespace HexMaster.ThePrey.Maui.App
             Routing.RegisterRoute(ShellPlayfieldNavigator.CreatePlayfieldRoute, typeof(CreatePlayfieldPage));
             Routing.RegisterRoute(ShellPlayfieldNavigator.EditPlayfieldRoute, typeof(EditPlayfieldPage));
             Routing.RegisterRoute(ShellPlayfieldNavigator.DefineAreaRoute, typeof(DefineAreaPage));
+            Routing.RegisterRoute(ShellPlayfieldSelectNavigator.SelectPlayfieldRoute, typeof(SelectPlayfieldPage));
         }
     }
 }

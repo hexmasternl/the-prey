@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Resources;
 using HexMaster.ThePrey.Maui.App.Configuration;
+using HexMaster.ThePrey.Maui.App.Controls;
 using HexMaster.ThePrey.Maui.App.Pages;
 using HexMaster.ThePrey.Maui.App.Services;
 using HexMaster.ThePrey.Maui.App.Services.Api;
@@ -11,6 +12,7 @@ using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
 using HexMaster.ThePrey.Maui.App.Services.Platform;
+using HexMaster.ThePrey.Maui.App.Services.Realtime;
 using HexMaster.ThePrey.Maui.App.Services.Session;
 using HexMaster.ThePrey.Maui.App.Services.Storage;
 using HexMaster.ThePrey.Maui.App.ViewModels;
@@ -115,6 +117,12 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton<ICreatePlayfieldNavigator>(sp => sp.GetRequiredService<ShellPlayfieldNavigator>());
             services.AddSingleton<IEditPlayfieldNavigator>(sp => sp.GetRequiredService<ShellPlayfieldNavigator>());
             services.AddSingleton<IAreaEditorNavigator>(sp => sp.GetRequiredService<ShellPlayfieldNavigator>());
+
+            // Playfield-selection modal navigator. One Shell-backed singleton is both the caller-facing
+            // navigator and the modal view model's result sink.
+            services.AddSingleton<ShellPlayfieldSelectNavigator>();
+            services.AddSingleton<IPlayfieldSelectNavigator>(sp => sp.GetRequiredService<ShellPlayfieldSelectNavigator>());
+            services.AddSingleton<IPlayfieldSelectResultSink>(sp => sp.GetRequiredService<ShellPlayfieldSelectNavigator>());
             services.AddSingleton<IApplicationExit, ApplicationExit>();
             services.AddSingleton<IAppVersionProvider, MauiAppVersionProvider>();
             services.AddSingleton<IGpsReader, MauiGpsReader>();
@@ -154,9 +162,23 @@ namespace HexMaster.ThePrey.Maui.App
                 client.Timeout = Timeout.InfiniteTimeSpan;
             });
 
+            // In-game real-time state. One shared singleton owns a single Web PubSub connection for the
+            // active game and is the app's single source of truth for its state. The token flow reuses the
+            // IGameApiClient typed HttpClient (a short GET); the long-lived transport is the ClientWebSocket
+            // created by the factory below, not an HttpClient, so no infinite-timeout client is needed here.
+            services.AddSingleton<IWebSocketConnectionFactory, NativeWebSocketConnectionFactory>();
+            services.AddSingleton<IGameRealtimeConnection, GameRealtimeConnection>();
+            services.AddSingleton<IGameStateService, GameStateService>();
+
             // Native share sheet + lobby onward-navigation seams (kept behind interfaces for testability).
             services.AddSingleton<IShareService, ShareService>();
             services.AddSingleton<ILobbyNavigator, ShellLobbyNavigator>();
+
+            // In-game HUD seams: the hunter's tag-selection modal, and a placeholder map-camera signal
+            // sink. The gameplay map change replaces NullMapCameraController with a real implementation
+            // that moves the camera when the HUD's Center toggle emits follow/free-pan.
+            services.AddSingleton<ITagDialog, TagDialog>();
+            services.AddSingleton<IMapCameraController, NullMapCameraController>();
 
             // View models.
             services.AddTransient<WelcomeViewModel>();
@@ -168,6 +190,8 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<EditPlayfieldViewModel>();
             services.AddTransient<DefineAreaViewModel>();
             services.AddTransient<GameLobbyViewModel>();
+            services.AddTransient<GameHudViewModel>();
+            services.AddTransient<SelectPlayfieldViewModel>();
 
             // Pages.
             services.AddTransient<WelcomePage>();
@@ -177,12 +201,18 @@ namespace HexMaster.ThePrey.Maui.App
             // lobby hands off to); the `game` route itself now resolves GameLobbyPage.
             services.AddTransient<GamePage>();
             services.AddTransient<GameLobbyPage>();
+            services.AddTransient<SelectPlayfieldPage>();
             services.AddTransient<StartGamePage>();
             services.AddTransient<PlayfieldsPage>();
             services.AddTransient<SettingsPage>();
             services.AddTransient<CreatePlayfieldPage>();
             services.AddTransient<EditPlayfieldPage>();
             services.AddTransient<DefineAreaPage>();
+
+            // In-game HUD control. The (separate) gameplay map page resolves this and sets its
+            // BindingContext to an initialized GameHudViewModel. TagCandidatesPage is constructed on
+            // demand by TagDialog with its runtime candidate list, so it is not resolved from DI.
+            services.AddTransient<GameHudView>();
         }
 
         private static string EnsureTrailingSlash(string url) =>

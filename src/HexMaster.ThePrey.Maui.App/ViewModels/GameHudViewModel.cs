@@ -112,8 +112,15 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     public bool IsExpanded
     {
         get => _isExpanded;
-        set => SetProperty(ref _isExpanded, value);
+        set
+        {
+            if (SetProperty(ref _isExpanded, value))
+                OnPropertyChanged(nameof(IsCollapsed));
+        }
     }
+
+    /// <summary>The inverse of <see cref="IsExpanded"/>, for toggling the collapsed content's visibility.</summary>
+    public bool IsCollapsed => !_isExpanded;
 
     public bool IsFollowingLocation
     {

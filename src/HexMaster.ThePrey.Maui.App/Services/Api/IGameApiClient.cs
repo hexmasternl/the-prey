@@ -61,4 +61,11 @@ public interface IGameApiClient
     /// </summary>
     Task<TagPlayerResult> TagPlayerAsync(
         Guid gameId, Guid participantId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>
+    /// Mints a short-lived, group-scoped Web PubSub client access URL via
+    /// <c>GET /games/{id}/notifications/token</c> (<c>403</c> when the caller is not a member).
+    /// </summary>
+    Task<NotificationsTokenResult> GetNotificationsTokenAsync(
+        Guid gameId, string accessToken, CancellationToken ct = default);
 }

@@ -187,4 +187,35 @@
   <data name="Lobby_ActionError" xml:space="preserve"><value>Action failed. Please try again.</value></data>
   <data name="Lobby_Invite_Title" xml:space="preserve"><value>Join my operation</value></data>
   <data name="Lobby_Invite_Template" xml:space="preserve"><value>Join my game of The Prey! Pass code: {0}. Tap to join: {1}</value></data>
+
+  <!-- In-game HUD -->
+  <data name="Hud_Caption_TimeRemaining" xml:space="preserve"><value>TIME LEFT</value></data>
+  <data name="Hud_Caption_Preys" xml:space="preserve"><value>PREYS</value></data>
+  <data name="Hud_Caption_Distance" xml:space="preserve"><value>NEAREST</value></data>
+  <data name="Hud_NextPing" xml:space="preserve"><value>NEXT PING</value></data>
+  <data name="Hud_Collapse" xml:space="preserve"><value>COLLAPSE</value></data>
+  <data name="Hud_Center" xml:space="preserve"><value>CENTER</value></data>
+  <data name="Hud_Center_On" xml:space="preserve"><value>Centering on</value></data>
+  <data name="Hud_Center_Off" xml:space="preserve"><value>Centering off</value></data>
+  <data name="Hud_Tag" xml:space="preserve"><value>TAG</value></data>
+  <data name="Hud_Distance_Unknown" xml:space="preserve"><value>—</value></data>
+  <data name="Hud_Distance_Meters" xml:space="preserve"><value>{0} m</value></data>
+  <data name="Hud_Distance_Kilometers" xml:space="preserve"><value>{0} km</value></data>
+  <data name="Hud_Error_Generic" xml:space="preserve"><value>Could not update the game. Retrying…</value></data>
+  <data name="Hud_Error_Unauthorized" xml:space="preserve"><value>Your session expired. Please sign in again.</value></data>
+  <data name="Tag_DialogTitle" xml:space="preserve"><value>SELECT A PREY TO TAG</value></data>
+  <data name="Tag_NoPreysInRange" xml:space="preserve"><value>No preys are in tagging range.</value></data>
+  <data name="Tag_NoLongerInRange" xml:space="preserve"><value>That prey is no longer in range. Try another.</value></data>
+  <data name="Tag_Confirm_Title" xml:space="preserve"><value>Confirm tag</value></data>
+  <data name="Tag_Confirm_Message" xml:space="preserve"><value>Really tag this player?</value></data>
+  <data name="Tag_Confirm_Accept" xml:space="preserve"><value>TAG</value></data>
+  <data name="Tag_Confirm_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="Tag_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="Select_Title" xml:space="preserve"><value>SELECT PLAYFIELD</value></data>
+  <data name="Select_Search_Placeholder" xml:space="preserve"><value>Search playfields</value></data>
+  <data name="Select_Confirm" xml:space="preserve"><value>SELECT</value></data>
+  <data name="Select_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="Select_Empty" xml:space="preserve"><value>You have no playfields yet.</value></data>
+  <data name="Select_NoResults" xml:space="preserve"><value>No playfields match your search.</value></data>
+  <data name="Select_Error" xml:space="preserve"><value>Could not load playfields. Check your connection and try again.</value></data>
 </root>

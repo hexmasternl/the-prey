@@ -516,6 +516,54 @@ public sealed class GameApiClient : IGameApiClient
         }
     }
 
+    public async Task<NotificationsTokenResult> GetNotificationsTokenAsync(
+        Guid gameId, string accessToken, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}/notifications/token");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(request, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Notifications-token request failed to complete.");
+            return NotificationsTokenResult.Error;
+        }
+
+        using (response)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.OK:
+                    try
+                    {
+                        var body = await response.Content.ReadFromJsonAsync<NotificationsTokenBody>(cancellationToken: ct);
+                        return string.IsNullOrWhiteSpace(body?.Url)
+                            ? NotificationsTokenResult.Error
+                            : NotificationsTokenResult.Success(body!.Url!);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize notifications-token payload.");
+                        return NotificationsTokenResult.Error;
+                    }
+
+                case HttpStatusCode.Forbidden:
+                    return NotificationsTokenResult.Forbidden;
+
+                case HttpStatusCode.Unauthorized:
+                    return NotificationsTokenResult.Unauthorized;
+
+                default:
+                    _logger.LogWarning("Notifications-token endpoint returned unexpected status {Status}.", response.StatusCode);
+                    return NotificationsTokenResult.Error;
+            }
+        }
+    }
+
     // Request bodies — serialized with the default web (camelCase) options to match the backend records.
     private sealed record UpdateGameSettingsBody(
         int GameDuration, int HunterDelayTime, int FinalStageDuration,
@@ -527,4 +575,7 @@ public sealed class GameApiClient : IGameApiClient
 
     // Response shape for GET /games/{id}/tag-candidates (TagCandidatesDto), bound case-insensitively.
     private sealed record TagCandidatesBody(double RangeMeters, IReadOnlyList<TagCandidate>? Candidates);
+
+    // Response shape for GET /games/{id}/notifications/token (GameNotificationConnectionDto → { url }).
+    private sealed record NotificationsTokenBody(string? Url);
 }

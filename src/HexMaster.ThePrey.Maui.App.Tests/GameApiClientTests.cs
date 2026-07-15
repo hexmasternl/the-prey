@@ -282,4 +282,42 @@ public class GameApiClientTests
 
         Assert.Equal(expected, result.Outcome);
     }
+
+    // ---- GetNotificationsTokenAsync ----
+
+    [Fact]
+    public async Task GetNotificationsTokenAsync_ShouldReturnUrl_WhenBackendReturns200()
+    {
+        var handler = StubHttpMessageHandler.Returns(HttpStatusCode.OK, """{"url":"wss://hub.example.com/client?access_token=abc"}""");
+        var sut = CreateSut(handler);
+
+        var result = await sut.GetNotificationsTokenAsync(Guid.NewGuid(), "my-token");
+
+        Assert.Equal(NotificationsTokenOutcome.Success, result.Outcome);
+        Assert.Equal("wss://hub.example.com/client?access_token=abc", result.Url);
+        Assert.Equal("my-token", handler.LastRequest?.Headers.Authorization?.Parameter);
+    }
+
+    [Fact]
+    public async Task GetNotificationsTokenAsync_ShouldReturnError_WhenUrlMissing()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(HttpStatusCode.OK, """{"url":null}"""));
+
+        var result = await sut.GetNotificationsTokenAsync(Guid.NewGuid(), "access");
+
+        Assert.Equal(NotificationsTokenOutcome.Error, result.Outcome);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden, NotificationsTokenOutcome.Forbidden)]
+    [InlineData(HttpStatusCode.Unauthorized, NotificationsTokenOutcome.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError, NotificationsTokenOutcome.Error)]
+    public async Task GetNotificationsTokenAsync_ShouldMapStatus(HttpStatusCode status, NotificationsTokenOutcome expected)
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(status));
+
+        var result = await sut.GetNotificationsTokenAsync(Guid.NewGuid(), "access");
+
+        Assert.Equal(expected, result.Outcome);
+    }
 }

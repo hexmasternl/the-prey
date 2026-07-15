@@ -187,4 +187,35 @@
   <data name="Lobby_ActionError" xml:space="preserve"><value>Actie mislukt. Probeer het opnieuw.</value></data>
   <data name="Lobby_Invite_Title" xml:space="preserve"><value>Doe mee aan mijn operatie</value></data>
   <data name="Lobby_Invite_Template" xml:space="preserve"><value>Doe mee met mijn spel The Prey! Toegangscode: {0}. Tik om mee te doen: {1}</value></data>
+
+  <!-- In-game HUD -->
+  <data name="Hud_Caption_TimeRemaining" xml:space="preserve"><value>RESTTIJD</value></data>
+  <data name="Hud_Caption_Preys" xml:space="preserve"><value>PROOIEN</value></data>
+  <data name="Hud_Caption_Distance" xml:space="preserve"><value>DICHTSTBIJ</value></data>
+  <data name="Hud_NextPing" xml:space="preserve"><value>VOLGENDE PING</value></data>
+  <data name="Hud_Collapse" xml:space="preserve"><value>INKLAPPEN</value></data>
+  <data name="Hud_Center" xml:space="preserve"><value>CENTREREN</value></data>
+  <data name="Hud_Center_On" xml:space="preserve"><value>Centreren aan</value></data>
+  <data name="Hud_Center_Off" xml:space="preserve"><value>Centreren uit</value></data>
+  <data name="Hud_Tag" xml:space="preserve"><value>TIK</value></data>
+  <data name="Hud_Distance_Unknown" xml:space="preserve"><value>—</value></data>
+  <data name="Hud_Distance_Meters" xml:space="preserve"><value>{0} m</value></data>
+  <data name="Hud_Distance_Kilometers" xml:space="preserve"><value>{0} km</value></data>
+  <data name="Hud_Error_Generic" xml:space="preserve"><value>Kan het spel niet bijwerken. Opnieuw proberen…</value></data>
+  <data name="Hud_Error_Unauthorized" xml:space="preserve"><value>Je sessie is verlopen. Meld je opnieuw aan.</value></data>
+  <data name="Tag_DialogTitle" xml:space="preserve"><value>KIES EEN PROOI OM TE TIKKEN</value></data>
+  <data name="Tag_NoPreysInRange" xml:space="preserve"><value>Er zijn geen prooien binnen tikbereik.</value></data>
+  <data name="Tag_NoLongerInRange" xml:space="preserve"><value>Die prooi is niet meer in bereik. Probeer een andere.</value></data>
+  <data name="Tag_Confirm_Title" xml:space="preserve"><value>Tik bevestigen</value></data>
+  <data name="Tag_Confirm_Message" xml:space="preserve"><value>Deze speler echt tikken?</value></data>
+  <data name="Tag_Confirm_Accept" xml:space="preserve"><value>TIK</value></data>
+  <data name="Tag_Confirm_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="Tag_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="Select_Title" xml:space="preserve"><value>SPEELVELD KIEZEN</value></data>
+  <data name="Select_Search_Placeholder" xml:space="preserve"><value>Zoek speelvelden</value></data>
+  <data name="Select_Confirm" xml:space="preserve"><value>KIEZEN</value></data>
+  <data name="Select_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="Select_Empty" xml:space="preserve"><value>Je hebt nog geen speelvelden.</value></data>
+  <data name="Select_NoResults" xml:space="preserve"><value>Geen speelvelden gevonden.</value></data>
+  <data name="Select_Error" xml:space="preserve"><value>Kan speelvelden niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
 </root>

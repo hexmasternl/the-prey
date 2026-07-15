@@ -554,6 +554,27 @@
         <Setter Property="TextColor" Value="{StaticResource TpCaution}" />
     </Style>
 
+    <!-- ============================================================= -->
+    <!-- Playfield-selection modal — the selectable row highlight.      -->
+    <!-- Rows reuse the list page's name + badge styles; only the       -->
+    <!-- selected-row frame is new. Reuses the Tp* tokens.              -->
+    <!-- ============================================================= -->
+
+    <!-- Selectable row frame: hairline surface by default, signal-green highlight when IsSelected. -->
+    <Style TargetType="Border" x:Key="SelectRow">
+        <Setter Property="BackgroundColor" Value="{StaticResource TpBgSurface}" />
+        <Setter Property="Stroke" Value="{StaticResource TpLineBrush}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="Rectangle" />
+        <Setter Property="Padding" Value="14,12" />
+        <Style.Triggers>
+            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                <Setter Property="BackgroundColor" Value="{StaticResource TpBgSurface2}" />
+                <Setter Property="Stroke" Value="{StaticResource TpSignalBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
     <Style TargetType="ActivityIndicator">
         <Setter Property="Color" Value="{StaticResource TpSignal}" />
     </Style>
@@ -980,6 +1001,129 @@
         <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource White}}" />
         <Setter Property="UnselectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray950}}" />
         <Setter Property="SelectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray200}}" />
+    </Style>
+
+    <!-- ============================================================= -->
+    <!-- In-game HUD — bottom-anchored translucent overlay, its metrics, -->
+    <!-- countdown bars, collapse button, and the Center/Tag icon buttons.-->
+    <!-- All reuse the Tp* tokens; the HUD view carries no visual literals.-->
+    <!-- ============================================================= -->
+
+    <!-- Dark, semi-transparent panel anchored to the bottom of the game view. -->
+    <Style TargetType="Border" x:Key="HudOverlayPanel">
+        <Setter Property="BackgroundColor" Value="{StaticResource TpHudPanel}" />
+        <Setter Property="Stroke" Value="{StaticResource TpLineBrush}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 14,14,0,0" />
+        <Setter Property="Padding" Value="18,14" />
+        <Setter Property="VerticalOptions" Value="End" />
+    </Style>
+
+    <!-- Large signal-green metric value (game clock, preys, distance). -->
+    <Style TargetType="Label" x:Key="HudMetricValue">
+        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpSignal}" />
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="CharacterSpacing" Value="1" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <!-- Small dim caption beneath each metric (reuses the shared HudLabel). -->
+    <Style TargetType="Label" x:Key="HudMetricCaption" BasedOn="{StaticResource HudLabel}">
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Margin" Value="0,2,0,0" />
+    </Style>
+
+    <!-- Collapsed-state big clock readout. -->
+    <Style TargetType="Label" x:Key="HudClock" BasedOn="{StaticResource HudMetricValue}">
+        <Setter Property="FontSize" Value="20" />
+    </Style>
+
+    <!-- Next-ping label above the shrinking bar. -->
+    <Style TargetType="Label" x:Key="HudPingCaption" BasedOn="{StaticResource HudLabel}">
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="HorizontalTextAlignment" Value="Start" />
+    </Style>
+
+    <!-- Signal-green next-ping progress bar. -->
+    <Style TargetType="ProgressBar" x:Key="HudProgressBar">
+        <Setter Property="ProgressColor" Value="{StaticResource TpSignal}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource TpSignalDeep}" />
+    </Style>
+
+    <!-- Full-width collapse button. -->
+    <Style TargetType="Button" x:Key="HudCollapseButton">
+        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="CharacterSpacing" Value="3" />
+        <Setter Property="TextColor" Value="{StaticResource TpTextSoft}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource TpBgSurface2}" />
+        <Setter Property="BorderColor" Value="{StaticResource TpLine}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="HeightRequest" Value="40" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+    </Style>
+
+    <!-- Right-aligned square icon button above the HUD (Center default / inactive). -->
+    <Style TargetType="Button" x:Key="HudIconButton">
+        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="TextColor" Value="{StaticResource TpTextSoft}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource TpHudPanel}" />
+        <Setter Property="BorderColor" Value="{StaticResource TpLine}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="HeightRequest" Value="48" />
+        <Setter Property="MinimumWidthRequest" Value="56" />
+        <Setter Property="Padding" Value="12,0" />
+    </Style>
+
+    <!-- Center toggle: dim when free-panning, signal green while following the device location. -->
+    <Style TargetType="Button" x:Key="HudCenterButton" BasedOn="{StaticResource HudIconButton}">
+        <Style.Triggers>
+            <DataTrigger TargetType="Button" Binding="{Binding IsFollowingLocation}" Value="True">
+                <Setter Property="TextColor" Value="{StaticResource TpSignal}" />
+                <Setter Property="BorderColor" Value="{StaticResource TpSignal}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Hunter-only Tag button — hunter red accent. -->
+    <Style TargetType="Button" x:Key="HudTagButton" BasedOn="{StaticResource HudIconButton}">
+        <Setter Property="TextColor" Value="{StaticResource TpHunter}" />
+        <Setter Property="BorderColor" Value="{StaticResource TpHunter}" />
+    </Style>
+
+    <!-- Transient HUD status/feedback line (info = dim, error = hunter red via trigger). -->
+    <Style TargetType="Label" x:Key="HudStatusMessage">
+        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpTextSoft}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="CharacterSpacing" Value="1" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+        <Style.Triggers>
+            <DataTrigger TargetType="Label" Binding="{Binding StatusIsError}" Value="True">
+                <Setter Property="TextColor" Value="{StaticResource TpHunter}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Tag-candidate row title/subtitle in the selection modal. -->
+    <Style TargetType="Label" x:Key="TagCandidateCallsign">
+        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpText}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="CharacterSpacing" Value="1" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="TagCandidateDistance" BasedOn="{StaticResource HudLabel}">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="HorizontalOptions" Value="End" />
     </Style>
 
 </ResourceDictionary>
