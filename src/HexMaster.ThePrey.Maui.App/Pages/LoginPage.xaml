@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.LoginPage"
+             Shell.NavBarIsVisible="False"
+             Title="Login">
+
+    <Grid Padding="28" RowDefinitions="*, Auto, *">
+
+        <Border Grid.Row="1" Style="{StaticResource HudPanel}"
+                HorizontalOptions="Fill" VerticalOptions="Center">
+            <VerticalStackLayout Spacing="22">
+                <Image Source="theprey_logo.png"
+                       HeightRequest="88"
+                       Aspect="AspectFit"
+                       HorizontalOptions="Center"
+                       SemanticProperties.Description="The Prey logo" />
+
+                <Label Text="{loc:Translate Login_Title}" Style="{StaticResource TacticalTitle}" />
+
+                <Label Text="{loc:Translate Login_Body}"
+                       Style="{StaticResource TacticalBody}" />
+
+                <Label Text="{Binding ErrorMessage}"
+                       IsVisible="{Binding HasError}"
+                       Style="{StaticResource AlertLabel}" />
+
+                <Button Text="{loc:Translate Login_Button}"
+                        Command="{Binding LoginCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        HorizontalOptions="Fill" />
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   HorizontalOptions="Center" />
+
+                <Label Text="{loc:Translate Login_Establishing}"
+                       IsVisible="{Binding IsBusy}"
+                       Style="{StaticResource HudLabel}" />
+            </VerticalStackLayout>
+        </Border>
+
+    </Grid>
+
+</ContentPage>

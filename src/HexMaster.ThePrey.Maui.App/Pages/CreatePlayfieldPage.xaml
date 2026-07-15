@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.CreatePlayfieldPage"
+             x:DataType="vm:CreatePlayfieldViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:Translate CreatePlayfield_Title}">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="24" Padding="28,44,28,16">
+
+                <Label Text="{loc:Translate CreatePlayfield_Title}" Style="{StaticResource TacticalTitle}" />
+                <Label Text="{loc:Translate CreatePlayfield_Subtitle}" Style="{StaticResource HudLabel}" />
+
+                <!-- Name -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{loc:Translate CreatePlayfield_Name_Label}"
+                           Style="{StaticResource SettingsFieldLabel}" />
+                    <Entry Text="{Binding Name}"
+                           Placeholder="{loc:Translate CreatePlayfield_Name_Placeholder}"
+                           Style="{StaticResource CreateNameEntry}" />
+                </VerticalStackLayout>
+
+                <!-- Visibility (Public/Private toggle, gated by the name pattern) -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{loc:Translate CreatePlayfield_Visibility_Label}"
+                           Style="{StaticResource SettingsFieldLabel}" />
+                    <HorizontalStackLayout Spacing="14" HorizontalOptions="Start">
+                        <Label Text="{loc:Translate CreatePlayfield_Visibility_Private}"
+                               Style="{StaticResource VisibilitySegmentLabel}" />
+                        <Switch IsToggled="{Binding IsPublic}"
+                                IsEnabled="{Binding CanTogglePublic}"
+                                Style="{StaticResource VisibilityToggle}" />
+                        <Label Text="{loc:Translate CreatePlayfield_Visibility_Public}"
+                               Style="{StaticResource VisibilitySegmentLabel}" />
+                    </HorizontalStackLayout>
+                    <Label Text="{loc:Translate CreatePlayfield_Visibility_Hint}"
+                           Style="{StaticResource CreateHint}" />
+                </VerticalStackLayout>
+
+                <!-- Define area -->
+                <VerticalStackLayout Spacing="8">
+                    <Button Text="{loc:Translate CreatePlayfield_DefineArea}"
+                            Style="{StaticResource DefineAreaButton}"
+                            Command="{Binding DefineAreaCommand}" />
+                    <Label Text="{loc:Translate CreatePlayfield_Area_Defined}"
+                           Style="{StaticResource CreateAreaDefined}"
+                           IsVisible="{Binding HasArea}" />
+                </VerticalStackLayout>
+
+                <!-- Status -->
+                <Label Text="{loc:Translate CreatePlayfield_ValidationError}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding HasValidationError}" />
+                <Label Text="{loc:Translate CreatePlayfield_Error}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding HasError}" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Bottom action bar -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="12" Padding="28,8,28,28">
+            <Button Grid.Column="0"
+                    Text="{loc:Translate CreatePlayfield_Cancel}"
+                    Style="{StaticResource CreateCancelButton}"
+                    Command="{Binding CancelCommand}" />
+            <Button Grid.Column="1"
+                    Text="{loc:Translate CreatePlayfield_Save}"
+                    Style="{StaticResource CreateSaveButton}"
+                    Command="{Binding SaveCommand}" />
+        </Grid>
+
+        <!-- Busy overlay while the create request is in flight -->
+        <ActivityIndicator Grid.RowSpan="2"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+
+    </Grid>
+
+</ContentPage>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.PlayfieldsPage"
+             x:Name="PlayfieldsRoot"
+             x:DataType="vm:PlayFieldsListViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:Translate Playfields_Title}">
+
+    <Grid RowDefinitions="Auto,Auto,*" Padding="28,44,28,28" RowSpacing="20">
+
+        <!-- Page title -->
+        <Label Grid.Row="0"
+               Text="{loc:Translate Playfields_Title}"
+               Style="{StaticResource TacticalTitle}" />
+
+        <!-- Two-segment tab header -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="12">
+            <Button Grid.Column="0"
+                    Text="{loc:Translate Playfields_Tab_Private}"
+                    Style="{StaticResource PrivateTabButton}"
+                    Command="{Binding SelectPrivateCommand}" />
+            <Button Grid.Column="1"
+                    Text="{loc:Translate Playfields_Tab_Public}"
+                    Style="{StaticResource PublicTabButton}"
+                    Command="{Binding SelectPublicCommand}" />
+        </Grid>
+
+        <!-- Tab content -->
+        <Grid Grid.Row="2">
+
+            <!-- Private tab -->
+            <Grid IsVisible="{Binding IsPrivateSelected}">
+                <CollectionView ItemsSource="{Binding PrivatePlayFields}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PlayFieldListItem">
+                            <!-- Left-swipe reveals a single destructive Delete action (Private list only). -->
+                            <SwipeView>
+                                <SwipeView.RightItems>
+                                    <SwipeItems Mode="Reveal">
+                                        <SwipeItem Text="{loc:Translate Playfields_Delete_ConfirmAccept}"
+                                                   Style="{StaticResource DeleteSwipeItem}"
+                                                   IsDestructive="True"
+                                                   Command="{Binding BindingContext.DeletePlayFieldCommand, Source={x:Reference PlayfieldsRoot}}"
+                                                   CommandParameter="{Binding .}" />
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
+                                <!-- Tapping a private item opens it for editing. -->
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="4,10">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnPrivateItemTapped" />
+                                    </Grid.GestureRecognizers>
+                                    <Label Grid.Column="0"
+                                           Text="{Binding Name}"
+                                           Style="{StaticResource LocationItemName}" />
+                                    <Label Grid.Column="1"
+                                           Text="{loc:Translate Playfields_Badge_Public}"
+                                           Style="{StaticResource LocationBadgePublic}"
+                                           IsVisible="{Binding IsPublic}" />
+                                    <Label Grid.Column="1"
+                                           Text="{loc:Translate Playfields_Badge_Private}"
+                                           Style="{StaticResource LocationBadgePrivate}"
+                                           IsVisible="{Binding IsPrivate}" />
+                                </Grid>
+                            </SwipeView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Private empty state -->
+                <Label Text="{loc:Translate Playfields_Private_Empty}"
+                       Style="{StaticResource HudLabel}"
+                       IsVisible="{Binding PrivateIsEmpty}"
+                       VerticalOptions="Center" />
+
+                <!-- Private error state -->
+                <Label Text="{loc:Translate Playfields_Private_Error}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding PrivateHasError}"
+                       VerticalOptions="Center" />
+
+                <!-- Non-blocking delete-failure indication (item kept; bottom-anchored over the list). -->
+                <Label Text="{loc:Translate Playfields_Delete_Error}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding DeleteError}"
+                       VerticalOptions="End" />
+
+                <!-- Create action — present in the list and empty states alike. -->
+                <Button Text="+"
+                        Style="{StaticResource PlayfieldsAddButton}"
+                        SemanticProperties.Description="{loc:Translate Playfields_Create_Description}"
+                        Clicked="OnCreateClicked" />
+            </Grid>
+
+            <!-- Public tab -->
+            <Grid IsVisible="{Binding IsPublicSelected}"
+                  RowDefinitions="Auto,*" RowSpacing="16">
+                <Entry Grid.Row="0"
+                       Text="{Binding SearchQuery, Mode=TwoWay}"
+                       Placeholder="{loc:Translate Playfields_Search_Placeholder}"
+                       Style="{StaticResource LocationSearchField}" />
+
+                <Grid Grid.Row="1">
+                    <CollectionView ItemsSource="{Binding PublicPlayFields}">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PlayFieldListItem">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="4,10">
+                                    <Label Grid.Column="0"
+                                           Text="{Binding Name}"
+                                           Style="{StaticResource LocationItemName}" />
+                                    <Label Grid.Column="1"
+                                           Text="{loc:Translate Playfields_Badge_Public}"
+                                           Style="{StaticResource LocationBadgePublic}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- Public prompt / no-results / error states -->
+                    <Label Text="{loc:Translate Playfields_Search_Prompt}"
+                           Style="{StaticResource HudLabel}"
+                           IsVisible="{Binding PublicShowPrompt}"
+                           VerticalOptions="Center" />
+                    <Label Text="{loc:Translate Playfields_Search_NoResults}"
+                           Style="{StaticResource HudLabel}"
+                           IsVisible="{Binding PublicNoResults}"
+                           VerticalOptions="Center" />
+                    <Label Text="{loc:Translate Playfields_Search_Error}"
+                           Style="{StaticResource AlertLabel}"
+                           IsVisible="{Binding PublicHasError}"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Grid>
+
+        </Grid>
+
+        <!-- Busy indicator (non-blocking refresh hint over a cached list; full load on empty cache) -->
+        <ActivityIndicator Grid.Row="2"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Start" />
+
+    </Grid>
+
+</ContentPage>
