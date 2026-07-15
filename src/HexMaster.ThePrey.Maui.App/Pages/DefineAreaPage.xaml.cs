@@ -37,10 +37,11 @@ public partial class DefineAreaPage : ContentPage
     private const double DefaultLongitude = 4.9041;
 
     /// <summary>
-    /// Street-level resolution (meters/pixel) for the initial center, derived from the standard Web
-    /// Mercator formula <c>156543.03392804097 / 2^zoom</c> at zoom 17.
+    /// Neighbourhood-level resolution (meters/pixel) for the initial center, derived from the standard Web
+    /// Mercator formula <c>156543.03392804097 / 2^zoom</c> at zoom 15. Zoomed out from the tighter street
+    /// level so a whole playfield area is comfortably in frame when the editor opens.
     /// </summary>
-    private static readonly double StreetLevelResolution = 156543.03392804097 / Math.Pow(2, 17);
+    private static readonly double StreetLevelResolution = 156543.03392804097 / Math.Pow(2, 15);
 
     /// <summary>Touch tolerance (device-independent pixels) for hitting a vertex marker with a finger.</summary>
     private const double VertexHitRadius = 24;
@@ -55,11 +56,16 @@ public partial class DefineAreaPage : ContentPage
     private readonly IAreaEditorNavigator _navigator;
     private readonly MapControl _mapControl;
 
+    // Style = null suppresses Mapsui's default layer-level VectorStyle, which is otherwise rendered *in
+    // addition to* each feature's own style (see Mapsui issue #956). Left on, that default draws an opaque
+    // fill over the polygon's 25%-transparent green (hiding the map) and a default symbol — a large white
+    // circle — around every vertex dot. The per-feature styles in RedrawLayers carry all the appearance.
+
     /// <summary>Polygon fill/outline, redrawn from <see cref="DefineAreaViewModel.Vertices"/>.</summary>
-    private readonly MemoryLayer _polygonLayer = new("Area");
+    private readonly MemoryLayer _polygonLayer = new("Area") { Style = null };
 
     /// <summary>One point feature per vertex, redrawn from <see cref="DefineAreaViewModel.Vertices"/>.</summary>
-    private readonly MemoryLayer _vertexLayer = new("Vertices");
+    private readonly MemoryLayer _vertexLayer = new("Vertices") { Style = null };
 
     /// <summary>Index of the vertex currently being dragged, or <c>null</c> when not dragging.</summary>
     private int? _dragIndex;
