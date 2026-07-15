@@ -120,6 +120,21 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\ILobbyNavigator.cs" Link="Linked\ILobbyNavigator.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\LobbyParticipant.cs" Link="Linked\LobbyParticipant.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GameLobbyViewModel.cs" Link="Linked\GameLobbyViewModel.cs" />
+
+    <!-- In-game HUD: the status/state/tag client projections + typed results, the geo helper, the
+         map-camera and tag-dialog seams (interfaces only — MAUI implementations excluded), the
+         selectable candidate item, and the HUD view model. All plain .NET. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStatusSnapshot.cs" Link="Linked\GameStatusSnapshot.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStateSnapshot.cs" Link="Linked\GameStateSnapshot.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\TagCandidate.cs" Link="Linked\TagCandidate.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStatusResult.cs" Link="Linked\GameStatusResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStateResult.cs" Link="Linked\GameStateResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\TagCandidatesResult.cs" Link="Linked\TagCandidatesResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\TagPlayerResult.cs" Link="Linked\TagPlayerResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GeoDistance.cs" Link="Linked\GeoDistance.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IMapCameraController.cs" Link="Linked\IMapCameraController.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Dialogs\ITagDialog.cs" Link="Linked\ITagDialog.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GameHudViewModel.cs" Link="Linked\GameHudViewModel.cs" />
   </ItemGroup>
 
 </Project>

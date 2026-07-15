@@ -45,4 +45,20 @@ public interface IGameApiClient
     /// <summary>Starts the operation via <c>POST /games/{id}/start</c>, designating <paramref name="hunterUserId"/>.</summary>
     Task<StartGameResult> StartGameAsync(
         Guid gameId, Guid hunterUserId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Reads the in-game HUD status via <c>GET /games/{id}/status</c> (<c>409</c> → completed).</summary>
+    Task<GameStatusResult> GetGameStatusAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Reads the role-specific game state (prey distance / prey locations) via <c>GET /games/{id}/state</c>.</summary>
+    Task<GameStateResult> GetGameStateAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Lists the preys the hunter may tag right now via <c>GET /games/{id}/tag-candidates</c> (<c>403</c> for a non-hunter).</summary>
+    Task<TagCandidatesResult> GetTagCandidatesAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>
+    /// Tags the prey <paramref name="participantId"/> via
+    /// <c>POST /games/{id}/participants/{participantId}/tag</c> (<c>409</c> → no longer taggable).
+    /// </summary>
+    Task<TagPlayerResult> TagPlayerAsync(
+        Guid gameId, Guid participantId, string accessToken, CancellationToken ct = default);
 }

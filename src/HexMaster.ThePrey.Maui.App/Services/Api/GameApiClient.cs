@@ -326,6 +326,196 @@ public sealed class GameApiClient : IGameApiClient
         }
     }
 
+    public async Task<GameStatusResult> GetGameStatusAsync(Guid gameId, string accessToken, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}/status");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(request, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Game-status request failed to complete.");
+            return GameStatusResult.Error;
+        }
+
+        using (response)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.OK:
+                    try
+                    {
+                        var status = await response.Content.ReadFromJsonAsync<GameStatusSnapshot>(cancellationToken: ct);
+                        return status is null ? GameStatusResult.Error : GameStatusResult.Success(status);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize game-status payload.");
+                        return GameStatusResult.Error;
+                    }
+
+                case HttpStatusCode.NotFound:
+                    return GameStatusResult.NotFound;
+
+                case HttpStatusCode.Forbidden:
+                    return GameStatusResult.Forbidden;
+
+                case HttpStatusCode.Conflict:
+                    return GameStatusResult.Completed;
+
+                case HttpStatusCode.Unauthorized:
+                    return GameStatusResult.Unauthorized;
+
+                default:
+                    _logger.LogWarning("Game-status endpoint returned unexpected status {Status}.", response.StatusCode);
+                    return GameStatusResult.Error;
+            }
+        }
+    }
+
+    public async Task<GameStateResult> GetGameStateAsync(Guid gameId, string accessToken, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}/state");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(request, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Game-state request failed to complete.");
+            return GameStateResult.Error;
+        }
+
+        using (response)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.OK:
+                    try
+                    {
+                        var state = await response.Content.ReadFromJsonAsync<GameStateSnapshot>(cancellationToken: ct);
+                        return state is null ? GameStateResult.Error : GameStateResult.Success(state);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize game-state payload.");
+                        return GameStateResult.Error;
+                    }
+
+                case HttpStatusCode.NotFound:
+                    return GameStateResult.NotFound;
+
+                case HttpStatusCode.Unauthorized:
+                    return GameStateResult.Unauthorized;
+
+                default:
+                    _logger.LogWarning("Game-state endpoint returned unexpected status {Status}.", response.StatusCode);
+                    return GameStateResult.Error;
+            }
+        }
+    }
+
+    public async Task<TagCandidatesResult> GetTagCandidatesAsync(Guid gameId, string accessToken, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}/tag-candidates");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(request, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Tag-candidates request failed to complete.");
+            return TagCandidatesResult.Error;
+        }
+
+        using (response)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.OK:
+                    try
+                    {
+                        var body = await response.Content.ReadFromJsonAsync<TagCandidatesBody>(cancellationToken: ct);
+                        return body is null
+                            ? TagCandidatesResult.Error
+                            : TagCandidatesResult.Success(body.Candidates ?? Array.Empty<TagCandidate>(), body.RangeMeters);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize tag-candidates payload.");
+                        return TagCandidatesResult.Error;
+                    }
+
+                case HttpStatusCode.Forbidden:
+                    return TagCandidatesResult.Forbidden;
+
+                case HttpStatusCode.NotFound:
+                    return TagCandidatesResult.NotFound;
+
+                case HttpStatusCode.Unauthorized:
+                    return TagCandidatesResult.Unauthorized;
+
+                default:
+                    _logger.LogWarning("Tag-candidates endpoint returned unexpected status {Status}.", response.StatusCode);
+                    return TagCandidatesResult.Error;
+            }
+        }
+    }
+
+    public async Task<TagPlayerResult> TagPlayerAsync(
+        Guid gameId, Guid participantId, string accessToken, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"games/{gameId}/participants/{participantId}/tag");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(request, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Tag-player request failed to complete.");
+            return TagPlayerResult.Error;
+        }
+
+        using (response)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.NoContent:
+                case HttpStatusCode.OK:
+                    return TagPlayerResult.Success;
+
+                case HttpStatusCode.Forbidden:
+                    return TagPlayerResult.Forbidden;
+
+                case HttpStatusCode.NotFound:
+                    return TagPlayerResult.NotFound;
+
+                case HttpStatusCode.Conflict:
+                    return TagPlayerResult.Conflict;
+
+                case HttpStatusCode.Unauthorized:
+                    return TagPlayerResult.Unauthorized;
+
+                default:
+                    _logger.LogWarning("Tag-player endpoint returned unexpected status {Status}.", response.StatusCode);
+                    return TagPlayerResult.Error;
+            }
+        }
+    }
+
     // Request bodies — serialized with the default web (camelCase) options to match the backend records.
     private sealed record UpdateGameSettingsBody(
         int GameDuration, int HunterDelayTime, int FinalStageDuration,
@@ -334,4 +524,7 @@ public sealed class GameApiClient : IGameApiClient
     private sealed record SetHunterBody(Guid NewHunterUserId);
 
     private sealed record StartGameBody(Guid HunterUserId);
+
+    // Response shape for GET /games/{id}/tag-candidates (TagCandidatesDto), bound case-insensitively.
+    private sealed record TagCandidatesBody(double RangeMeters, IReadOnlyList<TagCandidate>? Candidates);
 }
