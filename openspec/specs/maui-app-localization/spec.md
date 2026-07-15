@@ -1,5 +1,9 @@
-## ADDED Requirements
+# maui-app-localization Specification
 
+## Purpose
+Enable the MAUI app to present all user-facing text in English and Dutch, defaulting to the device language on first run, persisting the user's choice, and switching languages live at runtime without a restart.
+
+## Requirements
 ### Requirement: App supports English and Dutch
 
 The MAUI app SHALL be presentable in **English** (`en`) and **Dutch** (`nl`). User-facing UI text SHALL be sourced from localized resource strings rather than hard-coded literals, with a resource set for each supported language, so that the app renders in the currently selected language.

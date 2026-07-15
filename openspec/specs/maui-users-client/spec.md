@@ -1,5 +1,9 @@
-## ADDED Requirements
+# maui-users-client Specification
 
+## Purpose
+Provide a MAUI users API client that calls the backend's authenticated user endpoints with a bearer access token, retrieving and updating the current user's settings while mapping backend status codes to explicit result types instead of throwing.
+
+## Requirements
 ### Requirement: Authenticated users API client
 
 The MAUI app SHALL provide a users API client that calls the backend's authenticated user endpoints, attaching a bearer access token acquired from the stored session. The client SHALL retrieve the current user's settings (`GET /users/me`) and update the display name and preferred language (`PUT /users/me`). It SHALL map backend status codes to explicit result types and SHALL NOT throw for network, timeout, or non-success responses.

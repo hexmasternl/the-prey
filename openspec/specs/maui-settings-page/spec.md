@@ -1,5 +1,9 @@
-## ADDED Requirements
+# maui-settings-page Specification
 
+## Purpose
+Provide a MAUI settings page where the authenticated user can edit their display name and switch the app language, loading current settings from the backend, auto-saving the display name with debounce, and applying language changes live.
+
+## Requirements
 ### Requirement: Settings page with display name and language
 
 The MAUI app SHALL present a settings page (replacing the `SettingsPage` stub) reached from the main-menu **Settings** button. The page SHALL show an editable **display name** field and a **language toggle** offering **English** and **Dutch**. When the page appears it SHALL load the current user's settings from the backend and pre-fill the display name and language from the loaded values. All visual treatment SHALL be applied through the central `Colors.xaml` / `Styles.xaml` resources and all text through localized string lookups; the page SHALL NOT declare colors, sizes, opacity, borders, or glow as inline/local properties.
