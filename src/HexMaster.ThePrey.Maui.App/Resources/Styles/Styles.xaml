@@ -257,6 +257,18 @@
         <Setter Property="HorizontalTextAlignment" Value="Start" />
     </Style>
 
+    <!-- Very small signed-in player byline under the menu (display face, regular text color). Its
+         per-character spans carry their own color so the code-behind can sweep a signal-green
+         running light across them; the base/lit tokens are TpText and TpSignal from Colors.xaml. -->
+    <Style TargetType="Label" x:Key="MenuPlayerName">
+        <Setter Property="FontFamily" Value="{StaticResource TpDisplayFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpText}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="CharacterSpacing" Value="3" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
     <!-- ============================================================= -->
     <!-- Settings — form-field, language-toggle, and status/hint styles.-->
     <!-- All reuse the Tp* tokens; no page carries these literals.       -->
@@ -573,6 +585,26 @@
                 <Setter Property="Stroke" Value="{StaticResource TpSignalBrush}" />
             </DataTrigger>
         </Style.Triggers>
+    </Style>
+
+    <!-- ============================================================= -->
+    <!-- Start game (config page) — the tappable playfield row plus its -->
+    <!-- selected-name / choose-one prompt / change-hint labels. The    -->
+    <!-- five option selectors reuse the lobby's LobbySettingPicker.     -->
+    <!-- All reuse the Tp* tokens; the page carries no literals.         -->
+    <!-- ============================================================= -->
+
+    <!-- Tappable framed playfield row (reuses the selectable-row frame look). -->
+    <Style TargetType="Border" x:Key="StartGamePlayfieldRow" BasedOn="{StaticResource SelectRow}" />
+
+    <!-- Dim choose-one prompt shown in the row until a playfield is selected. -->
+    <Style TargetType="Label" x:Key="StartGamePlayfieldPrompt" BasedOn="{StaticResource LocationItemName}">
+        <Setter Property="TextColor" Value="{StaticResource TpTextGhost}" />
+    </Style>
+
+    <!-- Small signal-green CHANGE affordance on the right of the row. -->
+    <Style TargetType="Label" x:Key="StartGamePlayfieldChange" BasedOn="{StaticResource LocationBadge}">
+        <Setter Property="TextColor" Value="{StaticResource TpSignal}" />
     </Style>
 
     <Style TargetType="ActivityIndicator">

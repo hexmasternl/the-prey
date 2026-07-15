@@ -16,6 +16,8 @@ public class MainMenuViewModelTests
     private readonly Mock<ISessionService> _session = new();
     private readonly Mock<ITokenStore> _tokenStore = new();
     private readonly Mock<IInteractiveLoginService> _login = new();
+    private readonly Mock<IUserApiClient> _userApi = new();
+    private readonly Mock<IAccessTokenProvider> _accessToken = new();
     private readonly Mock<IMenuNavigator> _navigator = new();
     private readonly Mock<IApplicationExit> _app = new();
     private readonly Mock<IGpsReader> _gpsReader = new();
@@ -26,11 +28,13 @@ public class MainMenuViewModelTests
         _app.SetupGet(a => a.IsExitSupported).Returns(true);
         _gpsReader.Setup(g => g.ReadAsync(It.IsAny<CancellationToken>())).ReturnsAsync((GpsFix?)null);
         _version.SetupGet(v => v.Version).Returns("1.0");
+        // Default: no token, so the fire-and-forget player-name load is a no-op unless a test overrides it.
+        _accessToken.Setup(a => a.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync((string?)null);
     }
 
     private MainMenuViewModel CreateSut() => new(
-        _session.Object, _tokenStore.Object, _login.Object, _navigator.Object,
-        _app.Object, _gpsReader.Object, _version.Object,
+        _session.Object, _tokenStore.Object, _login.Object, _userApi.Object, _accessToken.Object,
+        _navigator.Object, _app.Object, _gpsReader.Object, _version.Object,
         NullLogger<MainMenuViewModel>.Instance);
 
     private void SetupSession(SessionResult result) =>
@@ -167,6 +171,53 @@ public class MainMenuViewModelTests
 
         Assert.False(sut.IsSignedIn);
         Assert.True(sut.ShowLogIn);
+    }
+
+    [Fact]
+    public async Task LoadStateAsync_ShouldLoadPlayerName_WhenSignedIn()
+    {
+        SetupSession(SessionResult.NoGame);
+        _accessToken.Setup(a => a.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("tok");
+        _userApi.Setup(u => u.GetCurrentUserAsync("tok", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(UserSettingsResult.Success(new UserSettings("Ghost", "en")));
+        var sut = CreateSut();
+
+        await sut.LoadStateAsync();
+        await Task.Delay(10); // The player-name load is fire-and-forget off LoadStateAsync.
+
+        Assert.Equal("Ghost", sut.PlayerName);
+        Assert.True(sut.ShowPlayerName);
+    }
+
+    [Fact]
+    public async Task RefreshPlayerNameAsync_ShouldNotFetch_WhenSignedOut()
+    {
+        SetupSession(SessionResult.Unauthenticated);
+        var sut = CreateSut();
+        await sut.LoadStateAsync();
+
+        await sut.RefreshPlayerNameAsync();
+
+        Assert.Equal(string.Empty, sut.PlayerName);
+        Assert.False(sut.ShowPlayerName);
+        _userApi.Verify(u => u.GetCurrentUserAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LogOutCommand_ShouldClearPlayerName()
+    {
+        SetupSession(SessionResult.NoGame);
+        _accessToken.Setup(a => a.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("tok");
+        _userApi.Setup(u => u.GetCurrentUserAsync("tok", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(UserSettingsResult.Success(new UserSettings("Ghost", "en")));
+        var sut = CreateSut();
+        await sut.LoadStateAsync();
+        await Task.Delay(10);
+
+        await RunAsync(sut.LogOutCommand);
+
+        Assert.Equal(string.Empty, sut.PlayerName);
+        Assert.False(sut.ShowPlayerName);
     }
 
     [Fact]

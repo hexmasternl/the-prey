@@ -91,6 +91,12 @@
                         Command="{Binding ExitCommand}"
                         IsVisible="{Binding ShowExit}" />
 
+                <!-- Signed-in player byline. Its per-character spans are built in code-behind so a
+                     signal-green running light can sweep across the name (see PlayerNameSweep). -->
+                <Label x:Name="PlayerNameLabel"
+                       Style="{StaticResource MenuPlayerName}"
+                       IsVisible="{Binding ShowPlayerName}" />
+
             </VerticalStackLayout>
         </Grid>
 

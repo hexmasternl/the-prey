@@ -1,4 +1,5 @@
 using HexMaster.ThePrey.Maui.App.Services;
+using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Authentication;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
@@ -24,6 +25,8 @@ public sealed class MainMenuViewModel : ObservableObject
     private readonly ISessionService _session;
     private readonly ITokenStore _tokenStore;
     private readonly IInteractiveLoginService _login;
+    private readonly IUserApiClient _userApi;
+    private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly IMenuNavigator _navigator;
     private readonly IApplicationExit _app;
     private readonly IGpsReader _gpsReader;
@@ -34,11 +37,14 @@ public sealed class MainMenuViewModel : ObservableObject
     private bool _isSignedIn;
     private bool _hasActiveGame;
     private string _gpsReadout = GpsCoordinateFormatter.Placeholder;
+    private string _playerName = string.Empty;
 
     public MainMenuViewModel(
         ISessionService session,
         ITokenStore tokenStore,
         IInteractiveLoginService login,
+        IUserApiClient userApi,
+        IAccessTokenProvider accessTokenProvider,
         IMenuNavigator navigator,
         IApplicationExit app,
         IGpsReader gpsReader,
@@ -48,6 +54,8 @@ public sealed class MainMenuViewModel : ObservableObject
         _session = session;
         _tokenStore = tokenStore;
         _login = login;
+        _userApi = userApi;
+        _accessTokenProvider = accessTokenProvider;
         _navigator = navigator;
         _app = app;
         _gpsReader = gpsReader;
@@ -99,6 +107,16 @@ public sealed class MainMenuViewModel : ObservableObject
         private set => SetProperty(ref _gpsReadout, value);
     }
 
+    /// <summary>The signed-in player's display name, shown small beneath the menu. Empty until loaded.</summary>
+    public string PlayerName
+    {
+        get => _playerName;
+        private set { if (SetProperty(ref _playerName, value)) OnPropertyChanged(nameof(ShowPlayerName)); }
+    }
+
+    /// <summary>The player-name line shows only once signed in and the name has resolved.</summary>
+    public bool ShowPlayerName => IsSignedIn && !string.IsNullOrWhiteSpace(PlayerName);
+
     public string FieldManualVersion => $"OPERATIONAL FIELD MANUAL — V {_versionProvider.Version}";
 
     // Log In shows only when signed out; exactly one of Resume/Start shows when signed in.
@@ -134,6 +152,7 @@ public sealed class MainMenuViewModel : ObservableObject
         }
 
         _ = RefreshGpsAsync();
+        _ = RefreshPlayerNameAsync();
     }
 
     /// <summary>Fetches the decorative GPS readout; failures fall back to the placeholder.</summary>
@@ -141,6 +160,36 @@ public sealed class MainMenuViewModel : ObservableObject
     {
         var fix = await _gpsReader.ReadAsync();
         GpsReadout = GpsCoordinateFormatter.Format(fix);
+    }
+
+    /// <summary>
+    /// Loads the signed-in player's display name for the menu byline. Runs only when signed in and
+    /// never blocks the menu; any failure (no token / backend error) simply leaves the byline hidden.
+    /// </summary>
+    public async Task RefreshPlayerNameAsync(CancellationToken ct = default)
+    {
+        if (!IsSignedIn)
+        {
+            PlayerName = string.Empty;
+            return;
+        }
+
+        try
+        {
+            var token = await _accessTokenProvider.GetAccessTokenAsync(ct);
+            if (token is null)
+                return;
+
+            var result = await _userApi.GetCurrentUserAsync(token, ct);
+            if (result.Outcome == UserSettingsOutcome.Success && result.Settings is not null)
+                PlayerName = result.Settings.DisplayName;
+            else if (result.Outcome == UserSettingsOutcome.Unauthorized)
+                _accessTokenProvider.Invalidate();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load the player display name for the menu.");
+        }
     }
 
     private async Task LogInAsync()
@@ -190,6 +239,7 @@ public sealed class MainMenuViewModel : ObservableObject
             default:
                 IsSignedIn = false;
                 HasActiveGame = false;
+                PlayerName = string.Empty;
                 break;
         }
     }
@@ -199,6 +249,7 @@ public sealed class MainMenuViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowLogIn));
         OnPropertyChanged(nameof(ShowResume));
         OnPropertyChanged(nameof(ShowStart));
+        OnPropertyChanged(nameof(ShowPlayerName));
         OnPropertyChanged(nameof(CanUseSignedInActions));
 
         LogInCommand.RaiseCanExecuteChanged();
