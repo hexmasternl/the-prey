@@ -103,6 +103,23 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\UpdatePlayFieldResult.cs" Link="Linked\UpdatePlayFieldResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IEditPlayfieldNavigator.cs" Link="Linked\IEditPlayfieldNavigator.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\EditPlayfieldViewModel.cs" Link="Linked\EditPlayfieldViewModel.cs" />
+
+    <!-- Game lobby: the game projection + typed results, the lobby-stream + share + navigator seams
+         (interfaces), the participant item, and the lobby view model. All plain .NET; the MAUI-only
+         implementations (ShareService, ShellLobbyNavigator) are deliberately excluded. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameDetails.cs" Link="Linked\GameDetails.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GetGameResult.cs" Link="Linked\GetGameResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\UpdateGameSettingsResult.cs" Link="Linked\UpdateGameSettingsResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\DesignateHunterResult.cs" Link="Linked\DesignateHunterResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\SetReadyResult.cs" Link="Linked\SetReadyResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\StartGameResult.cs" Link="Linked\StartGameResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameSettingsParameters.cs" Link="Linked\GameSettingsParameters.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\ILobbyStreamClient.cs" Link="Linked\ILobbyStreamClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\LobbyStreamClient.cs" Link="Linked\LobbyStreamClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IShareService.cs" Link="Linked\IShareService.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\ILobbyNavigator.cs" Link="Linked\ILobbyNavigator.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\LobbyParticipant.cs" Link="Linked\LobbyParticipant.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GameLobbyViewModel.cs" Link="Linked\GameLobbyViewModel.cs" />
   </ItemGroup>
 
 </Project>

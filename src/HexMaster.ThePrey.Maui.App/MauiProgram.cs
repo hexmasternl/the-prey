@@ -146,6 +146,18 @@ namespace HexMaster.ThePrey.Maui.App
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
 
+            // Lobby live-event stream (typed HttpClient). The SSE connection is long-lived, so it must
+            // not carry a request timeout that would abort the stream — teardown is via cancellation.
+            services.AddHttpClient<ILobbyStreamClient, LobbyStreamClient>(client =>
+            {
+                client.BaseAddress = new Uri(EnsureTrailingSlash(options.BackendBaseUrl));
+                client.Timeout = Timeout.InfiniteTimeSpan;
+            });
+
+            // Native share sheet + lobby onward-navigation seams (kept behind interfaces for testability).
+            services.AddSingleton<IShareService, ShareService>();
+            services.AddSingleton<ILobbyNavigator, ShellLobbyNavigator>();
+
             // View models.
             services.AddTransient<WelcomeViewModel>();
             services.AddTransient<LoginViewModel>();
@@ -155,12 +167,16 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<CreatePlayfieldViewModel>();
             services.AddTransient<EditPlayfieldViewModel>();
             services.AddTransient<DefineAreaViewModel>();
+            services.AddTransient<GameLobbyViewModel>();
 
             // Pages.
             services.AddTransient<WelcomePage>();
             services.AddTransient<LoginPage>();
             services.AddTransient<HomePage>();
+            // GamePage remains registered as the placeholder gameplay screen (the `gameplay` route the
+            // lobby hands off to); the `game` route itself now resolves GameLobbyPage.
             services.AddTransient<GamePage>();
+            services.AddTransient<GameLobbyPage>();
             services.AddTransient<StartGamePage>();
             services.AddTransient<PlayfieldsPage>();
             services.AddTransient<SettingsPage>();

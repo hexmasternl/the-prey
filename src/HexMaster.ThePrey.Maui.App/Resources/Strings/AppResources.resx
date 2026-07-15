@@ -166,4 +166,25 @@
   <data name="Settings_Status_Saved" xml:space="preserve"><value>SAVED</value></data>
   <data name="Settings_Status_Error" xml:space="preserve"><value>SAVE FAILED — CHANGE NOT STORED</value></data>
   <data name="Settings_LoadError" xml:space="preserve"><value>Could not load your settings. Check your connection and try again.</value></data>
+  <data name="Lobby_Title" xml:space="preserve"><value>LOBBY</value></data>
+  <data name="Lobby_PassCode_Label" xml:space="preserve"><value>PASS CODE</value></data>
+  <data name="Lobby_Share" xml:space="preserve"><value>SHARE</value></data>
+  <data name="Lobby_Share_Description" xml:space="preserve"><value>Share the invite</value></data>
+  <data name="Lobby_Settings_Title" xml:space="preserve"><value>OPERATION SETTINGS</value></data>
+  <data name="Lobby_Setting_Duration" xml:space="preserve"><value>DURATION (MIN)</value></data>
+  <data name="Lobby_Setting_Headstart" xml:space="preserve"><value>HEADSTART (MIN)</value></data>
+  <data name="Lobby_Setting_Endgame" xml:space="preserve"><value>ENDGAME (MIN)</value></data>
+  <data name="Lobby_Setting_Ping" xml:space="preserve"><value>GPS PING (MIN)</value></data>
+  <data name="Lobby_Setting_EndgamePing" xml:space="preserve"><value>ENDGAME PING (MIN)</value></data>
+  <data name="Lobby_Participants_Title" xml:space="preserve"><value>OPERATIVES</value></data>
+  <data name="Lobby_Role_Hunter" xml:space="preserve"><value>HUNTER</value></data>
+  <data name="Lobby_Role_Prey" xml:space="preserve"><value>PREY</value></data>
+  <data name="Lobby_Ready" xml:space="preserve"><value>READY</value></data>
+  <data name="Lobby_NotReady" xml:space="preserve"><value>NOT READY</value></data>
+  <data name="Lobby_SetReady" xml:space="preserve"><value>SET READY</value></data>
+  <data name="Lobby_Start" xml:space="preserve"><value>START OPERATION</value></data>
+  <data name="Lobby_Error" xml:space="preserve"><value>Could not load the game. Check your connection and try again.</value></data>
+  <data name="Lobby_ActionError" xml:space="preserve"><value>Action failed. Please try again.</value></data>
+  <data name="Lobby_Invite_Title" xml:space="preserve"><value>Join my operation</value></data>
+  <data name="Lobby_Invite_Template" xml:space="preserve"><value>Join my game of The Prey! Pass code: {0}. Tap to join: {1}</value></data>
 </root>

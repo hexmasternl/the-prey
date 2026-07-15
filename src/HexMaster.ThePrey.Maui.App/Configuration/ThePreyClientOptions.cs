@@ -24,6 +24,12 @@ public sealed class ThePreyClientOptions
     /// <summary>Base URL of the backend gateway.</summary>
     public string BackendBaseUrl { get; set; } = "https://gateway.jollyfield-ab1afcde.westeurope.azurecontainerapps.io";
 
+    /// <summary>
+    /// Base URL for game invite deep links. The lobby appends <c>/{gameCode}</c> to build the join link
+    /// it shares (e.g. <c>https://theprey.nl/join/1234</c>). Recognising the link is a separate change.
+    /// </summary>
+    public string JoinLinkBaseUrl { get; set; } = "https://theprey.nl/join";
+
     /// <summary>Auth0 OAuth token endpoint derived from <see cref="Auth0Domain"/>.</summary>
     public Uri TokenEndpoint => new(new Uri(NormalizedDomain), "oauth/token");
 

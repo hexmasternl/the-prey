@@ -166,4 +166,25 @@
   <data name="Settings_Status_Saved" xml:space="preserve"><value>OPGESLAGEN</value></data>
   <data name="Settings_Status_Error" xml:space="preserve"><value>OPSLAAN MISLUKT — WIJZIGING NIET BEWAARD</value></data>
   <data name="Settings_LoadError" xml:space="preserve"><value>Kan je instellingen niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="Lobby_Title" xml:space="preserve"><value>LOBBY</value></data>
+  <data name="Lobby_PassCode_Label" xml:space="preserve"><value>TOEGANGSCODE</value></data>
+  <data name="Lobby_Share" xml:space="preserve"><value>DELEN</value></data>
+  <data name="Lobby_Share_Description" xml:space="preserve"><value>Deel de uitnodiging</value></data>
+  <data name="Lobby_Settings_Title" xml:space="preserve"><value>OPERATIE-INSTELLINGEN</value></data>
+  <data name="Lobby_Setting_Duration" xml:space="preserve"><value>DUUR (MIN)</value></data>
+  <data name="Lobby_Setting_Headstart" xml:space="preserve"><value>VOORSPRONG (MIN)</value></data>
+  <data name="Lobby_Setting_Endgame" xml:space="preserve"><value>EINDSPEL (MIN)</value></data>
+  <data name="Lobby_Setting_Ping" xml:space="preserve"><value>GPS-PING (MIN)</value></data>
+  <data name="Lobby_Setting_EndgamePing" xml:space="preserve"><value>EINDSPEL-PING (MIN)</value></data>
+  <data name="Lobby_Participants_Title" xml:space="preserve"><value>AGENTEN</value></data>
+  <data name="Lobby_Role_Hunter" xml:space="preserve"><value>JAGER</value></data>
+  <data name="Lobby_Role_Prey" xml:space="preserve"><value>PROOI</value></data>
+  <data name="Lobby_Ready" xml:space="preserve"><value>GEREED</value></data>
+  <data name="Lobby_NotReady" xml:space="preserve"><value>NIET GEREED</value></data>
+  <data name="Lobby_SetReady" xml:space="preserve"><value>MELD GEREED</value></data>
+  <data name="Lobby_Start" xml:space="preserve"><value>START OPERATIE</value></data>
+  <data name="Lobby_Error" xml:space="preserve"><value>Kan het spel niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="Lobby_ActionError" xml:space="preserve"><value>Actie mislukt. Probeer het opnieuw.</value></data>
+  <data name="Lobby_Invite_Title" xml:space="preserve"><value>Doe mee aan mijn operatie</value></data>
+  <data name="Lobby_Invite_Template" xml:space="preserve"><value>Doe mee met mijn spel The Prey! Toegangscode: {0}. Tik om mee te doen: {1}</value></data>
 </root>

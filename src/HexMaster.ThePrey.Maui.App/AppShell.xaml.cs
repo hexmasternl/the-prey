@@ -12,7 +12,10 @@ namespace HexMaster.ThePrey.Maui.App
             // Non-shell-content destinations resolved via DI on navigation.
             Routing.RegisterRoute("login", typeof(LoginPage));
             Routing.RegisterRoute("home", typeof(HomePage));
-            Routing.RegisterRoute("game", typeof(GamePage));
+            // The `game` route now hosts the lobby; the started game hands off to the `gameplay` route,
+            // which shows the placeholder GamePage until the separate gameplay change replaces it.
+            Routing.RegisterRoute("game", typeof(GameLobbyPage));
+            Routing.RegisterRoute(ShellLobbyNavigator.GameplayRoute, typeof(GamePage));
             Routing.RegisterRoute("start-game", typeof(StartGamePage));
             Routing.RegisterRoute("playfields", typeof(PlayfieldsPage));
             Routing.RegisterRoute("settings", typeof(SettingsPage));
