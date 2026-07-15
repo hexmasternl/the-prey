@@ -102,6 +102,20 @@
   <data name="StartGame_Error" xml:space="preserve"><value>Kan het spel niet aanmaken. Controleer je verbinding en probeer opnieuw.</value></data>
   <data name="StartGame_DefaultDisplayName" xml:space="preserve"><value>Speler</value></data>
 
+  <!-- Join game -->
+  <data name="Join_Title" xml:space="preserve"><value>OPERATIE JOINEN</value></data>
+  <data name="Join_SignIn_Prompt" xml:space="preserve"><value>Meld je aan om deel te nemen aan deze operatie.</value></data>
+  <data name="Join_SignIn_Button" xml:space="preserve"><value>AANMELDEN</value></data>
+  <data name="Join_Code_Label" xml:space="preserve"><value>TOEGANGSCODE</value></data>
+  <data name="Join_Code_Placeholder" xml:space="preserve"><value>0000</value></data>
+  <data name="Join_Button" xml:space="preserve"><value>DEELNEMEN</value></data>
+  <data name="Join_Error_InvalidCode" xml:space="preserve"><value>Die toegangscode is ongeldig. Controleer deze en probeer opnieuw.</value></data>
+  <data name="Join_Error_NotFound" xml:space="preserve"><value>Deze operatie is niet gevonden. De uitnodiging is mogelijk verlopen.</value></data>
+  <data name="Join_Conflict_Generic" xml:space="preserve"><value>Je kunt nu niet deelnemen aan deze operatie.</value></data>
+  <data name="Join_Conflict_AlreadyStarted" xml:space="preserve"><value>Deze operatie is al gestart. Je kunt niet meer deelnemen.</value></data>
+  <data name="Join_Conflict_Full" xml:space="preserve"><value>Deze operatie zit vol. Je kunt niet meer deelnemen.</value></data>
+  <data name="Join_Error_Generic" xml:space="preserve"><value>Kan niet deelnemen aan de operatie. Controleer je verbinding en probeer opnieuw.</value></data>
+
   <!-- Playfields -->
   <data name="Playfields_Title" xml:space="preserve"><value>SPEELVELDEN</value></data>
   <data name="Playfields_Subtitle" xml:space="preserve"><value>OPERATIONELE GEBIEDEN</value></data>

@@ -131,6 +131,81 @@ public sealed class GameApiClient : IGameApiClient
         }
     }
 
+    public async Task<JoinGameResult> JoinGameAsync(
+        Guid gameId, string joinCode, string displayName, string accessToken, CancellationToken ct = default)
+    {
+        var body = new JoinGameBody(joinCode, displayName, ProfilePictureUrl: null);
+
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"games/{gameId}/join")
+        {
+            Content = JsonContent.Create(body)
+        };
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(httpRequest, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Join-game request failed to complete.");
+            return JoinGameResult.Error;
+        }
+
+        using (response)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.OK:
+                    try
+                    {
+                        var game = await response.Content.ReadFromJsonAsync<GameSummary>(cancellationToken: ct);
+                        return game is null || game.Id == Guid.Empty
+                            ? JoinGameResult.Error
+                            : JoinGameResult.Success(game);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize join-game payload.");
+                        return JoinGameResult.Error;
+                    }
+
+                case HttpStatusCode.BadRequest:
+                    return JoinGameResult.InvalidCode(await ReadProblemCodeAsync(response, ct));
+
+                case HttpStatusCode.NotFound:
+                    return JoinGameResult.NotFound;
+
+                case HttpStatusCode.Conflict:
+                    return JoinGameResult.Conflict(await ReadProblemCodeAsync(response, ct));
+
+                case HttpStatusCode.Unauthorized:
+                    return JoinGameResult.Unauthorized;
+
+                default:
+                    _logger.LogWarning("Join-game endpoint returned unexpected status {Status}.", response.StatusCode);
+                    return JoinGameResult.Error;
+            }
+        }
+    }
+
+    // Reads the stable machine-readable rule code the backend attaches to its ProblemDetails body (an
+    // extension member serialized at the document root) for a 400/409. Returns null when absent/unreadable.
+    private async Task<string?> ReadProblemCodeAsync(HttpResponseMessage response, CancellationToken ct)
+    {
+        try
+        {
+            var problem = await response.Content.ReadFromJsonAsync<ProblemCodeBody>(cancellationToken: ct);
+            return problem?.Code;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to read the ProblemDetails code from the join response.");
+            return null;
+        }
+    }
+
     public async Task<GetGameResult> GetGameAsync(Guid gameId, string accessToken, CancellationToken ct = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}");
@@ -639,6 +714,12 @@ public sealed class GameApiClient : IGameApiClient
     private sealed record UpdateGameSettingsBody(
         int GameDuration, int HunterDelayTime, int FinalStageDuration,
         int DefaultLocationInterval, int FinalLocationInterval);
+
+    // Mirrors the backend JoinGameRequest; the profile-picture url is sent as its contract default.
+    private sealed record JoinGameBody(string JoinCode, string DisplayName, string? ProfilePictureUrl);
+
+    // Minimal ProblemDetails shape — only the stable rule `code` extension member the page maps to a message.
+    private sealed record ProblemCodeBody(string? Code);
 
     private sealed record SetHunterBody(Guid NewHunterUserId);
 

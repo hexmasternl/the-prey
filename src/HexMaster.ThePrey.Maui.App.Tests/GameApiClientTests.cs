@@ -190,6 +190,92 @@ public class GameApiClientTests
         Assert.Equal(CreateGameOutcome.Error, result.Outcome);
     }
 
+    // ---- JoinGameAsync ----
+
+    [Fact]
+    public async Task JoinGameAsync_ShouldPostToJoin_WithBearerAndBody()
+    {
+        var gameId = Guid.NewGuid();
+        var handler = StubHttpMessageHandler.Returns(HttpStatusCode.OK, GameJson(gameId));
+        var sut = CreateSut(handler);
+
+        await sut.JoinGameAsync(gameId, "1234", "Alice", "join-token");
+
+        Assert.Equal(HttpMethod.Post, handler.LastRequest?.Method);
+        Assert.Equal($"games/{gameId}/join", handler.LastRequest?.RequestUri?.AbsolutePath.TrimStart('/'));
+        Assert.Equal("join-token", handler.LastRequest?.Headers.Authorization?.Parameter);
+        Assert.Contains("\"joinCode\":\"1234\"", handler.LastRequestBody);
+        Assert.Contains("\"displayName\":\"Alice\"", handler.LastRequestBody);
+        Assert.Contains("\"profilePictureUrl\":null", handler.LastRequestBody);
+    }
+
+    [Fact]
+    public async Task JoinGameAsync_ShouldReturnSuccessWithId_WhenBackendReturns200()
+    {
+        var gameId = Guid.NewGuid();
+        var sut = CreateSut(StubHttpMessageHandler.Returns(HttpStatusCode.OK, GameJson(gameId)));
+
+        var result = await sut.JoinGameAsync(gameId, "1234", "Alice", "access");
+
+        Assert.Equal(JoinGameOutcome.Success, result.Outcome);
+        Assert.Equal(gameId, result.Game!.Id);
+    }
+
+    [Fact]
+    public async Task JoinGameAsync_ShouldReturnError_WhenOkPayloadHasNoId()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(HttpStatusCode.OK, """{"gameCode":"1234"}"""));
+
+        var result = await sut.JoinGameAsync(Guid.NewGuid(), "1234", "Alice", "access");
+
+        Assert.Equal(JoinGameOutcome.Error, result.Outcome);
+    }
+
+    [Fact]
+    public async Task JoinGameAsync_ShouldReturnInvalidCode_WithProblemCode_WhenBackendReturns400()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(HttpStatusCode.BadRequest, """{"code":"invalid_join_code"}"""));
+
+        var result = await sut.JoinGameAsync(Guid.NewGuid(), "9999", "Alice", "access");
+
+        Assert.Equal(JoinGameOutcome.InvalidCode, result.Outcome);
+        Assert.Equal("invalid_join_code", result.Code);
+    }
+
+    [Fact]
+    public async Task JoinGameAsync_ShouldReturnConflict_WithProblemCode_WhenBackendReturns409()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(HttpStatusCode.Conflict, """{"code":"game_already_started"}"""));
+
+        var result = await sut.JoinGameAsync(Guid.NewGuid(), "1234", "Alice", "access");
+
+        Assert.Equal(JoinGameOutcome.Conflict, result.Outcome);
+        Assert.Equal("game_already_started", result.Code);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound, JoinGameOutcome.NotFound)]
+    [InlineData(HttpStatusCode.Unauthorized, JoinGameOutcome.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError, JoinGameOutcome.Error)]
+    public async Task JoinGameAsync_ShouldMapStatus(HttpStatusCode status, JoinGameOutcome expected)
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(status));
+
+        var result = await sut.JoinGameAsync(Guid.NewGuid(), "1234", "Alice", "access");
+
+        Assert.Equal(expected, result.Outcome);
+    }
+
+    [Fact]
+    public async Task JoinGameAsync_ShouldReturnError_WhenRequestThrows()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Throws(new HttpRequestException("boom")));
+
+        var result = await sut.JoinGameAsync(Guid.NewGuid(), "1234", "Alice", "access");
+
+        Assert.Equal(JoinGameOutcome.Error, result.Outcome);
+    }
+
     // ---- GetGameAsync ----
 
     [Fact]

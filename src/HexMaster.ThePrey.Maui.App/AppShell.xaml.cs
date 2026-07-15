@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Maui.App.Pages;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
+using HexMaster.ThePrey.Maui.App.ViewModels;
 
 namespace HexMaster.ThePrey.Maui.App
 {
@@ -17,6 +18,8 @@ namespace HexMaster.ThePrey.Maui.App
             Routing.RegisterRoute("game", typeof(GameLobbyPage));
             Routing.RegisterRoute(ShellLobbyNavigator.GameplayRoute, typeof(GamePage));
             Routing.RegisterRoute("start-game", typeof(StartGamePage));
+            // Invited-player entry point reached from the https://theprey.nl/join/{gameId} deep link.
+            Routing.RegisterRoute(JoinGameViewModel.JoinRoute, typeof(JoinGamePage));
             Routing.RegisterRoute("playfields", typeof(PlayfieldsPage));
             Routing.RegisterRoute("settings", typeof(SettingsPage));
             Routing.RegisterRoute(ShellPlayfieldNavigator.CreatePlayfieldRoute, typeof(CreatePlayfieldPage));

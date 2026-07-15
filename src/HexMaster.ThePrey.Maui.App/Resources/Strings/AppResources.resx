@@ -102,6 +102,20 @@
   <data name="StartGame_Error" xml:space="preserve"><value>Could not create the game. Check your connection and try again.</value></data>
   <data name="StartGame_DefaultDisplayName" xml:space="preserve"><value>Player</value></data>
 
+  <!-- Join game -->
+  <data name="Join_Title" xml:space="preserve"><value>JOIN OPERATION</value></data>
+  <data name="Join_SignIn_Prompt" xml:space="preserve"><value>Sign in to join this operation.</value></data>
+  <data name="Join_SignIn_Button" xml:space="preserve"><value>LOG IN</value></data>
+  <data name="Join_Code_Label" xml:space="preserve"><value>JOIN CODE</value></data>
+  <data name="Join_Code_Placeholder" xml:space="preserve"><value>0000</value></data>
+  <data name="Join_Button" xml:space="preserve"><value>JOIN</value></data>
+  <data name="Join_Error_InvalidCode" xml:space="preserve"><value>That join code is not valid. Check it and try again.</value></data>
+  <data name="Join_Error_NotFound" xml:space="preserve"><value>This operation could not be found. The invite may have expired.</value></data>
+  <data name="Join_Conflict_Generic" xml:space="preserve"><value>You can't join this operation right now.</value></data>
+  <data name="Join_Conflict_AlreadyStarted" xml:space="preserve"><value>This operation has already started. You can no longer join.</value></data>
+  <data name="Join_Conflict_Full" xml:space="preserve"><value>This operation is full. You can no longer join.</value></data>
+  <data name="Join_Error_Generic" xml:space="preserve"><value>Could not join the operation. Check your connection and try again.</value></data>
+
   <!-- Playfields -->
   <data name="Playfields_Title" xml:space="preserve"><value>PLAYFIELDS</value></data>
   <data name="Playfields_Subtitle" xml:space="preserve"><value>OPERATIONAL AREAS</value></data>

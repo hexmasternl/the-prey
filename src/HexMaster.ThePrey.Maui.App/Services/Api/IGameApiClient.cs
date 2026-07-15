@@ -33,6 +33,17 @@ public interface IGameApiClient
     /// </summary>
     Task<CreateGameResult> CreateGameAsync(CreateGameParameters request, string accessToken, CancellationToken ct = default);
 
+    /// <summary>
+    /// Joins the game <paramref name="gameId"/> via <c>POST /games/{id}/join</c> with the entered
+    /// <paramref name="joinCode"/> and the caller's <paramref name="displayName"/> (profile-picture url sent
+    /// as <c>null</c>). Maps <c>200</c> → success (the joined game's id), <c>400</c> → invalid code (with the
+    /// ProblemDetails <c>code</c>), <c>404</c> → not found, <c>409</c> → conflict (with the stable rule
+    /// <c>code</c>), <c>401</c> → unauthenticated, network/timeout/unexpected → error. Never throws for these
+    /// outcomes.
+    /// </summary>
+    Task<JoinGameResult> JoinGameAsync(
+        Guid gameId, string joinCode, string displayName, string accessToken, CancellationToken ct = default);
+
     /// <summary>Reads the full state of a game via <c>GET /games/{id}</c>.</summary>
     Task<GetGameResult> GetGameAsync(Guid gameId, string accessToken, CancellationToken ct = default);
 

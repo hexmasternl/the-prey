@@ -108,6 +108,10 @@ namespace HexMaster.ThePrey.Maui.App
             // Menu-facing platform adapters (kept behind interfaces so view models stay testable).
             services.AddSingleton<IMenuNavigator, ShellMenuNavigator>();
 
+            // Invite deep-link handler (parses https://theprey.nl/join/{gameId} → routes to the join page).
+            // A singleton so a cold-start link queued by the platform survives until the Shell is ready.
+            services.AddSingleton<IInviteDeepLinkHandler, InviteDeepLinkHandler>();
+
             // Confirm/cancel dialog seam (the delete flow's confirmation gate).
             services.AddSingleton<IConfirmationDialog, ConfirmationDialog>();
 
@@ -193,6 +197,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<GameHudViewModel>();
             services.AddTransient<SelectPlayfieldViewModel>();
             services.AddTransient<StartGameViewModel>();
+            services.AddTransient<JoinGameViewModel>();
 
             // Pages.
             services.AddTransient<WelcomePage>();
@@ -204,6 +209,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<GameLobbyPage>();
             services.AddTransient<SelectPlayfieldPage>();
             services.AddTransient<StartGamePage>();
+            services.AddTransient<JoinGamePage>();
             services.AddTransient<PlayfieldsPage>();
             services.AddTransient<SettingsPage>();
             services.AddTransient<CreatePlayfieldPage>();

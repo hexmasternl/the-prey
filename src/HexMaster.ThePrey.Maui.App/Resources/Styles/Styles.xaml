@@ -607,6 +607,26 @@
         <Setter Property="TextColor" Value="{StaticResource TpSignal}" />
     </Style>
 
+    <!-- ============================================================= -->
+    <!-- Join game — the sign-in prompt, the 4-digit numeric join-code  -->
+    <!-- field, and the result/error state messages. All reuse the Tp*  -->
+    <!-- tokens; the page carries no literals.                          -->
+    <!-- ============================================================= -->
+
+    <!-- Centered dim prompt shown while signed out, above the sign-in action. -->
+    <Style TargetType="Label" x:Key="JoinSignInPrompt" BasedOn="{StaticResource TacticalBody}" />
+
+    <!-- Large, centered, wide-spaced numeric join-code field (mirrors the settings entry look). -->
+    <Style TargetType="Entry" x:Key="JoinCodeEntry" BasedOn="{StaticResource SettingsEntry}">
+        <Setter Property="FontFamily" Value="{StaticResource TpDisplayFont}" />
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="CharacterSpacing" Value="8" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <!-- Amber result/error message under the code field (reuses the shared alert style). -->
+    <Style TargetType="Label" x:Key="JoinStateMessage" BasedOn="{StaticResource AlertLabel}" />
+
     <Style TargetType="ActivityIndicator">
         <Setter Property="Color" Value="{StaticResource TpSignal}" />
     </Style>

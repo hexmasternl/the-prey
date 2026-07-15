@@ -42,6 +42,7 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStatus.cs" Link="Linked\GameStatus.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\IGameApiClient.cs" Link="Linked\IGameApiClient.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameApiClient.cs" Link="Linked\GameApiClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\JoinGameResult.cs" Link="Linked\JoinGameResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\ISessionService.cs" Link="Linked\ISessionService.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\SessionService.cs" Link="Linked\SessionService.cs" />
 
@@ -148,6 +149,13 @@
     <!-- Start-game (config) view model. All plain .NET; the picker + game-route navigation are behind
          the existing IPlayfieldSelectNavigator / IMenuNavigator interfaces (implementations excluded). -->
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\StartGameViewModel.cs" Link="Linked\StartGameViewModel.cs" />
+
+    <!-- Join-game feature: the join result union, the invite deep-link handler, and the join view model.
+         All plain .NET; the page's IQueryAttributable plumbing and platform launch glue are MAUI-only and
+         deliberately excluded. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IInviteDeepLinkHandler.cs" Link="Linked\IInviteDeepLinkHandler.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\InviteDeepLinkHandler.cs" Link="Linked\InviteDeepLinkHandler.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\JoinGameViewModel.cs" Link="Linked\JoinGameViewModel.cs" />
 
     <!-- In-game real-time state service: the event models, the transport + connection seams, and the
          state service. All plain .NET; tests drive a fake IWebSocketConnection and a fake
