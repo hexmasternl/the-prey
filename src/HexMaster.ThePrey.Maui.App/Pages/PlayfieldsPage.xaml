@@ -2,15 +2,123 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
              x:Class="HexMaster.ThePrey.Maui.App.Pages.PlayfieldsPage"
+             x:DataType="vm:PlayFieldsListViewModel"
              Shell.NavBarIsVisible="False"
-             Title="Playfields">
+             Title="{loc:Translate Playfields_Title}">
 
-    <VerticalStackLayout Spacing="18" Padding="28" VerticalOptions="Center">
-        <Label Text="{loc:Translate Playfields_Title}" Style="{StaticResource TacticalTitle}" />
-        <Label Text="{loc:Translate Playfields_Subtitle}" Style="{StaticResource HudLabel}" />
-        <Label Text="{loc:Translate Playfields_Body}"
-               Style="{StaticResource TacticalBody}" />
-    </VerticalStackLayout>
+    <Grid RowDefinitions="Auto,Auto,*" Padding="28,44,28,28" RowSpacing="20">
+
+        <!-- Page title -->
+        <Label Grid.Row="0"
+               Text="{loc:Translate Playfields_Title}"
+               Style="{StaticResource TacticalTitle}" />
+
+        <!-- Two-segment tab header -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="12">
+            <Button Grid.Column="0"
+                    Text="{loc:Translate Playfields_Tab_Private}"
+                    Style="{StaticResource PrivateTabButton}"
+                    Command="{Binding SelectPrivateCommand}" />
+            <Button Grid.Column="1"
+                    Text="{loc:Translate Playfields_Tab_Public}"
+                    Style="{StaticResource PublicTabButton}"
+                    Command="{Binding SelectPublicCommand}" />
+        </Grid>
+
+        <!-- Tab content -->
+        <Grid Grid.Row="2">
+
+            <!-- Private tab -->
+            <Grid IsVisible="{Binding IsPrivateSelected}">
+                <CollectionView ItemsSource="{Binding PrivatePlayFields}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PlayFieldListItem">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="4,10">
+                                <Label Grid.Column="0"
+                                       Text="{Binding Name}"
+                                       Style="{StaticResource LocationItemName}" />
+                                <Label Grid.Column="1"
+                                       Text="{loc:Translate Playfields_Badge_Public}"
+                                       Style="{StaticResource LocationBadgePublic}"
+                                       IsVisible="{Binding IsPublic}" />
+                                <Label Grid.Column="1"
+                                       Text="{loc:Translate Playfields_Badge_Private}"
+                                       Style="{StaticResource LocationBadgePrivate}"
+                                       IsVisible="{Binding IsPrivate}" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Private empty state -->
+                <Label Text="{loc:Translate Playfields_Private_Empty}"
+                       Style="{StaticResource HudLabel}"
+                       IsVisible="{Binding PrivateIsEmpty}"
+                       VerticalOptions="Center" />
+
+                <!-- Private error state -->
+                <Label Text="{loc:Translate Playfields_Private_Error}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding PrivateHasError}"
+                       VerticalOptions="Center" />
+            </Grid>
+
+            <!-- Public tab -->
+            <Grid IsVisible="{Binding IsPublicSelected}"
+                  RowDefinitions="Auto,*" RowSpacing="16">
+                <Entry Grid.Row="0"
+                       Text="{Binding SearchQuery, Mode=TwoWay}"
+                       Placeholder="{loc:Translate Playfields_Search_Placeholder}"
+                       Style="{StaticResource LocationSearchField}" />
+
+                <Grid Grid.Row="1">
+                    <CollectionView ItemsSource="{Binding PublicPlayFields}">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PlayFieldListItem">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" Padding="4,10">
+                                    <Label Grid.Column="0"
+                                           Text="{Binding Name}"
+                                           Style="{StaticResource LocationItemName}" />
+                                    <Label Grid.Column="1"
+                                           Text="{loc:Translate Playfields_Badge_Public}"
+                                           Style="{StaticResource LocationBadgePublic}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- Public prompt / no-results / error states -->
+                    <Label Text="{loc:Translate Playfields_Search_Prompt}"
+                           Style="{StaticResource HudLabel}"
+                           IsVisible="{Binding PublicShowPrompt}"
+                           VerticalOptions="Center" />
+                    <Label Text="{loc:Translate Playfields_Search_NoResults}"
+                           Style="{StaticResource HudLabel}"
+                           IsVisible="{Binding PublicNoResults}"
+                           VerticalOptions="Center" />
+                    <Label Text="{loc:Translate Playfields_Search_Error}"
+                           Style="{StaticResource AlertLabel}"
+                           IsVisible="{Binding PublicHasError}"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Grid>
+
+        </Grid>
+
+        <!-- Busy indicator (non-blocking refresh hint over a cached list; full load on empty cache) -->
+        <ActivityIndicator Grid.Row="2"
+                           IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Start" />
+
+    </Grid>
 
 </ContentPage>

@@ -11,6 +11,7 @@ using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
 using HexMaster.ThePrey.Maui.App.Services.Platform;
 using HexMaster.ThePrey.Maui.App.Services.Session;
+using HexMaster.ThePrey.Maui.App.Services.Storage;
 using HexMaster.ThePrey.Maui.App.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -81,6 +82,11 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton<IAccessTokenProvider, AccessTokenProvider>();
             services.AddTransient<IInteractiveLoginService, InteractiveLoginService>();
 
+            // Local-first display cache of the private playfield list (a JSON file in the app data dir).
+            services.AddSingleton<IPlayFieldCache>(sp => new PlayFieldCache(
+                FileSystem.AppDataDirectory,
+                sp.GetRequiredService<ILogger<PlayFieldCache>>()));
+
             // Localization — one runtime-switchable service over the embedded string resources,
             // a locally persisted preference, and a device-language-defaulting resolver.
             var resourceManager = new ResourceManager(
@@ -118,11 +124,19 @@ namespace HexMaster.ThePrey.Maui.App
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
 
+            // Backend playfields API client (typed HttpClient).
+            services.AddHttpClient<IPlayFieldApiClient, PlayFieldApiClient>(client =>
+            {
+                client.BaseAddress = new Uri(EnsureTrailingSlash(options.BackendBaseUrl));
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
+
             // View models.
             services.AddTransient<WelcomeViewModel>();
             services.AddTransient<LoginViewModel>();
             services.AddTransient<MainMenuViewModel>();
             services.AddTransient<SettingsViewModel>();
+            services.AddTransient<PlayFieldsListViewModel>();
 
             // Pages.
             services.AddTransient<WelcomePage>();

@@ -101,6 +101,16 @@
   <data name="Playfields_Title" xml:space="preserve"><value>SPEELVELDEN</value></data>
   <data name="Playfields_Subtitle" xml:space="preserve"><value>OPERATIONELE GEBIEDEN</value></data>
   <data name="Playfields_Body" xml:space="preserve"><value>Maak en beheer speelveldgebieden. (Binnenkort beschikbaar.)</value></data>
+  <data name="Playfields_Tab_Private" xml:space="preserve"><value>PRIVÉ</value></data>
+  <data name="Playfields_Tab_Public" xml:space="preserve"><value>OPENBAAR</value></data>
+  <data name="Playfields_Badge_Public" xml:space="preserve"><value>OPENBAAR</value></data>
+  <data name="Playfields_Badge_Private" xml:space="preserve"><value>PRIVÉ</value></data>
+  <data name="Playfields_Private_Empty" xml:space="preserve"><value>Nog geen speelvelden. Maak er een om een operationeel gebied te bepalen.</value></data>
+  <data name="Playfields_Private_Error" xml:space="preserve"><value>Kan je speelvelden niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="Playfields_Search_Placeholder" xml:space="preserve"><value>Zoek openbare speelvelden</value></data>
+  <data name="Playfields_Search_Prompt" xml:space="preserve"><value>Typ minstens drie tekens om openbare speelvelden te zoeken.</value></data>
+  <data name="Playfields_Search_NoResults" xml:space="preserve"><value>Geen openbare speelvelden gevonden.</value></data>
+  <data name="Playfields_Search_Error" xml:space="preserve"><value>Zoeken mislukt. Controleer je verbinding en probeer opnieuw.</value></data>
 
   <!-- Settings -->
   <data name="Settings_Title" xml:space="preserve"><value>INSTELLINGEN</value></data>

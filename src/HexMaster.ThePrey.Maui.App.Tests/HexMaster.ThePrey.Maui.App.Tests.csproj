@@ -59,6 +59,16 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Localization\LanguageResolver.cs" Link="Linked\LanguageResolver.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\SettingsViewModel.cs" Link="Linked\SettingsViewModel.cs" />
 
+    <!-- Playfields list: API client, local cache, and the list view model. All plain .NET
+         (the cache takes an injected directory path rather than a MAUI FileSystem API). -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\PlayFieldSummary.cs" Link="Linked\PlayFieldSummary.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\IPlayFieldApiClient.cs" Link="Linked\IPlayFieldApiClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\PlayFieldApiClient.cs" Link="Linked\PlayFieldApiClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Storage\IPlayFieldCache.cs" Link="Linked\IPlayFieldCache.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Storage\PlayFieldCache.cs" Link="Linked\PlayFieldCache.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\PlayFieldListItem.cs" Link="Linked\PlayFieldListItem.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\PlayFieldsListViewModel.cs" Link="Linked\PlayFieldsListViewModel.cs" />
+
     <!-- Main-menu view model and its plain collaborators. The MAUI implementations of these
          interfaces (Shell/Geolocation/AppInfo/WebAuthenticator) are deliberately excluded. -->
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Authentication\IInteractiveLoginService.cs" Link="Linked\IInteractiveLoginService.cs" />
