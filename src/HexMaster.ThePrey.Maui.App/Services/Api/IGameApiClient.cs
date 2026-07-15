@@ -24,6 +24,15 @@ public interface IGameApiClient
     /// <summary>Queries <c>GET /games/active</c> with the supplied bearer access token.</summary>
     Task<ActiveGameResult> GetActiveGameAsync(string accessToken, CancellationToken ct = default);
 
+    /// <summary>
+    /// Creates a game via <c>POST /games</c> with the supplied configuration. The two location intervals
+    /// in <paramref name="request"/> are already in seconds and are sent verbatim; the boundary-penalty
+    /// toggles are sent as <c>false</c> and the profile-picture url as <c>null</c>. Maps <c>201</c> →
+    /// success (the created game's id), <c>400</c> → validation, <c>401</c> → unauthenticated,
+    /// network/timeout/unexpected → error. Never throws for these outcomes.
+    /// </summary>
+    Task<CreateGameResult> CreateGameAsync(CreateGameParameters request, string accessToken, CancellationToken ct = default);
+
     /// <summary>Reads the full state of a game via <c>GET /games/{id}</c>.</summary>
     Task<GetGameResult> GetGameAsync(Guid gameId, string accessToken, CancellationToken ct = default);
 

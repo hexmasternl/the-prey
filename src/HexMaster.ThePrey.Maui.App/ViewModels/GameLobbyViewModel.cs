@@ -26,6 +26,9 @@ public sealed class GameLobbyViewModel : ObservableObject
     public static readonly IReadOnlyList<int> PingOptions = [2, 3, 5];
     public static readonly IReadOnlyList<int> EndgamePingOptions = [1, 2, 3, 5];
 
+    /// <summary>Shell query-string key carrying the id of the game to open (set when navigating from create/join).</summary>
+    public const string GameIdQueryKey = "gameId";
+
     private readonly IGameApiClient _gameApi;
     private readonly ILobbyStreamClient _stream;
     private readonly IShareService _shareService;
@@ -35,6 +38,7 @@ public sealed class GameLobbyViewModel : ObservableObject
     private readonly ThePreyClientOptions _options;
     private readonly ILogger<GameLobbyViewModel> _logger;
 
+    private Guid? _targetGameId;
     private Guid? _gameId;
     private Guid? _hunterUserId;
     private string? _lastToken;
@@ -194,6 +198,14 @@ public sealed class GameLobbyViewModel : ObservableObject
     internal Task? StreamTask { get; private set; }
 
     /// <summary>
+    /// Sets the specific game the lobby should open, supplied by the page from the <c>gameId</c> navigation
+    /// query when arriving from create/join. When set, <see cref="LoadAsync"/> loads this game directly by
+    /// id rather than resolving the caller's active game — a just-created game is still in its lobby phase
+    /// and <c>GET /games/active</c> (which reports only started games) would not return it.
+    /// </summary>
+    public void SetTargetGame(Guid? gameId) => _targetGameId = gameId;
+
+    /// <summary>
     /// Called when the page appears: loads the current game, then (if it loaded and has not already handed
     /// off to gameplay) subscribes to the live lobby stream.
     /// </summary>
@@ -226,21 +238,14 @@ public sealed class GameLobbyViewModel : ObservableObject
 
             _lastToken = token;
 
-            var active = await _gameApi.GetActiveGameAsync(token);
-            switch (active.Outcome)
+            var gameId = await ResolveGameIdAsync(token);
+            if (gameId is not Guid id)
             {
-                case ActiveGameOutcome.HasActiveGame when active.Game is not null:
-                    break;
-                case ActiveGameOutcome.Unauthorized:
-                    _accessTokenProvider.Invalidate();
-                    SetLoadError();
-                    return;
-                default: // NoActiveGame / Error / (null game)
-                    SetLoadError();
-                    return;
+                SetLoadError();
+                return;
             }
 
-            var game = await _gameApi.GetGameAsync(active.Game!.GameId, token);
+            var game = await _gameApi.GetGameAsync(id, token);
             switch (game.Outcome)
             {
                 case GetGameOutcome.Success when game.Game is not null:
@@ -270,6 +275,28 @@ public sealed class GameLobbyViewModel : ObservableObject
     {
         IsLoaded = false;
         HasError = true;
+    }
+
+    // Resolves which game to load. A game we were navigated to explicitly (just created or joined) is
+    // loaded by its id directly — it is still in its lobby phase and GET /games/active only reports
+    // started games, so it would 404 for a fresh lobby. With no explicit target (resume from the menu),
+    // fall back to the caller's active (started) game. Returns null (→ load error) when none resolves.
+    private async Task<Guid?> ResolveGameIdAsync(string token)
+    {
+        if (_targetGameId is Guid target)
+            return target;
+
+        var active = await _gameApi.GetActiveGameAsync(token);
+        switch (active.Outcome)
+        {
+            case ActiveGameOutcome.HasActiveGame when active.Game is not null:
+                return active.Game.GameId;
+            case ActiveGameOutcome.Unauthorized:
+                _accessTokenProvider.Invalidate();
+                return null;
+            default: // NoActiveGame / Error / (null game)
+                return null;
+        }
     }
 
     // Replaces the whole VM state from a snapshot (load, command response, or stream event). If the game

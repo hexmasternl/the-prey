@@ -114,6 +114,8 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\SetReadyResult.cs" Link="Linked\SetReadyResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\StartGameResult.cs" Link="Linked\StartGameResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameSettingsParameters.cs" Link="Linked\GameSettingsParameters.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\CreateGameResult.cs" Link="Linked\CreateGameResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\CreateGameParameters.cs" Link="Linked\CreateGameParameters.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\ILobbyStreamClient.cs" Link="Linked\ILobbyStreamClient.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\LobbyStreamClient.cs" Link="Linked\LobbyStreamClient.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IShareService.cs" Link="Linked\IShareService.cs" />
@@ -142,6 +144,10 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\SelectablePlayFieldItem.cs" Link="Linked\SelectablePlayFieldItem.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IPlayfieldSelectNavigator.cs" Link="Linked\IPlayfieldSelectNavigator.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\SelectPlayfieldViewModel.cs" Link="Linked\SelectPlayfieldViewModel.cs" />
+
+    <!-- Start-game (config) view model. All plain .NET; the picker + game-route navigation are behind
+         the existing IPlayfieldSelectNavigator / IMenuNavigator interfaces (implementations excluded). -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\StartGameViewModel.cs" Link="Linked\StartGameViewModel.cs" />
 
     <!-- In-game real-time state service: the event models, the transport + connection seams, and the
          state service. All plain .NET; tests drive a fake IWebSocketConnection and a fake

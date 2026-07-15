@@ -94,8 +94,13 @@
 
   <!-- Start game -->
   <data name="StartGame_Title" xml:space="preserve"><value>START OPERATION</value></data>
-  <data name="StartGame_Subtitle" xml:space="preserve"><value>MISSION SETUP</value></data>
-  <data name="StartGame_Body" xml:space="preserve"><value>Configure and launch a new operation. (Coming soon.)</value></data>
+  <data name="StartGame_Playfield_Label" xml:space="preserve"><value>PLAYFIELD</value></data>
+  <data name="StartGame_Playfield_Prompt" xml:space="preserve"><value>Choose a playfield</value></data>
+  <data name="StartGame_Playfield_Change" xml:space="preserve"><value>CHANGE</value></data>
+  <data name="StartGame_Create" xml:space="preserve"><value>CREATE GAME</value></data>
+  <data name="StartGame_ValidationError" xml:space="preserve"><value>The configuration was rejected. Adjust it and try again.</value></data>
+  <data name="StartGame_Error" xml:space="preserve"><value>Could not create the game. Check your connection and try again.</value></data>
+  <data name="StartGame_DefaultDisplayName" xml:space="preserve"><value>Player</value></data>
 
   <!-- Playfields -->
   <data name="Playfields_Title" xml:space="preserve"><value>PLAYFIELDS</value></data>

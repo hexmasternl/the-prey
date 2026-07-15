@@ -192,6 +192,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<GameLobbyViewModel>();
             services.AddTransient<GameHudViewModel>();
             services.AddTransient<SelectPlayfieldViewModel>();
+            services.AddTransient<StartGameViewModel>();
 
             // Pages.
             services.AddTransient<WelcomePage>();

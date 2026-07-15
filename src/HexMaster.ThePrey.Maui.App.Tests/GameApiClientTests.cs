@@ -110,6 +110,86 @@ public class GameApiClientTests
         """;
     }
 
+    // ---- CreateGameAsync ----
+
+    private static CreateGameParameters CreateParams(Guid? playfieldId = null) => new(
+        PlayfieldId: playfieldId ?? Guid.NewGuid(),
+        DisplayName: "Alice",
+        GameDurationMinutes: 60,
+        HeadstartMinutes: 10,
+        EndgameMinutes: 15,
+        DefaultLocationIntervalSeconds: 120,
+        FinalLocationIntervalSeconds: 60);
+
+    [Fact]
+    public async Task CreateGameAsync_ShouldPostToGames_WithBearerAndContractBody()
+    {
+        var playfieldId = Guid.NewGuid();
+        var handler = StubHttpMessageHandler.Returns(HttpStatusCode.Created, GameJson());
+        var sut = CreateSut(handler);
+
+        await sut.CreateGameAsync(CreateParams(playfieldId), "create-token");
+
+        Assert.Equal(HttpMethod.Post, handler.LastRequest?.Method);
+        Assert.Equal("games", handler.LastRequest?.RequestUri?.AbsolutePath.TrimStart('/'));
+        Assert.Equal("create-token", handler.LastRequest?.Headers.Authorization?.Parameter);
+        Assert.Contains($"\"playfieldId\":\"{playfieldId}\"", handler.LastRequestBody);
+        Assert.Contains("\"displayName\":\"Alice\"", handler.LastRequestBody);
+        // Durations pass through in minutes; the two intervals are sent verbatim (already seconds).
+        Assert.Contains("\"gameDuration\":60", handler.LastRequestBody);
+        Assert.Contains("\"defaultLocationInterval\":120", handler.LastRequestBody);
+        Assert.Contains("\"finalLocationInterval\":60", handler.LastRequestBody);
+        // Boundary-penalty toggles and profile-picture url are sent as their contract defaults.
+        Assert.Contains("\"enablePreyBoundaryPenalties\":false", handler.LastRequestBody);
+        Assert.Contains("\"enableHunterBoundaryPenalty\":false", handler.LastRequestBody);
+        Assert.Contains("\"profilePictureUrl\":null", handler.LastRequestBody);
+    }
+
+    [Fact]
+    public async Task CreateGameAsync_ShouldReturnSuccessWithId_WhenBackendReturns201()
+    {
+        var gameId = Guid.NewGuid();
+        var sut = CreateSut(StubHttpMessageHandler.Returns(HttpStatusCode.Created, GameJson(gameId)));
+
+        var result = await sut.CreateGameAsync(CreateParams(), "access");
+
+        Assert.Equal(CreateGameOutcome.Success, result.Outcome);
+        Assert.Equal(gameId, result.Game!.Id);
+    }
+
+    [Fact]
+    public async Task CreateGameAsync_ShouldReturnError_WhenCreatedPayloadHasNoId()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(HttpStatusCode.Created, """{"gameCode":"1234"}"""));
+
+        var result = await sut.CreateGameAsync(CreateParams(), "access");
+
+        Assert.Equal(CreateGameOutcome.Error, result.Outcome);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest, CreateGameOutcome.Validation)]
+    [InlineData(HttpStatusCode.Unauthorized, CreateGameOutcome.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError, CreateGameOutcome.Error)]
+    public async Task CreateGameAsync_ShouldMapStatus(HttpStatusCode status, CreateGameOutcome expected)
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(status));
+
+        var result = await sut.CreateGameAsync(CreateParams(), "access");
+
+        Assert.Equal(expected, result.Outcome);
+    }
+
+    [Fact]
+    public async Task CreateGameAsync_ShouldReturnError_WhenRequestThrows()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Throws(new HttpRequestException("boom")));
+
+        var result = await sut.CreateGameAsync(CreateParams(), "access");
+
+        Assert.Equal(CreateGameOutcome.Error, result.Outcome);
+    }
+
     // ---- GetGameAsync ----
 
     [Fact]

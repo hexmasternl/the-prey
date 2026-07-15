@@ -85,6 +85,26 @@ public class GameLobbyViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_ShouldLoadTargetGameById_WithoutQueryingActive_WhenTargetSet()
+    {
+        // A just-created game is opened by id: the lobby must load it directly and must NOT fall back to
+        // GET /games/active (which only returns started games and would 404 for a fresh lobby).
+        var game = Game(code: "5555");
+        _gameApi.Setup(g => g.GetGameAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetGameResult.Success(game));
+        var sut = CreateSut();
+        sut.SetTargetGame(game.Id);
+
+        await sut.LoadAsync();
+
+        Assert.True(sut.IsLoaded);
+        Assert.False(sut.HasError);
+        Assert.Equal("5555", sut.PassCode);
+        _gameApi.Verify(g => g.GetActiveGameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _gameApi.Verify(g => g.GetGameAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task LoadAsync_ShouldError_WhenNoActiveGame()
     {
         _gameApi.Setup(g => g.GetActiveGameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))

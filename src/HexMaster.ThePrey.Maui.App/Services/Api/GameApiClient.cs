@@ -66,6 +66,71 @@ public sealed class GameApiClient : IGameApiClient
         }
     }
 
+    public async Task<CreateGameResult> CreateGameAsync(CreateGameParameters request, string accessToken, CancellationToken ct = default)
+    {
+        // Durations are minutes; the two location intervals are already in seconds (the VM converted them).
+        // The boundary-penalty toggles and profile-picture url are sent as their contract defaults.
+        var body = new CreateGameBody(
+            request.PlayfieldId,
+            request.DisplayName,
+            request.GameDurationMinutes,
+            request.HeadstartMinutes,
+            request.EndgameMinutes,
+            request.DefaultLocationIntervalSeconds,
+            request.FinalLocationIntervalSeconds,
+            EnablePreyBoundaryPenalties: false,
+            EnableHunterBoundaryPenalty: false,
+            ProfilePictureUrl: null);
+
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "games")
+        {
+            Content = JsonContent.Create(body)
+        };
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(httpRequest, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Create-game request failed to complete.");
+            return CreateGameResult.Error;
+        }
+
+        using (response)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.Created:
+                case HttpStatusCode.OK:
+                    try
+                    {
+                        var game = await response.Content.ReadFromJsonAsync<GameSummary>(cancellationToken: ct);
+                        return game is null || game.Id == Guid.Empty
+                            ? CreateGameResult.Error
+                            : CreateGameResult.Success(game);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize create-game payload.");
+                        return CreateGameResult.Error;
+                    }
+
+                case HttpStatusCode.BadRequest:
+                    return CreateGameResult.Validation;
+
+                case HttpStatusCode.Unauthorized:
+                    return CreateGameResult.Unauthorized;
+
+                default:
+                    _logger.LogWarning("Create-game endpoint returned unexpected status {Status}.", response.StatusCode);
+                    return CreateGameResult.Error;
+            }
+        }
+    }
+
     public async Task<GetGameResult> GetGameAsync(Guid gameId, string accessToken, CancellationToken ct = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}");
@@ -565,6 +630,12 @@ public sealed class GameApiClient : IGameApiClient
     }
 
     // Request bodies — serialized with the default web (camelCase) options to match the backend records.
+    // Mirrors the backend CreateGameRequest; the trailing three fields carry the contract defaults.
+    private sealed record CreateGameBody(
+        Guid PlayfieldId, string DisplayName, int GameDuration, int HunterDelayTime, int FinalStageDuration,
+        int DefaultLocationInterval, int FinalLocationInterval,
+        bool EnablePreyBoundaryPenalties, bool EnableHunterBoundaryPenalty, string? ProfilePictureUrl);
+
     private sealed record UpdateGameSettingsBody(
         int GameDuration, int HunterDelayTime, int FinalStageDuration,
         int DefaultLocationInterval, int FinalLocationInterval);
