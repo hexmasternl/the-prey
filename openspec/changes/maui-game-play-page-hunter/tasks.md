@@ -39,26 +39,26 @@
 
 ## 6. HunterGamePage (XAML + Mapsui code-behind)
 
-- [ ] 6.1 Create `Pages/HunterGamePage.xaml` (+ `.xaml.cs`) bound to `HunterGameViewModel`; wire `OnAppearing`/`OnDisappearing` to the VM activate/deactivate and to starting/stopping the map, position, and heading.
-- [ ] 6.2 Host a full-screen Mapsui `MapControl` in code-behind (mirroring `DefineAreaPage`): OSM tile layer plus feature layers for the playfield polygon, the self arrow, and the prey dots.
-- [ ] 6.3 Redraw the playfield polygon (semi-transparent red) once from the VM projection; redraw prey dots (red/grey by state) from the VM projection; draw and rotate the self green arrow symbol from the VM position + heading (accumulate the angle so it turns the short way across 0°/360°), never plotting the hunter as a prey dot.
-- [ ] 6.4 Add the waiting-for-server overlay (shown in `Waiting`) and the hunter head-start overlay (large countdown, head-start caption, red penalty warning; shown in `HeadStart`), and the busy/error regions.
-- [ ] 6.5 Reserve and host the hunter HUD region at the bottom (content owned by the separate `hunter-hud` capability).
-- [ ] 6.6 Use only named/implicit styles + color resources from the central Colors/Styles (map palette: playfield red, self green, prey red, caught grey) and `{loc:Translate}` for every user-facing string.
+- [x] 6.1 Create `Pages/HunterGamePage.xaml` (+ `.xaml.cs`) bound to `HunterGameViewModel`; wire `OnAppearing`/`OnDisappearing` to the VM activate/deactivate and to starting/stopping the map, position, and heading.
+- [x] 6.2 Host a full-screen Mapsui `MapControl` in code-behind (mirroring `DefineAreaPage`): OSM tile layer plus feature layers for the playfield polygon, the self arrow, and the prey dots.
+- [x] 6.3 Redraw the playfield polygon (semi-transparent red) once from the VM projection; redraw prey dots (red/grey by state) from the VM projection; draw and rotate the self green arrow symbol from the VM position + heading (accumulate the angle so it turns the short way across 0°/360°), never plotting the hunter as a prey dot.
+- [x] 6.4 Add the waiting-for-server overlay (shown in `Waiting`) and the hunter head-start overlay (large countdown, head-start caption, red penalty warning; shown in `HeadStart`), and the busy/error regions.
+- [x] 6.5 Reserve and host the hunter HUD region at the bottom (content owned by the separate `hunter-hud` capability).
+- [x] 6.6 Use only named/implicit styles + color resources from the central Colors/Styles (map palette: playfield red, self green, prey red, caught grey) and `{loc:Translate}` for every user-facing string.
 
 ## 7. Localization & styling resources
 
-- [ ] 7.1 Add all hunter-play strings (waiting label, head-start caption, countdown, move-early / 10-minute-penalty warning title + body, error/empty states) to `AppResources.resx` and the Dutch `.resx`.
-- [ ] 7.2 Add the map marker palette (playfield red fill/outline, self green arrow, prey red, caught grey) and overlay/countdown styles to the central `Colors.xaml`/`Styles.xaml`.
+- [x] 7.1 Add all hunter-play strings (waiting label, head-start caption, countdown, move-early / 10-minute-penalty warning title + body, error/empty states) to `AppResources.resx` and the Dutch `.resx`.
+- [x] 7.2 Add the map marker palette (playfield red fill/outline, self green arrow, prey red, caught grey) and overlay/countdown styles to the central `Colors.xaml`/`Styles.xaml`.
 
 ## 8. Wiring
 
-- [ ] 8.1 In `AppShell.xaml.cs`, register the hunter game play route and point the gameplay router's hunter branch at `HunterGamePage`.
-- [ ] 8.2 In `MauiProgram.cs`, register `HunterGamePage`, `HunterGameViewModel`, `IGameStreamClient` (Web PubSub channel; uses the typed game `HttpClient` for the token request), `ILivePositionReader`, `IHeadingReader`, and the gameplay router / outcome navigator seams.
+- [x] 8.1 In `AppShell.xaml.cs`, register the hunter game play route and point the gameplay router's hunter branch at `HunterGamePage`.
+- [x] 8.2 In `MauiProgram.cs`, register `HunterGamePage`, `HunterGameViewModel`, `IGameStreamClient` (Web PubSub channel; uses the typed game `HttpClient` for the token request), `ILivePositionReader`, `IHeadingReader`, and the gameplay router / outcome navigator seams.
 
 ## 9. Tests
 
-- [ ] 9.1 `GameApiClient` tests: `GetGameStatusAsync` maps `200/403/409/404/401`/transient correctly and sends the Bearer header.
+- [x] 9.1 `GameApiClient` tests: `GetGameStatusAsync` maps `200/403/409/404/401`/transient correctly and sends the Bearer header.
 - [x] 9.2 `HunterGameViewModel` load tests: active→game resolution, and the None/NotFound/Unauthorized/Error states (Unauthorized invalidates the token).
 - [x] 9.3 Routing test: the gameplay router sends the hunter to `HunterGamePage` and a non-hunter to the prey destination. (`GameplayRouterTests` + `CurrentUserProviderTests`.)
 - [x] 9.4 Phase tests: `Ready`→Waiting; `InProgress` future may-move→HeadStart; `InProgress` past/null may-move→Live; `Completed`→Ended (hands off once); status `Forbidden`/`Conflict` treated as not-live-yet.
@@ -69,5 +69,5 @@
 
 ## 10. Build & verify
 
-- [ ] 10.1 Build the MAUI app and run the new unit tests; ensure ≥80% coverage on the new VM/client code.
-- [ ] 10.2 Manually verify the start→hunter and Resume→hunter entry paths, the waiting overlay, the head-start countdown + penalty warning, the self arrow rotating with the compass, and prey dots appearing/recoloring/greying.
+- [x] 10.1 Build the MAUI app and run the new unit tests; ensure ≥80% coverage on the new VM/client code.
+- [~] 10.2 Manually verify the start→hunter and Resume→hunter entry paths, the waiting overlay, the head-start countdown + penalty warning, the self arrow rotating with the compass, and prey dots appearing/recoloring/greying. _(Requires a device/emulator + a running backend and a live game — not performed in this environment; the full app builds for android and all automated tests pass.)_

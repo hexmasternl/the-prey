@@ -78,4 +78,10 @@
     <Color x:Key="TpSignalDeepColor">#1f4d00</Color>
     <SolidColorBrush x:Key="TpBgSurface2Brush" Color="{StaticResource TpBgSurface2}"/>
     <SolidColorBrush x:Key="TpTextBrush" Color="{StaticResource TpText}"/>
+
+    <!-- Gameplay map "caught / out" marker: a muted grey-green for tagged preys. The other map
+         marker colors reuse TpSignal (green self/other-prey) and TpHunter (red hunter/prey); the
+         GameMapPalette C# class derives all Mapsui feature colors from these central tokens. -->
+    <Color x:Key="TpCaught">#6b7267</Color>
+    <SolidColorBrush x:Key="TpCaughtBrush" Color="{StaticResource TpCaught}"/>
 </ResourceDictionary>

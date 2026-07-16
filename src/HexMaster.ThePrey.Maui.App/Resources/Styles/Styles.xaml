@@ -627,6 +627,51 @@
     <!-- Amber result/error message under the code field (reuses the shared alert style). -->
     <Style TargetType="Label" x:Key="JoinStateMessage" BasedOn="{StaticResource AlertLabel}" />
 
+    <!-- ============================================================= -->
+    <!-- Gameplay maps (hunter + prey) — full-screen overlays, the      -->
+    <!-- head-start countdown, penalty warning, and busy/error regions. -->
+    <!-- Shared by both role pages; the map marker colors live in the   -->
+    <!-- GameMapPalette C# class (derived from the Colors.xaml tokens).  -->
+    <!-- ============================================================= -->
+
+    <!-- Full-screen scrim over the map for the waiting / head-start overlays (dark, semi-transparent
+         so the map still reads through). The head-start scrim is non-blocking (InputTransparent set
+         on the page) so the prey/hunter can still pan the map beneath it. -->
+    <Style TargetType="Grid" x:Key="GameOverlayScrim">
+        <Setter Property="BackgroundColor" Value="{StaticResource TpHudPanel}" />
+        <Setter Property="Padding" Value="28" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="VerticalOptions" Value="Fill" />
+    </Style>
+
+    <!-- Overlay heading (STAND BY / HEAD START), display face, signal green. -->
+    <Style TargetType="Label" x:Key="GameOverlayTitle" BasedOn="{StaticResource TacticalTitle}" />
+
+    <!-- Overlay descriptive body under the heading. -->
+    <Style TargetType="Label" x:Key="GameOverlayBody" BasedOn="{StaticResource TacticalBody}" />
+
+    <!-- Oversized mm:ss head-start countdown readout (display face, signal green). -->
+    <Style TargetType="Label" x:Key="GameCountdown" BasedOn="{StaticResource TacticalTitle}">
+        <Setter Property="FontSize" Value="64" />
+        <Setter Property="CharacterSpacing" Value="6" />
+    </Style>
+
+    <!-- Head-start caption (uppercase, letter-spaced) above the countdown. -->
+    <Style TargetType="Label" x:Key="GameHeadStartCaption" BasedOn="{StaticResource HudLabel}" />
+
+    <!-- Move-early / 10-minute-penalty warning under the countdown — hunter red, centred. -->
+    <Style TargetType="Label" x:Key="GamePenaltyWarning" BasedOn="{StaticResource AlertLabel}">
+        <Setter Property="TextColor" Value="{StaticResource TpHunter}" />
+    </Style>
+
+    <!-- Small spectator indication banner (used by the prey page when tagged/out). -->
+    <Style TargetType="Label" x:Key="GameSpectatorBanner" BasedOn="{StaticResource HudLabel}">
+        <Setter Property="TextColor" Value="{StaticResource TpCaution}" />
+    </Style>
+
+    <!-- Centred busy/error message region over the map. -->
+    <Style TargetType="Label" x:Key="GameErrorMessage" BasedOn="{StaticResource AlertLabel}" />
+
     <Style TargetType="ActivityIndicator">
         <Setter Property="Color" Value="{StaticResource TpSignal}" />
     </Style>

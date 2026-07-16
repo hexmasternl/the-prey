@@ -214,6 +214,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<DefineAreaViewModel>();
             services.AddTransient<GameLobbyViewModel>();
             services.AddTransient<GameHudViewModel>();
+            services.AddTransient<HunterGameViewModel>();
             services.AddTransient<SelectPlayfieldViewModel>();
             services.AddTransient<StartGameViewModel>();
             services.AddTransient<JoinGameViewModel>();
@@ -226,6 +227,7 @@ namespace HexMaster.ThePrey.Maui.App
             // lobby hands off to); the `game` route itself now resolves GameLobbyPage.
             services.AddTransient<GamePage>();
             services.AddTransient<GameLobbyPage>();
+            services.AddTransient<HunterGamePage>();
             services.AddTransient<SelectPlayfieldPage>();
             services.AddTransient<StartGamePage>();
             services.AddTransient<JoinGamePage>();

@@ -237,4 +237,14 @@
   <data name="Select_Empty" xml:space="preserve"><value>You have no playfields yet.</value></data>
   <data name="Select_NoResults" xml:space="preserve"><value>No playfields match your search.</value></data>
   <data name="Select_Error" xml:space="preserve"><value>Could not load playfields. Check your connection and try again.</value></data>
+  <data name="HunterGame_Title" xml:space="preserve"><value>THE HUNT</value></data>
+  <data name="HunterGame_Waiting_Title" xml:space="preserve"><value>STAND BY</value></data>
+  <data name="HunterGame_Waiting_Body" xml:space="preserve"><value>Waiting for the game server to start the operation…</value></data>
+  <data name="HunterGame_HeadStart_Caption" xml:space="preserve"><value>HEAD START</value></data>
+  <data name="HunterGame_HeadStart_Body" xml:space="preserve"><value>The preys are hiding. Hold position until the countdown ends.</value></data>
+  <data name="HunterGame_Penalty_Warning" xml:space="preserve"><value>Move before the countdown ends and you incur a 10-minute penalty.</value></data>
+  <data name="HunterGame_Error_NoGame" xml:space="preserve"><value>No active operation found.</value></data>
+  <data name="HunterGame_Error_NotFound" xml:space="preserve"><value>This operation could not be found.</value></data>
+  <data name="HunterGame_Error_Unauthorized" xml:space="preserve"><value>Your session expired. Please sign in again.</value></data>
+  <data name="HunterGame_Error_Generic" xml:space="preserve"><value>Something went wrong. Retrying…</value></data>
 </root>
