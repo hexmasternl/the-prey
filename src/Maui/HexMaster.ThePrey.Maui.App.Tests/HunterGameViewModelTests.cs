@@ -19,6 +19,7 @@ public class HunterGameViewModelTests
     private readonly Mock<IHeadingReader> _heading = new();
     private readonly Mock<IGameplayNavigator> _nav = new();
     private readonly Mock<IAccessTokenProvider> _tokens = new();
+    private readonly Mock<IGameLocationTracker> _locationTracker = new();
     private readonly Mock<ILocalizationService> _localization = new();
     private readonly FakeTimeProvider _time = new();
     private readonly Guid _gameId = Guid.NewGuid();
@@ -32,7 +33,8 @@ public class HunterGameViewModelTests
 
     private HunterGameViewModel CreateSut() => new(
         _api.Object, _stream, _position.Object, _heading.Object, _nav.Object,
-        _tokens.Object, _localization.Object, _time, NullLogger<HunterGameViewModel>.Instance);
+        _tokens.Object, _locationTracker.Object, _localization.Object, _time,
+        NullLogger<HunterGameViewModel>.Instance);
 
     private void SetupActive(ActiveGameResult? result = null) =>
         _api.Setup(a => a.GetActiveGameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
