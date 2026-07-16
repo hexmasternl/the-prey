@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Main menu -->
+  <data name="Menu_LogIn" xml:space="preserve"><value>LOG IN</value></data>
+  <data name="Menu_ResumeGame" xml:space="preserve"><value>RESUME GAME</value></data>
+  <data name="Menu_StartGame" xml:space="preserve"><value>START GAME</value></data>
+  <data name="Menu_Playfields" xml:space="preserve"><value>PLAYFIELDS</value></data>
+  <data name="Menu_Settings" xml:space="preserve"><value>SETTINGS</value></data>
+  <data name="Menu_LogOut" xml:space="preserve"><value>LOG OUT</value></data>
+  <data name="Menu_Exit" xml:space="preserve"><value>EXIT</value></data>
+  <data name="Menu_SloganLine1Lead" xml:space="preserve"><value>STAY </value></data>
+  <data name="Menu_SloganLine1Accent" xml:space="preserve"><value>HIDDEN.</value></data>
+  <data name="Menu_SloganLine2Lead" xml:space="preserve"><value>HUNT </value></data>
+  <data name="Menu_SloganLine2Accent" xml:space="preserve"><value>SMART.</value></data>
+  <data name="Menu_Tagline" xml:space="preserve"><value>A GPS-based, real-world hide-and-seek game. Enter the playfield. Don't get caught.</value></data>
+
+  <!-- Welcome / splash -->
+  <data name="Welcome_Subtitle" xml:space="preserve"><value>LOCATION-BASED FIELD OPERATIONS</value></data>
+  <data name="Welcome_SloganLine1Lead" xml:space="preserve"><value>STAY </value></data>
+  <data name="Welcome_SloganLine1Accent" xml:space="preserve"><value>HIDDEN</value></data>
+  <data name="Welcome_SloganLine2Lead" xml:space="preserve"><value>HUNT </value></data>
+  <data name="Welcome_SloganLine2Accent" xml:space="preserve"><value>SMART</value></data>
+  <data name="Welcome_Tagline" xml:space="preserve"><value>A GPS-based, real-world hide-and-seek game. Enter the playfield. Don't get caught.</value></data>
+
+  <!-- Login -->
+  <data name="Login_Title" xml:space="preserve"><value>ACCESS REQUIRED</value></data>
+  <data name="Login_Body" xml:space="preserve"><value>Authenticate to establish your signal and check for active operations.</value></data>
+  <data name="Login_Button" xml:space="preserve"><value>LOG IN</value></data>
+  <data name="Login_Establishing" xml:space="preserve"><value>ESTABLISHING SIGNAL…</value></data>
+
+  <!-- Game -->
+  <data name="Game_Title" xml:space="preserve"><value>OPERATION ACTIVE</value></data>
+  <data name="Game_Subtitle" xml:space="preserve"><value>SIGNAL LOCKED</value></data>
+  <data name="Game_Body" xml:space="preserve"><value>Active game landing — the live operation HUD lands here. (Coming soon.)</value></data>
+
+  <!-- Start game -->
+  <data name="StartGame_Title" xml:space="preserve"><value>START OPERATION</value></data>
+  <data name="StartGame_Playfield_Label" xml:space="preserve"><value>PLAYFIELD</value></data>
+  <data name="StartGame_Playfield_Prompt" xml:space="preserve"><value>Choose a playfield</value></data>
+  <data name="StartGame_Playfield_Change" xml:space="preserve"><value>CHANGE</value></data>
+  <data name="StartGame_Create" xml:space="preserve"><value>CREATE GAME</value></data>
+  <data name="StartGame_ValidationError" xml:space="preserve"><value>The configuration was rejected. Adjust it and try again.</value></data>
+  <data name="StartGame_Error" xml:space="preserve"><value>Could not create the game. Check your connection and try again.</value></data>
+  <data name="StartGame_DefaultDisplayName" xml:space="preserve"><value>Player</value></data>
+
+  <!-- Join game -->
+  <data name="Join_Title" xml:space="preserve"><value>JOIN OPERATION</value></data>
+  <data name="Join_SignIn_Prompt" xml:space="preserve"><value>Sign in to join this operation.</value></data>
+  <data name="Join_SignIn_Button" xml:space="preserve"><value>LOG IN</value></data>
+  <data name="Join_Code_Label" xml:space="preserve"><value>JOIN CODE</value></data>
+  <data name="Join_Code_Placeholder" xml:space="preserve"><value>0000</value></data>
+  <data name="Join_Button" xml:space="preserve"><value>JOIN</value></data>
+  <data name="Join_Error_InvalidCode" xml:space="preserve"><value>That join code is not valid. Check it and try again.</value></data>
+  <data name="Join_Error_NotFound" xml:space="preserve"><value>This operation could not be found. The invite may have expired.</value></data>
+  <data name="Join_Conflict_Generic" xml:space="preserve"><value>You can't join this operation right now.</value></data>
+  <data name="Join_Conflict_AlreadyStarted" xml:space="preserve"><value>This operation has already started. You can no longer join.</value></data>
+  <data name="Join_Conflict_Full" xml:space="preserve"><value>This operation is full. You can no longer join.</value></data>
+  <data name="Join_Error_Generic" xml:space="preserve"><value>Could not join the operation. Check your connection and try again.</value></data>
+
+  <!-- Playfields -->
+  <data name="Playfields_Title" xml:space="preserve"><value>PLAYFIELDS</value></data>
+  <data name="Playfields_Subtitle" xml:space="preserve"><value>OPERATIONAL AREAS</value></data>
+  <data name="Playfields_Body" xml:space="preserve"><value>Create and manage playfield areas. (Coming soon.)</value></data>
+  <data name="Playfields_Tab_Private" xml:space="preserve"><value>PRIVATE</value></data>
+  <data name="Playfields_Tab_Public" xml:space="preserve"><value>PUBLIC</value></data>
+  <data name="Playfields_Badge_Public" xml:space="preserve"><value>PUBLIC</value></data>
+  <data name="Playfields_Badge_Private" xml:space="preserve"><value>PRIVATE</value></data>
+  <data name="Playfields_Private_Empty" xml:space="preserve"><value>No playfields yet. Create one to define an operational area.</value></data>
+  <data name="Playfields_Private_Error" xml:space="preserve"><value>Could not load your playfields. Check your connection and try again.</value></data>
+  <data name="Playfields_Search_Placeholder" xml:space="preserve"><value>Search public playfields</value></data>
+  <data name="Playfields_Search_Prompt" xml:space="preserve"><value>Type at least three characters to search public playfields.</value></data>
+  <data name="Playfields_Search_NoResults" xml:space="preserve"><value>No public playfields match your search.</value></data>
+  <data name="Playfields_Search_Error" xml:space="preserve"><value>Search failed. Check your connection and try again.</value></data>
+  <data name="Playfields_Create_Description" xml:space="preserve"><value>Create playfield</value></data>
+  <data name="Playfields_Delete_ConfirmTitle" xml:space="preserve"><value>Delete playfield?</value></data>
+  <data name="Playfields_Delete_ConfirmMessage" xml:space="preserve"><value>This permanently deletes this playfield. This can't be undone.</value></data>
+  <data name="Playfields_Delete_ConfirmAccept" xml:space="preserve"><value>Delete</value></data>
+  <data name="Playfields_Delete_ConfirmCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Playfields_Delete_Error" xml:space="preserve"><value>Could not delete the playfield. It's still in your list — try again.</value></data>
+
+  <!-- Create playfield -->
+  <data name="CreatePlayfield_Title" xml:space="preserve"><value>CREATE PLAYFIELD</value></data>
+  <data name="CreatePlayfield_Subtitle" xml:space="preserve"><value>DEFINE OPERATIONAL AREA</value></data>
+  <data name="CreatePlayfield_Name_Label" xml:space="preserve"><value>NAME</value></data>
+  <data name="CreatePlayfield_Name_Placeholder" xml:space="preserve"><value>Country, city, name — e.g. NL, Amsterdam, City park</value></data>
+  <data name="CreatePlayfield_Visibility_Label" xml:space="preserve"><value>VISIBILITY</value></data>
+  <data name="CreatePlayfield_Visibility_Private" xml:space="preserve"><value>PRIVATE</value></data>
+  <data name="CreatePlayfield_Visibility_Public" xml:space="preserve"><value>PUBLIC</value></data>
+  <data name="CreatePlayfield_Visibility_Hint" xml:space="preserve"><value>Use “Country, City, Name” to allow publishing publicly.</value></data>
+  <data name="CreatePlayfield_DefineArea" xml:space="preserve"><value>DEFINE AREA</value></data>
+  <data name="CreatePlayfield_Area_Defined" xml:space="preserve"><value>AREA DEFINED</value></data>
+  <data name="CreatePlayfield_Area_None" xml:space="preserve"><value>NO AREA DEFINED</value></data>
+  <data name="CreatePlayfield_Save" xml:space="preserve"><value>SAVE</value></data>
+  <data name="CreatePlayfield_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="CreatePlayfield_Error" xml:space="preserve"><value>Could not create the playfield. Check your connection and try again.</value></data>
+  <data name="CreatePlayfield_ValidationError" xml:space="preserve"><value>The playfield could not be created. Check the name and area, then try again.</value></data>
+
+  <!-- Area editor -->
+  <data name="DefineArea_Title" xml:space="preserve"><value>DEFINE AREA</value></data>
+  <data name="DefineArea_Hint" xml:space="preserve"><value>Tap to drop points. Tap a point to select, drag to move.</value></data>
+  <data name="DefineArea_Save" xml:space="preserve"><value>SAVE</value></data>
+  <data name="DefineArea_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="DefineArea_Delete" xml:space="preserve"><value>DELETE</value></data>
+  <data name="DefineArea_Clear" xml:space="preserve"><value>CLEAR</value></data>
+
+  <!-- Edit playfield -->
+  <data name="EditPlayfield_Title" xml:space="preserve"><value>EDIT PLAYFIELD</value></data>
+  <data name="EditPlayfield_Subtitle" xml:space="preserve"><value>UPDATE OPERATIONAL AREA</value></data>
+  <data name="EditPlayfield_SetArea" xml:space="preserve"><value>SET AREA</value></data>
+  <data name="EditPlayfield_Save" xml:space="preserve"><value>SAVE</value></data>
+  <data name="EditPlayfield_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="EditPlayfield_Reload" xml:space="preserve"><value>RELOAD</value></data>
+  <data name="EditPlayfield_LoadError" xml:space="preserve"><value>Could not load this playfield. Check your connection and try again.</value></data>
+  <data name="EditPlayfield_Error" xml:space="preserve"><value>Could not save your changes. Check your connection and try again.</value></data>
+  <data name="EditPlayfield_ValidationError" xml:space="preserve"><value>The playfield could not be saved. Check the name and area, then try again.</value></data>
+  <data name="EditPlayfield_Conflict" xml:space="preserve"><value>This playfield changed elsewhere. Reload to get the latest, then re-apply your edit.</value></data>
+
+  <!-- Settings -->
+  <data name="Settings_Title" xml:space="preserve"><value>SETTINGS</value></data>
+  <data name="Settings_Subtitle" xml:space="preserve"><value>SYSTEM CONFIG</value></data>
+  <data name="Settings_DisplayName_Label" xml:space="preserve"><value>DISPLAY NAME</value></data>
+  <data name="Settings_DisplayName_Placeholder" xml:space="preserve"><value>Enter your display name</value></data>
+  <data name="Settings_DisplayName_Required" xml:space="preserve"><value>Display name is required.</value></data>
+  <data name="Settings_Language_Label" xml:space="preserve"><value>LANGUAGE</value></data>
+  <data name="Settings_Status_Saving" xml:space="preserve"><value>SAVING…</value></data>
+  <data name="Settings_Status_Saved" xml:space="preserve"><value>SAVED</value></data>
+  <data name="Settings_Status_Error" xml:space="preserve"><value>SAVE FAILED — CHANGE NOT STORED</value></data>
+  <data name="Settings_LoadError" xml:space="preserve"><value>Could not load your settings. Check your connection and try again.</value></data>
+  <data name="Lobby_Title" xml:space="preserve"><value>LOBBY</value></data>
+  <data name="Lobby_PassCode_Label" xml:space="preserve"><value>PASS CODE</value></data>
+  <data name="Lobby_Share" xml:space="preserve"><value>SHARE</value></data>
+  <data name="Lobby_Share_Description" xml:space="preserve"><value>Share the invite</value></data>
+  <data name="Lobby_Settings_Title" xml:space="preserve"><value>OPERATION SETTINGS</value></data>
+  <data name="Lobby_Setting_Duration" xml:space="preserve"><value>DURATION (MIN)</value></data>
+  <data name="Lobby_Setting_Headstart" xml:space="preserve"><value>HEADSTART (MIN)</value></data>
+  <data name="Lobby_Setting_Endgame" xml:space="preserve"><value>ENDGAME (MIN)</value></data>
+  <data name="Lobby_Setting_Ping" xml:space="preserve"><value>GPS PING (MIN)</value></data>
+  <data name="Lobby_Setting_EndgamePing" xml:space="preserve"><value>ENDGAME PING (MIN)</value></data>
+  <data name="Lobby_Participants_Title" xml:space="preserve"><value>OPERATIVES</value></data>
+  <data name="Lobby_Role_Hunter" xml:space="preserve"><value>HUNTER</value></data>
+  <data name="Lobby_Role_Prey" xml:space="preserve"><value>PREY</value></data>
+  <data name="Lobby_Ready" xml:space="preserve"><value>READY</value></data>
+  <data name="Lobby_NotReady" xml:space="preserve"><value>NOT READY</value></data>
+  <data name="Lobby_SetReady" xml:space="preserve"><value>SET READY</value></data>
+  <data name="Lobby_Start" xml:space="preserve"><value>START OPERATION</value></data>
+  <data name="Lobby_Error" xml:space="preserve"><value>Could not load the game. Check your connection and try again.</value></data>
+  <data name="Lobby_ActionError" xml:space="preserve"><value>Action failed. Please try again.</value></data>
+  <data name="Lobby_Invite_Title" xml:space="preserve"><value>Join my operation</value></data>
+  <data name="Lobby_Invite_Template" xml:space="preserve"><value>Join my game of The Prey! Pass code: {0}. Tap to join: {1}</value></data>
+
+  <!-- In-game HUD -->
+  <data name="Hud_Caption_TimeRemaining" xml:space="preserve"><value>TIME LEFT</value></data>
+  <data name="Hud_Caption_Preys" xml:space="preserve"><value>PREYS</value></data>
+  <data name="Hud_Caption_Distance" xml:space="preserve"><value>NEAREST</value></data>
+  <data name="Hud_NextPing" xml:space="preserve"><value>NEXT PING</value></data>
+  <data name="Hud_Collapse" xml:space="preserve"><value>COLLAPSE</value></data>
+  <data name="Hud_Center" xml:space="preserve"><value>CENTER</value></data>
+  <data name="Hud_Center_On" xml:space="preserve"><value>Centering on</value></data>
+  <data name="Hud_Center_Off" xml:space="preserve"><value>Centering off</value></data>
+  <data name="Hud_Tag" xml:space="preserve"><value>TAG</value></data>
+  <data name="Hud_Distance_Unknown" xml:space="preserve"><value>—</value></data>
+  <data name="Hud_Distance_Meters" xml:space="preserve"><value>{0} m</value></data>
+  <data name="Hud_Distance_Kilometers" xml:space="preserve"><value>{0} km</value></data>
+  <data name="Hud_Error_Generic" xml:space="preserve"><value>Could not update the game. Retrying…</value></data>
+  <data name="Hud_Error_Unauthorized" xml:space="preserve"><value>Your session expired. Please sign in again.</value></data>
+  <data name="Tag_DialogTitle" xml:space="preserve"><value>SELECT A PREY TO TAG</value></data>
+  <data name="Tag_NoPreysInRange" xml:space="preserve"><value>No preys are in tagging range.</value></data>
+  <data name="Tag_NoLongerInRange" xml:space="preserve"><value>That prey is no longer in range. Try another.</value></data>
+  <data name="Tag_Confirm_Title" xml:space="preserve"><value>Confirm tag</value></data>
+  <data name="Tag_Confirm_Message" xml:space="preserve"><value>Really tag this player?</value></data>
+  <data name="Tag_Confirm_Accept" xml:space="preserve"><value>TAG</value></data>
+  <data name="Tag_Confirm_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="Tag_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="Select_Title" xml:space="preserve"><value>SELECT PLAYFIELD</value></data>
+  <data name="Select_Search_Placeholder" xml:space="preserve"><value>Search playfields</value></data>
+  <data name="Select_Confirm" xml:space="preserve"><value>SELECT</value></data>
+  <data name="Select_Cancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="Select_Empty" xml:space="preserve"><value>You have no playfields yet.</value></data>
+  <data name="Select_NoResults" xml:space="preserve"><value>No playfields match your search.</value></data>
+  <data name="Select_Error" xml:space="preserve"><value>Could not load playfields. Check your connection and try again.</value></data>
+  <data name="HunterGame_Title" xml:space="preserve"><value>THE HUNT</value></data>
+  <data name="HunterGame_Waiting_Title" xml:space="preserve"><value>STAND BY</value></data>
+  <data name="HunterGame_Waiting_Body" xml:space="preserve"><value>Waiting for the game server to start the operation…</value></data>
+  <data name="HunterGame_HeadStart_Caption" xml:space="preserve"><value>HEAD START</value></data>
+  <data name="HunterGame_HeadStart_Body" xml:space="preserve"><value>The preys are hiding. Hold position until the countdown ends.</value></data>
+  <data name="HunterGame_Penalty_Warning" xml:space="preserve"><value>Move before the countdown ends and you incur a 10-minute penalty.</value></data>
+  <data name="HunterGame_Error_NoGame" xml:space="preserve"><value>No active operation found.</value></data>
+  <data name="HunterGame_Error_NotFound" xml:space="preserve"><value>This operation could not be found.</value></data>
+  <data name="HunterGame_Error_Unauthorized" xml:space="preserve"><value>Your session expired. Please sign in again.</value></data>
+  <data name="HunterGame_Error_Generic" xml:space="preserve"><value>Something went wrong. Retrying…</value></data>
+  <data name="PreyGame_Title" xml:space="preserve"><value>THE PREY</value></data>
+  <data name="PreyGame_Waiting_Title" xml:space="preserve"><value>STAND BY</value></data>
+  <data name="PreyGame_Waiting_Body" xml:space="preserve"><value>Waiting for the game server to start the operation…</value></data>
+  <data name="PreyGame_HeadStart_Caption" xml:space="preserve"><value>HEAD START</value></data>
+  <data name="PreyGame_HeadStart_Body" xml:space="preserve"><value>Get moving and hide — the hunter is released when the countdown ends.</value></data>
+  <data name="PreyGame_Penalty_Warning" xml:space="preserve"><value>The hunter is held back: moving before the countdown ends costs them a 10-minute penalty.</value></data>
+  <data name="PreyGame_Spectator" xml:space="preserve"><value>CAUGHT — SPECTATING UNTIL THE GAME ENDS</value></data>
+  <data name="PreyGame_Error_NoGame" xml:space="preserve"><value>No active operation found.</value></data>
+  <data name="PreyGame_Error_NotFound" xml:space="preserve"><value>This operation could not be found.</value></data>
+  <data name="PreyGame_Error_Unauthorized" xml:space="preserve"><value>Your session expired. Please sign in again.</value></data>
+  <data name="PreyGame_Error_Generic" xml:space="preserve"><value>Something went wrong. Retrying…</value></data>
+</root>

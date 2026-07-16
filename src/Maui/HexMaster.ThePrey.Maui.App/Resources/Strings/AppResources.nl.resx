@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Main menu -->
+  <data name="Menu_LogIn" xml:space="preserve"><value>INLOGGEN</value></data>
+  <data name="Menu_ResumeGame" xml:space="preserve"><value>SPEL HERVATTEN</value></data>
+  <data name="Menu_StartGame" xml:space="preserve"><value>SPEL STARTEN</value></data>
+  <data name="Menu_Playfields" xml:space="preserve"><value>SPEELVELDEN</value></data>
+  <data name="Menu_Settings" xml:space="preserve"><value>INSTELLINGEN</value></data>
+  <data name="Menu_LogOut" xml:space="preserve"><value>UITLOGGEN</value></data>
+  <data name="Menu_Exit" xml:space="preserve"><value>AFSLUITEN</value></data>
+  <data name="Menu_SloganLine1Lead" xml:space="preserve"><value>BLIJF </value></data>
+  <data name="Menu_SloganLine1Accent" xml:space="preserve"><value>VERBORGEN.</value></data>
+  <data name="Menu_SloganLine2Lead" xml:space="preserve"><value>JAAG </value></data>
+  <data name="Menu_SloganLine2Accent" xml:space="preserve"><value>SLIM.</value></data>
+  <data name="Menu_Tagline" xml:space="preserve"><value>Een gps-gebaseerd verstoppertje in de echte wereld. Betreed het speelveld. Laat je niet pakken.</value></data>
+
+  <!-- Welcome / splash -->
+  <data name="Welcome_Subtitle" xml:space="preserve"><value>LOCATIEGEBASEERDE VELDOPERATIES</value></data>
+  <data name="Welcome_SloganLine1Lead" xml:space="preserve"><value>BLIJF </value></data>
+  <data name="Welcome_SloganLine1Accent" xml:space="preserve"><value>VERBORGEN</value></data>
+  <data name="Welcome_SloganLine2Lead" xml:space="preserve"><value>JAAG </value></data>
+  <data name="Welcome_SloganLine2Accent" xml:space="preserve"><value>SLIM</value></data>
+  <data name="Welcome_Tagline" xml:space="preserve"><value>Een gps-gebaseerd verstoppertje in de echte wereld. Betreed het speelveld. Laat je niet pakken.</value></data>
+
+  <!-- Login -->
+  <data name="Login_Title" xml:space="preserve"><value>TOEGANG VEREIST</value></data>
+  <data name="Login_Body" xml:space="preserve"><value>Meld je aan om je signaal te vestigen en te controleren op actieve operaties.</value></data>
+  <data name="Login_Button" xml:space="preserve"><value>INLOGGEN</value></data>
+  <data name="Login_Establishing" xml:space="preserve"><value>SIGNAAL VESTIGEN…</value></data>
+
+  <!-- Game -->
+  <data name="Game_Title" xml:space="preserve"><value>OPERATIE ACTIEF</value></data>
+  <data name="Game_Subtitle" xml:space="preserve"><value>SIGNAAL VERGRENDELD</value></data>
+  <data name="Game_Body" xml:space="preserve"><value>Landingspagina voor het actieve spel — de live operatie-HUD komt hier. (Binnenkort beschikbaar.)</value></data>
+
+  <!-- Start game -->
+  <data name="StartGame_Title" xml:space="preserve"><value>OPERATIE STARTEN</value></data>
+  <data name="StartGame_Playfield_Label" xml:space="preserve"><value>SPEELVELD</value></data>
+  <data name="StartGame_Playfield_Prompt" xml:space="preserve"><value>Kies een speelveld</value></data>
+  <data name="StartGame_Playfield_Change" xml:space="preserve"><value>WIJZIG</value></data>
+  <data name="StartGame_Create" xml:space="preserve"><value>SPEL AANMAKEN</value></data>
+  <data name="StartGame_ValidationError" xml:space="preserve"><value>De configuratie werd geweigerd. Pas deze aan en probeer opnieuw.</value></data>
+  <data name="StartGame_Error" xml:space="preserve"><value>Kan het spel niet aanmaken. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="StartGame_DefaultDisplayName" xml:space="preserve"><value>Speler</value></data>
+
+  <!-- Join game -->
+  <data name="Join_Title" xml:space="preserve"><value>OPERATIE JOINEN</value></data>
+  <data name="Join_SignIn_Prompt" xml:space="preserve"><value>Meld je aan om deel te nemen aan deze operatie.</value></data>
+  <data name="Join_SignIn_Button" xml:space="preserve"><value>AANMELDEN</value></data>
+  <data name="Join_Code_Label" xml:space="preserve"><value>TOEGANGSCODE</value></data>
+  <data name="Join_Code_Placeholder" xml:space="preserve"><value>0000</value></data>
+  <data name="Join_Button" xml:space="preserve"><value>DEELNEMEN</value></data>
+  <data name="Join_Error_InvalidCode" xml:space="preserve"><value>Die toegangscode is ongeldig. Controleer deze en probeer opnieuw.</value></data>
+  <data name="Join_Error_NotFound" xml:space="preserve"><value>Deze operatie is niet gevonden. De uitnodiging is mogelijk verlopen.</value></data>
+  <data name="Join_Conflict_Generic" xml:space="preserve"><value>Je kunt nu niet deelnemen aan deze operatie.</value></data>
+  <data name="Join_Conflict_AlreadyStarted" xml:space="preserve"><value>Deze operatie is al gestart. Je kunt niet meer deelnemen.</value></data>
+  <data name="Join_Conflict_Full" xml:space="preserve"><value>Deze operatie zit vol. Je kunt niet meer deelnemen.</value></data>
+  <data name="Join_Error_Generic" xml:space="preserve"><value>Kan niet deelnemen aan de operatie. Controleer je verbinding en probeer opnieuw.</value></data>
+
+  <!-- Playfields -->
+  <data name="Playfields_Title" xml:space="preserve"><value>SPEELVELDEN</value></data>
+  <data name="Playfields_Subtitle" xml:space="preserve"><value>OPERATIONELE GEBIEDEN</value></data>
+  <data name="Playfields_Body" xml:space="preserve"><value>Maak en beheer speelveldgebieden. (Binnenkort beschikbaar.)</value></data>
+  <data name="Playfields_Tab_Private" xml:space="preserve"><value>PRIVÉ</value></data>
+  <data name="Playfields_Tab_Public" xml:space="preserve"><value>OPENBAAR</value></data>
+  <data name="Playfields_Badge_Public" xml:space="preserve"><value>OPENBAAR</value></data>
+  <data name="Playfields_Badge_Private" xml:space="preserve"><value>PRIVÉ</value></data>
+  <data name="Playfields_Private_Empty" xml:space="preserve"><value>Nog geen speelvelden. Maak er een om een operationeel gebied te bepalen.</value></data>
+  <data name="Playfields_Private_Error" xml:space="preserve"><value>Kan je speelvelden niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="Playfields_Search_Placeholder" xml:space="preserve"><value>Zoek openbare speelvelden</value></data>
+  <data name="Playfields_Search_Prompt" xml:space="preserve"><value>Typ minstens drie tekens om openbare speelvelden te zoeken.</value></data>
+  <data name="Playfields_Search_NoResults" xml:space="preserve"><value>Geen openbare speelvelden gevonden.</value></data>
+  <data name="Playfields_Search_Error" xml:space="preserve"><value>Zoeken mislukt. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="Playfields_Create_Description" xml:space="preserve"><value>Speelveld maken</value></data>
+  <data name="Playfields_Delete_ConfirmTitle" xml:space="preserve"><value>Speelveld verwijderen?</value></data>
+  <data name="Playfields_Delete_ConfirmMessage" xml:space="preserve"><value>Hiermee verwijder je dit speelveld definitief. Dit kan niet ongedaan worden gemaakt.</value></data>
+  <data name="Playfields_Delete_ConfirmAccept" xml:space="preserve"><value>Verwijderen</value></data>
+  <data name="Playfields_Delete_ConfirmCancel" xml:space="preserve"><value>Annuleren</value></data>
+  <data name="Playfields_Delete_Error" xml:space="preserve"><value>Kan het speelveld niet verwijderen. Het staat nog in je lijst — probeer opnieuw.</value></data>
+
+  <!-- Create playfield -->
+  <data name="CreatePlayfield_Title" xml:space="preserve"><value>SPEELVELD MAKEN</value></data>
+  <data name="CreatePlayfield_Subtitle" xml:space="preserve"><value>OPERATIONEEL GEBIED BEPALEN</value></data>
+  <data name="CreatePlayfield_Name_Label" xml:space="preserve"><value>NAAM</value></data>
+  <data name="CreatePlayfield_Name_Placeholder" xml:space="preserve"><value>Land, stad, naam — bijv. NL, Amsterdam, Stadspark</value></data>
+  <data name="CreatePlayfield_Visibility_Label" xml:space="preserve"><value>ZICHTBAARHEID</value></data>
+  <data name="CreatePlayfield_Visibility_Private" xml:space="preserve"><value>PRIVÉ</value></data>
+  <data name="CreatePlayfield_Visibility_Public" xml:space="preserve"><value>OPENBAAR</value></data>
+  <data name="CreatePlayfield_Visibility_Hint" xml:space="preserve"><value>Gebruik “Land, Stad, Naam” om openbaar te kunnen publiceren.</value></data>
+  <data name="CreatePlayfield_DefineArea" xml:space="preserve"><value>GEBIED BEPALEN</value></data>
+  <data name="CreatePlayfield_Area_Defined" xml:space="preserve"><value>GEBIED BEPAALD</value></data>
+  <data name="CreatePlayfield_Area_None" xml:space="preserve"><value>GEEN GEBIED BEPAALD</value></data>
+  <data name="CreatePlayfield_Save" xml:space="preserve"><value>OPSLAAN</value></data>
+  <data name="CreatePlayfield_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="CreatePlayfield_Error" xml:space="preserve"><value>Kan het speelveld niet aanmaken. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="CreatePlayfield_ValidationError" xml:space="preserve"><value>Het speelveld kon niet worden aangemaakt. Controleer de naam en het gebied en probeer opnieuw.</value></data>
+
+  <!-- Area editor -->
+  <data name="DefineArea_Title" xml:space="preserve"><value>GEBIED BEPALEN</value></data>
+  <data name="DefineArea_Hint" xml:space="preserve"><value>Tik om punten te plaatsen. Tik een punt aan om te selecteren, sleep om te verplaatsen.</value></data>
+  <data name="DefineArea_Save" xml:space="preserve"><value>OPSLAAN</value></data>
+  <data name="DefineArea_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="DefineArea_Delete" xml:space="preserve"><value>VERWIJDEREN</value></data>
+  <data name="DefineArea_Clear" xml:space="preserve"><value>WISSEN</value></data>
+
+  <!-- Edit playfield -->
+  <data name="EditPlayfield_Title" xml:space="preserve"><value>SPEELVELD BEWERKEN</value></data>
+  <data name="EditPlayfield_Subtitle" xml:space="preserve"><value>OPERATIONEEL GEBIED BIJWERKEN</value></data>
+  <data name="EditPlayfield_SetArea" xml:space="preserve"><value>GEBIED INSTELLEN</value></data>
+  <data name="EditPlayfield_Save" xml:space="preserve"><value>OPSLAAN</value></data>
+  <data name="EditPlayfield_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="EditPlayfield_Reload" xml:space="preserve"><value>HERLADEN</value></data>
+  <data name="EditPlayfield_LoadError" xml:space="preserve"><value>Kan dit speelveld niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="EditPlayfield_Error" xml:space="preserve"><value>Kan je wijzigingen niet opslaan. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="EditPlayfield_ValidationError" xml:space="preserve"><value>Het speelveld kon niet worden opgeslagen. Controleer de naam en het gebied en probeer opnieuw.</value></data>
+  <data name="EditPlayfield_Conflict" xml:space="preserve"><value>Dit speelveld is elders gewijzigd. Herlaad om de nieuwste versie op te halen en pas je wijziging opnieuw toe.</value></data>
+
+  <!-- Settings -->
+  <data name="Settings_Title" xml:space="preserve"><value>INSTELLINGEN</value></data>
+  <data name="Settings_Subtitle" xml:space="preserve"><value>SYSTEEMCONFIGURATIE</value></data>
+  <data name="Settings_DisplayName_Label" xml:space="preserve"><value>WEERGAVENAAM</value></data>
+  <data name="Settings_DisplayName_Placeholder" xml:space="preserve"><value>Voer je weergavenaam in</value></data>
+  <data name="Settings_DisplayName_Required" xml:space="preserve"><value>Weergavenaam is verplicht.</value></data>
+  <data name="Settings_Language_Label" xml:space="preserve"><value>TAAL</value></data>
+  <data name="Settings_Status_Saving" xml:space="preserve"><value>OPSLAAN…</value></data>
+  <data name="Settings_Status_Saved" xml:space="preserve"><value>OPGESLAGEN</value></data>
+  <data name="Settings_Status_Error" xml:space="preserve"><value>OPSLAAN MISLUKT — WIJZIGING NIET BEWAARD</value></data>
+  <data name="Settings_LoadError" xml:space="preserve"><value>Kan je instellingen niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="Lobby_Title" xml:space="preserve"><value>LOBBY</value></data>
+  <data name="Lobby_PassCode_Label" xml:space="preserve"><value>TOEGANGSCODE</value></data>
+  <data name="Lobby_Share" xml:space="preserve"><value>DELEN</value></data>
+  <data name="Lobby_Share_Description" xml:space="preserve"><value>Deel de uitnodiging</value></data>
+  <data name="Lobby_Settings_Title" xml:space="preserve"><value>OPERATIE-INSTELLINGEN</value></data>
+  <data name="Lobby_Setting_Duration" xml:space="preserve"><value>DUUR (MIN)</value></data>
+  <data name="Lobby_Setting_Headstart" xml:space="preserve"><value>VOORSPRONG (MIN)</value></data>
+  <data name="Lobby_Setting_Endgame" xml:space="preserve"><value>EINDSPEL (MIN)</value></data>
+  <data name="Lobby_Setting_Ping" xml:space="preserve"><value>GPS-PING (MIN)</value></data>
+  <data name="Lobby_Setting_EndgamePing" xml:space="preserve"><value>EINDSPEL-PING (MIN)</value></data>
+  <data name="Lobby_Participants_Title" xml:space="preserve"><value>AGENTEN</value></data>
+  <data name="Lobby_Role_Hunter" xml:space="preserve"><value>JAGER</value></data>
+  <data name="Lobby_Role_Prey" xml:space="preserve"><value>PROOI</value></data>
+  <data name="Lobby_Ready" xml:space="preserve"><value>GEREED</value></data>
+  <data name="Lobby_NotReady" xml:space="preserve"><value>NIET GEREED</value></data>
+  <data name="Lobby_SetReady" xml:space="preserve"><value>MELD GEREED</value></data>
+  <data name="Lobby_Start" xml:space="preserve"><value>START OPERATIE</value></data>
+  <data name="Lobby_Error" xml:space="preserve"><value>Kan het spel niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="Lobby_ActionError" xml:space="preserve"><value>Actie mislukt. Probeer het opnieuw.</value></data>
+  <data name="Lobby_Invite_Title" xml:space="preserve"><value>Doe mee aan mijn operatie</value></data>
+  <data name="Lobby_Invite_Template" xml:space="preserve"><value>Doe mee met mijn spel The Prey! Toegangscode: {0}. Tik om mee te doen: {1}</value></data>
+
+  <!-- In-game HUD -->
+  <data name="Hud_Caption_TimeRemaining" xml:space="preserve"><value>RESTTIJD</value></data>
+  <data name="Hud_Caption_Preys" xml:space="preserve"><value>PROOIEN</value></data>
+  <data name="Hud_Caption_Distance" xml:space="preserve"><value>DICHTSTBIJ</value></data>
+  <data name="Hud_NextPing" xml:space="preserve"><value>VOLGENDE PING</value></data>
+  <data name="Hud_Collapse" xml:space="preserve"><value>INKLAPPEN</value></data>
+  <data name="Hud_Center" xml:space="preserve"><value>CENTREREN</value></data>
+  <data name="Hud_Center_On" xml:space="preserve"><value>Centreren aan</value></data>
+  <data name="Hud_Center_Off" xml:space="preserve"><value>Centreren uit</value></data>
+  <data name="Hud_Tag" xml:space="preserve"><value>TIK</value></data>
+  <data name="Hud_Distance_Unknown" xml:space="preserve"><value>—</value></data>
+  <data name="Hud_Distance_Meters" xml:space="preserve"><value>{0} m</value></data>
+  <data name="Hud_Distance_Kilometers" xml:space="preserve"><value>{0} km</value></data>
+  <data name="Hud_Error_Generic" xml:space="preserve"><value>Kan het spel niet bijwerken. Opnieuw proberen…</value></data>
+  <data name="Hud_Error_Unauthorized" xml:space="preserve"><value>Je sessie is verlopen. Meld je opnieuw aan.</value></data>
+  <data name="Tag_DialogTitle" xml:space="preserve"><value>KIES EEN PROOI OM TE TIKKEN</value></data>
+  <data name="Tag_NoPreysInRange" xml:space="preserve"><value>Er zijn geen prooien binnen tikbereik.</value></data>
+  <data name="Tag_NoLongerInRange" xml:space="preserve"><value>Die prooi is niet meer in bereik. Probeer een andere.</value></data>
+  <data name="Tag_Confirm_Title" xml:space="preserve"><value>Tik bevestigen</value></data>
+  <data name="Tag_Confirm_Message" xml:space="preserve"><value>Deze speler echt tikken?</value></data>
+  <data name="Tag_Confirm_Accept" xml:space="preserve"><value>TIK</value></data>
+  <data name="Tag_Confirm_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="Tag_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="Select_Title" xml:space="preserve"><value>SPEELVELD KIEZEN</value></data>
+  <data name="Select_Search_Placeholder" xml:space="preserve"><value>Zoek speelvelden</value></data>
+  <data name="Select_Confirm" xml:space="preserve"><value>KIEZEN</value></data>
+  <data name="Select_Cancel" xml:space="preserve"><value>ANNULEREN</value></data>
+  <data name="Select_Empty" xml:space="preserve"><value>Je hebt nog geen speelvelden.</value></data>
+  <data name="Select_NoResults" xml:space="preserve"><value>Geen speelvelden gevonden.</value></data>
+  <data name="Select_Error" xml:space="preserve"><value>Kan speelvelden niet laden. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="HunterGame_Title" xml:space="preserve"><value>DE JACHT</value></data>
+  <data name="HunterGame_Waiting_Title" xml:space="preserve"><value>STAND-BY</value></data>
+  <data name="HunterGame_Waiting_Body" xml:space="preserve"><value>Wachten tot de spelserver de operatie start…</value></data>
+  <data name="HunterGame_HeadStart_Caption" xml:space="preserve"><value>VOORSPRONG</value></data>
+  <data name="HunterGame_HeadStart_Body" xml:space="preserve"><value>De prooien verstoppen zich. Blijf op je positie tot de aftelling eindigt.</value></data>
+  <data name="HunterGame_Penalty_Warning" xml:space="preserve"><value>Beweeg je voor het einde van de aftelling, dan krijg je 10 minuten straf.</value></data>
+  <data name="HunterGame_Error_NoGame" xml:space="preserve"><value>Geen actieve operatie gevonden.</value></data>
+  <data name="HunterGame_Error_NotFound" xml:space="preserve"><value>Deze operatie kon niet worden gevonden.</value></data>
+  <data name="HunterGame_Error_Unauthorized" xml:space="preserve"><value>Je sessie is verlopen. Log opnieuw in.</value></data>
+  <data name="HunterGame_Error_Generic" xml:space="preserve"><value>Er ging iets mis. Opnieuw proberen…</value></data>
+  <data name="PreyGame_Title" xml:space="preserve"><value>DE PROOI</value></data>
+  <data name="PreyGame_Waiting_Title" xml:space="preserve"><value>STAND-BY</value></data>
+  <data name="PreyGame_Waiting_Body" xml:space="preserve"><value>Wachten tot de spelserver de operatie start…</value></data>
+  <data name="PreyGame_HeadStart_Caption" xml:space="preserve"><value>VOORSPRONG</value></data>
+  <data name="PreyGame_HeadStart_Body" xml:space="preserve"><value>Kom in beweging en verstop je — de jager wordt vrijgelaten als de aftelling eindigt.</value></data>
+  <data name="PreyGame_Penalty_Warning" xml:space="preserve"><value>De jager wordt tegengehouden: beweegt hij voor het einde van de aftelling, dan krijgt hij 10 minuten straf.</value></data>
+  <data name="PreyGame_Spectator" xml:space="preserve"><value>GEPAKT — TOESCHOUWER TOT HET SPEL EINDIGT</value></data>
+  <data name="PreyGame_Error_NoGame" xml:space="preserve"><value>Geen actieve operatie gevonden.</value></data>
+  <data name="PreyGame_Error_NotFound" xml:space="preserve"><value>Deze operatie kon niet worden gevonden.</value></data>
+  <data name="PreyGame_Error_Unauthorized" xml:space="preserve"><value>Je sessie is verlopen. Log opnieuw in.</value></data>
+  <data name="PreyGame_Error_Generic" xml:space="preserve"><value>Er ging iets mis. Opnieuw proberen…</value></data>
+</root>

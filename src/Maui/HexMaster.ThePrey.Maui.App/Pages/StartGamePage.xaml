@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.StartGamePage"
+             x:Name="StartGameRoot"
+             x:DataType="vm:StartGameViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:Translate StartGame_Title}">
+
+    <Grid>
+
+        <ScrollView>
+            <VerticalStackLayout Spacing="24" Padding="28,44,28,28">
+
+                <Label Text="{loc:Translate StartGame_Title}" Style="{StaticResource TacticalTitle}" />
+
+                <!-- Operation settings -->
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{loc:Translate Lobby_Settings_Title}" Style="{StaticResource HudLabel}" HorizontalOptions="Start" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_Duration}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding DurationChoices}"
+                            SelectedItem="{Binding SelectedDuration, Mode=TwoWay}" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_Headstart}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding HeadstartChoices}"
+                            SelectedItem="{Binding SelectedHeadstart, Mode=TwoWay}" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_Endgame}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding EndgameChoices}"
+                            SelectedItem="{Binding SelectedEndgame, Mode=TwoWay}" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_Ping}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding PingChoices}"
+                            SelectedItem="{Binding SelectedPing, Mode=TwoWay}" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_EndgamePing}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding EndgamePingChoices}"
+                            SelectedItem="{Binding SelectedEndgamePing, Mode=TwoWay}" />
+                </VerticalStackLayout>
+
+                <!-- Playfield selection -->
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{loc:Translate StartGame_Playfield_Label}" Style="{StaticResource HudLabel}" HorizontalOptions="Start" />
+
+                    <Border Style="{StaticResource StartGamePlayfieldRow}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectPlayfieldCommand}" />
+                        </Border.GestureRecognizers>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <!-- Selected name (once chosen) or the choose-one prompt -->
+                            <Label Grid.Column="0"
+                                   Text="{Binding SelectedPlayfieldName}"
+                                   Style="{StaticResource LocationItemName}"
+                                   IsVisible="{Binding HasSelectedPlayfield}" />
+                            <Label Grid.Column="0"
+                                   Text="{loc:Translate StartGame_Playfield_Prompt}"
+                                   Style="{StaticResource StartGamePlayfieldPrompt}"
+                                   IsVisible="{Binding HasNoSelectedPlayfield}" />
+                            <Label Grid.Column="1"
+                                   Text="{loc:Translate StartGame_Playfield_Change}"
+                                   Style="{StaticResource StartGamePlayfieldChange}" />
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Create action -->
+                <Button Text="{loc:Translate StartGame_Create}"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding CreateCommand}"
+                        IsEnabled="{Binding CanCreate}" />
+
+                <!-- Validation / error hints (non-blocking; selections are kept) -->
+                <Label Text="{loc:Translate StartGame_ValidationError}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding HasValidationError}" />
+                <Label Text="{loc:Translate StartGame_Error}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding HasError}" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Busy indicator -->
+        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+
+    </Grid>
+
+</ContentPage>

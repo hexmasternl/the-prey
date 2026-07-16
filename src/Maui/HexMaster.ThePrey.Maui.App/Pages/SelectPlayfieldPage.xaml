@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.SelectPlayfieldPage"
+             x:Name="SelectRoot"
+             x:DataType="vm:SelectPlayfieldViewModel"
+             Shell.NavBarIsVisible="False"
+             Shell.PresentationMode="ModalAnimated"
+             Title="{loc:Translate Select_Title}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="28,44,28,28" RowSpacing="20">
+
+        <!-- Title -->
+        <Label Grid.Row="0"
+               Text="{loc:Translate Select_Title}"
+               Style="{StaticResource TacticalTitle}" />
+
+        <!-- Search -->
+        <Entry Grid.Row="1"
+               Text="{Binding SearchQuery, Mode=TwoWay}"
+               Placeholder="{loc:Translate Select_Search_Placeholder}"
+               Style="{StaticResource LocationSearchField}" />
+
+        <!-- List + states -->
+        <Grid Grid.Row="2">
+            <CollectionView ItemsSource="{Binding Items}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SelectablePlayFieldItem">
+                        <Border Style="{StaticResource SelectRow}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding BindingContext.SelectCommand, Source={x:Reference SelectRoot}}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <Label Grid.Column="0"
+                                       Text="{Binding Name}"
+                                       Style="{StaticResource LocationItemName}" />
+                                <Label Grid.Column="1"
+                                       Text="{loc:Translate Playfields_Badge_Public}"
+                                       Style="{StaticResource LocationBadgePublic}"
+                                       IsVisible="{Binding IsPublic}" />
+                                <Label Grid.Column="1"
+                                       Text="{loc:Translate Playfields_Badge_Private}"
+                                       Style="{StaticResource LocationBadgePrivate}"
+                                       IsVisible="{Binding IsPrivate}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Empty / no-results / error states -->
+            <Label Text="{loc:Translate Select_Empty}"
+                   Style="{StaticResource HudLabel}"
+                   IsVisible="{Binding IsEmpty}"
+                   VerticalOptions="Center" />
+            <Label Text="{loc:Translate Select_NoResults}"
+                   Style="{StaticResource HudLabel}"
+                   IsVisible="{Binding ShowNoResults}"
+                   VerticalOptions="Center" />
+            <Label Text="{loc:Translate Select_Error}"
+                   Style="{StaticResource AlertLabel}"
+                   IsVisible="{Binding HasError}"
+                   VerticalOptions="Center" />
+
+            <!-- Loading -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+        </Grid>
+
+        <!-- Actions -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="12">
+            <Button Grid.Column="0"
+                    Text="{loc:Translate Select_Cancel}"
+                    Style="{StaticResource OutlineButton}"
+                    Command="{Binding CancelCommand}" />
+            <Button Grid.Column="1"
+                    Text="{loc:Translate Select_Confirm}"
+                    Style="{StaticResource PrimaryButton}"
+                    Command="{Binding ConfirmCommand}"
+                    IsEnabled="{Binding CanSelect}" />
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

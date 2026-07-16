@@ -57,14 +57,14 @@ While the game is armed but not yet committed by the backend (game status is Rea
 - **WHEN** the waiting overlay is shown and the game transitions to in-progress
 - **THEN** the waiting overlay is removed and the head-start phase begins
 
-### Requirement: Prey head-start countdown
+### Requirement: Prey head-start overlay
 
-When the game is in progress and the moment the hunter may move is still in the future, the page SHALL show a head-start countdown to that moment so the prey knows how long they have to hide. The prey head-start indicator SHALL NOT show the hunter's move-early / penalty warning, and it SHALL NOT prevent the prey from reading or panning the map. The countdown SHALL be derived from the server-provided may-move moment and re-synced whenever new game state arrives, and SHALL close automatically when it reaches zero.
+When the game is in progress and the moment the hunter may move is still in the future, the page SHALL show a head-start overlay counting down to that moment so the prey knows how long they have to hide. The overlay SHALL include a warning that the hunter must not move during the head start or they will incur a 10-minute penalty, framed for the prey audience. The overlay SHALL NOT prevent the prey from reading or panning the map. The countdown SHALL be derived from the server-provided may-move moment and re-synced whenever new game state arrives, and the overlay SHALL close automatically when the countdown reaches zero.
 
-#### Scenario: Prey head-start countdown shown without the penalty warning
+#### Scenario: Prey head-start overlay shows the countdown and the hunter-penalty warning
 
 - **WHEN** the game is in progress and the hunter's may-move moment is in the future
-- **THEN** a countdown to that moment is shown, without any move-early or penalty warning, and the map remains readable
+- **THEN** a countdown to that moment is shown, together with the warning that the hunter must not move during the head start or incur a 10-minute penalty, and the map remains readable
 
 #### Scenario: Head-start countdown closes when it ends
 

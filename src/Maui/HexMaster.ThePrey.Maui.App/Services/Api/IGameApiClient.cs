@@ -1,0 +1,99 @@
+namespace HexMaster.ThePrey.Maui.App.Services.Api;
+
+/// <summary>Outcome of the active-game backend query.</summary>
+public enum ActiveGameOutcome
+{
+    HasActiveGame,
+    NoActiveGame,
+    Unauthorized,
+    Error
+}
+
+/// <summary>Result of <see cref="IGameApiClient.GetActiveGameAsync"/>.</summary>
+public sealed record ActiveGameResult(ActiveGameOutcome Outcome, GameStatus? Game)
+{
+    public static ActiveGameResult Active(GameStatus game) => new(ActiveGameOutcome.HasActiveGame, game);
+    public static readonly ActiveGameResult None = new(ActiveGameOutcome.NoActiveGame, null);
+    public static readonly ActiveGameResult Unauthorized = new(ActiveGameOutcome.Unauthorized, null);
+    public static readonly ActiveGameResult Error = new(ActiveGameOutcome.Error, null);
+}
+
+/// <summary>Calls the backend game endpoints on behalf of the signed-in user.</summary>
+public interface IGameApiClient
+{
+    /// <summary>Queries <c>GET /games/active</c> with the supplied bearer access token.</summary>
+    Task<ActiveGameResult> GetActiveGameAsync(string accessToken, CancellationToken ct = default);
+
+    /// <summary>
+    /// Creates a game via <c>POST /games</c> with the supplied configuration. The two location intervals
+    /// in <paramref name="request"/> are already in seconds and are sent verbatim; the boundary-penalty
+    /// toggles are sent as <c>false</c> and the profile-picture url as <c>null</c>. Maps <c>201</c> →
+    /// success (the created game's id), <c>400</c> → validation, <c>401</c> → unauthenticated,
+    /// network/timeout/unexpected → error. Never throws for these outcomes.
+    /// </summary>
+    Task<CreateGameResult> CreateGameAsync(CreateGameParameters request, string accessToken, CancellationToken ct = default);
+
+    /// <summary>
+    /// Joins the game <paramref name="gameId"/> via <c>POST /games/{id}/join</c> with the entered
+    /// <paramref name="joinCode"/> and the caller's <paramref name="displayName"/> (profile-picture url sent
+    /// as <c>null</c>). Maps <c>200</c> → success (the joined game's id), <c>400</c> → invalid code (with the
+    /// ProblemDetails <c>code</c>), <c>404</c> → not found, <c>409</c> → conflict (with the stable rule
+    /// <c>code</c>), <c>401</c> → unauthenticated, network/timeout/unexpected → error. Never throws for these
+    /// outcomes.
+    /// </summary>
+    Task<JoinGameResult> JoinGameAsync(
+        Guid gameId, string joinCode, string displayName, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Reads the full state of a game via <c>GET /games/{id}</c>.</summary>
+    Task<GetGameResult> GetGameAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>
+    /// Persists the owner's game settings via <c>PUT /games/{id}/config</c>. The two ping intervals in
+    /// <paramref name="settings"/> are given in minutes and sent as seconds (× 60); the three durations
+    /// are sent as their minute values.
+    /// </summary>
+    Task<UpdateGameSettingsResult> UpdateGameSettingsAsync(
+        Guid gameId, GameSettingsParameters settings, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Designates the hunter via <c>POST /games/{id}/hunter</c> (owner-only in the lobby).</summary>
+    Task<DesignateHunterResult> DesignateHunterAsync(
+        Guid gameId, Guid newHunterUserId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Marks the calling (non-owner) player ready via <c>POST /games/{id}/lobby/ready</c>.</summary>
+    Task<SetReadyResult> SetReadyAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Starts the operation via <c>POST /games/{id}/start</c>, designating <paramref name="hunterUserId"/>.</summary>
+    Task<StartGameResult> StartGameAsync(
+        Guid gameId, Guid hunterUserId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Reads the in-game HUD status via <c>GET /games/{id}/status</c> (<c>409</c> → completed).</summary>
+    Task<GameStatusResult> GetGameStatusAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>
+    /// Reads the rich in-progress status for the gameplay map via <c>GET /games/{id}/status</c>: the
+    /// playfield polygon and every participant's last-known location + state. Maps <c>403</c> →
+    /// <see cref="GetGameStatusOutcome.Forbidden"/> and <c>409</c> → <see cref="GetGameStatusOutcome.Conflict"/>
+    /// (both expected while a game is still <c>Ready</c>), <c>404</c> → not found, <c>401</c> → unauthorized.
+    /// </summary>
+    Task<GetGameStatusResult> GetGameStatusDetailsAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Reads the role-specific game state (prey distance / prey locations) via <c>GET /games/{id}/state</c>.</summary>
+    Task<GameStateResult> GetGameStateAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>Lists the preys the hunter may tag right now via <c>GET /games/{id}/tag-candidates</c> (<c>403</c> for a non-hunter).</summary>
+    Task<TagCandidatesResult> GetTagCandidatesAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>
+    /// Tags the prey <paramref name="participantId"/> via
+    /// <c>POST /games/{id}/participants/{participantId}/tag</c> (<c>409</c> → no longer taggable).
+    /// </summary>
+    Task<TagPlayerResult> TagPlayerAsync(
+        Guid gameId, Guid participantId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>
+    /// Mints a short-lived, group-scoped Web PubSub client access URL via
+    /// <c>GET /games/{id}/notifications/token</c> (<c>403</c> when the caller is not a member).
+    /// </summary>
+    Task<NotificationsTokenResult> GetNotificationsTokenAsync(
+        Guid gameId, string accessToken, CancellationToken ct = default);
+}

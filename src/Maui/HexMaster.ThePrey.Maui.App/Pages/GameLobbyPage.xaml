@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.GameLobbyPage"
+             x:Name="LobbyRoot"
+             x:DataType="vm:GameLobbyViewModel"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:Translate Lobby_Title}">
+
+    <Grid>
+
+        <!-- Loaded content -->
+        <ScrollView IsVisible="{Binding ShowContent}">
+            <VerticalStackLayout Spacing="24" Padding="28,44,28,28">
+
+                <Label Text="{loc:Translate Lobby_Title}" Style="{StaticResource TacticalTitle}" />
+
+                <!-- Pass code + Share -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label Text="{loc:Translate Lobby_PassCode_Label}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Label Text="{Binding PassCode}" Style="{StaticResource LobbyPassCode}" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1"
+                            Text="{loc:Translate Lobby_Share}"
+                            SemanticProperties.Description="{loc:Translate Lobby_Share_Description}"
+                            Style="{StaticResource LobbyShareButton}"
+                            Command="{Binding ShareCommand}"
+                            VerticalOptions="Center" />
+                </Grid>
+
+                <!-- Operation settings -->
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{loc:Translate Lobby_Settings_Title}" Style="{StaticResource HudLabel}" HorizontalOptions="Start" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_Duration}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding DurationChoices}"
+                            SelectedItem="{Binding SelectedDuration, Mode=TwoWay}"
+                            IsEnabled="{Binding SettingsEditable}" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_Headstart}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding HeadstartChoices}"
+                            SelectedItem="{Binding SelectedHeadstart, Mode=TwoWay}"
+                            IsEnabled="{Binding SettingsEditable}" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_Endgame}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding EndgameChoices}"
+                            SelectedItem="{Binding SelectedEndgame, Mode=TwoWay}"
+                            IsEnabled="{Binding SettingsEditable}" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_Ping}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding PingChoices}"
+                            SelectedItem="{Binding SelectedPing, Mode=TwoWay}"
+                            IsEnabled="{Binding SettingsEditable}" />
+
+                    <Label Text="{loc:Translate Lobby_Setting_EndgamePing}" Style="{StaticResource SettingsFieldLabel}" />
+                    <Picker Style="{StaticResource LobbySettingPicker}"
+                            ItemsSource="{Binding EndgamePingChoices}"
+                            SelectedItem="{Binding SelectedEndgamePing, Mode=TwoWay}"
+                            IsEnabled="{Binding SettingsEditable}" />
+                </VerticalStackLayout>
+
+                <!-- Participants -->
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{loc:Translate Lobby_Participants_Title}" Style="{StaticResource HudLabel}" HorizontalOptions="Start" />
+
+                    <CollectionView ItemsSource="{Binding Participants}">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LobbyParticipant">
+                                <!-- Tapping designates the hunter; inert for non-owners (guarded in the VM). -->
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Padding="4,10">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding BindingContext.DesignateHunterCommand, Source={x:Reference LobbyRoot}}"
+                                            CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+
+                                    <Label Grid.Column="0"
+                                           Text="{Binding DisplayName}"
+                                           Style="{StaticResource LocationItemName}" />
+
+                                    <!-- Role badge (Hunter / Prey) -->
+                                    <Grid Grid.Column="1">
+                                        <Label Text="{loc:Translate Lobby_Role_Hunter}"
+                                               Style="{StaticResource LobbyRoleHunter}"
+                                               IsVisible="{Binding IsHunter}" />
+                                        <Label Text="{loc:Translate Lobby_Role_Prey}"
+                                               Style="{StaticResource LobbyRolePrey}"
+                                               IsVisible="{Binding IsPrey}" />
+                                    </Grid>
+
+                                    <!-- Ready badge (Ready / Not ready) -->
+                                    <Grid Grid.Column="2">
+                                        <Label Text="{loc:Translate Lobby_Ready}"
+                                               Style="{StaticResource LobbyReadyBadge}"
+                                               IsVisible="{Binding IsReady}" />
+                                        <Label Text="{loc:Translate Lobby_NotReady}"
+                                               Style="{StaticResource LobbyNotReadyBadge}"
+                                               IsVisible="{Binding IsNotReady}" />
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Non-owner ready action -->
+                <Button Text="{loc:Translate Lobby_SetReady}"
+                        Style="{StaticResource OutlineButton}"
+                        Command="{Binding SetReadyCommand}"
+                        IsVisible="{Binding ShowReady}" />
+
+                <!-- Owner start action -->
+                <Button Text="{loc:Translate Lobby_Start}"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding StartCommand}"
+                        IsVisible="{Binding ShowStart}" />
+
+                <!-- Non-blocking action-failure hint -->
+                <Label Text="{loc:Translate Lobby_ActionError}"
+                       Style="{StaticResource AlertLabel}"
+                       IsVisible="{Binding ActionError}" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Load error state -->
+        <Label Text="{loc:Translate Lobby_Error}"
+               Style="{StaticResource AlertLabel}"
+               IsVisible="{Binding HasError}"
+               Padding="28"
+               VerticalOptions="Center" />
+
+        <!-- Busy indicator -->
+        <ActivityIndicator IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+
+    </Grid>
+
+</ContentPage>

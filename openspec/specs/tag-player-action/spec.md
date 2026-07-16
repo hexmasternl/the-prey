@@ -2,9 +2,7 @@
 
 ## Purpose
 Defines the server-side endpoint and client-side UX for the hunter to tag a prey participant, marking them as permanently out of play.
-
 ## Requirements
-
 ### Requirement: POST /games/{gameId}/participants/{participantId}/tag marks prey as Tagged
 
 The system SHALL expose `POST /games/{gameId}/participants/{participantId}/tag`. The endpoint SHALL require authentication. On success the endpoint SHALL return HTTP 204 No Content.
@@ -12,30 +10,25 @@ The system SHALL expose `POST /games/{gameId}/participants/{participantId}/tag`.
 The system SHALL validate:
 1. The authenticated caller is the hunter of the specified game.
 2. The game is in `InProgress` state.
-3. The target participant exists in the game, has role `Prey`, and has `PlayerState` of `Active` or `Passive`.
-4. The target prey is within tagging range: the distance between the hunter's most recent emitted location and the target prey's most recent emitted location SHALL be less than or equal to 50 meters. Distance SHALL be computed using the great-circle (Haversine) distance, using the latest reading by recorded timestamp from each participant's location history.
+3. The current time is at or after the game's `HunterMayMoveAt` (`StartedAt + HunterDelayTime`).
+4. The target participant exists in the game, has role `Prey`, and has `PlayerState` of `Active` or `Passive`.
 
 On success the system SHALL set the target participant's `PlayerState` to `Tagged` (irreversible) and publish a `participant-status-changed` event via `IGameEventBus`.
 
 #### Scenario: Hunter successfully tags an Active prey
 
-- **WHEN** the authenticated hunter calls POST /games/{gameId}/participants/{participantId}/tag and the target prey is Active and within 50 m
+- **WHEN** the authenticated hunter calls POST /games/{gameId}/participants/{participantId}/tag and the target prey is Active
 - **THEN** the system returns HTTP 204, sets the prey's PlayerState to Tagged, and publishes a participant-status-changed event
 
 #### Scenario: Hunter successfully tags a Passive prey
 
-- **WHEN** the authenticated hunter calls POST /games/{gameId}/participants/{participantId}/tag and the target prey is Passive and within 50 m
+- **WHEN** the authenticated hunter calls POST /games/{gameId}/participants/{participantId}/tag and the target prey is Passive
 - **THEN** the system returns HTTP 204, sets the prey's PlayerState to Tagged, and publishes a participant-status-changed event
 
-#### Scenario: Tagging a prey that is out of range is rejected with 409
+#### Scenario: Tagging before HunterMayMoveAt is rejected with 409
 
-- **WHEN** the hunter calls the tag endpoint for an Active or Passive prey whose most recent emitted location is more than 50 m from the hunter's most recent emitted location
-- **THEN** the system returns HTTP 409 Conflict and the prey's state is unchanged
-
-#### Scenario: Tagging when the hunter has no emitted location is rejected with 409
-
-- **WHEN** the hunter calls the tag endpoint but the hunter's location history is empty
-- **THEN** the system returns HTTP 409 Conflict
+- **WHEN** the hunter calls the tag endpoint at a time before the game's `HunterMayMoveAt`
+- **THEN** the system returns HTTP 409 Conflict and no participant state changes
 
 #### Scenario: Non-hunter caller is rejected with 403
 
@@ -64,22 +57,27 @@ On success the system SHALL set the target participant's `PlayerState` to `Tagge
 
 ### Requirement: Hunter HUD displays Tag Player button
 
-The hunter view SHALL display a "Tag Player" button in the HUD. When tapped, the application SHALL request `GET /games/{gameId}/tag-candidates` to retrieve the preys currently within tagging range, then present a modal or action sheet listing only the returned candidate preys. After the hunter selects a prey and confirms, the application SHALL call `POST /games/{gameId}/participants/{participantId}/tag`. The button SHALL be disabled while a tagging request is in flight.
+The hunter view SHALL display a "Tag Player" button in the HUD. The button SHALL be disabled while the current time is before the game's `hunterMayMoveAt` and SHALL become available once `hunterMayMoveAt` has passed, without requiring a new status poll. When tapped, the application SHALL request `GET /games/{gameId}/status` to retrieve the current participant list, then present a modal or action sheet listing only prey participants whose `State` is `Active` or `Passive`. After the hunter selects a prey and confirms, the application SHALL call `POST /games/{gameId}/participants/{participantId}/tag`. The button SHALL be disabled while a tagging request is in flight.
 
 #### Scenario: Tag Player button visible in hunter HUD
 
 - **WHEN** the hunter view is active and the game is InProgress
 - **THEN** a "Tag Player" button is visible in the HUD panel
 
-#### Scenario: Tag Player list shows only preys returned by the tag-candidates endpoint
+#### Scenario: Tag Player button disabled during the hunter delay
+
+- **WHEN** the hunter view is active and the current time is before `hunterMayMoveAt`
+- **THEN** the "Tag Player" button is disabled
+
+#### Scenario: Tag Player button becomes available when the delay expires
+
+- **WHEN** the local countdown to `hunterMayMoveAt` reaches zero
+- **THEN** the "Tag Player" button becomes enabled without waiting for the next status poll
+
+#### Scenario: Tag Player list shows only Active and Passive preys
 
 - **WHEN** the hunter taps "Tag Player"
-- **THEN** the application fetches GET /games/{gameId}/tag-candidates and the presented list contains exactly the preys returned (those within 50 m and in state Active or Passive)
-
-#### Scenario: No preys in range shows an empty-state message
-
-- **WHEN** the hunter taps "Tag Player" and the tag-candidates endpoint returns no candidates
-- **THEN** the presented list shows a "no preys in range" message and no prey is selectable
+- **THEN** the presented list contains only preys with State Active or Passive; Tagged and Out preys are excluded
 
 #### Scenario: Confirming selection calls the tag endpoint
 
@@ -95,3 +93,4 @@ The hunter view SHALL display a "Tag Player" button in the HUD. When tapped, the
 
 - **WHEN** the server returns 204 for the tag request
 - **THEN** the modal is dismissed and the HUD preys-remaining count is updated
+
