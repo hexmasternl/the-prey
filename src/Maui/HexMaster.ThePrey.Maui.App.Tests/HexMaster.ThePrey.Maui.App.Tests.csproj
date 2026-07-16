@@ -188,6 +188,20 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\IGameStreamClient.cs" Link="Linked\IGameStreamClient.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStreamEventMapper.cs" Link="Linked\GameStreamEventMapper.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStreamClient.cs" Link="Linked\GameStreamClient.cs" />
+
+    <!-- Background location tracking: the cross-platform contracts, the report client, and the shared
+         coordinator + façade. All plain .NET; the native adapters (MauiGeolocationSource, the Android
+         foreground service/host, the iOS CLLocationManager manager) touch MAUI/platform APIs and are
+         deliberately excluded — the coordinator is tested against fakes for the two adapter interfaces. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\IGameLocationTracker.cs" Link="Linked\IGameLocationTracker.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\IBackgroundExecutionHost.cs" Link="Linked\IBackgroundExecutionHost.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\IContinuousLocationSource.cs" Link="Linked\IContinuousLocationSource.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\LocationSample.cs" Link="Linked\LocationSample.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\LocationReportContracts.cs" Link="Linked\LocationReportContracts.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\ILocationReportClient.cs" Link="Linked\ILocationReportClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\LocationReportClient.cs" Link="Linked\LocationReportClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GameLocationTrackerCoordinator.cs" Link="Linked\GameLocationTrackerCoordinator.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GameLocationTracker.cs" Link="Linked\GameLocationTracker.cs" />
   </ItemGroup>
 
 </Project>
