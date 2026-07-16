@@ -162,10 +162,18 @@ public sealed class JoinGameViewModel : ObservableObject
     /// </summary>
     public void SetPendingGame(Guid? gameId) => _gameId = gameId;
 
-    /// <summary>Called when the page appears: resolves the sign-in state (retaining the pending game id).</summary>
+    /// <summary>
+    /// Called when the page appears: resolves the sign-in state (retaining the pending game id). A recipient
+    /// landing here from an invite link MUST be signed in, so when signed out this drives the interactive
+    /// login straight away rather than waiting on a tap; on return (success) the code entry is shown, and on
+    /// cancel/failure the sign-in prompt remains as a manual retry.
+    /// </summary>
     public async Task OnAppearingAsync()
     {
         await RefreshSignInStateAsync();
+
+        if (IsSignedOut && !IsBusy)
+            await LogInAsync();
     }
 
     private async Task RefreshSignInStateAsync()

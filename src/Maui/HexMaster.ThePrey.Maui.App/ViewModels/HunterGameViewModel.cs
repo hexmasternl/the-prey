@@ -27,11 +27,14 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
     private readonly IHeadingReader _headingReader;
     private readonly IGameplayNavigator _navigator;
     private readonly IAccessTokenProvider _accessTokenProvider;
+    private readonly IGameLocationTracker _locationTracker;
     private readonly ILocalizationService _localization;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<HunterGameViewModel> _logger;
 
     private readonly Dictionary<Guid, MapBlip> _blipsById = new();
+
+    private bool _trackingStarted;
 
     private CancellationTokenSource? _lifecycleCts;
     private Task? _streamTask;
@@ -57,6 +60,7 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
         IHeadingReader headingReader,
         IGameplayNavigator navigator,
         IAccessTokenProvider accessTokenProvider,
+        IGameLocationTracker locationTracker,
         ILocalizationService localization,
         TimeProvider timeProvider,
         ILogger<HunterGameViewModel> logger)
@@ -67,6 +71,7 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
         _headingReader = headingReader;
         _navigator = navigator;
         _accessTokenProvider = accessTokenProvider;
+        _locationTracker = locationTracker;
         _localization = localization;
         _timeProvider = timeProvider;
         _logger = logger;
@@ -251,6 +256,7 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
             var now = _timeProvider.GetUtcNow();
             Phase = _hunterMayMoveAt is { } mayMove && mayMove > now ? GamePhase.HeadStart : GamePhase.Live;
             UpdateCountdown(now);
+            EnsureLocationTracking();
             return;
         }
 
@@ -460,11 +466,24 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
         }
     }
 
+    // Starts background location reporting once the game is InProgress. Idempotent at the tracker level;
+    // the local guard avoids spawning a fire-and-forget call on every phase recompute. Reporting is
+    // deliberately independent of this page's lifetime — it survives backgrounding until the game ends.
+    private void EnsureLocationTracking()
+    {
+        if (_trackingStarted || _gameId == Guid.Empty)
+            return;
+        _trackingStarted = true;
+        _ = _locationTracker.StartAsync(_gameId);
+    }
+
     private void HandOffOnce()
     {
         if (_handedOff)
             return;
         _handedOff = true;
+        // The game has ended — stop background reporting and release the wake-lock/notification.
+        _ = _locationTracker.StopAsync();
         _ = _navigator.GoToOutcomeAsync();
     }
 

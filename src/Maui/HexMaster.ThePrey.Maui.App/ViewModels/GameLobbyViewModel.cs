@@ -249,7 +249,8 @@ public sealed class GameLobbyViewModel : ObservableObject
             switch (game.Outcome)
             {
                 case GetGameOutcome.Success when game.Game is not null:
-                    ApplySnapshot(game.Game);
+                    // A load may resume a game that already left the lobby (started while we were away).
+                    ApplySnapshot(game.Game, allowHandOff: true);
                     break;
                 case GetGameOutcome.Unauthorized:
                     _accessTokenProvider.Invalidate();
@@ -299,9 +300,12 @@ public sealed class GameLobbyViewModel : ObservableObject
         }
     }
 
-    // Replaces the whole VM state from a snapshot (load, command response, or stream event). If the game
-    // is no longer in its lobby phase, hands off to the gameplay screen rather than rendering it here.
-    private void ApplySnapshot(GameDetails game)
+    // Replaces the whole VM state from a snapshot (load, command response, or stream event). Only a load
+    // (resuming an already-started game) or a live stream frame (the game-started broadcast) may hand off
+    // to gameplay — signalled by <paramref name="allowHandOff"/>. A lobby command response (designate
+    // hunter, set ready, save settings) is always a pure lobby action that cannot start the game, so it
+    // must never navigate, even if the server echoes back an unexpected status.
+    private void ApplySnapshot(GameDetails game, bool allowHandOff = false)
     {
         _lastSnapshot = game;
         _gameId = game.Id;
@@ -318,7 +322,7 @@ public sealed class GameLobbyViewModel : ObservableObject
         IsLoaded = true;
         UpdateDerived();
 
-        if (!game.IsLobby)
+        if (allowHandOff && !game.IsLobby)
             _ = HandOffAsync();
     }
 
@@ -352,7 +356,7 @@ public sealed class GameLobbyViewModel : ObservableObject
         Participants.Clear();
         // Same partial-frame guard as SeedSelectors: a stream snapshot may omit the participant list.
         foreach (var participant in game.Participants ?? [])
-            Participants.Add(new LobbyParticipant(participant, game.HunterUserId));
+            Participants.Add(new LobbyParticipant(participant, game.HunterUserId, game.OwnerUserId));
     }
 
     // Owner selector edits persist immediately; seeding and non-owner changes never trigger a save.
@@ -547,10 +551,12 @@ public sealed class GameLobbyViewModel : ObservableObject
 
     private async Task ShareAsync()
     {
-        if (string.IsNullOrEmpty(PassCode))
+        if (string.IsNullOrEmpty(PassCode) || _gameId is not Guid gameId)
             return;
 
-        var link = $"{_options.JoinLinkBaseUrl.TrimEnd('/')}/{PassCode}";
+        // The invite link carries the game id (a Guid) — the deep-link handler only accepts
+        // https://theprey.nl/join/{gameId}. The pass code is shared as text for the recipient to type in.
+        var link = $"{_options.JoinLinkBaseUrl.TrimEnd('/')}/{gameId}";
         var text = string.Format(_localization["Lobby_Invite_Template"], PassCode, link);
         var title = _localization["Lobby_Invite_Title"];
         await _shareService.ShareTextAsync(title, text);
@@ -581,7 +587,8 @@ public sealed class GameLobbyViewModel : ObservableObject
             {
                 if (_handedOff)
                     break;
-                ApplySnapshot(snapshot);
+                // The live stream carries the game-started broadcast — the genuine signal to hand off.
+                ApplySnapshot(snapshot, allowHandOff: true);
             }
         }
         catch (OperationCanceledException)

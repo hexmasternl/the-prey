@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.nl.hexmaster.theprey.maui.app",
+        "paths": ["/join/*"]
+      }
+    ]
+  }
+}

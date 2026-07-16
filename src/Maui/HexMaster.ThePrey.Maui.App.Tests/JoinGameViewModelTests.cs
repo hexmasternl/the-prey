@@ -100,6 +100,32 @@ public class JoinGameViewModelTests
     }
 
     [Fact]
+    public async Task OnAppearing_ShouldDriveLoginAutomatically_WhenSignedOut()
+    {
+        // Landing on the join page signed out must run the login procedure straight away, then show the
+        // code entry on success — the user should not have to tap a sign-in button first.
+        _tokenProvider.SetupSequence(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null)   // OnAppearing → signed out
+            .ReturnsAsync("token");        // after the auto-login → signed in
+        var sut = WithGameId(CreateSut());
+
+        await sut.OnAppearingAsync();
+
+        _login.Verify(l => l.LoginAsync(It.IsAny<CancellationToken>()), Times.Once);
+        Assert.True(sut.IsSignedIn);
+    }
+
+    [Fact]
+    public async Task OnAppearing_ShouldNotDriveLogin_WhenAlreadySignedIn()
+    {
+        var sut = WithGameId(CreateSut());
+
+        await sut.OnAppearingAsync();
+
+        _login.Verify(l => l.LoginAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task LogIn_ShouldContinueSignedIn_OnSuccess()
     {
         // Signed out first, then the login establishes a session and a token becomes available.
