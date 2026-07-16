@@ -6,12 +6,8 @@ name: MAUI iOS Release
 # NOTE: runs on a macOS runner (Xcode required) — macOS minutes bill at ~10x the Linux rate.
 
 on:
-  push:
-    tags: ["maui-ios-v*"] # e.g. `git push origin maui-ios-v1.1.0`
-    branches: [main] # auto-upload a TestFlight build when MAUI code changes land on main
-    paths:
-      - "src/Maui/**"
-      - ".github/workflows/maui-ios-release.yml"
+  # Manual only — this workflow never runs on its own. Trigger it from
+  # Actions → MAUI iOS Release → Run workflow (no push/tag triggers).
   workflow_dispatch:
     inputs:
       displayVersion:

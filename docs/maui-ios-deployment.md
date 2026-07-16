@@ -136,13 +136,12 @@ profile, builds a **signed `.ipa`**, and uploads it to **TestFlight** via the Ap
 - **`ApplicationVersion`** (the iOS build number `CFBundleVersion`; must increase per upload to a given
   `CFBundleShortVersionString`) ← `github.run_number`.
 - **`ApplicationDisplayVersion`** (`CFBundleShortVersionString`, the "1.0" marketing version) ← the
-  `displayVersion` input, or parsed from a `maui-ios-vX.Y.Z` tag.
+  `displayVersion` input.
 
 ## 2.2 How to run it
 
-- **Manual:** Actions → **MAUI iOS Release → Run workflow** → set `displayVersion`.
-- **By tag:** `git tag maui-ios-v1.1.0 && git push origin maui-ios-v1.1.0`.
-- **On main:** auto-runs when `src/Maui/**` changes land (path-filtered), uploading a new TestFlight build.
+The workflow is **manual only** — it never runs on a push or tag. Trigger it from Actions →
+**MAUI iOS Release → Run workflow** and set `displayVersion`.
 
 The uploaded build appears in **App Store Connect → TestFlight** after Apple finishes processing (a few
 minutes to ~1 hour). Add it to a TestFlight group to install via the TestFlight app; promote to the App

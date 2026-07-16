@@ -194,20 +194,12 @@ AAB on an `ubuntu-latest` runner and uploads it to Google Play.
 
 ## 2.2 How to run it
 
-- **Manual (recommended for control):** GitHub → **Actions → MAUI Android Release → Run workflow**, choose
-  the **track** (`internal` / `alpha` / `beta` / `production`), the **displayVersion**, and the **status**
-  (`draft` or `completed`).
-- **By tag:** push a tag matching `maui-v*`, e.g.
+The workflow is **manual only** — it never runs on a push or tag. Trigger it from GitHub →
+**Actions → MAUI Android Release → Run workflow**, and choose the **track** (`internal` / `alpha` / `beta`
+/ `production`), the **displayVersion**, and the **status** (`draft` or `completed`).
 
-  ```bash
-  git tag maui-v1.1.0
-  git push origin maui-v1.1.0
-  ```
-
-  This runs the workflow to the **internal** track with `displayVersion = 1.1.0` (parsed from the tag).
-
-> **First automated run:** if Play still considers the app "draft", set **status = `draft`** and promote
-> the release in the Console. Once the app has a live release, `completed` rolls out automatically.
+> **First run:** if Play still considers the app "draft", set **status = `draft`** and promote the release
+> in the Console. Once the app has a live release, `completed` rolls out automatically.
 
 ## 2.3 Promoting between tracks
 

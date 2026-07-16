@@ -5,12 +5,8 @@ name: MAUI Android Release
 # docs/maui-deployment.md. This is separate from android-release.yml, which ships the Ionic app.
 
 on:
-  push:
-    tags: ["maui-v*"] # e.g. `git push origin maui-v1.1.0` ships displayVersion 1.1.0 to the internal track
-    branches: [main] # auto-ship to the internal track when MAUI code changes land on main
-    paths: # path filter — only MAUI app changes (or this workflow) trigger a branch build
-      - "src/Maui/**"
-      - ".github/workflows/maui-android-release.yml"
+  # Manual only — this workflow never runs on its own. Trigger it from
+  # Actions → MAUI Android Release → Run workflow (no push/tag triggers).
   workflow_dispatch:
     inputs:
       track:
