@@ -24,12 +24,9 @@ namespace HexMaster.ThePrey.Maui.App
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            var window = new Window(new AppShell());
-
-            // Replay any invite link captured from a cold-start launch once the window (and Shell) are up.
-            window.Activated += async (_, _) => await _deepLinkHandler.ReplayPendingAsync();
-
-            return window;
+            // A cold-start invite link stays queued on the deep-link handler; the welcome bootstrap replays it
+            // as its single post-boot navigation (see WelcomeViewModel), so nothing here races that decision.
+            return new Window(new AppShell());
         }
 
         // A link received while the app is running: route to the Join Game page immediately.

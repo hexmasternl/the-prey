@@ -56,14 +56,14 @@ public sealed class InviteDeepLinkHandler : IInviteDeepLinkHandler
 
     public void QueuePending(Uri? uri) => _pending = uri;
 
-    public async Task ReplayPendingAsync(CancellationToken ct = default)
+    public async Task<bool> ReplayPendingAsync(CancellationToken ct = default)
     {
         var pending = _pending;
         if (pending is null)
-            return;
+            return false;
 
         _pending = null;
-        await TryHandleAsync(pending, ct);
+        return await TryHandleAsync(pending, ct);
     }
 
     // Accepts only https://{expectedHost}/{expectedPathSegment}/{guid}. Anything else (wrong scheme/host/path,
