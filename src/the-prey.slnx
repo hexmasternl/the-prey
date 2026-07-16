@@ -27,7 +27,7 @@
     <Project Path="Shared/ThePrey.Core/ThePrey.Core.csproj" Id="e86fd50a-8670-4e66-9fe3-972dcab1dd24" />
   </Folder>
   <Folder Name="/Maui/">
-    <Project Path="HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj" Id="40c167d5-058b-4bf1-a117-a06eb623b118" />
+    <Project Path="Maui/HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj" Id="40c167d5-058b-4bf1-a117-a06eb623b118" />
   </Folder>
   <Folder Name="/Notifications/">
     <Project Path="Notifications/HexMaster.ThePrey.Notifications/HexMaster.ThePrey.Notifications.csproj" />

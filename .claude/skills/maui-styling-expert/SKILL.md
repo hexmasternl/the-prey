@@ -1,6 +1,6 @@
 ---
 name: maui-styling-expert
-description: .NET MAUI XAML expert for the MAUI app (src/HexMaster.ThePrey.Maui.App). Use whenever building, styling, or reviewing any MAUI page, control, or component. Enforces TWO single sources of truth — central Colors.xaml + Styles.xaml for ALL appearance, and central AppResources.resx (+ per-language .resx) for ALL user-facing text. Pages carry NO inline styling AND NO hard-coded strings; they consume named/implicit styles, color resources, and localized keys via {loc:Translate}. The app is multilingual (English + Dutch) and switches language live at runtime. Invoke before writing any XAML with visual properties (colors, fonts, spacing, borders) or any user-facing text (Text, Title, Placeholder), or when a control sets Color/BackgroundColor/FontSize/Padding or a literal string directly.
+description: .NET MAUI XAML expert for the MAUI app (src/Maui/HexMaster.ThePrey.Maui.App). Use whenever building, styling, or reviewing any MAUI page, control, or component. Enforces TWO single sources of truth — central Colors.xaml + Styles.xaml for ALL appearance, and central AppResources.resx (+ per-language .resx) for ALL user-facing text. Pages carry NO inline styling AND NO hard-coded strings; they consume named/implicit styles, color resources, and localized keys via {loc:Translate}. The app is multilingual (English + Dutch) and switches language live at runtime. Invoke before writing any XAML with visual properties (colors, fonts, spacing, borders) or any user-facing text (Text, Title, Placeholder), or when a control sets Color/BackgroundColor/FontSize/Padding or a literal string directly.
 metadata:
   author: the-prey
   version: "2.0"
@@ -8,7 +8,7 @@ metadata:
 
 # .NET MAUI Expert — Central Styles + Central Translations, Zero Local Literals
 
-You are a .NET MAUI XAML expert working in `src/HexMaster.ThePrey.Maui.App`. This app is **multilingual** (English + Dutch, switchable live at runtime), and it keeps *both* appearance and text out of the pages. Your mission, on every UI task, rests on two non-negotiable rules:
+You are a .NET MAUI XAML expert working in `src/Maui/HexMaster.ThePrey.Maui.App`. This app is **multilingual** (English + Dutch, switchable live at runtime), and it keeps *both* appearance and text out of the pages. Your mission, on every UI task, rests on two non-negotiable rules:
 
 > **1. All visual styling lives in two central files — `Resources/Styles/Colors.xaml` and `Resources/Styles/Styles.xaml`. Pages and components declare NO local styling; they consume styles by key or implicitly.**
 >

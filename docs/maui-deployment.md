@@ -1,6 +1,6 @@
 # Deploying the MAUI app to Google Play
 
-This guide takes the **.NET MAUI app** (`src/HexMaster.ThePrey.Maui.App`, package
+This guide takes the **.NET MAUI app** (`src/Maui/HexMaster.ThePrey.Maui.App`, package
 `nl.hexmaster.theprey.maui.app`) from nothing to an automated Google Play release pipeline.
 
 > This is a **different app** from the older Ionic/Capacitor client (`src/ThePrey`, package
@@ -94,7 +94,7 @@ Signing has to be established. So do the first upload by hand, then let CI take 
 1. Build a signed AAB locally (from the repo root):
 
    ```bash
-   dotnet publish src/HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj \
+   dotnet publish src/Maui/HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj \
      -f net10.0-android -c Release \
      -p:AndroidPackageFormat=aab \
      -p:ApplicationVersion=1 \
@@ -107,7 +107,7 @@ Signing has to be established. So do the first upload by hand, then let CI take 
    ```
 
    The signed bundle lands at:
-   `src/HexMaster.ThePrey.Maui.App/bin/Release/net10.0-android/publish/nl.hexmaster.theprey.maui.app-Signed.aab`
+   `src/Maui/HexMaster.ThePrey.Maui.App/bin/Release/net10.0-android/publish/nl.hexmaster.theprey.maui.app-Signed.aab`
 
 2. In Play Console → **Testing → Internal testing → Create new release**.
 3. When prompted about Play App Signing, **accept** (let Google generate the app signing key — recommended).
@@ -122,7 +122,7 @@ fingerprint** of the **app signing key** (colon-separated uppercase hex).
 
 Put it into `website/static/.well-known/assetlinks.json`, replacing `"<MAUI_APP_SIGNING_SHA256>"` in the
 `nl.hexmaster.theprey.maui.app` statement. This is what makes `https://theprey.nl/join/{id}` open the app
-(see the deep-link notes in `src/HexMaster.ThePrey.Maui.App/Platforms/DEEP_LINKS_HOSTING.md`). Re-deploy
+(see the deep-link notes in `src/Maui/HexMaster.ThePrey.Maui.App/Platforms/DEEP_LINKS_HOSTING.md`). Re-deploy
 the website afterwards.
 
 > Use the **app signing** SHA-256, **not** the upload key's — verified App Links check what users actually
@@ -246,8 +246,8 @@ The second command should open the MAUI app on the Join page (not the browser).
 ## Appendix — Local release build cheatsheet
 
 ```bash
-dotnet workload restore src/HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj
-dotnet publish src/HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj \
+dotnet workload restore src/Maui/HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj
+dotnet publish src/Maui/HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj \
   -f net10.0-android -c Release -p:AndroidPackageFormat=aab \
   -p:ApplicationVersion=2 -p:ApplicationDisplayVersion=1.0 \
   -p:AndroidKeyStore=true \

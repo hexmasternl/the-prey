@@ -7,6 +7,10 @@ name: MAUI Android Release
 on:
   push:
     tags: ["maui-v*"] # e.g. `git push origin maui-v1.1.0` ships displayVersion 1.1.0 to the internal track
+    branches: [main] # auto-ship to the internal track when MAUI code changes land on main
+    paths: # path filter — only MAUI app changes (or this workflow) trigger a branch build
+      - "src/Maui/**"
+      - ".github/workflows/maui-android-release.yml"
   workflow_dispatch:
     inputs:
       track:
@@ -32,7 +36,7 @@ concurrency:
   cancel-in-progress: false # never cancel a half-finished publish
 
 env:
-  APP_CSPROJ: src/HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj
+  APP_CSPROJ: src/Maui/HexMaster.ThePrey.Maui.App/HexMaster.ThePrey.Maui.App.csproj
   PACKAGE_NAME: nl.hexmaster.theprey.maui.app
   DOTNET_VERSION: "10.0.x"
   # If your manual first upload used a high versionCode, raise this so run_number-derived codes stay ahead.
@@ -113,7 +117,7 @@ jobs:
       - name: Locate the AAB
         id: aab
         run: |
-          path="$(find src/HexMaster.ThePrey.Maui.App/bin/Release/net10.0-android -name '*-Signed.aab' | head -n 1)"
+          path="$(find src/Maui/HexMaster.ThePrey.Maui.App/bin/Release/net10.0-android -name '*-Signed.aab' | head -n 1)"
           if [ -z "$path" ]; then
             echo "::error::No signed .aab found — check the signing properties/secrets."
             exit 1
