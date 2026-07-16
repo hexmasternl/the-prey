@@ -23,8 +23,8 @@
 
 ## 4. Navigation seam — gameplay router & outcome hand-off
 
-- [ ] 4.1 Add a gameplay router seam that fulfils the lobby's post-start hand-off: given the resolved game, route the current user to `HunterGamePage` when they are the hunter, and to the prey destination otherwise (prey branch a placeholder/no-op until the prey change lands), with a Shell-backed implementation.
-- [ ] 4.2 Add a game-outcome hand-off method to the navigator seam (invoked once on game-ended / a Completed snapshot), with a Shell-backed implementation targeting the outcome route (placeholder until the outcome change lands).
+- [x] 4.1 Add a gameplay router seam (`GameplayRouter`, implementing `ILobbyNavigator`) that fulfils the lobby's post-start hand-off: resolves the active game, reads `HunterUserId`, compares it to the caller's internal id (new `ICurrentUserProvider`, sourced from `GET /users/me`), and routes to the hunter or prey route; defaults to the prey route when the role cannot be determined. Navigation goes through the testable `IMenuNavigator` seam.
+- [x] 4.2 Add a game-outcome hand-off method (`IGameplayNavigator.GoToOutcomeAsync`), invoked once on game-ended / a Completed snapshot, routing to the outcome route (placeholder until the outcome change lands).
 
 ## 5. HunterGameViewModel
 
@@ -60,7 +60,7 @@
 
 - [ ] 9.1 `GameApiClient` tests: `GetGameStatusAsync` maps `200/403/409/404/401`/transient correctly and sends the Bearer header.
 - [ ] 9.2 `HunterGameViewModel` load tests: active→game resolution, and the None/NotFound/Unauthorized/Error states (Unauthorized invalidates the token).
-- [ ] 9.3 Routing test: the gameplay router sends the hunter to `HunterGamePage` and a non-hunter to the prey destination.
+- [x] 9.3 Routing test: the gameplay router sends the hunter to `HunterGamePage` and a non-hunter to the prey destination. (`GameplayRouterTests` + `CurrentUserProviderTests`.)
 - [ ] 9.4 Phase tests: `Ready`→Waiting; `InProgress` future may-move→HeadStart; `InProgress` past/null may-move→Live; `Completed`→Ended (hands off once); status `Forbidden`/`Conflict` treated as not-live-yet.
 - [ ] 9.5 Head-start countdown test: value derives from `HunterMayMoveAt` via a fake `TimeProvider`, re-anchors on a new snapshot, and reaching zero advances to `Live`; the warning flag is set during HeadStart.
 - [ ] 9.6 Map projection tests: prey with a location and Active state → red; Tagged/Out → grey; prey with no location → no dot; the hunter's own row is never a prey dot.

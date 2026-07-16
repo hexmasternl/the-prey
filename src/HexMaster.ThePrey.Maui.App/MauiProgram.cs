@@ -184,9 +184,18 @@ namespace HexMaster.ThePrey.Maui.App
             // the Web PubSub WebSocket factory + the notifications-token request; yields typed GameStreamEvents.
             services.AddSingleton<IGameStreamClient, GameStreamClient>();
 
-            // Native share sheet + lobby onward-navigation seams (kept behind interfaces for testability).
+            // Native share sheet.
             services.AddSingleton<IShareService, ShareService>();
-            services.AddSingleton<ILobbyNavigator, ShellLobbyNavigator>();
+
+            // Current-user id (from GET /users/me) — used to determine role at the gameplay hand-off.
+            services.AddSingleton<ICurrentUserProvider, CurrentUserProvider>();
+
+            // Gameplay router: fulfils the lobby's onward hand-off (ILobbyNavigator) by resolving the
+            // active game's role and routing to the hunter/prey game page, and owns the outcome hand-off
+            // (IGameplayNavigator). One Shell/navigator-backed singleton exposed under both interfaces.
+            services.AddSingleton<GameplayRouter>();
+            services.AddSingleton<ILobbyNavigator>(sp => sp.GetRequiredService<GameplayRouter>());
+            services.AddSingleton<IGameplayNavigator>(sp => sp.GetRequiredService<GameplayRouter>());
 
             // In-game HUD seams: the hunter's tag-selection modal, and a placeholder map-camera signal
             // sink. The gameplay map change replaces NullMapCameraController with a real implementation

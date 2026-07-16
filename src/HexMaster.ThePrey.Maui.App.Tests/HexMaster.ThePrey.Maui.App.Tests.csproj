@@ -45,6 +45,10 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\JoinGameResult.cs" Link="Linked\JoinGameResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\ISessionService.cs" Link="Linked\ISessionService.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\SessionService.cs" Link="Linked\SessionService.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\ICurrentUserProvider.cs" Link="Linked\ICurrentUserProvider.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Session\CurrentUserProvider.cs" Link="Linked\CurrentUserProvider.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IGameplayNavigator.cs" Link="Linked\IGameplayNavigator.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\GameplayRouter.cs" Link="Linked\GameplayRouter.cs" />
 
     <!-- Users API client, access-token provider, localization, and the settings view model.
          All are plain .NET; the MAUI-only bits (TranslateExtension, PreferencesLanguageStore) are excluded. -->
