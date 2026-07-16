@@ -64,7 +64,7 @@ Note the keystore's fingerprints (you may need the upload SHA-256 when registeri
 you'll compare against the **app signing** SHA-256 later):
 
 ```bash
-keytool -list -v -keystore theprey-maui-upload.keystore -alias theprey-maui
+"C:\Program Files\Java\jdk-21.0.11\bin\keytool" -list -v -keystore theprey-maui-upload.keystore -alias theprey-maui
 ```
 
 ## 1.3 Create the app in Play Console

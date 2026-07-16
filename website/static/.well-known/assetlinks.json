@@ -14,7 +14,9 @@
     "target": {
       "namespace": "android_app",
       "package_name": "nl.hexmaster.theprey.maui.app",
-      "sha256_cert_fingerprints": ["<MAUI_APP_SIGNING_SHA256>"]
+      "sha256_cert_fingerprints": [
+        "20:BC:45:07:34:5F:AB:20:B5:DB:AF:EE:65:81:D5:D1:BC:0A:CA:DD:6D:E0:76:C3:07:71:3F:B9:A7:BF:40:F0"
+      ]
     }
   }
 ]
