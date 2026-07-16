@@ -20,7 +20,7 @@ namespace HexMaster.ThePrey.Maui.App
             UIApplication application, NSUserActivity userActivity, UIApplicationRestorationHandler completionHandler)
         {
             if (userActivity.ActivityType == BrowsingWebActivityType
-                && userActivity.WebpageUrl?.AbsoluteString is string url
+                && userActivity.WebPageUrl?.AbsoluteString is string url
                 && Uri.TryCreate(url, UriKind.Absolute, out var uri))
             {
                 var handler = IPlatformApplication.Current?.Services.GetService<IInviteDeepLinkHandler>();
