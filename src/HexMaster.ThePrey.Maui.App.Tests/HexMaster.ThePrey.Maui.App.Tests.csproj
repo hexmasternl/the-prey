@@ -148,6 +148,12 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Dialogs\ITagDialog.cs" Link="Linked\ITagDialog.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GameHudViewModel.cs" Link="Linked\GameHudViewModel.cs" />
 
+    <!-- Full-screen gameplay maps: shared phase/blip value types + the hunter/prey game view models.
+         All plain .NET; the pages + Mapsui code-behind are MAUI-only and excluded. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GamePhase.cs" Link="Linked\GamePhase.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\MapBlip.cs" Link="Linked\MapBlip.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\HunterGameViewModel.cs" Link="Linked\HunterGameViewModel.cs" />
+
     <!-- Playfield-selection modal: the selectable item, the navigator seam interfaces, and the modal
          view model. All plain .NET; the Shell-backed navigator implementation is MAUI-only and excluded. -->
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\SelectablePlayFieldItem.cs" Link="Linked\SelectablePlayFieldItem.cs" />

@@ -28,14 +28,14 @@
 
 ## 5. HunterGameViewModel
 
-- [ ] 5.1 Create `ViewModels/HunterGameViewModel.cs` depending on `IGameApiClient`, `IGameStreamClient`, `ILivePositionReader`, `IHeadingReader`, the navigator seam, `IAccessTokenProvider`, `TimeProvider`, and `ILogger` — all behind interfaces for testability.
-- [ ] 5.2 Implement `LoadAsync`: acquire token (no token → error state), resolve active game id via `GetActiveGameAsync`, then `GetGameAsync(id)`; map each outcome (Success/None/NotFound/Unauthorized/Error) to a distinct state; `Unauthorized` invalidates the token.
-- [ ] 5.3 Implement the phase machine (`Waiting` / `HeadStart` / `Live` / `Ended`) derived from `GameDto.Status` and `HunterMayMoveAt`: `Ready`→Waiting; `InProgress` with a future may-move→HeadStart; `InProgress` past (or null) may-move→Live; `Completed`→Ended (hand off once).
-- [ ] 5.4 In the in-progress phases, call `GetGameStatusAsync` to seed the snapshot; treat `Forbidden`/`Conflict` as "not live yet" (stay in Waiting/HeadStart and re-poll), not as errors.
-- [ ] 5.5 Expose the playfield polygon projection (from `PlayfieldCoordinates`), the self position + heading, and the prey-blip projection (position from `LastKnownLocation`, color from `State`: Active/Passive→red, Tagged/Out→grey), excluding the hunter's own row.
-- [ ] 5.6 Implement the head-start countdown: `max(0, HunterMayMoveAt − now)` on a one-second `TimeProvider` tick, formatted `mm:ss`, re-anchored from each status snapshot; reaching zero advances to `Live`. Expose the static move-early / 10-minute-penalty warning flag for the head-start phase (no penalty computation).
-- [ ] 5.7 Implement live updates: on activate, subscribe to `IGameStreamClient` (Web PubSub channel) and start the position + heading readers; apply `ParticipantLocated` (upsert prey dot), `ParticipantStatusChanged` (recolor), `StateChanged` (re-poll status on the Ready→InProgress edge), and `GameEnded` (hand off once); re-poll status on reconnect; on deactivate, cancel the subscription and stop the readers.
-- [ ] 5.8 Guard the game-ended hand-off with an idempotent flag so it fires exactly once (from either the stream or a `Completed` snapshot).
+- [x] 5.1 Create `ViewModels/HunterGameViewModel.cs` depending on `IGameApiClient`, `IGameStreamClient`, `ILivePositionReader`, `IHeadingReader`, the navigator seam, `IAccessTokenProvider`, `TimeProvider`, and `ILogger` — all behind interfaces for testability.
+- [x] 5.2 Implement `LoadAsync`: acquire token (no token → error state), resolve active game id via `GetActiveGameAsync`, then `GetGameAsync(id)`; map each outcome (Success/None/NotFound/Unauthorized/Error) to a distinct state; `Unauthorized` invalidates the token.
+- [x] 5.3 Implement the phase machine (`Waiting` / `HeadStart` / `Live` / `Ended`) derived from `GameDto.Status` and `HunterMayMoveAt`: `Ready`→Waiting; `InProgress` with a future may-move→HeadStart; `InProgress` past (or null) may-move→Live; `Completed`→Ended (hand off once).
+- [x] 5.4 In the in-progress phases, call `GetGameStatusAsync` to seed the snapshot; treat `Forbidden`/`Conflict` as "not live yet" (stay in Waiting/HeadStart and re-poll), not as errors.
+- [x] 5.5 Expose the playfield polygon projection (from `PlayfieldCoordinates`), the self position + heading, and the prey-blip projection (position from `LastKnownLocation`, color from `State`: Active/Passive→red, Tagged/Out→grey), excluding the hunter's own row.
+- [x] 5.6 Implement the head-start countdown: `max(0, HunterMayMoveAt − now)` on a one-second `TimeProvider` tick, formatted `mm:ss`, re-anchored from each status snapshot; reaching zero advances to `Live`. Expose the static move-early / 10-minute-penalty warning flag for the head-start phase (no penalty computation).
+- [x] 5.7 Implement live updates: on activate, subscribe to `IGameStreamClient` (Web PubSub channel) and start the position + heading readers; apply `ParticipantLocated` (upsert prey dot), `ParticipantStatusChanged` (recolor), `StateChanged` (re-poll status on the Ready→InProgress edge), and `GameEnded` (hand off once); re-poll status on reconnect; on deactivate, cancel the subscription and stop the readers.
+- [x] 5.8 Guard the game-ended hand-off with an idempotent flag so it fires exactly once (from either the stream or a `Completed` snapshot).
 
 ## 6. HunterGamePage (XAML + Mapsui code-behind)
 
@@ -59,12 +59,12 @@
 ## 9. Tests
 
 - [ ] 9.1 `GameApiClient` tests: `GetGameStatusAsync` maps `200/403/409/404/401`/transient correctly and sends the Bearer header.
-- [ ] 9.2 `HunterGameViewModel` load tests: active→game resolution, and the None/NotFound/Unauthorized/Error states (Unauthorized invalidates the token).
+- [x] 9.2 `HunterGameViewModel` load tests: active→game resolution, and the None/NotFound/Unauthorized/Error states (Unauthorized invalidates the token).
 - [x] 9.3 Routing test: the gameplay router sends the hunter to `HunterGamePage` and a non-hunter to the prey destination. (`GameplayRouterTests` + `CurrentUserProviderTests`.)
-- [ ] 9.4 Phase tests: `Ready`→Waiting; `InProgress` future may-move→HeadStart; `InProgress` past/null may-move→Live; `Completed`→Ended (hands off once); status `Forbidden`/`Conflict` treated as not-live-yet.
-- [ ] 9.5 Head-start countdown test: value derives from `HunterMayMoveAt` via a fake `TimeProvider`, re-anchors on a new snapshot, and reaching zero advances to `Live`; the warning flag is set during HeadStart.
-- [ ] 9.6 Map projection tests: prey with a location and Active state → red; Tagged/Out → grey; prey with no location → no dot; the hunter's own row is never a prey dot.
-- [ ] 9.7 Live-update tests (fake `IGameStreamClient`): a `ParticipantLocated` event moves a dot; `ParticipantStatusChanged` recolors it; `StateChanged` clears Waiting; `GameEnded` hands off exactly once; deactivate cancels the subscription and stops the position/heading readers.
+- [x] 9.4 Phase tests: `Ready`→Waiting; `InProgress` future may-move→HeadStart; `InProgress` past/null may-move→Live; `Completed`→Ended (hands off once); status `Forbidden`/`Conflict` treated as not-live-yet.
+- [x] 9.5 Head-start countdown test: value derives from `HunterMayMoveAt` via a fake `TimeProvider`, re-anchors on a new snapshot, and reaching zero advances to `Live`; the warning flag is set during HeadStart.
+- [x] 9.6 Map projection tests: prey with a location and Active state → red; Tagged/Out → grey; prey with no location → no dot; the hunter's own row is never a prey dot.
+- [x] 9.7 Live-update tests (fake `IGameStreamClient`): a `ParticipantLocated` event moves a dot; `ParticipantStatusChanged` recolors it; `StateChanged` clears Waiting; `GameEnded` hands off exactly once; deactivate cancels the subscription and stops the position/heading readers.
 - [x] 9.8 Web PubSub channel test: the `IGameStreamClient` implementation requests the connection URL from `/games/{id}/notifications/token`, and maps a group-message `{ type, data }` envelope for each in-game event name to the matching `GameStreamEvent` (isolate the WebSocket behind a seam so envelope mapping + reconnect are unit-testable). (`GameStreamClientTests` + `GameStreamEventMapperTests`.)
 
 ## 10. Build & verify
