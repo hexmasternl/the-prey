@@ -17,6 +17,12 @@
 	</array>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.lifestyle</string>
+	<!-- Location usage descriptions. MacCatalyst reports only while the app is active (foreground-only,
+	     per the non-goals); the "Always" text is present so the same location prompts read correctly. -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>The Prey shows your current field coordinates and shares your location with the game while a round is in progress.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>The Prey shares your location with the game while a round is in progress. Tracking stops the moment the game ends.</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
