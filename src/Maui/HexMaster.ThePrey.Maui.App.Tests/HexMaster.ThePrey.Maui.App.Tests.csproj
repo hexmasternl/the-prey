@@ -179,6 +179,7 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameRealtimeEventTypes.cs" Link="Linked\GameRealtimeEventTypes.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameRealtimePayloads.cs" Link="Linked\GameRealtimePayloads.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStateChanged.cs" Link="Linked\GameStateChanged.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameLiveState.cs" Link="Linked\GameLiveState.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\IWebSocketConnection.cs" Link="Linked\IWebSocketConnection.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\IGameRealtimeConnection.cs" Link="Linked\IGameRealtimeConnection.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameRealtimeConnection.cs" Link="Linked\GameRealtimeConnection.cs" />

@@ -15,7 +15,11 @@ public sealed record GameStatusDetails(
     int GameDurationLeft,
     DateTimeOffset? HunterMayMoveAt,
     bool IsEndgame,
-    int PreysLeft);
+    int PreysLeft,
+    // The next-ping countdown seed and its full interval — the compact HUD's ping bar reads these off the
+    // same /status payload the map already fetches. Trailing + defaulted so existing constructions still bind.
+    int NextPingDuration = 0,
+    int CurrentPingInterval = 0);
 
 /// <summary>
 /// One participant as the gameplay map plots it: the <see cref="UserId"/> (matched against the caller
