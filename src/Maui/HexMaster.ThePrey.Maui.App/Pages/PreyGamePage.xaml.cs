@@ -1,3 +1,4 @@
+using HexMaster.ThePrey.Maui.App.Controls;
 using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.ViewModels;
 using Mapsui;
@@ -32,6 +33,7 @@ public partial class PreyGamePage : ContentPage
     private const double PolygonOutlineWidth = 2;
 
     private readonly PreyGameViewModel _viewModel;
+    private readonly GameHudViewModel _hudViewModel;
     private readonly MapControl _mapControl;
 
     private readonly MemoryLayer _polygonLayer = new("Playfield") { Style = null };
@@ -42,11 +44,12 @@ public partial class PreyGamePage : ContentPage
     private bool _centeredOnce;
     private double _accumulatedHeading;
 
-    public PreyGamePage(PreyGameViewModel viewModel)
+    public PreyGamePage(PreyGameViewModel viewModel, GameHudView hudView, GameHudViewModel hudViewModel)
     {
         InitializeComponent();
 
         _viewModel = viewModel;
+        _hudViewModel = hudViewModel;
         BindingContext = viewModel;
 
         _mapControl = new MapControl
@@ -60,6 +63,10 @@ public partial class PreyGamePage : ContentPage
         _mapControl.Map.Layers.Add(_selfLayer);
 
         MapHost.Children.Add(_mapControl);
+
+        // Mount the shared HUD overlay into the page's reserved region.
+        hudView.BindingContext = hudViewModel;
+        HudRegion.Content = hudView;
     }
 
     protected override async void OnAppearing()
@@ -68,12 +75,22 @@ public partial class PreyGamePage : ContentPage
         _viewModel.MapChanged += OnMapChanged;
         await _viewModel.ActivateAsync();
         RedrawMap();
+
+        // The map VM started the shared game-state store; activate the HUD onto the same game so it reads
+        // the same snapshots. Skip when no game resolved (the error overlay is shown instead).
+        if (_viewModel.GameId != Guid.Empty && !_viewModel.HasError)
+        {
+            _hudViewModel.Initialize(_viewModel.GameId, isHunter: false);
+            await _hudViewModel.ActivateAsync();
+        }
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
         _viewModel.MapChanged -= OnMapChanged;
+        // Deactivate the HUD (unsubscribe) before the map VM stops the shared store connection.
+        _hudViewModel.Deactivate();
         _viewModel.Deactivate();
     }
 
