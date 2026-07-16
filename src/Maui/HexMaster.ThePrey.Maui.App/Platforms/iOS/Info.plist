@@ -28,6 +28,12 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>The Prey shows your current field coordinates on the command menu.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>The Prey shares your location with the game while a round is in progress, even when the app is in the background or your screen is locked, so hunters and prey can be tracked. Tracking stops the moment the game ends.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
 	<key>CFBundleURLTypes</key>
