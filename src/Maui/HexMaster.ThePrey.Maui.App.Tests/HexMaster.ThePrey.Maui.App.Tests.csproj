@@ -80,6 +80,9 @@
     <!-- Main-menu view model and its plain collaborators. The MAUI implementations of these
          interfaces (Shell/Geolocation/AppInfo/WebAuthenticator) are deliberately excluded. -->
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Authentication\IInteractiveLoginService.cs" Link="Linked\IInteractiveLoginService.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Authentication\IInteractiveLogoutService.cs" Link="Linked\IInteractiveLogoutService.cs" />
+    <!-- Pure Auth0 logout-URL builder; the browser-touching InteractiveLogoutService is MAUI-only and excluded. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Authentication\Auth0LogoutUrl.cs" Link="Linked\Auth0LogoutUrl.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IMenuNavigator.cs" Link="Linked\IMenuNavigator.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IApplicationExit.cs" Link="Linked\IApplicationExit.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IAppVersionProvider.cs" Link="Linked\IAppVersionProvider.cs" />
@@ -179,15 +182,12 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameRealtimeEventTypes.cs" Link="Linked\GameRealtimeEventTypes.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameRealtimePayloads.cs" Link="Linked\GameRealtimePayloads.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStateChanged.cs" Link="Linked\GameStateChanged.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameLiveState.cs" Link="Linked\GameLiveState.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\IWebSocketConnection.cs" Link="Linked\IWebSocketConnection.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\IGameRealtimeConnection.cs" Link="Linked\IGameRealtimeConnection.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameRealtimeConnection.cs" Link="Linked\GameRealtimeConnection.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\IGameStateService.cs" Link="Linked\IGameStateService.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStateService.cs" Link="Linked\GameStateService.cs" />
-    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStreamEvent.cs" Link="Linked\GameStreamEvent.cs" />
-    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\IGameStreamClient.cs" Link="Linked\IGameStreamClient.cs" />
-    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStreamEventMapper.cs" Link="Linked\GameStreamEventMapper.cs" />
-    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStreamClient.cs" Link="Linked\GameStreamClient.cs" />
 
     <!-- Background location tracking: the cross-platform contracts, the report client, and the shared
          coordinator + façade. All plain .NET; the native adapters (MauiGeolocationSource, the Android

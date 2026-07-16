@@ -21,6 +21,10 @@ public interface IInviteDeepLinkHandler
     /// </summary>
     void QueuePending(Uri? uri);
 
-    /// <summary>Replays the link queued by <see cref="QueuePending"/> (if any) through <see cref="TryHandleAsync"/>.</summary>
-    Task ReplayPendingAsync(CancellationToken ct = default);
+    /// <summary>
+    /// Replays the link queued by <see cref="QueuePending"/> (if any) through <see cref="TryHandleAsync"/>.
+    /// Returns <c>true</c> only when a queued link was present and it routed — so the caller can decide the
+    /// post-boot destination (honor the invite) versus its default (the main menu).
+    /// </summary>
+    Task<bool> ReplayPendingAsync(CancellationToken ct = default);
 }

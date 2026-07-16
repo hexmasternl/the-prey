@@ -89,6 +89,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton<ISessionService, SessionService>();
             services.AddSingleton<IAccessTokenProvider, AccessTokenProvider>();
             services.AddTransient<IInteractiveLoginService, InteractiveLoginService>();
+            services.AddTransient<IInteractiveLogoutService, InteractiveLogoutService>();
 
             // Local-first display cache of the private playfield list (a JSON file in the app data dir).
             services.AddSingleton<IPlayFieldCache>(sp => new PlayFieldCache(
@@ -206,10 +207,6 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton<IWebSocketConnectionFactory, NativeWebSocketConnectionFactory>();
             services.AddSingleton<IGameRealtimeConnection, GameRealtimeConnection>();
             services.AddSingleton<IGameStateService, GameStateService>();
-
-            // Per-subscription live game channel for the full-screen gameplay maps (hunter/prey). Reuses
-            // the Web PubSub WebSocket factory + the notifications-token request; yields typed GameStreamEvents.
-            services.AddSingleton<IGameStreamClient, GameStreamClient>();
 
             // Native share sheet.
             services.AddSingleton<IShareService, ShareService>();

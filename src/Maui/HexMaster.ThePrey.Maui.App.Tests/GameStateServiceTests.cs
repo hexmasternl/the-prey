@@ -3,6 +3,7 @@ using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Authentication;
 using HexMaster.ThePrey.Maui.App.Services.Realtime;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 
 namespace HexMaster.ThePrey.Maui.App.Tests;
@@ -14,9 +15,10 @@ public class GameStateServiceTests
     private readonly FakeGameRealtimeConnection _connection = new();
     private readonly Mock<IGameApiClient> _gameApi = new();
     private readonly Mock<IAccessTokenProvider> _tokenProvider = new();
+    private readonly FakeTimeProvider _time = new();
 
     private GameStateService CreateSut() =>
-        new(_connection, _gameApi.Object, _tokenProvider.Object, NullLogger<GameStateService>.Instance);
+        new(_connection, _gameApi.Object, _tokenProvider.Object, _time, NullLogger<GameStateService>.Instance);
 
     // ---- Helpers ----
 
@@ -26,14 +28,14 @@ public class GameStateServiceTests
         new(id, name, IsReady: true, State: state);
 
     private static GameDetails Seed(
-        Guid? id = null, string status = "InProgress", params GameParticipantDetails[] participants)
+        Guid? id = null, string status = "InProgress", Guid? hunterUserId = null, params GameParticipantDetails[] participants)
     {
         var list = participants.Length > 0
             ? participants
             : new[] { Participant(Guid.NewGuid()) };
         return new GameDetails(
             id ?? Guid.NewGuid(), "1234", status, Config(), list,
-            HunterUserId: null, OwnerUserId: Guid.NewGuid(), IsOwnerPlayer: true, IsReadyToStart: false);
+            HunterUserId: hunterUserId, OwnerUserId: Guid.NewGuid(), IsOwnerPlayer: true, IsReadyToStart: false);
     }
 
     private static GameRealtimeEnvelope Envelope(string type, object? data)
@@ -43,7 +45,21 @@ public class GameStateServiceTests
         return new GameRealtimeEnvelope(type, doc.RootElement.Clone());
     }
 
-    // Seeds state through a full-snapshot event, then clears any recorded broadcast.
+    // Sets up a full successful reconcile: token + game record, plus (optionally) the in-progress status
+    // details and role-specific state. Unmocked status/state reads default to "not available" so an
+    // InProgress reconcile that only cares about the game record still completes without a null Task.
+    private void SetupReconcile(GameDetails game, GameStatusDetails? details = null, GameStateSnapshot? state = null)
+    {
+        _tokenProvider.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("access");
+        _gameApi.Setup(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetGameResult.Success(game));
+        _gameApi.Setup(a => a.GetGameStatusDetailsAsync(game.Id, "access", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(details is null ? GetGameStatusResult.Forbidden : GetGameStatusResult.Success(details));
+        _gameApi.Setup(a => a.GetGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(state is null ? GameStateResult.NotFound : GameStateResult.Success(state));
+    }
+
+    // Seeds state through a full-snapshot event (the way a lobby/game-started broadcast arrives).
     private GameStateService StartedWith(GameDetails seed)
     {
         var sut = CreateSut();
@@ -51,15 +67,13 @@ public class GameStateServiceTests
         return sut;
     }
 
-    // ---- 5.2 reconcile on (re)connect ----
+    // ---- reconcile on (re)connect ----
 
     [Fact]
     public void Connected_ShouldFetchSnapshot_AdoptState_AndBroadcast()
     {
         var game = Seed(status: "InProgress");
-        _tokenProvider.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("access");
-        _gameApi.Setup(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetGameResult.Success(game));
+        SetupReconcile(game);
 
         var sut = CreateSut();
         GameStateChanged? received = null;
@@ -68,24 +82,22 @@ public class GameStateServiceTests
         sut.Start(game.Id);
         _connection.RaiseConnected();
 
-        Assert.Equal(game.Id, sut.CurrentState!.Id);
-        Assert.Equal(game.Id, received!.State.Id);
+        Assert.Equal(game.Id, sut.CurrentState!.GameId);
+        Assert.Equal(game.Id, received!.State.GameId);
     }
 
     [Fact]
     public void Reconnected_ShouldReconcileFreshSnapshot()
     {
         var gameId = Guid.NewGuid();
-        var refreshed = Seed(gameId, status: "Endgame");
-        _tokenProvider.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("access");
-        _gameApi.Setup(a => a.GetGameAsync(gameId, "access", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetGameResult.Success(refreshed));
+        var refreshed = Seed(gameId, status: "Completed");
+        SetupReconcile(refreshed);
 
         var sut = CreateSut();
         sut.Start(gameId);
         _connection.RaiseReconnected();
 
-        Assert.Equal("Endgame", sut.CurrentState!.Status);
+        Assert.Equal("Completed", sut.CurrentState!.Status);
     }
 
     [Fact]
@@ -103,7 +115,94 @@ public class GameStateServiceTests
         Assert.Null(sut.CurrentState);
     }
 
-    // ---- 7.1 event application ----
+    [Fact]
+    public void Reconcile_ShouldFoldStatusAndStateIntoTheComposite()
+    {
+        var hunterId = Guid.NewGuid();
+        var preyId = Guid.NewGuid();
+        var game = Seed(null, "InProgress", hunterId,
+            Participant(hunterId, "Hunter"), Participant(preyId, "Prey"));
+        var details = new GameStatusDetails(
+            PlayfieldCoordinates: new[] { new GpsCoordinate(51.0, 4.0), new GpsCoordinate(51.1, 4.1), new GpsCoordinate(51.2, 4.0) },
+            Participants: new[]
+            {
+                new GameParticipantStatusDetails(hunterId, new GpsCoordinate(51.05, 4.05), "Active"),
+                new GameParticipantStatusDetails(preyId, new GpsCoordinate(51.06, 4.06), "Active"),
+            },
+            HunterUserId: hunterId,
+            GameDurationLeft: 900,
+            HunterMayMoveAt: null,
+            IsEndgame: false,
+            PreysLeft: 1,
+            NextPingDuration: 20,
+            CurrentPingInterval: 30);
+        var state = new GameStateSnapshot(HunterDistanceMeters: 42, PreyLocations: new[] { new GpsCoordinate(51.06, 4.06) });
+        SetupReconcile(game, details, state);
+
+        var sut = CreateSut();
+        sut.Start(game.Id);
+        _connection.RaiseConnected();
+
+        var current = sut.CurrentState!;
+        Assert.Equal(3, current.PlayfieldCoordinates.Count);
+        Assert.Equal(900, current.GameDurationLeft);
+        Assert.Equal(20, current.NextPingDuration);
+        Assert.Equal(30, current.CurrentPingInterval);
+        Assert.Equal(42, current.HunterDistanceMeters);
+        var prey = current.Participants.Single(p => p.UserId == preyId);
+        Assert.Equal(51.06, prey.Location!.Latitude);
+    }
+
+    [Fact]
+    public void PeriodicHeartbeat_ShouldReconcileEveryFiveMinutes()
+    {
+        var gameId = Guid.NewGuid();
+        SetupReconcile(Seed(gameId, status: "Completed"));
+
+        var sut = CreateSut();
+        sut.Start(gameId);
+        Assert.Null(sut.CurrentState); // Start does not reconcile immediately.
+
+        _time.Advance(TimeSpan.FromMinutes(5));
+
+        Assert.Equal("Completed", sut.CurrentState!.Status);
+        _gameApi.Verify(a => a.GetGameAsync(gameId, "access", It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+    }
+
+    // ---- StartAsync (resolve active game) ----
+
+    [Fact]
+    public async Task StartAsync_ShouldResolveActiveGame_SeedState_AndStartConnection()
+    {
+        var gameId = Guid.NewGuid();
+        _tokenProvider.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("access");
+        _gameApi.Setup(a => a.GetActiveGameAsync("access", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ActiveGameResult.Active(new GameStatus { GameId = gameId }));
+        SetupReconcile(Seed(gameId, status: "InProgress"));
+
+        var sut = CreateSut();
+        var seeded = await sut.StartAsync();
+
+        Assert.NotNull(seeded);
+        Assert.Equal(gameId, seeded!.GameId);
+        Assert.Equal(gameId, _connection.StartedGameId);
+    }
+
+    [Fact]
+    public async Task StartAsync_ShouldReturnNull_WhenNoActiveGame()
+    {
+        _tokenProvider.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("access");
+        _gameApi.Setup(a => a.GetActiveGameAsync("access", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ActiveGameResult.None);
+
+        var sut = CreateSut();
+        var seeded = await sut.StartAsync();
+
+        Assert.Null(seeded);
+        Assert.Null(_connection.StartedGameId);
+    }
+
+    // ---- event application ----
 
     [Fact]
     public void FullSnapshotEvent_ShouldReplaceState()
@@ -113,7 +212,7 @@ public class GameStateServiceTests
 
         _connection.RaiseEnvelope(Envelope("lobby-updated", game));
 
-        Assert.Equal(game.Id, sut.CurrentState!.Id);
+        Assert.Equal(game.Id, sut.CurrentState!.GameId);
         Assert.Equal("Lobby", sut.CurrentState.Status);
     }
 
@@ -121,7 +220,7 @@ public class GameStateServiceTests
     public void StateChanged_ShouldUpdateStatus_AndPreserveParticipants()
     {
         var participant = Participant(Guid.NewGuid(), "Bob");
-        var game = Seed(null, "InProgress", participant);
+        var game = Seed(null, "InProgress", null, participant);
         var sut = StartedWith(game);
 
         _connection.RaiseEnvelope(Envelope(
@@ -129,7 +228,7 @@ public class GameStateServiceTests
 
         Assert.Equal("Endgame", sut.CurrentState!.Status);
         Assert.Single(sut.CurrentState.Participants);
-        Assert.Equal("Bob", sut.CurrentState.Participants[0].DisplayName);
+        Assert.Equal(participant.UserId, sut.CurrentState.Participants[0].UserId);
     }
 
     [Fact]
@@ -137,7 +236,7 @@ public class GameStateServiceTests
     {
         var target = Participant(Guid.NewGuid(), "Target");
         var other = Participant(Guid.NewGuid(), "Other");
-        var game = Seed(null, "InProgress", target, other);
+        var game = Seed(null, "InProgress", null, target, other);
         var sut = StartedWith(game);
 
         _connection.RaiseEnvelope(Envelope("player-location-updated",
@@ -145,30 +244,33 @@ public class GameStateServiceTests
 
         var updatedTarget = sut.CurrentState!.Participants.Single(p => p.UserId == target.UserId);
         var untouched = sut.CurrentState.Participants.Single(p => p.UserId == other.UserId);
-        Assert.Equal(51.5, updatedTarget.Latitude);
-        Assert.Equal(4.5, updatedTarget.Longitude);
-        Assert.Null(untouched.Latitude);
-        Assert.Null(untouched.Longitude);
+        Assert.Equal(51.5, updatedTarget.Location!.Latitude);
+        Assert.Equal(4.5, updatedTarget.Location.Longitude);
+        Assert.Null(untouched.Location);
     }
 
     [Fact]
-    public void ParticipantStatusChanged_ShouldUpdateParticipantState()
+    public void ParticipantStatusChanged_ShouldUpdateState_AndRecomputePreysLeft()
     {
+        var hunterId = Guid.NewGuid();
         var target = Participant(Guid.NewGuid(), "Target", state: "Active");
-        var game = Seed(null, "InProgress", target, Participant(Guid.NewGuid(), "Other"));
+        var otherPrey = Participant(Guid.NewGuid(), "Other", state: "Active");
+        var game = Seed(null, "InProgress", hunterId, Participant(hunterId, "Hunter"), target, otherPrey);
         var sut = StartedWith(game);
+        Assert.Equal(2, sut.CurrentState!.PreysLeft);
 
         _connection.RaiseEnvelope(Envelope("participant-status-changed",
             new ParticipantStatusChangedPayload(game.Id, target.UserId, "Prey", "Tagged")));
 
         Assert.Equal("Tagged", sut.CurrentState!.Participants.Single(p => p.UserId == target.UserId).State);
+        Assert.Equal(1, sut.CurrentState.PreysLeft);
     }
 
     [Fact]
     public void PlayerPenalized_ShouldRecordPenaltyOnParticipant()
     {
         var target = Participant(Guid.NewGuid(), "Target");
-        var game = Seed(null, "InProgress", target);
+        var game = Seed(null, "InProgress", null, target);
         var sut = StartedWith(game);
         var ends = DateTimeOffset.Parse("2026-07-15T10:00:00Z");
 
@@ -188,9 +290,10 @@ public class GameStateServiceTests
             new GameEndedPayload(game.Id, "PreysWin", 2)));
 
         Assert.Equal("Completed", sut.CurrentState!.Status);
+        Assert.True(sut.CurrentState.IsCompleted);
     }
 
-    // ---- 7.2 unknown / malformed ----
+    // ---- unknown / malformed ----
 
     [Fact]
     public void UnknownEventType_ShouldNotChangeStateNorBroadcast()
@@ -240,7 +343,7 @@ public class GameStateServiceTests
     [Fact]
     public void LocationForUnknownParticipant_ShouldBeNoOp()
     {
-        var game = Seed(null, "InProgress", Participant(Guid.NewGuid(), "Known"));
+        var game = Seed(null, "InProgress", null, Participant(Guid.NewGuid(), "Known"));
         var sut = StartedWith(game);
         var before = sut.CurrentState;
         var broadcasts = 0;
@@ -263,7 +366,7 @@ public class GameStateServiceTests
         Assert.Null(sut.CurrentState);
     }
 
-    // ---- 7.3 notifications ----
+    // ---- notifications ----
 
     [Fact]
     public void Subscribers_ShouldEachReceiveCurrentState_OnChange()

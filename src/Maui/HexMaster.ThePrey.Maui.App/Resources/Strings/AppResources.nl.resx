@@ -115,6 +115,7 @@
   <data name="Join_Conflict_AlreadyStarted" xml:space="preserve"><value>Deze operatie is al gestart. Je kunt niet meer deelnemen.</value></data>
   <data name="Join_Conflict_Full" xml:space="preserve"><value>Deze operatie zit vol. Je kunt niet meer deelnemen.</value></data>
   <data name="Join_Error_Generic" xml:space="preserve"><value>Kan niet deelnemen aan de operatie. Controleer je verbinding en probeer opnieuw.</value></data>
+  <data name="Join_Background_Description" xml:space="preserve"><value>Tactische hoogtekaart</value></data>
 
   <!-- Playfields -->
   <data name="Playfields_Title" xml:space="preserve"><value>SPEELVELDEN</value></data>

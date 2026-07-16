@@ -106,18 +106,20 @@ public class InviteDeepLinkHandlerTests
         var sut = CreateSut();
         sut.QueuePending(new Uri($"https://theprey.nl/join/{id}"));
 
-        await sut.ReplayPendingAsync();
+        var routed = await sut.ReplayPendingAsync();
 
+        Assert.True(routed); // the welcome bootstrap relies on this to suppress its own menu navigation
         _navigator.Verify(n => n.GoToAsync(ExpectedRoute(id)), Times.Once);
     }
 
     [Fact]
-    public async Task ReplayPendingAsync_ShouldDoNothing_WhenNothingQueued()
+    public async Task ReplayPendingAsync_ShouldDoNothing_AndReturnFalse_WhenNothingQueued()
     {
         var sut = CreateSut();
 
-        await sut.ReplayPendingAsync();
+        var routed = await sut.ReplayPendingAsync();
 
+        Assert.False(routed);
         _navigator.Verify(n => n.GoToAsync(It.IsAny<string>()), Times.Never);
     }
 

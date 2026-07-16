@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Windows.Input;
 using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Authentication;
@@ -5,28 +6,28 @@ using HexMaster.ThePrey.Maui.App.Services.Dialogs;
 using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
+using HexMaster.ThePrey.Maui.App.Services.Realtime;
 using Microsoft.Extensions.Logging;
 
 namespace HexMaster.ThePrey.Maui.App.ViewModels;
 
 /// <summary>
 /// Drives the in-game HUD overlay hosted by the (separately-owned) gameplay map page. Projects the
-/// game clock, next-ping countdown, preys-active count and the role-aware nearest-adversary distance;
-/// ticks the two countdowns locally each second seeded from the server and re-synced on every poll;
-/// polls <c>GET …/status</c> (+ <c>…/state</c>) on a ping-anchored cadence; owns the collapse/expand
-/// and Center follow toggle; and orchestrates the hunter's Tag flow. All HTTP, GPS, dialogs, the map
-/// signal, and time sit behind interfaces / <see cref="TimeProvider"/> so the whole VM is unit-testable.
+/// game clock, next-ping countdown, preys-active count and the role-aware nearest-adversary distance from
+/// the shared <see cref="IGameStateService"/> store — the same snapshot the map reads — and ticks the two
+/// countdowns locally each second between store updates. Owns the collapse/expand and Center follow toggle,
+/// reads the device fix for the distance metric, and orchestrates the hunter's Tag flow. All store access,
+/// HTTP, GPS, dialogs, the map signal, and time sit behind interfaces / <see cref="TimeProvider"/> so the
+/// whole VM is unit-testable.
 /// </summary>
 public sealed class GameHudViewModel : ObservableObject, IDisposable
 {
-    /// <summary>Never poll more often than this, even if the server reports a very short next ping.</summary>
-    public static readonly TimeSpan MinimumRefreshInterval = TimeSpan.FromSeconds(5);
-
-    /// <summary>Never let the poll cadence drift longer than this, so the metrics stay reasonably fresh.</summary>
-    public static readonly TimeSpan MaximumRefreshInterval = TimeSpan.FromSeconds(30);
-
     private static readonly TimeSpan OneSecond = TimeSpan.FromSeconds(1);
 
+    /// <summary>Re-read the device GPS every this many ticks, so our own movement keeps the distance fresh.</summary>
+    private const int GpsRefreshTicks = 3;
+
+    private readonly IGameStateService _stateService;
     private readonly IGameApiClient _gameApi;
     private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly IGpsReader _gpsReader;
@@ -38,10 +39,11 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     private readonly ILogger<GameHudViewModel> _logger;
 
     private ITimer? _tickTimer;
-    private ITimer? _refreshTimer;
     private CancellationTokenSource? _lifecycleCts;
+    private bool _subscribed;
+    private int _ticksSinceGps;
 
-    // Seed values from the latest snapshot, ticked locally between polls.
+    // Seed values from the latest snapshot, ticked locally between updates.
     private int _gameDurationLeft;
     private int _nextPingRemaining;
     private int _currentPingInterval;
@@ -49,10 +51,11 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     private int _totalPreys;
     private bool _hasSnapshot;
 
-    // Role-specific distance inputs.
-    private int? _hunterDistanceMeters;                 // prey view (server-computed)
-    private IReadOnlyList<GpsCoordinate> _preyLocations = Array.Empty<GpsCoordinate>(); // hunter view
-    private GpsFix? _deviceFix;                          // hunter view
+    // Distance inputs.
+    private Guid? _hunterUserId;
+    private IReadOnlyList<GameLiveParticipant> _participants = Array.Empty<GameLiveParticipant>();
+    private int? _hunterDistanceMeters;   // server-computed prey→hunter distance (fallback)
+    private GpsFix? _deviceFix;
 
     private bool _isExpanded;
     private bool _isFollowingLocation = true;
@@ -67,6 +70,7 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     private bool _statusIsError;
 
     public GameHudViewModel(
+        IGameStateService stateService,
         IGameApiClient gameApi,
         IAccessTokenProvider accessTokenProvider,
         IGpsReader gpsReader,
@@ -77,6 +81,7 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         TimeProvider timeProvider,
         ILogger<GameHudViewModel> logger)
     {
+        _stateService = stateService;
         _gameApi = gameApi;
         _accessTokenProvider = accessTokenProvider;
         _gpsReader = gpsReader;
@@ -101,7 +106,7 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     /// <summary>True when the local player is the hunter — governs Tag visibility and the distance metric.</summary>
     public bool IsHunter { get; private set; }
 
-    /// <summary>Raised once, when a status refresh reports the game is completed, so the host can hand off.</summary>
+    /// <summary>Raised once, when the store reports the game is completed, so the host can hand off.</summary>
     public event EventHandler? GameEnded;
 
     public ICommand ExpandCommand { get; }
@@ -193,7 +198,10 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         TagCommand.RaiseCanExecuteChanged();
     }
 
-    /// <summary>Refreshes immediately, then starts the local tick and the periodic refresh cadence.</summary>
+    /// <summary>
+    /// Subscribes to the shared store, seeds from its current snapshot, reads the first device fix, and starts
+    /// the local per-second tick. The store connection itself is started/stopped by the gameplay map VM.
+    /// </summary>
     public async Task ActivateAsync()
     {
         _lifecycleCts?.Cancel();
@@ -203,90 +211,72 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         // Emit the initial follow state so the map starts centred (Center defaults on).
         _mapCamera.SetFollowMode(IsFollowingLocation);
 
-        await RefreshAsync(_lifecycleCts.Token);
+        Subscribe();
+        await RefreshDeviceFixAsync();
+
+        if (_stateService.CurrentState is { } state)
+            ApplyState(state);
 
         _tickTimer ??= _timeProvider.CreateTimer(_ => Tick(), null, OneSecond, OneSecond);
     }
 
-    /// <summary>Stops ticking and polling; safe to call more than once.</summary>
+    /// <summary>Unsubscribes and stops ticking; safe to call more than once. Leaves the store connection alone.</summary>
     public void Deactivate()
     {
         _lifecycleCts?.Cancel();
+        Unsubscribe();
         _tickTimer?.Dispose();
         _tickTimer = null;
-        _refreshTimer?.Dispose();
-        _refreshTimer = null;
     }
 
-    /// <summary>
-    /// Acquires a token and polls the game status (and role-specific state), mapping every outcome:
-    /// a completed game stops the HUD and signals the host; unauthorized invalidates the token; a
-    /// transient failure keeps the last known values on screen.
-    /// </summary>
-    public async Task RefreshAsync(CancellationToken ct = default)
+    private void Subscribe()
+    {
+        if (_subscribed)
+            return;
+        _subscribed = true;
+        _stateService.Subscribe(OnStateChanged);
+    }
+
+    private void Unsubscribe()
+    {
+        if (!_subscribed)
+            return;
+        _subscribed = false;
+        _stateService.Unsubscribe(OnStateChanged);
+    }
+
+    private void OnStateChanged(GameStateChanged change) => ApplyState(change.State);
+
+    // Seeds all HUD metrics from one store snapshot: the clock/ping seeds, the preys-active count, the
+    // distance inputs, and the game-end signal.
+    private void ApplyState(GameLiveState state)
     {
         if (HasEnded)
             return;
 
-        var token = await _accessTokenProvider.GetAccessTokenAsync(ct);
-        if (token is null)
+        if (state.IsCompleted)
         {
-            SetError("Hud_Error_Unauthorized");
+            EndGame();
             return;
         }
 
-        var statusResult = await _gameApi.GetGameStatusAsync(GameId, token, ct);
-        switch (statusResult.Outcome)
-        {
-            case GameStatusOutcome.Success:
-                SeedFromStatus(statusResult.Status!);
-                ClearStatusMessage();
-                break;
+        _hunterUserId = state.HunterUserId;
+        _participants = state.Participants;
+        _hunterDistanceMeters = state.HunterDistanceMeters;
 
-            case GameStatusOutcome.Completed:
-                EndGame();
-                return;
+        _gameDurationLeft = Math.Max(0, state.GameDurationLeft);
+        _nextPingRemaining = Math.Max(0, state.NextPingDuration);
+        _currentPingInterval = state.CurrentPingInterval;
+        _preysLeft = state.PreysLeft;
+        _totalPreys = CountPreys(state);
+        _hasSnapshot = true;
 
-            case GameStatusOutcome.Unauthorized:
-                _accessTokenProvider.Invalidate();
-                SetError("Hud_Error_Unauthorized");
-                return;
-
-            default:
-                // NotFound / Forbidden / Error — transient; keep last values and retry next cadence.
-                _logger.LogWarning("Game-status refresh returned {Outcome}; keeping last values.", statusResult.Outcome);
-                if (!_hasSnapshot)
-                    SetError("Hud_Error_Generic");
-                ScheduleNextRefresh();
-                return;
-        }
-
-        // The distance metric needs the role-specific state for both roles.
-        var stateResult = await _gameApi.GetGameStateAsync(GameId, token, ct);
-        switch (stateResult.Outcome)
-        {
-            case GameStateOutcome.Success:
-                _hunterDistanceMeters = stateResult.State!.HunterDistanceMeters;
-                _preyLocations = stateResult.State.PreyLocations ?? Array.Empty<GpsCoordinate>();
-                if (IsHunter)
-                    _deviceFix = await _gpsReader.ReadAsync(ct);
-                RecomputeDistance();
-                break;
-
-            case GameStateOutcome.Unauthorized:
-                _accessTokenProvider.Invalidate();
-                SetError("Hud_Error_Unauthorized");
-                break;
-
-            default:
-                _logger.LogWarning("Game-state refresh returned {Outcome}; keeping last distance.", stateResult.Outcome);
-                break;
-        }
-
-        ScheduleNextRefresh();
+        UpdateCountdownDisplays();
+        PreysActiveText = $"{_preysLeft}/{_totalPreys}";
+        RecomputeDistance();
     }
 
-    /// <summary>Decrements the two local countdowns toward zero and refreshes their bound text/progress.</summary>
+    /// <summary>Decrements the two local countdowns toward zero and periodically re-reads the device fix.</summary>
     internal void Tick()
     {
         if (!_hasSnapshot || HasEnded)
@@ -298,28 +288,37 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
             _nextPingRemaining--;
 
         UpdateCountdownDisplays();
-    }
 
-    private void SeedFromStatus(GameStatusSnapshot status)
-    {
-        _gameDurationLeft = Math.Max(0, status.GameDurationLeft);
-        _nextPingRemaining = Math.Max(0, status.NextPingDuration);
-        _currentPingInterval = status.CurrentPingInterval;
-        _preysLeft = status.PreysLeft;
-        _totalPreys = CountPreys(status);
-        _hasSnapshot = true;
-
-        UpdateCountdownDisplays();
-        PreysActiveText = $"{_preysLeft}/{_totalPreys}";
-    }
-
-    private static int CountPreys(GameStatusSnapshot status)
-    {
-        // Total preys = participants excluding the hunter.
-        var count = 0;
-        foreach (var participant in status.Participants)
+        if (++_ticksSinceGps >= GpsRefreshTicks)
         {
-            if (status.HunterUserId is null || participant.UserId != status.HunterUserId.Value)
+            _ticksSinceGps = 0;
+            _ = RefreshDeviceFixAsync();
+        }
+    }
+
+    private async Task RefreshDeviceFixAsync()
+    {
+        try
+        {
+            _deviceFix = await _gpsReader.ReadAsync(_lifecycleCts?.Token ?? CancellationToken.None);
+            RecomputeDistance();
+        }
+        catch (OperationCanceledException)
+        {
+            // Deactivated mid-read.
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "HUD device-fix read failed; keeping the last distance.");
+        }
+    }
+
+    private static int CountPreys(GameLiveState state)
+    {
+        var count = 0;
+        foreach (var participant in state.Participants)
+        {
+            if (state.HunterUserId is null || participant.UserId != state.HunterUserId.Value)
                 count++;
         }
         return count;
@@ -338,27 +337,60 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     {
         if (IsHunter)
         {
-            if (_deviceFix is null || _preyLocations.Count == 0)
-            {
-                DistanceText = _localization["Hud_Distance_Unknown"];
-                return;
-            }
+            var nearest = NearestPreyMeters();
+            DistanceText = nearest is { } meters ? FormatDistance(meters) : _localization["Hud_Distance_Unknown"];
+            return;
+        }
 
-            var nearest = double.MaxValue;
-            foreach (var prey in _preyLocations)
-            {
-                var d = GeoDistance.Haversine(_deviceFix.Latitude, _deviceFix.Longitude, prey.Latitude, prey.Longitude);
-                if (d < nearest)
-                    nearest = d;
-            }
-            DistanceText = FormatDistance(nearest);
+        // Prey: prefer a live computation from the hunter's broadcast position (already visible on the map),
+        // falling back to the server-computed distance when we lack our own fix or the hunter's location.
+        var hunterLocation = HunterLocation();
+        if (_deviceFix is { } fix && hunterLocation is { } location)
+        {
+            DistanceText = FormatDistance(
+                GeoDistance.Haversine(fix.Latitude, fix.Longitude, location.Latitude, location.Longitude));
         }
         else
         {
-            DistanceText = _hunterDistanceMeters is { } meters
-                ? FormatDistance(meters)
+            DistanceText = _hunterDistanceMeters is { } serverMeters
+                ? FormatDistance(serverMeters)
                 : _localization["Hud_Distance_Unknown"];
         }
+    }
+
+    // Nearest still-in-play prey to our own fix (hunter view), or null when none is locatable.
+    private double? NearestPreyMeters()
+    {
+        if (_deviceFix is not { } fix)
+            return null;
+
+        double? nearest = null;
+        foreach (var participant in _participants)
+        {
+            if (_hunterUserId is { } hunter && participant.UserId == hunter)
+                continue;
+            if (GameMapProjection.IsCaught(participant.State))
+                continue;
+            if (participant.Location is not { } location)
+                continue;
+
+            var distance = GeoDistance.Haversine(fix.Latitude, fix.Longitude, location.Latitude, location.Longitude);
+            if (nearest is null || distance < nearest)
+                nearest = distance;
+        }
+        return nearest;
+    }
+
+    private GpsCoordinate? HunterLocation()
+    {
+        if (_hunterUserId is not { } hunter)
+            return null;
+        foreach (var participant in _participants)
+        {
+            if (participant.UserId == hunter)
+                return participant.Location;
+        }
+        return null;
     }
 
     private void ToggleCenter()
@@ -372,37 +404,6 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         HasEnded = true;
         Deactivate();
         GameEnded?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void ScheduleNextRefresh()
-    {
-        if (HasEnded || _lifecycleCts is null)
-            return;
-
-        var seconds = _currentPingInterval > 0 ? _currentPingInterval : (int)MaximumRefreshInterval.TotalSeconds;
-        var next = TimeSpan.FromSeconds(seconds);
-        if (next < MinimumRefreshInterval) next = MinimumRefreshInterval;
-        if (next > MaximumRefreshInterval) next = MaximumRefreshInterval;
-
-        _refreshTimer ??= _timeProvider.CreateTimer(_ => _ = SafeRefreshAsync(), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        _refreshTimer.Change(next, Timeout.InfiniteTimeSpan);
-    }
-
-    private async Task SafeRefreshAsync()
-    {
-        var ct = _lifecycleCts?.Token ?? CancellationToken.None;
-        try
-        {
-            await RefreshAsync(ct);
-        }
-        catch (OperationCanceledException)
-        {
-            // Deactivated mid-refresh; nothing to do.
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Scheduled HUD refresh failed.");
-        }
     }
 
     // --- Tag flow (hunter only) ---
@@ -458,9 +459,8 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         switch (tagResult.Outcome)
         {
             case TagPlayerOutcome.Success:
+                // The store broadcasts the resulting status change, so the preys-active count updates itself.
                 ClearStatusMessage();
-                // Reflect the reduced preys promptly rather than waiting for the next cadence.
-                await RefreshAsync(_lifecycleCts?.Token ?? CancellationToken.None);
                 break;
 
             case TagPlayerOutcome.Conflict:
@@ -504,7 +504,8 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
             return string.Format(_localization["Hud_Distance_Meters"], (int)Math.Round(meters));
 
         var km = meters / 1000d;
-        return string.Format(_localization["Hud_Distance_Kilometers"], km.ToString("0.0"));
+        // Invariant so the decimal separator is stable across device locales.
+        return string.Format(_localization["Hud_Distance_Kilometers"], km.ToString("0.0", CultureInfo.InvariantCulture));
     }
 
     private static string FormatDuration(int totalSeconds)

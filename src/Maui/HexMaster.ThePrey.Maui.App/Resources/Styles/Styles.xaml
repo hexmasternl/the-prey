@@ -627,6 +627,27 @@
     <!-- Amber result/error message under the code field (reuses the shared alert style). -->
     <Style TargetType="Label" x:Key="JoinStateMessage" BasedOn="{StaticResource AlertLabel}" />
 
+    <!-- Full-bleed green scan beam that sweeps top→bottom over the Join backdrop every 10s. A soft
+         vertical gradient band (bright signal-green core, transparent edges); the sweep and the
+         between-sweep parking are driven in code-behind (see JoinGamePage). Starts hidden (Opacity 0)
+         and is transparent to input so it never blocks the form beneath it. -->
+    <Style TargetType="Border" x:Key="JoinLaserSweep">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Offset="0.0" Color="{StaticResource TpSignalBeamEdge}" />
+                <GradientStop Offset="0.5" Color="{StaticResource TpSignalBeam}" />
+                <GradientStop Offset="1.0" Color="{StaticResource TpSignalBeamEdge}" />
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="HeightRequest" Value="60" />
+        <Setter Property="InputTransparent" Value="True" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="VerticalOptions" Value="Start" />
+        <Setter Property="Opacity" Value="0" />
+    </Style>
+
     <!-- ============================================================= -->
     <!-- Gameplay maps (hunter + prey) — full-screen overlays, the      -->
     <!-- head-start countdown, penalty warning, and busy/error regions. -->

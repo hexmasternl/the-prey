@@ -36,5 +36,10 @@ public sealed class ThePreyClientOptions
     /// <summary>Auth0 authorize endpoint derived from <see cref="Auth0Domain"/>.</summary>
     public Uri AuthorizeEndpoint => new(new Uri(NormalizedDomain), "authorize");
 
+    /// <summary>Auth0 federated-logout endpoint derived from <see cref="Auth0Domain"/>. Ending the
+    /// tenant SSO session on sign-out requires <see cref="RedirectUri"/> to be registered as an
+    /// Allowed Logout URL in the Auth0 application.</summary>
+    public Uri LogoutEndpoint => new(new Uri(NormalizedDomain), "v2/logout");
+
     private string NormalizedDomain => Auth0Domain.EndsWith('/') ? Auth0Domain : Auth0Domain + "/";
 }

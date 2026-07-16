@@ -8,7 +8,16 @@
              Shell.NavBarIsVisible="False"
              Title="{loc:Translate Join_Title}">
 
-    <Grid>
+    <Grid x:Name="RootGrid">
+
+        <!-- Layer 1: void-black base -->
+        <BoxView Style="{StaticResource SplashBase}" />
+
+        <!-- Layer 2: oversized, dimmed tactical elevation map that slowly pans behind the content -->
+        <Image x:Name="MapBackground"
+               Source="theprey_background.png"
+               Style="{StaticResource MenuMapBackground}"
+               SemanticProperties.Description="{loc:Translate Join_Background_Description}" />
 
         <ScrollView>
             <VerticalStackLayout Spacing="24" Padding="28,44,28,28">
@@ -56,6 +65,9 @@
 
             </VerticalStackLayout>
         </ScrollView>
+
+        <!-- Top layer: full-bleed green scan beam swept top→bottom every 10s by the code-behind. -->
+        <Border x:Name="LaserSweep" Style="{StaticResource JoinLaserSweep}" />
 
         <!-- Busy indicator -->
         <ActivityIndicator IsRunning="{Binding IsBusy}"

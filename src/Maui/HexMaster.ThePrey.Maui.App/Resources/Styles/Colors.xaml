@@ -84,4 +84,10 @@
          GameMapPalette C# class derives all Mapsui feature colors from these central tokens. -->
     <Color x:Key="TpCaught">#6b7267</Color>
     <SolidColorBrush x:Key="TpCaughtBrush" Color="{StaticResource TpCaught}"/>
+
+    <!-- Green scan-beam glow for the Join screen's laser sweep: a bright signal-green core that fades to
+         fully transparent at the band edges. Alpha-graded variants of TpSignal, used only in the
+         JoinLaserSweep gradient. -->
+    <Color x:Key="TpSignalBeam">#CC64FF00</Color>
+    <Color x:Key="TpSignalBeamEdge">#0064FF00</Color>
 </ResourceDictionary>

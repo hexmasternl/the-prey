@@ -5,6 +5,7 @@ using HexMaster.ThePrey.Maui.App.Services.Dialogs;
 using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
+using HexMaster.ThePrey.Maui.App.Services.Realtime;
 using HexMaster.ThePrey.Maui.App.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
@@ -14,6 +15,7 @@ namespace HexMaster.ThePrey.Maui.App.Tests;
 
 public class GameHudViewModelTests
 {
+    private readonly FakeGameStateService _state = new();
     private readonly Mock<IGameApiClient> _api = new();
     private readonly Mock<IAccessTokenProvider> _tokens = new();
     private readonly Mock<IGpsReader> _gps = new();
@@ -23,6 +25,7 @@ public class GameHudViewModelTests
     private readonly Mock<ILocalizationService> _localization = new();
     private readonly FakeTimeProvider _time = new();
     private readonly Guid _gameId = Guid.NewGuid();
+    private readonly Guid _hunterId = Guid.NewGuid();
 
     public GameHudViewModelTests()
     {
@@ -38,7 +41,7 @@ public class GameHudViewModelTests
     private GameHudViewModel CreateSut(bool isHunter)
     {
         var vm = new GameHudViewModel(
-            _api.Object, _tokens.Object, _gps.Object, _camera.Object, _tagDialog.Object,
+            _state, _api.Object, _tokens.Object, _gps.Object, _camera.Object, _tagDialog.Object,
             _confirm.Object, _localization.Object, _time, NullLogger<GameHudViewModel>.Instance);
         vm.Initialize(_gameId, isHunter);
         return vm;
@@ -47,25 +50,25 @@ public class GameHudViewModelTests
     private void SetupToken(string? token = "token") =>
         _tokens.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync(token);
 
-    private void SetupStatus(GameStatusResult result) =>
-        _api.Setup(a => a.GetGameStatusAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(result);
+    private GameLiveState State(
+        string status = "InProgress", int duration = 100, int nextPing = 30, int interval = 60,
+        int preysLeft = 1, int? hunterDistance = null, params GameLiveParticipant[] participants) =>
+        new()
+        {
+            GameId = _gameId,
+            Status = status,
+            HunterUserId = _hunterId,
+            Participants = participants,
+            PlayfieldCoordinates = Array.Empty<GpsCoordinate>(),
+            GameDurationLeft = duration,
+            NextPingDuration = nextPing,
+            CurrentPingInterval = interval,
+            PreysLeft = preysLeft,
+            HunterDistanceMeters = hunterDistance,
+        };
 
-    private void SetupState(GameStateResult result) =>
-        _api.Setup(a => a.GetGameStateAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(result);
-
-    private static GameStatusSnapshot Status(
-        int duration = 100, int nextPing = 30, int interval = 60, int preysLeft = 1, Guid? hunter = null, int preys = 1)
-    {
-        var hunterId = hunter ?? Guid.NewGuid();
-        var participants = new List<GameParticipantSnapshot> { new(hunterId) };
-        for (var i = 0; i < preys; i++)
-            participants.Add(new GameParticipantSnapshot(Guid.NewGuid()));
-        return new GameStatusSnapshot(duration, nextPing, interval, false, preysLeft, hunterId, participants);
-    }
-
-    private static GameStateSnapshot EmptyState => new(null, Array.Empty<GpsCoordinate>());
+    private static GameLiveParticipant P(Guid id, string state = "Active", GpsCoordinate? location = null) =>
+        new(id, state, location);
 
     private static async Task WaitFor(Func<bool> condition, string because)
     {
@@ -75,30 +78,30 @@ public class GameHudViewModelTests
         Assert.True(condition(), because);
     }
 
-    // ---- Metrics (9.3) ----
+    // ---- Metrics ----
 
     [Fact]
     public async Task Metrics_PreysActiveOverTotal_ExcludesHunterFromDenominator()
     {
-        SetupToken();
-        SetupStatus(GameStatusResult.Success(Status(preysLeft: 1, preys: 2))); // hunter + 2 preys
-        SetupState(GameStateResult.Success(EmptyState));
-        var sut = CreateSut(isHunter: false);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
 
-        await sut.RefreshAsync();
+        _state.Push(State(preysLeft: 1, participants: new[]
+        {
+            P(_hunterId), P(Guid.NewGuid()), P(Guid.NewGuid()), // hunter + 2 preys
+        }));
 
         Assert.Equal("1/2", sut.PreysActiveText);
     }
 
     [Fact]
-    public async Task Metrics_PreyDistance_UsesServerDistance()
+    public async Task Metrics_PreyDistance_UsesServerDistance_WhenHunterLocationUnknown()
     {
-        SetupToken();
-        SetupStatus(GameStatusResult.Success(Status()));
-        SetupState(GameStateResult.Success(new GameStateSnapshot(250, Array.Empty<GpsCoordinate>())));
-        var sut = CreateSut(isHunter: false);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
 
-        await sut.RefreshAsync();
+        // No hunter location in the snapshot → fall back to the server-computed distance.
+        _state.Push(State(hunterDistance: 250, participants: new[] { P(Guid.NewGuid()) }));
 
         Assert.Equal("250 m", sut.DistanceText);
     }
@@ -106,14 +109,15 @@ public class GameHudViewModelTests
     [Fact]
     public async Task Metrics_HunterDistance_ComputesNearestFromPreyLocations()
     {
-        SetupToken();
-        SetupStatus(GameStatusResult.Success(Status()));
-        SetupState(GameStateResult.Success(new GameStateSnapshot(
-            null, new[] { new GpsCoordinate(0, 1), new GpsCoordinate(0, 0.5) })));
         _gps.Setup(g => g.ReadAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new GpsFix(0, 0));
-        var sut = CreateSut(isHunter: true);
+        using var sut = CreateSut(isHunter: true);
+        await sut.ActivateAsync();
 
-        await sut.RefreshAsync();
+        _state.Push(State(participants: new[]
+        {
+            P(Guid.NewGuid(), "Active", new GpsCoordinate(0, 1)),
+            P(Guid.NewGuid(), "Active", new GpsCoordinate(0, 0.5)),
+        }));
 
         // Nearest is the 0.5° point (~55.6 km), not the 1° point.
         Assert.Equal("55.6 km", sut.DistanceText);
@@ -122,12 +126,10 @@ public class GameHudViewModelTests
     [Fact]
     public async Task Metrics_PreyDistance_ShowsUnknown_WhenServerDistanceNull()
     {
-        SetupToken();
-        SetupStatus(GameStatusResult.Success(Status()));
-        SetupState(GameStateResult.Success(EmptyState));
-        var sut = CreateSut(isHunter: false);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
 
-        await sut.RefreshAsync();
+        _state.Push(State(hunterDistance: null, participants: new[] { P(Guid.NewGuid()) }));
 
         Assert.Equal("—", sut.DistanceText);
     }
@@ -135,28 +137,24 @@ public class GameHudViewModelTests
     [Fact]
     public async Task Metrics_HunterDistance_ShowsUnknown_WhenNoDeviceFix()
     {
-        SetupToken();
-        SetupStatus(GameStatusResult.Success(Status()));
-        SetupState(GameStateResult.Success(new GameStateSnapshot(null, new[] { new GpsCoordinate(0, 0.5) })));
         _gps.Setup(g => g.ReadAsync(It.IsAny<CancellationToken>())).ReturnsAsync((GpsFix?)null);
-        var sut = CreateSut(isHunter: true);
+        using var sut = CreateSut(isHunter: true);
+        await sut.ActivateAsync();
 
-        await sut.RefreshAsync();
+        _state.Push(State(participants: new[] { P(Guid.NewGuid(), "Active", new GpsCoordinate(0, 0.5)) }));
 
         Assert.Equal("—", sut.DistanceText);
     }
 
-    // ---- Countdown (9.4) ----
+    // ---- Countdown ----
 
     [Fact]
     public async Task Countdown_TicksDownEachSecond_AndReSeedsFromSnapshot()
     {
-        SetupToken();
-        SetupStatus(GameStatusResult.Success(Status(duration: 100, nextPing: 30, interval: 60)));
-        SetupState(GameStateResult.Success(EmptyState));
         using var sut = CreateSut(isHunter: false);
-
         await sut.ActivateAsync();
+
+        _state.Push(State(duration: 100, nextPing: 30, interval: 60));
         Assert.Equal("01:40", sut.GameTimeRemainingText);
         Assert.Equal(0.5, sut.NextPingProgress, 5);
 
@@ -165,40 +163,32 @@ public class GameHudViewModelTests
         Assert.Equal(29d / 60d, sut.NextPingProgress, 5);
 
         // A fresh snapshot re-seeds and corrects drift.
-        SetupStatus(GameStatusResult.Success(Status(duration: 200, nextPing: 60, interval: 60)));
-        await sut.RefreshAsync();
+        _state.Push(State(duration: 200, nextPing: 60, interval: 60));
         Assert.Equal("03:20", sut.GameTimeRemainingText);
         Assert.Equal(1.0, sut.NextPingProgress, 5);
     }
 
-    // ---- Refresh (9.5) ----
-
     [Fact]
-    public async Task Refresh_InitialLoad_PopulatesMetrics()
+    public async Task Seed_PopulatesMetrics()
     {
-        SetupToken();
-        SetupStatus(GameStatusResult.Success(Status(duration: 65)));
-        SetupState(GameStateResult.Success(EmptyState));
-        var sut = CreateSut(isHunter: false);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
 
-        await sut.RefreshAsync();
+        _state.Push(State(duration: 65));
 
         Assert.Equal("01:05", sut.GameTimeRemainingText);
     }
 
     [Fact]
-    public async Task Refresh_Completed_StopsTickingAndSignalsHost()
+    public async Task GameCompleted_StopsTickingAndSignalsHost()
     {
-        SetupToken();
-        SetupStatus(GameStatusResult.Success(Status(duration: 100)));
-        SetupState(GameStateResult.Success(EmptyState));
         using var sut = CreateSut(isHunter: false);
         var ended = false;
         sut.GameEnded += (_, _) => ended = true;
 
         await sut.ActivateAsync();
-        SetupStatus(GameStatusResult.Completed);
-        await sut.RefreshAsync();
+        _state.Push(State(duration: 100));
+        _state.Push(State(status: "Completed"));
 
         Assert.True(sut.HasEnded);
         Assert.True(ended);
@@ -209,37 +199,7 @@ public class GameHudViewModelTests
         Assert.Equal(frozen, sut.GameTimeRemainingText);
     }
 
-    [Fact]
-    public async Task Refresh_Unauthorized_InvalidatesTokenAndSurfacesError()
-    {
-        SetupToken();
-        SetupStatus(GameStatusResult.Unauthorized);
-        var sut = CreateSut(isHunter: false);
-
-        await sut.RefreshAsync();
-
-        _tokens.Verify(t => t.Invalidate(), Times.Once);
-        Assert.True(sut.StatusIsError);
-        Assert.True(sut.HasStatusMessage);
-    }
-
-    [Fact]
-    public async Task Refresh_TransientFailure_KeepsLastKnownValues()
-    {
-        SetupToken();
-        SetupStatus(GameStatusResult.Success(Status(duration: 100)));
-        SetupState(GameStateResult.Success(EmptyState));
-        var sut = CreateSut(isHunter: false);
-        await sut.RefreshAsync();
-        var lastClock = sut.GameTimeRemainingText;
-
-        SetupStatus(GameStatusResult.Error);
-        await sut.RefreshAsync();
-
-        Assert.Equal(lastClock, sut.GameTimeRemainingText);
-    }
-
-    // ---- Center toggle (9.6) ----
+    // ---- Center toggle ----
 
     [Fact]
     public void CenterToggle_FlipsFollowState_AndSignalsMap()
@@ -256,7 +216,7 @@ public class GameHudViewModelTests
         _camera.Verify(c => c.SetFollowMode(true), Times.Once);
     }
 
-    // ---- Tag flow (9.7) ----
+    // ---- Tag flow ----
 
     [Fact]
     public void Tag_IsHiddenForPreys()
@@ -271,8 +231,6 @@ public class GameHudViewModelTests
     {
         var prey = Guid.NewGuid();
         SetupToken();
-        SetupStatus(GameStatusResult.Success(Status()));
-        SetupState(GameStateResult.Success(EmptyState));
         _api.Setup(a => a.GetTagCandidatesAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TagCandidatesResult.Success(new[] { new TagCandidate(prey, "GHOST", 10, "Active") }, 30));
         _tagDialog.Setup(d => d.SelectCandidateAsync(It.IsAny<IReadOnlyList<TagCandidate>>())).ReturnsAsync(prey);
