@@ -81,6 +81,8 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IAppVersionProvider.cs" Link="Linked\IAppVersionProvider.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GpsFix.cs" Link="Linked\GpsFix.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\IGpsReader.cs" Link="Linked\IGpsReader.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\ILivePositionReader.cs" Link="Linked\ILivePositionReader.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\IHeadingReader.cs" Link="Linked\IHeadingReader.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GpsCoordinateFormatter.cs" Link="Linked\GpsCoordinateFormatter.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\ObservableObject.cs" Link="Linked\ObservableObject.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\RelayCommand.cs" Link="Linked\RelayCommand.cs" />

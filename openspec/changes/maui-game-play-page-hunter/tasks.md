@@ -16,10 +16,10 @@
 
 ## 3. Local position & heading seams
 
-- [ ] 3.1 Add `ILivePositionReader` with a continuous local-fix stream (`IAsyncEnumerable<GpsFix>` or an event) plus start/stop, in `Services/Location`.
-- [ ] 3.2 Implement it as a thin adapter over MAUI `IGeolocation` position-watching (high accuracy), marshalled to the main thread; denial/timeout yields no fix without throwing.
-- [ ] 3.3 Add `IHeadingReader` yielding the device compass heading (degrees clockwise from north) with start/stop, in `Services/Location`.
-- [ ] 3.4 Implement it as a thin adapter over MAUI `Compass`; unavailable compass yields no heading without throwing.
+- [x] 3.1 Add `ILivePositionReader` with a continuous local-fix stream (event-based `PositionChanged`) plus start/stop, in `Services/Location`.
+- [x] 3.2 Implement it (`MauiLivePositionReader`) as a thin adapter over MAUI `IGeolocation` foreground listening (best accuracy), marshalled to the main thread; denial/timeout yields no fix without throwing.
+- [x] 3.3 Add `IHeadingReader` yielding the device compass heading (degrees clockwise from north) with start/stop, in `Services/Location`.
+- [x] 3.4 Implement it (`MauiHeadingReader`) as a thin adapter over MAUI `ICompass`; unavailable compass yields no heading without throwing.
 
 ## 4. Navigation seam — gameplay router & outcome hand-off
 

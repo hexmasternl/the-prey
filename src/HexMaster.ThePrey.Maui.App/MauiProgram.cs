@@ -78,6 +78,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton(SecureStorage.Default);
             services.AddSingleton(WebAuthenticator.Default);
             services.AddSingleton(Geolocation.Default);
+            services.AddSingleton(Compass.Default);
             services.AddSingleton(Preferences.Default);
 
             // Testable clock for debounced auto-save.
@@ -130,6 +131,11 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton<IApplicationExit, ApplicationExit>();
             services.AddSingleton<IAppVersionProvider, MauiAppVersionProvider>();
             services.AddSingleton<IGpsReader, MauiGpsReader>();
+
+            // Continuous local position + compass-heading readers for the gameplay map's self marker.
+            // Foreground-only, rendered locally (distinct from the background position-reporting capability).
+            services.AddSingleton<ILivePositionReader, MauiLivePositionReader>();
+            services.AddSingleton<IHeadingReader, MauiHeadingReader>();
 
             // Auth0 token client (typed HttpClient).
             services.AddHttpClient<IAuth0TokenClient, Auth0TokenClient>(client =>
