@@ -20,7 +20,8 @@ namespace HexMaster.ThePrey.Maui.App
             // Role-specific gameplay pages the router hands off to. The prey + outcome routes point at the
             // placeholder GamePage until their own changes land (maui-game-play-page-prey / -outcome-page).
             Routing.RegisterRoute(GameplayRouter.HunterGameRoute, typeof(HunterGamePage));
-            Routing.RegisterRoute(GameplayRouter.PreyGameRoute, typeof(GamePage));
+            Routing.RegisterRoute(GameplayRouter.PreyGameRoute, typeof(PreyGamePage));
+            // The outcome route points at the placeholder GamePage until maui-game-outcome-page lands.
             Routing.RegisterRoute(GameplayRouter.OutcomeRoute, typeof(GamePage));
             Routing.RegisterRoute("start-game", typeof(StartGamePage));
             // Invited-player entry point reached from the https://theprey.nl/join/{gameId} deep link.

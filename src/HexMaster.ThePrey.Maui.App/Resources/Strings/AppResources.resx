@@ -247,4 +247,15 @@
   <data name="HunterGame_Error_NotFound" xml:space="preserve"><value>This operation could not be found.</value></data>
   <data name="HunterGame_Error_Unauthorized" xml:space="preserve"><value>Your session expired. Please sign in again.</value></data>
   <data name="HunterGame_Error_Generic" xml:space="preserve"><value>Something went wrong. Retrying…</value></data>
+  <data name="PreyGame_Title" xml:space="preserve"><value>THE PREY</value></data>
+  <data name="PreyGame_Waiting_Title" xml:space="preserve"><value>STAND BY</value></data>
+  <data name="PreyGame_Waiting_Body" xml:space="preserve"><value>Waiting for the game server to start the operation…</value></data>
+  <data name="PreyGame_HeadStart_Caption" xml:space="preserve"><value>HEAD START</value></data>
+  <data name="PreyGame_HeadStart_Body" xml:space="preserve"><value>Get moving and hide — the hunter is released when the countdown ends.</value></data>
+  <data name="PreyGame_Penalty_Warning" xml:space="preserve"><value>The hunter is held back: moving before the countdown ends costs them a 10-minute penalty.</value></data>
+  <data name="PreyGame_Spectator" xml:space="preserve"><value>CAUGHT — SPECTATING UNTIL THE GAME ENDS</value></data>
+  <data name="PreyGame_Error_NoGame" xml:space="preserve"><value>No active operation found.</value></data>
+  <data name="PreyGame_Error_NotFound" xml:space="preserve"><value>This operation could not be found.</value></data>
+  <data name="PreyGame_Error_Unauthorized" xml:space="preserve"><value>Your session expired. Please sign in again.</value></data>
+  <data name="PreyGame_Error_Generic" xml:space="preserve"><value>Something went wrong. Retrying…</value></data>
 </root>

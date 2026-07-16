@@ -153,6 +153,7 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GamePhase.cs" Link="Linked\GamePhase.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\MapBlip.cs" Link="Linked\MapBlip.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\HunterGameViewModel.cs" Link="Linked\HunterGameViewModel.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\PreyGameViewModel.cs" Link="Linked\PreyGameViewModel.cs" />
 
     <!-- Playfield-selection modal: the selectable item, the navigator seam interfaces, and the modal
          view model. All plain .NET; the Shell-backed navigator implementation is MAUI-only and excluded. -->

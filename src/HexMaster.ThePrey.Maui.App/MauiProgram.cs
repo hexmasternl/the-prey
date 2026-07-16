@@ -215,6 +215,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<GameLobbyViewModel>();
             services.AddTransient<GameHudViewModel>();
             services.AddTransient<HunterGameViewModel>();
+            services.AddTransient<PreyGameViewModel>();
             services.AddTransient<SelectPlayfieldViewModel>();
             services.AddTransient<StartGameViewModel>();
             services.AddTransient<JoinGameViewModel>();
@@ -228,6 +229,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<GamePage>();
             services.AddTransient<GameLobbyPage>();
             services.AddTransient<HunterGamePage>();
+            services.AddTransient<PreyGamePage>();
             services.AddTransient<SelectPlayfieldPage>();
             services.AddTransient<StartGamePage>();
             services.AddTransient<JoinGamePage>();
