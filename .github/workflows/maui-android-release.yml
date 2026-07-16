@@ -5,9 +5,14 @@ name: MAUI Android Release
 # docs/maui-deployment.md. This is separate from android-release.yml, which ships the Ionic app.
 
 on:
-  # Manual only — this workflow never runs on its own. Trigger it from
-  # Actions → MAUI Android Release → Run workflow (no push/tag triggers).
-  workflow_dispatch:
+  # Auto-runs when MAUI app changes land on main; the version job derives the
+  # versionName from GitVersion. Can also be triggered manually to pick a track.
+  push:
+    branches: [main]
+    paths:
+      - "src/Maui/**"
+      - ".github/workflows/maui-android-release.yml"
+  workflow_dispatch: # or run manually and choose a track
     inputs:
       track:
         description: "Play track to release to"
@@ -15,9 +20,9 @@ on:
         options: [internal, alpha, beta, production]
         default: internal
       displayVersion:
-        description: "versionName baked into the bundle (e.g. 1.1.0)"
+        description: "Optional versionName override (e.g. 1.1.0). Leave empty to use the GitVersion semVer."
         type: string
-        default: "1.0"
+        default: ""
       status:
         description: "Play release status (use 'draft' for the very first automated release)"
         type: choice
@@ -39,9 +44,14 @@ env:
   VERSION_CODE_OFFSET: "0"
 
 jobs:
+  version:
+    name: Version
+    uses: ./.github/workflows/version.yml
+
   build-and-publish:
     name: Build & Publish
     runs-on: ubuntu-latest
+    needs: version
     steps:
       - uses: actions/checkout@v4
 
@@ -64,21 +74,26 @@ jobs:
         run: dotnet restore "$APP_CSPROJ"
 
       # ---- resolve the version going into the bundle ----------------------
+      # versionCode  (ApplicationVersion)        : run_number, kept as the ever-increasing Play code.
+      # versionName  (ApplicationDisplayVersion) : the GitVersion semVer from version.yml, unless the
+      #                                            optional displayVersion input overrides it.
       - name: Resolve version
         id: version
         env:
           RUN_NUMBER: ${{ github.run_number }}
           INPUT_DISPLAY: ${{ github.event.inputs.displayVersion }}
+          SEMVER: ${{ needs.version.outputs.semVer }}
         run: |
           version_code=$(( RUN_NUMBER + VERSION_CODE_OFFSET ))
 
-          # versionName: the workflow_dispatch input, else parsed from a maui-vX.Y.Z tag, else 1.0.
+          # versionName: the manual override input when given, else the GitVersion semVer.
           display="$INPUT_DISPLAY"
           if [ -z "$display" ]; then
-            case "$GITHUB_REF" in
-              refs/tags/maui-v*) display="${GITHUB_REF#refs/tags/maui-v}" ;;
-              *) display="1.0" ;;
-            esac
+            display="$SEMVER"
+          fi
+          if [ -z "$display" ]; then
+            echo "::error::No versionName resolved — displayVersion input is empty and GitVersion produced an empty semVer; refusing to ship a fallback bundle."
+            exit 1
           fi
 
           echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
@@ -135,5 +150,5 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }}
           releaseFiles: ${{ steps.aab.outputs.path }}
-          track: ${{ github.event.inputs.track || 'internal' }}
+          tracks: ${{ github.event.inputs.track || 'internal' }}
           status: ${{ github.event.inputs.status || 'completed' }}
