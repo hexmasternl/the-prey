@@ -128,6 +128,8 @@
          map-camera and tag-dialog seams (interfaces only — MAUI implementations excluded), the
          selectable candidate item, and the HUD view model. All plain .NET. -->
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStatusSnapshot.cs" Link="Linked\GameStatusSnapshot.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStatusDetails.cs" Link="Linked\GameStatusDetails.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GetGameStatusResult.cs" Link="Linked\GetGameStatusResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStateSnapshot.cs" Link="Linked\GameStateSnapshot.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\TagCandidate.cs" Link="Linked\TagCandidate.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStatusResult.cs" Link="Linked\GameStatusResult.cs" />

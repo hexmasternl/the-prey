@@ -69,6 +69,14 @@ public interface IGameApiClient
     /// <summary>Reads the in-game HUD status via <c>GET /games/{id}/status</c> (<c>409</c> → completed).</summary>
     Task<GameStatusResult> GetGameStatusAsync(Guid gameId, string accessToken, CancellationToken ct = default);
 
+    /// <summary>
+    /// Reads the rich in-progress status for the gameplay map via <c>GET /games/{id}/status</c>: the
+    /// playfield polygon and every participant's last-known location + state. Maps <c>403</c> →
+    /// <see cref="GetGameStatusOutcome.Forbidden"/> and <c>409</c> → <see cref="GetGameStatusOutcome.Conflict"/>
+    /// (both expected while a game is still <c>Ready</c>), <c>404</c> → not found, <c>401</c> → unauthorized.
+    /// </summary>
+    Task<GetGameStatusResult> GetGameStatusDetailsAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
     /// <summary>Reads the role-specific game state (prey distance / prey locations) via <c>GET /games/{id}/state</c>.</summary>
     Task<GameStateResult> GetGameStateAsync(Guid gameId, string accessToken, CancellationToken ct = default);
 

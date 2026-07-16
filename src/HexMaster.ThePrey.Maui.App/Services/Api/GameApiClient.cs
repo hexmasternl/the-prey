@@ -517,6 +517,57 @@ public sealed class GameApiClient : IGameApiClient
         }
     }
 
+    public async Task<GetGameStatusResult> GetGameStatusDetailsAsync(Guid gameId, string accessToken, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}/status");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(request, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Game-status (details) request failed to complete.");
+            return GetGameStatusResult.Error;
+        }
+
+        using (response)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.OK:
+                    try
+                    {
+                        var details = await response.Content.ReadFromJsonAsync<GameStatusDetails>(cancellationToken: ct);
+                        return details is null ? GetGameStatusResult.Error : GetGameStatusResult.Success(details);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize game-status (details) payload.");
+                        return GetGameStatusResult.Error;
+                    }
+
+                case HttpStatusCode.Forbidden:
+                    return GetGameStatusResult.Forbidden;
+
+                case HttpStatusCode.Conflict:
+                    return GetGameStatusResult.Conflict;
+
+                case HttpStatusCode.NotFound:
+                    return GetGameStatusResult.NotFound;
+
+                case HttpStatusCode.Unauthorized:
+                    return GetGameStatusResult.Unauthorized;
+
+                default:
+                    _logger.LogWarning("Game-status (details) endpoint returned unexpected status {Status}.", response.StatusCode);
+                    return GetGameStatusResult.Error;
+            }
+        }
+    }
+
     public async Task<GameStateResult> GetGameStateAsync(Guid gameId, string accessToken, CancellationToken ct = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}/state");

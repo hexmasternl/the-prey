@@ -486,4 +486,82 @@ public class GameApiClientTests
 
         Assert.Equal(expected, result.Outcome);
     }
+
+    // ---- GetGameStatusDetailsAsync (rich map snapshot) ----
+
+    // A minimal in-progress GameStatusDto (camelCase) the GameStatusDetails projection can bind to.
+    private static string StatusJson(Guid? hunter = null, Guid? prey = null)
+    {
+        var hunterId = hunter ?? Guid.NewGuid();
+        var preyId = prey ?? Guid.NewGuid();
+        return $$"""
+        {
+          "playfieldName": "Harbour",
+          "playfieldCoordinates": [
+            { "latitude": 52.1, "longitude": 4.1 },
+            { "latitude": 52.2, "longitude": 4.2 },
+            { "latitude": 52.3, "longitude": 4.1 }
+          ],
+          "hunterUserId": "{{hunterId}}",
+          "participants": [
+            { "userId": "{{hunterId}}", "callsign": "WOLF", "lastKnownLocation": { "latitude": 52.15, "longitude": 4.15 }, "hasActivePenalty": false, "state": "Active" },
+            { "userId": "{{preyId}}", "callsign": "GHOST", "lastKnownLocation": null, "hasActivePenalty": false, "state": "Active" }
+          ],
+          "gameDurationLeft": 600,
+          "nextPingDuration": 30,
+          "currentPingInterval": 60,
+          "isEndgame": false,
+          "preysLeft": 1,
+          "hunterMayMoveAt": "2026-07-16T12:00:00Z"
+        }
+        """;
+    }
+
+    [Fact]
+    public async Task GetGameStatusDetailsAsync_ShouldReturnRichProjection_WhenBackendReturns200()
+    {
+        var hunterId = Guid.NewGuid();
+        var preyId = Guid.NewGuid();
+        var handler = StubHttpMessageHandler.Returns(HttpStatusCode.OK, StatusJson(hunterId, preyId));
+        var sut = CreateSut(handler);
+
+        var result = await sut.GetGameStatusDetailsAsync(Guid.NewGuid(), "my-token");
+
+        Assert.Equal(GetGameStatusOutcome.Success, result.Outcome);
+        Assert.Equal(hunterId, result.Details!.HunterUserId);
+        Assert.Equal(3, result.Details.PlayfieldCoordinates.Count);
+        Assert.Equal(2, result.Details.Participants.Count);
+        var hunter = result.Details.Participants.Single(p => p.UserId == hunterId);
+        Assert.NotNull(hunter.LastKnownLocation);
+        Assert.Equal(52.15, hunter.LastKnownLocation!.Latitude, 5);
+        Assert.Null(result.Details.Participants.Single(p => p.UserId == preyId).LastKnownLocation);
+        Assert.Equal(new DateTimeOffset(2026, 7, 16, 12, 0, 0, TimeSpan.Zero), result.Details.HunterMayMoveAt);
+        Assert.Equal("my-token", handler.LastRequest?.Headers.Authorization?.Parameter);
+        Assert.EndsWith("/status", handler.LastRequest?.RequestUri?.AbsolutePath);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden, GetGameStatusOutcome.Forbidden)]
+    [InlineData(HttpStatusCode.Conflict, GetGameStatusOutcome.Conflict)]
+    [InlineData(HttpStatusCode.NotFound, GetGameStatusOutcome.NotFound)]
+    [InlineData(HttpStatusCode.Unauthorized, GetGameStatusOutcome.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError, GetGameStatusOutcome.Error)]
+    public async Task GetGameStatusDetailsAsync_ShouldMapStatus(HttpStatusCode status, GetGameStatusOutcome expected)
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(status));
+
+        var result = await sut.GetGameStatusDetailsAsync(Guid.NewGuid(), "access");
+
+        Assert.Equal(expected, result.Outcome);
+    }
+
+    [Fact]
+    public async Task GetGameStatusDetailsAsync_ShouldReturnError_WhenRequestThrows()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Throws(new HttpRequestException("boom")));
+
+        var result = await sut.GetGameStatusDetailsAsync(Guid.NewGuid(), "access");
+
+        Assert.Equal(GetGameStatusOutcome.Error, result.Outcome);
+    }
 }

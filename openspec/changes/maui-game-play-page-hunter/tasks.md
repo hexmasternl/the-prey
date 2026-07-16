@@ -1,9 +1,9 @@
 ## 1. Client API seam — in-progress status read
 
-- [ ] 1.1 Add a `GameStatusDetails` projection record in `Services/Api` mapping from the backend `GameStatusDto`: `PlayfieldCoordinates` (lat/lon list), `Participants` (`UserId`, `LastKnownLocation`, `State`), `HunterUserId`, `GameDurationLeft`, `HunterMayMoveAt`, `IsEndgame`, `PreysLeft`.
-- [ ] 1.2 Add a `GetGameStatusResult` typed result (`Success(GameStatusDetails)` / `Forbidden` / `Conflict` / `NotFound` / `Unauthorized` / `Error`) following the existing `ActiveGameResult` style.
-- [ ] 1.3 Extend `IGameApiClient` with `GetGameStatusAsync(Guid id, string accessToken, CancellationToken ct)`, and reuse `GetGameAsync` (from the lobby change) for status/role detection — add it here if the lobby change is not yet applied.
-- [ ] 1.4 Implement `GetGameStatusAsync` in `GameApiClient`: Bearer header, `GET /games/{id}/status`, map `200`→`Success`, `403`→`Forbidden`, `409`→`Conflict`, `404`→`NotFound`, `401`→`Unauthorized`, and `HttpRequestException`/`TaskCanceledException`→`Error` (mirroring `GetActiveGameAsync`).
+- [x] 1.1 Add a `GameStatusDetails` projection record in `Services/Api` mapping from the backend `GameStatusDto`: `PlayfieldCoordinates` (lat/lon list), `Participants` (`UserId`, `LastKnownLocation`, `State`), `HunterUserId`, `GameDurationLeft`, `HunterMayMoveAt`, `IsEndgame`, `PreysLeft`.
+- [x] 1.2 Add a `GetGameStatusResult` typed result (`Success(GameStatusDetails)` / `Forbidden` / `Conflict` / `NotFound` / `Unauthorized` / `Error`) following the existing `ActiveGameResult` style.
+- [x] 1.3 Extend `IGameApiClient` with `GetGameStatusDetailsAsync(Guid id, string accessToken, CancellationToken ct)` (named to avoid colliding with the existing minimal `GetGameStatusAsync`), and reuse `GetGameAsync` (already present) for status/role detection.
+- [x] 1.4 Implement `GetGameStatusDetailsAsync` in `GameApiClient`: Bearer header, `GET /games/{id}/status`, map `200`→`Success`, `403`→`Forbidden`, `409`→`Conflict`, `404`→`NotFound`, `401`→`Unauthorized`, and `HttpRequestException`/`TaskCanceledException`→`Error` (mirroring `GetActiveGameAsync`).
 
 ## 2. Live game-channel seam (Azure Web PubSub)
 
