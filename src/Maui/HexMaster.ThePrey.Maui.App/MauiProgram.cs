@@ -137,6 +137,25 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton<ILivePositionReader, MauiLivePositionReader>();
             services.AddSingleton<IHeadingReader, MauiHeadingReader>();
 
+            // Background location tracking: the platform-neutral coordinator + its public façade. The
+            // coordinator owns the cadence loop, cadence adoption, retry, and start/stop rules; the two
+            // native adapters below keep the process alive and supply fixes. One tracker per app session.
+            services.AddSingleton<GameLocationTrackerCoordinator>();
+            services.AddSingleton<IGameLocationTracker, GameLocationTracker>();
+#if ANDROID
+            services.AddSingleton<IBackgroundExecutionHost, AndroidBackgroundExecutionHost>();
+            services.AddSingleton<IContinuousLocationSource, MauiGeolocationSource>();
+#elif IOS
+            // One CLLocationManager adapter is both the keep-alive host and the fix source.
+            services.AddSingleton<IosBackgroundLocationManager>();
+            services.AddSingleton<IBackgroundExecutionHost>(sp => sp.GetRequiredService<IosBackgroundLocationManager>());
+            services.AddSingleton<IContinuousLocationSource>(sp => sp.GetRequiredService<IosBackgroundLocationManager>());
+#else
+            // Windows / MacCatalyst: no background execution — foreground-only reporting.
+            services.AddSingleton<IBackgroundExecutionHost, NoopBackgroundExecutionHost>();
+            services.AddSingleton<IContinuousLocationSource, MauiGeolocationSource>();
+#endif
+
             // Auth0 token client (typed HttpClient).
             services.AddHttpClient<IAuth0TokenClient, Auth0TokenClient>(client =>
             {
@@ -162,6 +181,14 @@ namespace HexMaster.ThePrey.Maui.App
             {
                 client.BaseAddress = new Uri(EnsureTrailingSlash(options.BackendBaseUrl));
                 client.Timeout = TimeSpan.FromSeconds(30);
+            });
+
+            // Background location-report client (typed HttpClient). POSTs each fix to
+            // games/{id}/locations; a short timeout so a stalled report fails fast and retries next tick.
+            services.AddHttpClient<ILocationReportClient, LocationReportClient>(client =>
+            {
+                client.BaseAddress = new Uri(EnsureTrailingSlash(options.BackendBaseUrl));
+                client.Timeout = TimeSpan.FromSeconds(15);
             });
 
             // Lobby live-event stream (typed HttpClient). The SSE connection is long-lived, so it must
