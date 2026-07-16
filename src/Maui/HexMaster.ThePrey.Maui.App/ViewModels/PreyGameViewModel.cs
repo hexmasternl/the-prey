@@ -29,9 +29,12 @@ public sealed class PreyGameViewModel : ObservableObject, IDisposable
     private readonly IGameplayNavigator _navigator;
     private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly ICurrentUserProvider _currentUser;
+    private readonly IGameLocationTracker _locationTracker;
     private readonly ILocalizationService _localization;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<PreyGameViewModel> _logger;
+
+    private bool _trackingStarted;
 
     private readonly Dictionary<Guid, MapBlip> _blipsById = new();
 
@@ -62,6 +65,7 @@ public sealed class PreyGameViewModel : ObservableObject, IDisposable
         IGameplayNavigator navigator,
         IAccessTokenProvider accessTokenProvider,
         ICurrentUserProvider currentUser,
+        IGameLocationTracker locationTracker,
         ILocalizationService localization,
         TimeProvider timeProvider,
         ILogger<PreyGameViewModel> logger)
@@ -73,6 +77,7 @@ public sealed class PreyGameViewModel : ObservableObject, IDisposable
         _navigator = navigator;
         _accessTokenProvider = accessTokenProvider;
         _currentUser = currentUser;
+        _locationTracker = locationTracker;
         _localization = localization;
         _timeProvider = timeProvider;
         _logger = logger;
@@ -266,6 +271,7 @@ public sealed class PreyGameViewModel : ObservableObject, IDisposable
             var now = _timeProvider.GetUtcNow();
             Phase = _hunterMayMoveAt is { } mayMove && mayMove > now ? GamePhase.HeadStart : GamePhase.Live;
             UpdateCountdown(now);
+            EnsureLocationTracking();
             return;
         }
 
@@ -490,11 +496,24 @@ public sealed class PreyGameViewModel : ObservableObject, IDisposable
         }
     }
 
+    // Starts background location reporting once the game is InProgress. Idempotent at the tracker level;
+    // the local guard avoids spawning a fire-and-forget call on every phase recompute. Reporting is
+    // deliberately independent of this page's lifetime — it survives backgrounding until the game ends.
+    private void EnsureLocationTracking()
+    {
+        if (_trackingStarted || _gameId == Guid.Empty)
+            return;
+        _trackingStarted = true;
+        _ = _locationTracker.StartAsync(_gameId);
+    }
+
     private void HandOffOnce()
     {
         if (_handedOff)
             return;
         _handedOff = true;
+        // The game has ended — stop background reporting and release the wake-lock/notification.
+        _ = _locationTracker.StopAsync();
         _ = _navigator.GoToOutcomeAsync();
     }
 
