@@ -1,9 +1,8 @@
-using System.Diagnostics;
 using HexMaster.ThePrey.Maui.App.Services.Api;
-using HexMaster.ThePrey.Maui.App.Services.Authentication;
 using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
+using HexMaster.ThePrey.Maui.App.Services.Realtime;
 using HexMaster.ThePrey.Maui.App.Services.Session;
 using HexMaster.ThePrey.Maui.App.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,12 +13,10 @@ namespace HexMaster.ThePrey.Maui.App.Tests;
 
 public class PreyGameViewModelTests
 {
-    private readonly Mock<IGameApiClient> _api = new();
-    private readonly FakeGameStreamClient _stream = new();
+    private readonly FakeGameStateService _state = new();
     private readonly Mock<ILivePositionReader> _position = new();
     private readonly Mock<IHeadingReader> _heading = new();
     private readonly Mock<IGameplayNavigator> _nav = new();
-    private readonly Mock<IAccessTokenProvider> _tokens = new();
     private readonly Mock<ICurrentUserProvider> _currentUser = new();
     private readonly Mock<IGameLocationTracker> _locationTracker = new();
     private readonly Mock<ILocalizationService> _localization = new();
@@ -31,62 +28,40 @@ public class PreyGameViewModelTests
     public PreyGameViewModelTests()
     {
         _localization.Setup(l => l[It.IsAny<string>()]).Returns((string k) => k);
-        _tokens.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("token");
         _currentUser.Setup(c => c.GetUserIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync(_selfId);
     }
 
     private PreyGameViewModel CreateSut() => new(
-        _api.Object, _stream, _position.Object, _heading.Object, _nav.Object,
-        _tokens.Object, _currentUser.Object, _locationTracker.Object, _localization.Object, _time,
+        _state, _position.Object, _heading.Object, _nav.Object,
+        _currentUser.Object, _locationTracker.Object, _localization.Object, _time,
         NullLogger<PreyGameViewModel>.Instance);
 
-    private void SetupActive(ActiveGameResult? result = null) =>
-        _api.Setup(a => a.GetActiveGameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(result ?? ActiveGameResult.Active(new GameStatus { GameId = _gameId }));
+    private GameLiveState State(
+        string status = "InProgress", DateTimeOffset? mayMove = null, params GameLiveParticipant[] participants) =>
+        new()
+        {
+            GameId = _gameId,
+            Status = status,
+            HunterUserId = _hunterId,
+            HunterMayMoveAt = mayMove,
+            Participants = participants,
+            PlayfieldCoordinates = Array.Empty<GpsCoordinate>(),
+        };
 
-    private void SetupGame(string status, GetGameOutcome outcome = GetGameOutcome.Success)
-    {
-        var result = outcome == GetGameOutcome.Success
-            ? GetGameResult.Success(new GameDetails(
-                _gameId, "1234", status, new GameConfigurationDetails(30, 5, 10, 120, 60),
-                Array.Empty<GameParticipantDetails>(), _hunterId, Guid.NewGuid(), false, false))
-            : outcome switch
-            {
-                GetGameOutcome.NotFound => GetGameResult.NotFound,
-                GetGameOutcome.Unauthorized => GetGameResult.Unauthorized,
-                _ => GetGameResult.Error
-            };
-        _api.Setup(a => a.GetGameAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(result);
-    }
+    private static GameLiveParticipant P(Guid id, string state = "Active", GpsCoordinate? location = null) =>
+        new(id, state, location);
 
-    private void SetupStatus(GetGameStatusResult result) =>
-        _api.Setup(a => a.GetGameStatusDetailsAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(result);
-
-    private GameStatusDetails Status(DateTimeOffset? mayMove = null, params GameParticipantStatusDetails[] participants) =>
-        new(Array.Empty<GpsCoordinate>(), participants, _hunterId, GameDurationLeft: 600, mayMove, IsEndgame: false, PreysLeft: 1);
-
-    private static async Task WaitFor(Func<bool> condition, string because)
-    {
-        var sw = Stopwatch.StartNew();
-        while (!condition() && sw.Elapsed < TimeSpan.FromSeconds(5))
-            await Task.Delay(10);
-        Assert.True(condition(), because);
-    }
-
-    // ---- 7.2 load ----
+    // ---- load ----
 
     [Fact]
-    public async Task LoadAsync_ShouldResolveActiveGame_AndSeedStatus()
+    public async Task LoadAsync_ShouldStartStore_SeedState_AndResolveSelf()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: null)));
+        _state.SeedState = State("InProgress");
         var sut = CreateSut();
 
         await sut.LoadAsync();
 
+        Assert.True(_state.StartAsyncCalled);
         Assert.Equal(_gameId, sut.GameId);
         Assert.False(sut.HasError);
     }
@@ -94,7 +69,7 @@ public class PreyGameViewModelTests
     [Fact]
     public async Task LoadAsync_NoActiveGame_ShowsError()
     {
-        SetupActive(ActiveGameResult.None);
+        _state.SeedState = null; // store could not resolve an active game
         var sut = CreateSut();
 
         await sut.LoadAsync();
@@ -102,37 +77,12 @@ public class PreyGameViewModelTests
         Assert.True(sut.HasError);
     }
 
-    [Fact]
-    public async Task LoadAsync_NotFound_ShowsError()
-    {
-        SetupActive();
-        SetupGame("InProgress", GetGameOutcome.NotFound);
-        var sut = CreateSut();
-
-        await sut.LoadAsync();
-
-        Assert.True(sut.HasError);
-    }
-
-    [Fact]
-    public async Task LoadAsync_Unauthorized_InvalidatesTokenAndErrors()
-    {
-        SetupActive(ActiveGameResult.Unauthorized);
-        var sut = CreateSut();
-
-        await sut.LoadAsync();
-
-        _tokens.Verify(t => t.Invalidate(), Times.Once);
-        Assert.True(sut.HasError);
-    }
-
-    // ---- 7.3 phase ----
+    // ---- phase ----
 
     [Fact]
     public async Task Phase_Ready_IsWaiting()
     {
-        SetupActive();
-        SetupGame("Ready");
+        _state.SeedState = State("Ready");
         var sut = CreateSut();
 
         await sut.LoadAsync();
@@ -143,9 +93,7 @@ public class PreyGameViewModelTests
     [Fact]
     public async Task Phase_InProgress_FutureMayMove_IsHeadStart()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: _time.GetUtcNow().AddMinutes(2))));
+        _state.SeedState = State("InProgress", _time.GetUtcNow().AddMinutes(2));
         var sut = CreateSut();
 
         await sut.LoadAsync();
@@ -156,9 +104,7 @@ public class PreyGameViewModelTests
     [Fact]
     public async Task Phase_InProgress_PastMayMove_IsLive()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: _time.GetUtcNow().AddMinutes(-1))));
+        _state.SeedState = State("InProgress", _time.GetUtcNow().AddMinutes(-1));
         var sut = CreateSut();
 
         await sut.LoadAsync();
@@ -169,8 +115,7 @@ public class PreyGameViewModelTests
     [Fact]
     public async Task Phase_Completed_IsEnded_AndHandsOffOnce()
     {
-        SetupActive();
-        SetupGame("Completed");
+        _state.SeedState = State("Completed");
         var sut = CreateSut();
 
         await sut.LoadAsync();
@@ -179,20 +124,7 @@ public class PreyGameViewModelTests
         _nav.Verify(n => n.GoToOutcomeAsync(), Times.Once);
     }
 
-    [Fact]
-    public async Task Phase_StatusForbiddenOrConflict_TreatedAsNotLiveYet_NoError()
-    {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Forbidden);
-        var sut = CreateSut();
-
-        await sut.LoadAsync();
-
-        Assert.False(sut.HasError);
-    }
-
-    // ---- 7.4 blip projection ----
+    // ---- blip projection (pure) ----
 
     [Fact]
     public void Projection_Hunter_IsRedDot() =>
@@ -221,12 +153,10 @@ public class PreyGameViewModelTests
     public async Task Seed_BuildsDots_HunterRedOtherPreyGreen_ExcludingSelf()
     {
         var otherPrey = Guid.NewGuid();
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: null,
-            new GameParticipantStatusDetails(_hunterId, new GpsCoordinate(0, 0), "Active"),
-            new GameParticipantStatusDetails(otherPrey, new GpsCoordinate(1, 1), "Active"),
-            new GameParticipantStatusDetails(_selfId, new GpsCoordinate(2, 2), "Active"))));
+        _state.SeedState = State("InProgress", null,
+            P(_hunterId, "Active", new GpsCoordinate(0, 0)),
+            P(otherPrey, "Active", new GpsCoordinate(1, 1)),
+            P(_selfId, "Active", new GpsCoordinate(2, 2)));
         var sut = CreateSut();
 
         await sut.LoadAsync();
@@ -237,20 +167,18 @@ public class PreyGameViewModelTests
         Assert.DoesNotContain(sut.Blips, b => b.Id == _selfId);
     }
 
-    // ---- 7.5 live updates ----
+    // ---- live updates ----
 
     [Fact]
-    public async Task Live_ParticipantLocated_ForHunter_AddsRedDot()
+    public async Task Live_HunterLocationSnapshot_AddsRedDot()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: null)));
+        _state.SeedState = State("InProgress");
         using var sut = CreateSut();
         await sut.ActivateAsync();
 
-        _stream.Emit(new GameStreamEvent.ParticipantLocated(_hunterId, 1, 2, "Active"));
+        _state.Push(State("InProgress", null, P(_hunterId, "Active", new GpsCoordinate(1, 2))));
 
-        await WaitFor(() => sut.Blips.Count == 1, "the hunter dot is added");
+        Assert.Single(sut.Blips);
         Assert.Equal(MapBlipRole.Hunter, sut.Blips[0].Role);
         sut.Deactivate();
     }
@@ -259,71 +187,62 @@ public class PreyGameViewModelTests
     public async Task Live_ParticipantStatusChanged_RecolorsOtherPreyToCaught()
     {
         var otherPrey = Guid.NewGuid();
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: null,
-            new GameParticipantStatusDetails(otherPrey, new GpsCoordinate(1, 1), "Active"))));
+        _state.SeedState = State("InProgress", null, P(otherPrey, "Active", new GpsCoordinate(1, 1)));
         using var sut = CreateSut();
         await sut.ActivateAsync();
         Assert.Equal(MapBlipRole.Prey, sut.Blips.Single().Role);
 
-        _stream.Emit(new GameStreamEvent.ParticipantStatusChanged(otherPrey, "Tagged"));
+        _state.Push(State("InProgress", null, P(otherPrey, "Tagged", new GpsCoordinate(1, 1))));
 
-        await WaitFor(() => sut.Blips.Single().Role == MapBlipRole.Caught, "the other prey greys out");
+        Assert.Equal(MapBlipRole.Caught, sut.Blips.Single().Role);
         sut.Deactivate();
     }
 
     [Fact]
     public async Task Live_GameEnded_HandsOffExactlyOnce()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: null)));
+        _state.SeedState = State("InProgress");
         using var sut = CreateSut();
         await sut.ActivateAsync();
 
-        _stream.Emit(new GameStreamEvent.GameEnded("HunterWins", 0));
-        _stream.Emit(new GameStreamEvent.GameEnded("HunterWins", 0));
+        _state.Push(State("Completed"));
+        _state.Push(State("Completed"));
 
-        await WaitFor(() => sut.Phase == GamePhase.Ended, "the game ends");
-        await Task.Delay(50);
+        Assert.Equal(GamePhase.Ended, sut.Phase);
         _nav.Verify(n => n.GoToOutcomeAsync(), Times.Once);
         sut.Deactivate();
     }
 
     [Fact]
-    public async Task Deactivate_CancelsSubscription_AndStopsReaders()
+    public async Task Deactivate_Unsubscribes_StopsStore_AndStopsReaders()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: null)));
+        _state.SeedState = State("InProgress");
         var sut = CreateSut();
         await sut.ActivateAsync();
-        await WaitFor(() => _stream.IsSubscribed, "the stream is subscribed");
+        Assert.Equal(1, _state.SubscriberCount);
 
         sut.Deactivate();
 
-        await WaitFor(() => _stream.Completed, "the subscription ends");
+        Assert.Equal(0, _state.SubscriberCount);
+        Assert.True(_state.Stopped);
         _position.Verify(p => p.Stop(), Times.Once);
         _heading.Verify(h => h.Stop(), Times.Once);
     }
 
-    // ---- 7.6 spectator ----
+    // ---- spectator ----
 
     [Fact]
     public async Task Spectator_SelfTagged_SetsSpectating_KeepsConnectionsAlive_NoHandoff()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: null)));
+        _state.SeedState = State("InProgress");
         using var sut = CreateSut();
         await sut.ActivateAsync();
 
-        _stream.Emit(new GameStreamEvent.ParticipantStatusChanged(_selfId, "Tagged"));
+        _state.Push(State("InProgress", null, P(_selfId, "Tagged", new GpsCoordinate(2, 2))));
 
-        await WaitFor(() => sut.Spectating, "spectating is set");
+        Assert.True(sut.Spectating);
         Assert.NotEqual(GamePhase.Ended, sut.Phase);
-        Assert.True(_stream.IsSubscribed, "the channel stays connected");
+        Assert.False(_state.Stopped); // the channel stays connected
         _nav.Verify(n => n.GoToOutcomeAsync(), Times.Never);
         sut.Deactivate();
     }
@@ -331,37 +250,32 @@ public class PreyGameViewModelTests
     [Fact]
     public async Task Spectator_ThenGameEnded_HandsOff()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: null)));
+        _state.SeedState = State("InProgress");
         using var sut = CreateSut();
         await sut.ActivateAsync();
 
-        _stream.Emit(new GameStreamEvent.ParticipantStatusChanged(_selfId, "Tagged"));
-        await WaitFor(() => sut.Spectating, "spectating is set");
-        _stream.Emit(new GameStreamEvent.GameEnded("HunterWins", 0));
+        _state.Push(State("InProgress", null, P(_selfId, "Tagged", new GpsCoordinate(2, 2))));
+        Assert.True(sut.Spectating);
+        _state.Push(State("Completed"));
 
-        await WaitFor(() => sut.Phase == GamePhase.Ended, "the game ends");
-        await Task.Delay(50);
+        Assert.Equal(GamePhase.Ended, sut.Phase);
         _nav.Verify(n => n.GoToOutcomeAsync(), Times.Once);
         sut.Deactivate();
     }
 
-    // ---- 7.7 head-start ----
+    // ---- head-start ----
 
     [Fact]
     public async Task HeadStart_CountdownDerivesFromMayMove_AndShowsPreyPenaltyWarning()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: _time.GetUtcNow().AddSeconds(90))));
+        _state.SeedState = State("InProgress", _time.GetUtcNow().AddSeconds(90));
         using var sut = CreateSut();
 
         await sut.ActivateAsync();
 
         Assert.Equal(GamePhase.HeadStart, sut.Phase);
         Assert.Equal("01:30", sut.HeadStartCountdownText);
-        Assert.True(sut.ShowPenaltyWarning); // prey overlay shows the (prey-framed) warning during head-start
+        Assert.True(sut.ShowPenaltyWarning);
 
         _time.Advance(TimeSpan.FromSeconds(1));
         Assert.Equal("01:29", sut.HeadStartCountdownText);
@@ -372,18 +286,16 @@ public class PreyGameViewModelTests
     [Fact]
     public async Task HeadStart_ReAnchorsFromNewSnapshot()
     {
-        SetupActive();
-        SetupGame("InProgress");
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: _time.GetUtcNow().AddSeconds(90))));
-        var sut = CreateSut();
+        _state.SeedState = State("InProgress", _time.GetUtcNow().AddSeconds(90));
+        using var sut = CreateSut();
 
-        await sut.LoadAsync();
+        await sut.ActivateAsync();
         Assert.Equal("01:30", sut.HeadStartCountdownText);
 
-        SetupStatus(GetGameStatusResult.Success(Status(mayMove: _time.GetUtcNow().AddSeconds(300))));
-        await sut.LoadAsync();
+        _state.Push(State("InProgress", _time.GetUtcNow().AddSeconds(300)));
 
         Assert.Equal("05:00", sut.HeadStartCountdownText);
         Assert.Equal(GamePhase.HeadStart, sut.Phase);
+        sut.Deactivate();
     }
 }
