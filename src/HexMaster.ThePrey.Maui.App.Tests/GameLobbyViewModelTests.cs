@@ -374,6 +374,28 @@ public class GameLobbyViewModelTests
     }
 
     [Fact]
+    public async Task LiveUpdate_PartialFrameWithoutConfigOrParticipants_ShouldNotThrow_KeepSeededValues_AndStillHandOff()
+    {
+        // A lobby-stream frame can be partial: the backend's JSON may omit the configuration/participants
+        // (e.g. a state-changed event that starts the game). These deserialize to null despite the
+        // non-nullable record annotations, so ApplySnapshot must not dereference them — and, crucially, it
+        // must still run the started→gameplay hand-off (regression: the NRE previously aborted before it).
+        var initial = Game(isOwner: false, pingSeconds: 120, endgamePingSeconds: 60);
+        var partialStart = initial with { Status = "InProgress", Configuration = null!, Participants = null! };
+        _stream = new FakeLobbyStream([partialStart]);
+        SetupLoad(initial);
+        var sut = CreateSut();
+
+        await sut.ActivateAsync();
+        await sut.StreamTask!;
+
+        // Selectors keep the values seeded from the full initial load rather than being cleared/crashing.
+        Assert.Equal(2, sut.SelectedPing);
+        Assert.Equal(1, sut.SelectedEndgamePing);
+        _navigator.Verify(n => n.GoToGameplayAsync(), Times.Once);
+    }
+
+    [Fact]
     public async Task Deactivate_ShouldCancelSubscription()
     {
         var game = Game(isOwner: true);

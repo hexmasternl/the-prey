@@ -324,8 +324,14 @@ public sealed class GameLobbyViewModel : ObservableObject
 
     // Seeds the five selectors from the config, snapping to the nearest allowed option and suppressing the
     // change-triggered save while seeding. Ping intervals arrive in seconds and are shown in minutes.
-    private void SeedSelectors(GameConfigurationDetails config)
+    private void SeedSelectors(GameConfigurationDetails? config)
     {
+        // A lobby-stream snapshot can be a partial frame that omits the configuration object (e.g. a
+        // state-changed event that starts the game). Keep the last-seeded selector values rather than
+        // dereferencing a null config — ApplySnapshot must still run its status/handoff logic below.
+        if (config is null)
+            return;
+
         _seeding = true;
         try
         {
@@ -344,7 +350,8 @@ public sealed class GameLobbyViewModel : ObservableObject
     private void RebuildParticipants(GameDetails game)
     {
         Participants.Clear();
-        foreach (var participant in game.Participants)
+        // Same partial-frame guard as SeedSelectors: a stream snapshot may omit the participant list.
+        foreach (var participant in game.Participants ?? [])
             Participants.Add(new LobbyParticipant(participant, game.HunterUserId));
     }
 
