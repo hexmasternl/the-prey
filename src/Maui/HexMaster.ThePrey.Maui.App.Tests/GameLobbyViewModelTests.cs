@@ -188,9 +188,37 @@ public class GameLobbyViewModelTests
     }
 
     [Fact]
+    public async Task Load_ShouldSuppressReadyBadgeForOwnerRow_ButKeepItForOtherPlayers()
+    {
+        // The game creator never has to ready up, so their row shows neither the READY nor the
+        // NOT READY badge; every other participant still shows their ready state.
+        var ownerId = Guid.NewGuid();
+        var otherId = Guid.NewGuid();
+        var game = new GameDetails(
+            Guid.NewGuid(), "1234", "Lobby",
+            new GameConfigurationDetails(30, 5, 10, 120, 60),
+            [Participant(ownerId, "Owner", ready: false), Participant(otherId, "Bob", ready: true)],
+            HunterUserId: null, OwnerUserId: ownerId, IsOwnerPlayer: true, IsReadyToStart: false);
+        SetupLoad(game);
+        var sut = CreateSut();
+
+        await sut.LoadAsync();
+
+        var owner = sut.Participants.Single(p => p.UserId == ownerId);
+        Assert.True(owner.IsOwner);
+        Assert.False(owner.ShowReady);
+        Assert.False(owner.ShowNotReady);
+
+        var other = sut.Participants.Single(p => p.UserId == otherId);
+        Assert.False(other.IsOwner);
+        Assert.True(other.ShowReady);
+        Assert.False(other.ShowNotReady);
+    }
+
+    [Fact]
     public async Task DesignateHunter_ShouldBeInertForNonOwner()
     {
-        var participant = new LobbyParticipant(Guid.NewGuid(), "Bob", false, false);
+        var participant = new LobbyParticipant(Guid.NewGuid(), "Bob", false, false, false);
         SetupLoad(Game(isOwner: false));
         var sut = CreateSut();
         await sut.LoadAsync();
@@ -213,8 +241,30 @@ public class GameLobbyViewModelTests
         var sut = CreateSut();
         await sut.LoadAsync();
 
-        await sut.DesignateHunterAsync(new LobbyParticipant(target, null));
+        await sut.DesignateHunterAsync(new LobbyParticipant(target, null, game.OwnerUserId));
 
+        Assert.True(sut.Participants[0].IsHunter);
+    }
+
+    [Fact]
+    public async Task DesignateHunter_ShouldNeverHandOff_EvenIfResponseCarriesStartedStatus()
+    {
+        // Regression: designating a hunter is a pure lobby action and must never navigate to gameplay —
+        // the owner still has to press START. Even if the command response were to echo back a non-lobby
+        // status, only a load (resume) or the live game-started stream frame may hand off, so the lobby
+        // stays put here. (Repro: a sole owner tapping their own name jumped straight into the game.)
+        var game = Game(isOwner: true);
+        SetupLoad(game);
+        var target = game.Participants[0];
+        var echoedStarted = game with { HunterUserId = target.UserId, Status = "InProgress" };
+        _gameApi.Setup(g => g.DesignateHunterAsync(game.Id, target.UserId, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DesignateHunterResult.Success(echoedStarted));
+        var sut = CreateSut();
+        await sut.LoadAsync();
+
+        await sut.DesignateHunterAsync(new LobbyParticipant(target, null, game.OwnerUserId));
+
+        _navigator.Verify(n => n.GoToGameplayAsync(), Times.Never);
         Assert.True(sut.Participants[0].IsHunter);
     }
 
@@ -415,7 +465,8 @@ public class GameLobbyViewModelTests
     [Fact]
     public async Task Share_ShouldInvokeShareSheet_WithCodeAndLink()
     {
-        var game = Game(code: "1234");
+        var gameId = Guid.NewGuid();
+        var game = Game(id: gameId, code: "1234");
         SetupLoad(game);
         _localization.Setup(l => l["Lobby_Invite_Template"]).Returns("code {0} link {1}");
         _localization.Setup(l => l["Lobby_Invite_Title"]).Returns("title");
@@ -429,8 +480,10 @@ public class GameLobbyViewModelTests
         sut.ShareCommand.Execute(null);
 
         _share.Verify(s => s.ShareTextAsync("title", It.IsAny<string>()), Times.Once);
+        // The pass code is shared as text; the link carries the game id (a Guid), which is what the
+        // deep-link handler accepts — not the pass code.
         Assert.Contains("1234", sharedText);
-        Assert.Contains("https://theprey.nl/join/1234", sharedText);
+        Assert.Contains($"https://theprey.nl/join/{gameId}", sharedText);
     }
 
     /// <summary>A scripted lobby stream: yields the given snapshots, then optionally blocks until cancelled.</summary>
