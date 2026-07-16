@@ -89,6 +89,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton<ISessionService, SessionService>();
             services.AddSingleton<IAccessTokenProvider, AccessTokenProvider>();
             services.AddTransient<IInteractiveLoginService, InteractiveLoginService>();
+            services.AddTransient<IInteractiveLogoutService, InteractiveLogoutService>();
 
             // Local-first display cache of the private playfield list (a JSON file in the app data dir).
             services.AddSingleton<IPlayFieldCache>(sp => new PlayFieldCache(

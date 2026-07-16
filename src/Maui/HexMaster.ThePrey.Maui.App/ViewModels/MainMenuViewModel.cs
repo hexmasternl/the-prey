@@ -1,4 +1,3 @@
-using HexMaster.ThePrey.Maui.App.Services;
 using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Authentication;
 using HexMaster.ThePrey.Maui.App.Services.Location;
@@ -23,8 +22,8 @@ public sealed class MainMenuViewModel : ObservableObject
     public const string SettingsRoute = "settings";
 
     private readonly ISessionService _session;
-    private readonly ITokenStore _tokenStore;
     private readonly IInteractiveLoginService _login;
+    private readonly IInteractiveLogoutService _logout;
     private readonly IUserApiClient _userApi;
     private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly IMenuNavigator _navigator;
@@ -41,8 +40,8 @@ public sealed class MainMenuViewModel : ObservableObject
 
     public MainMenuViewModel(
         ISessionService session,
-        ITokenStore tokenStore,
         IInteractiveLoginService login,
+        IInteractiveLogoutService logout,
         IUserApiClient userApi,
         IAccessTokenProvider accessTokenProvider,
         IMenuNavigator navigator,
@@ -52,8 +51,8 @@ public sealed class MainMenuViewModel : ObservableObject
         ILogger<MainMenuViewModel> logger)
     {
         _session = session;
-        _tokenStore = tokenStore;
         _login = login;
+        _logout = logout;
         _userApi = userApi;
         _accessTokenProvider = accessTokenProvider;
         _navigator = navigator;
@@ -215,13 +214,29 @@ public sealed class MainMenuViewModel : ObservableObject
         }
     }
 
-    private Task LogOutAsync()
+    private async Task LogOutAsync()
     {
-        // Clear the local session only: drop the stored refresh token (the in-memory access token
-        // is never held here) and return the menu to its signed-out state.
-        _tokenStore.ClearRefreshToken();
+        if (IsBusy)
+            return;
+
+        IsBusy = true;
+        try
+        {
+            // Full sign-out: clears the stored refresh token AND ends the Auth0 SSO session so the
+            // next login prompts for credentials. The local token is cleared even if the browser
+            // round-trip fails, so we always fall through to the signed-out state below.
+            await _logout.LogoutAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Sign-out from the menu failed.");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
         ApplyOutcome(SessionOutcome.Unauthenticated);
-        return Task.CompletedTask;
     }
 
     private void ApplyOutcome(SessionOutcome outcome)

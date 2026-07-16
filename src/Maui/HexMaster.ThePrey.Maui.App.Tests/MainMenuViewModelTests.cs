@@ -14,8 +14,8 @@ namespace HexMaster.ThePrey.Maui.App.Tests;
 public class MainMenuViewModelTests
 {
     private readonly Mock<ISessionService> _session = new();
-    private readonly Mock<ITokenStore> _tokenStore = new();
     private readonly Mock<IInteractiveLoginService> _login = new();
+    private readonly Mock<IInteractiveLogoutService> _logout = new();
     private readonly Mock<IUserApiClient> _userApi = new();
     private readonly Mock<IAccessTokenProvider> _accessToken = new();
     private readonly Mock<IMenuNavigator> _navigator = new();
@@ -33,7 +33,7 @@ public class MainMenuViewModelTests
     }
 
     private MainMenuViewModel CreateSut() => new(
-        _session.Object, _tokenStore.Object, _login.Object, _userApi.Object, _accessToken.Object,
+        _session.Object, _login.Object, _logout.Object, _userApi.Object, _accessToken.Object,
         _navigator.Object, _app.Object, _gpsReader.Object, _version.Object,
         NullLogger<MainMenuViewModel>.Instance);
 
@@ -124,7 +124,7 @@ public class MainMenuViewModelTests
     }
 
     [Fact]
-    public async Task LogOutCommand_ShouldClearTokenAndReturnToSignedOut()
+    public async Task LogOutCommand_ShouldRunAuth0LogoutAndReturnToSignedOut()
     {
         SetupSession(SessionResult.NoGame);
         var sut = CreateSut();
@@ -132,10 +132,25 @@ public class MainMenuViewModelTests
 
         await RunAsync(sut.LogOutCommand);
 
-        _tokenStore.Verify(t => t.ClearRefreshToken(), Times.Once);
+        _logout.Verify(l => l.LogoutAsync(It.IsAny<CancellationToken>()), Times.Once);
         Assert.False(sut.IsSignedIn);
         Assert.True(sut.ShowLogIn);
         Assert.False(sut.LogOutCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task LogOutCommand_ShouldReturnToSignedOut_EvenWhenLogoutServiceThrows()
+    {
+        SetupSession(SessionResult.NoGame);
+        _logout.Setup(l => l.LogoutAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("boom"));
+        var sut = CreateSut();
+        await sut.LoadStateAsync();
+
+        await RunAsync(sut.LogOutCommand);
+
+        Assert.False(sut.IsSignedIn);
+        Assert.True(sut.ShowLogIn);
     }
 
     [Fact]
