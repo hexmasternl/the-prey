@@ -11,6 +11,10 @@
     {
       "route": "/games/join/*",
       "rewrite": "/games/join/index.html"
+    },
+    {
+      "route": "/join/*",
+      "rewrite": "/join/index.html"
     }
   ],
   "mimeTypes": {
