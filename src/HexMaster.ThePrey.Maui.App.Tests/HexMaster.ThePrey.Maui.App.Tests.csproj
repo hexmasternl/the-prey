@@ -171,6 +171,10 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameRealtimeConnection.cs" Link="Linked\GameRealtimeConnection.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\IGameStateService.cs" Link="Linked\IGameStateService.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStateService.cs" Link="Linked\GameStateService.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameStreamEvent.cs" Link="Linked\GameStreamEvent.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\IGameStreamClient.cs" Link="Linked\IGameStreamClient.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStreamEventMapper.cs" Link="Linked\GameStreamEventMapper.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Realtime\GameStreamClient.cs" Link="Linked\GameStreamClient.cs" />
   </ItemGroup>
 
 </Project>

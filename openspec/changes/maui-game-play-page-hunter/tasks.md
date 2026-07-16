@@ -7,12 +7,12 @@
 
 ## 2. Live game-channel seam (Azure Web PubSub)
 
-- [ ] 2.1 Add a `GameStreamEvent` discriminated set in `Services/Api` (`ParticipantLocated(UserId, Latitude, Longitude, State)`, `ParticipantStatusChanged(ParticipantId, NewState)`, `StateChanged(NewState)`, `GameEnded(Outcome, SurvivorCount)`), plus a `GameNotificationConnection` projection (`Url`) mapping from the backend `GameNotificationConnectionDto`.
-- [ ] 2.2 Add `IGameStreamClient` with `IAsyncEnumerable<GameStreamEvent> Subscribe(Guid gameId, string accessToken, CancellationToken ct)`.
-- [ ] 2.3 Add a `GetNotificationsConnectionAsync(Guid id, string accessToken, CancellationToken ct)` on `IGameApiClient`/`GameApiClient` that calls `GET /games/{id}/notifications/token` (Bearer header) and returns the group-scoped Web PubSub connection URL; map `401`→Unauthorized (invalidate token), `403`→Forbidden, transient→Error.
-- [ ] 2.4 Implement `IGameStreamClient` over Azure Web PubSub: request a fresh connection URL (2.3), open a native `ClientWebSocket` with the `json.webpubsub.azure.v1` subprotocol, send a `joinGroup` control frame for the `{gameId}` group, and — on the join `ack` (success or `Duplicate`) — begin yielding.
-- [ ] 2.5 Unwrap each `{ type: "message", from: "group", data: { type, data } }` frame to its `{ type, data }` envelope and map by `type` to the matching `GameStreamEvent` (`player-location-updated` → `ParticipantLocated`, `player-status-changed`/`participant-status-changed` → `ParticipantStatusChanged`, `state-changed` → `StateChanged`, `game-ended` → `GameEnded`); handle `system`/`ack` frames internally without surfacing them.
-- [ ] 2.6 On an unexpected socket close, re-request a fresh connection URL and reconnect with exponential backoff (1 s → 30 s), re-joining the group, until cancelled; tear down cleanly on cancellation.
+- [x] 2.1 Add a `GameStreamEvent` discriminated set in `Services/Api` (`ParticipantLocated(UserId, Latitude, Longitude, State)`, `ParticipantStatusChanged(ParticipantId, NewState)`, `StateChanged(NewState)`, `GameEnded(Outcome, SurvivorCount)`). (`GameNotificationConnection` projection not needed — reused the existing `NotificationsTokenResult(Url)`.)
+- [x] 2.2 Add `IGameStreamClient` with `IAsyncEnumerable<GameStreamEvent> Subscribe(Guid gameId, string accessToken, CancellationToken ct)`.
+- [x] 2.3 Reused the existing `GetNotificationsTokenAsync(Guid id, string accessToken, CancellationToken ct)` on `IGameApiClient` (already calls `GET /games/{id}/notifications/token` with the Bearer header and maps `401`/`403`/transient) rather than adding a redundant `GetNotificationsConnectionAsync`.
+- [x] 2.4 Implement `IGameStreamClient` (`GameStreamClient`) over Azure Web PubSub: request a fresh connection URL (2.3), open a native WebSocket (via the existing `IWebSocketConnectionFactory`) with the `json.webpubsub.azure.v1` subprotocol, send a `joinGroup` control frame for the `{gameId}` group, and — on the join `ack` (success or `Duplicate`) — begin yielding.
+- [x] 2.5 Unwrap each `{ type: "message", from: "group", data: { type, data } }` frame to its `{ type, data }` envelope and map by `type` to the matching `GameStreamEvent` (via `GameStreamEventMapper`); handle `system`/`ack` frames internally without surfacing them.
+- [x] 2.6 On an unexpected socket close, re-request a fresh connection URL and reconnect with exponential backoff (1 s → 30 s), re-joining the group, until cancelled; tear down cleanly on cancellation.
 
 ## 3. Local position & heading seams
 
@@ -65,7 +65,7 @@
 - [ ] 9.5 Head-start countdown test: value derives from `HunterMayMoveAt` via a fake `TimeProvider`, re-anchors on a new snapshot, and reaching zero advances to `Live`; the warning flag is set during HeadStart.
 - [ ] 9.6 Map projection tests: prey with a location and Active state → red; Tagged/Out → grey; prey with no location → no dot; the hunter's own row is never a prey dot.
 - [ ] 9.7 Live-update tests (fake `IGameStreamClient`): a `ParticipantLocated` event moves a dot; `ParticipantStatusChanged` recolors it; `StateChanged` clears Waiting; `GameEnded` hands off exactly once; deactivate cancels the subscription and stops the position/heading readers.
-- [ ] 9.8 Web PubSub channel test: the `IGameStreamClient` implementation requests the connection URL from `/games/{id}/notifications/token`, and maps a group-message `{ type, data }` envelope for each in-game event name to the matching `GameStreamEvent` (isolate the WebSocket behind a seam so envelope mapping + reconnect are unit-testable).
+- [x] 9.8 Web PubSub channel test: the `IGameStreamClient` implementation requests the connection URL from `/games/{id}/notifications/token`, and maps a group-message `{ type, data }` envelope for each in-game event name to the matching `GameStreamEvent` (isolate the WebSocket behind a seam so envelope mapping + reconnect are unit-testable). (`GameStreamClientTests` + `GameStreamEventMapperTests`.)
 
 ## 10. Build & verify
 
