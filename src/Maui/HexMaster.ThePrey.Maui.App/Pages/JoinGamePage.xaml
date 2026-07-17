@@ -20,6 +20,9 @@
                Style="{StaticResource MenuMapBackground}"
                SemanticProperties.Description="{loc:Translate Join_Background_Description}" />
 
+        <!-- Top layer: full-bleed green scan beam swept top→bottom every 10s by the code-behind. -->
+        <Border x:Name="LaserSweep" Style="{StaticResource JoinLaserSweep}" />
+
         <ScrollView>
             <VerticalStackLayout Spacing="24" Padding="28,44,28,28">
 
@@ -65,8 +68,7 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Top layer: full-bleed green scan beam swept top→bottom every 10s by the code-behind. -->
-        <Border x:Name="LaserSweep" Style="{StaticResource JoinLaserSweep}" />
+
 
         <!-- Busy indicator -->
         <ActivityIndicator IsRunning="{Binding IsBusy}"

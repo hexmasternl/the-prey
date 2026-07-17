@@ -706,7 +706,7 @@
         </Setter>
         <Setter Property="Stroke" Value="Transparent" />
         <Setter Property="StrokeThickness" Value="0" />
-        <Setter Property="HeightRequest" Value="10" />
+        <Setter Property="HeightRequest" Value="6" />
         <Setter Property="InputTransparent" Value="True" />
         <Setter Property="HorizontalOptions" Value="Fill" />
         <Setter Property="VerticalOptions" Value="Start" />
