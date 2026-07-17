@@ -13,6 +13,13 @@ public interface IAccessTokenProvider
     /// </summary>
     Task<string?> GetAccessTokenAsync(CancellationToken ct = default);
 
+    /// <summary>
+    /// Primes the cache with an access token just obtained by the interactive login's code exchange, so the
+    /// next authenticated call reuses it instead of immediately spending the freshly-stored refresh token.
+    /// This keeps refresh-token rotation flowing through this single owner (no second, racing consumer).
+    /// </summary>
+    void SetAccessToken(string accessToken);
+
     /// <summary>Drops the cached access token so the next request re-exchanges (call after a 401).</summary>
     void Invalidate();
 }

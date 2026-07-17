@@ -18,8 +18,9 @@ public partial class HomePage : ContentPage
     private readonly MainMenuViewModel _viewModel;
     private readonly List<Span> _playerNameSpans = new();
 
-    // Base = regular text color; lit = signal green. Resolved from the central Colors.xaml so the
-    // page carries no literals; the hex fallbacks mirror TpText / TpSignal only if lookup fails.
+    // Base = dim/ghost text so the bright green running light really stands out against it; lit =
+    // signal green. Resolved from the central Colors.xaml so the page carries no literals; the hex
+    // fallbacks mirror TpTextGhost / TpSignal only if lookup fails.
     private readonly Color _playerNameBase;
     private readonly Color _playerNameLit;
 
@@ -31,7 +32,7 @@ public partial class HomePage : ContentPage
         InitializeComponent();
         BindingContext = _viewModel = viewModel;
 
-        _playerNameBase = ResolveColor("TpText", "#dcf6d2");
+        _playerNameBase = ResolveColor("TpTextGhost", "#5a6553");
         _playerNameLit = ResolveColor("TpSignal", "#64ff00");
 
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;

@@ -19,7 +19,7 @@
                SemanticProperties.Description="Tactical operations grid" />
 
         <!-- Layer 3: header / hero / actions -->
-        <Grid RowDefinitions="Auto, *, Auto" Padding="28,44">
+        <Grid RowDefinitions="Auto, *, Auto" Padding="28">
 
             <!-- Header: title (left) + telemetry readout (right) -->
             <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="16">
@@ -29,8 +29,9 @@
                 </VerticalStackLayout>
             </Grid>
 
-            <!-- Hero: two-line slogan + tagline, left-aligned and vertically centered -->
-            <VerticalStackLayout Grid.Row="1" Spacing="0"
+            <!-- Portrait hero: two-line slogan + tagline, left-aligned and vertically centered.
+                 Hidden in landscape (the single-line variant below takes over). -->
+            <VerticalStackLayout x:Name="PortraitHero" Grid.Row="1" Spacing="0"
                                  HorizontalOptions="Start" VerticalOptions="Center">
                 <Label Style="{StaticResource MenuSloganLine}">
                     <Label.FormattedText>
@@ -50,46 +51,210 @@
                 </Label>
                 <Label Style="{StaticResource MenuTagline}"
                        Text="{loc:Translate Menu_Tagline}" />
+
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="OrientationStates">
+                            <VisualState x:Name="Portrait">
+                                <VisualState.StateTriggers>
+                                    <OrientationStateTrigger Orientation="Portrait" />
+                                </VisualState.StateTriggers>
+                                <VisualState.Setters>
+                                    <Setter Property="IsVisible" Value="True" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Landscape">
+                                <VisualState.StateTriggers>
+                                    <OrientationStateTrigger Orientation="Landscape" />
+                                </VisualState.StateTriggers>
+                                <VisualState.Setters>
+                                    <Setter Property="IsVisible" Value="False" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
             </VerticalStackLayout>
 
-            <!-- Actions: bottom-aligned button roster -->
+            <!-- Landscape hero: the slogan on a single line, no tagline (there is less vertical room
+                 in landscape). Hidden in portrait. -->
+            <VerticalStackLayout x:Name="LandscapeHero" Grid.Row="1" Spacing="0" IsVisible="False"
+                                 HorizontalOptions="Start" VerticalOptions="Center">
+                <Label Style="{StaticResource MenuSloganLineWide}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{loc:Translate Menu_SloganLine1Lead}" Style="{StaticResource SloganWord}" />
+                            <Span Text="{loc:Translate Menu_SloganLine1Accent}" Style="{StaticResource SloganAccent}" />
+                            <Span Text=" " Style="{StaticResource SloganWord}" />
+                            <Span Text="{loc:Translate Menu_SloganLine2Lead}" Style="{StaticResource SloganWord}" />
+                            <Span Text="{loc:Translate Menu_SloganLine2Accent}" Style="{StaticResource SloganAccent}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="OrientationStates">
+                            <VisualState x:Name="Portrait">
+                                <VisualState.StateTriggers>
+                                    <OrientationStateTrigger Orientation="Portrait" />
+                                </VisualState.StateTriggers>
+                                <VisualState.Setters>
+                                    <Setter Property="IsVisible" Value="False" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Landscape">
+                                <VisualState.StateTriggers>
+                                    <OrientationStateTrigger Orientation="Landscape" />
+                                </VisualState.StateTriggers>
+                                <VisualState.Setters>
+                                    <Setter Property="IsVisible" Value="True" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+            </VerticalStackLayout>
+
+            <!-- Actions: bottom-aligned button roster. Portrait stacks every action in a single
+                 column; landscape groups them — Start Game on top spanning both columns, then
+                 Playfields/Settings in the left column and Log Out/Exit in the right column. The
+                 shared ActivityIndicator and player byline sit outside the swappable rosters so the
+                 code-behind sweep keeps a single named PlayerNameLabel. -->
             <VerticalStackLayout Grid.Row="2" Spacing="12" VerticalOptions="End">
 
                 <ActivityIndicator IsRunning="{Binding IsBusy}"
                                    IsVisible="{Binding IsBusy}"
                                    HorizontalOptions="Center" />
 
-                <Button Text="{loc:Translate Menu_LogIn}"
-                        Style="{StaticResource PrimaryButton}"
-                        Command="{Binding LogInCommand}"
-                        IsVisible="{Binding ShowLogIn}" />
+                <!-- Portrait roster: one action per row. -->
+                <VerticalStackLayout x:Name="PortraitActions" Spacing="12">
 
-                <Button Text="{loc:Translate Menu_ResumeGame}"
-                        Style="{StaticResource HunterButton}"
-                        Command="{Binding ResumeGameCommand}"
-                        IsVisible="{Binding ShowResume}" />
+                    <Button Text="{loc:Translate Menu_LogIn}"
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding LogInCommand}"
+                            IsVisible="{Binding ShowLogIn}" />
 
-                <Button Text="{loc:Translate Menu_StartGame}"
-                        Style="{StaticResource PrimaryButton}"
-                        Command="{Binding StartGameCommand}"
-                        IsVisible="{Binding ShowStart}" />
+                    <Button Text="{loc:Translate Menu_ResumeGame}"
+                            Style="{StaticResource HunterButton}"
+                            Command="{Binding ResumeGameCommand}"
+                            IsVisible="{Binding ShowResume}" />
 
-                <Button Text="{loc:Translate Menu_Playfields}"
-                        Style="{StaticResource OutlineButton}"
-                        Command="{Binding PlayfieldsCommand}" />
+                    <Button Text="{loc:Translate Menu_StartGame}"
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding StartGameCommand}"
+                            IsVisible="{Binding ShowStart}" />
 
-                <Button Text="{loc:Translate Menu_Settings}"
-                        Style="{StaticResource OutlineButton}"
-                        Command="{Binding SettingsCommand}" />
+                    <Button Text="{loc:Translate Menu_Playfields}"
+                            Style="{StaticResource OutlineButton}"
+                            Command="{Binding PlayfieldsCommand}" />
 
-                <Button Text="{loc:Translate Menu_LogOut}"
-                        Style="{StaticResource OutlineButton}"
-                        Command="{Binding LogOutCommand}" />
+                    <Button Text="{loc:Translate Menu_Settings}"
+                            Style="{StaticResource OutlineButton}"
+                            Command="{Binding SettingsCommand}" />
 
-                <Button Text="{loc:Translate Menu_Exit}"
-                        Style="{StaticResource OutlineButton}"
-                        Command="{Binding ExitCommand}"
-                        IsVisible="{Binding ShowExit}" />
+                    <Button Text="{loc:Translate Menu_LogOut}"
+                            Style="{StaticResource OutlineButton}"
+                            Command="{Binding LogOutCommand}" />
+
+                    <Button Text="{loc:Translate Menu_Exit}"
+                            Style="{StaticResource OutlineButton}"
+                            Command="{Binding ExitCommand}"
+                            IsVisible="{Binding ShowExit}" />
+
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="OrientationStates">
+                                <VisualState x:Name="Portrait">
+                                    <VisualState.StateTriggers>
+                                        <OrientationStateTrigger Orientation="Portrait" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Property="IsVisible" Value="True" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Landscape">
+                                    <VisualState.StateTriggers>
+                                        <OrientationStateTrigger Orientation="Landscape" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                    </VisualStateManager.VisualStateGroups>
+                </VerticalStackLayout>
+
+                <!-- Landscape roster: Start on top (spans both columns), Playfields/Settings left,
+                     Log Out/Exit right. Auto rows collapse when a conditional action is hidden. -->
+                <Grid x:Name="LandscapeActions" IsVisible="False"
+                      ColumnDefinitions="*,*"
+                      RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                      ColumnSpacing="12" RowSpacing="12">
+
+                    <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                            Text="{loc:Translate Menu_LogIn}"
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding LogInCommand}"
+                            IsVisible="{Binding ShowLogIn}" />
+
+                    <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                            Text="{loc:Translate Menu_ResumeGame}"
+                            Style="{StaticResource HunterButton}"
+                            Command="{Binding ResumeGameCommand}"
+                            IsVisible="{Binding ShowResume}" />
+
+                    <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                            Text="{loc:Translate Menu_StartGame}"
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding StartGameCommand}"
+                            IsVisible="{Binding ShowStart}" />
+
+                    <Button Grid.Row="3" Grid.Column="0"
+                            Text="{loc:Translate Menu_Playfields}"
+                            Style="{StaticResource OutlineButton}"
+                            Command="{Binding PlayfieldsCommand}" />
+
+                    <Button Grid.Row="4" Grid.Column="0"
+                            Text="{loc:Translate Menu_Settings}"
+                            Style="{StaticResource OutlineButton}"
+                            Command="{Binding SettingsCommand}" />
+
+                    <Button Grid.Row="3" Grid.Column="1"
+                            Text="{loc:Translate Menu_LogOut}"
+                            Style="{StaticResource OutlineButton}"
+                            Command="{Binding LogOutCommand}" />
+
+                    <Button Grid.Row="4" Grid.Column="1"
+                            Text="{loc:Translate Menu_Exit}"
+                            Style="{StaticResource OutlineButton}"
+                            Command="{Binding ExitCommand}"
+                            IsVisible="{Binding ShowExit}" />
+
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="OrientationStates">
+                                <VisualState x:Name="Portrait">
+                                    <VisualState.StateTriggers>
+                                        <OrientationStateTrigger Orientation="Portrait" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Landscape">
+                                    <VisualState.StateTriggers>
+                                        <OrientationStateTrigger Orientation="Landscape" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Property="IsVisible" Value="True" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                    </VisualStateManager.VisualStateGroups>
+                </Grid>
 
                 <!-- Signed-in player byline. Its per-character spans are built in code-behind so a
                      signal-green running light can sweep across the name (see PlayerNameSweep). -->

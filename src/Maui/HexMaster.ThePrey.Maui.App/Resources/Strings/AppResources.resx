@@ -108,6 +108,7 @@
   <data name="Join_SignIn_Button" xml:space="preserve"><value>LOG IN</value></data>
   <data name="Join_Code_Label" xml:space="preserve"><value>JOIN CODE</value></data>
   <data name="Join_Code_Placeholder" xml:space="preserve"><value>0000</value></data>
+  <data name="Passcode_AccessibilityLabel" xml:space="preserve"><value>Passcode entry</value></data>
   <data name="Join_Button" xml:space="preserve"><value>JOIN</value></data>
   <data name="Join_Error_InvalidCode" xml:space="preserve"><value>That join code is not valid. Check it and try again.</value></data>
   <data name="Join_Error_NotFound" xml:space="preserve"><value>This operation could not be found. The invite may have expired.</value></data>

@@ -109,6 +109,36 @@ public class AccessTokenProviderTests
     }
 
     [Fact]
+    public async Task SetAccessToken_ShouldSeedCache_SoNoRefreshExchangeHappens()
+    {
+        // Mirrors interactive login priming the cache with the token from its code exchange: the next call
+        // must return that token without spending (and rotating) the freshly-stored refresh token.
+        _tokenStore.Setup(s => s.GetRefreshTokenAsync()).ReturnsAsync("refresh");
+
+        var sut = CreateSut();
+        sut.SetAccessToken("seeded");
+        var token = await sut.GetAccessTokenAsync();
+
+        Assert.Equal("seeded", token);
+        _auth0.Verify(a => a.RefreshAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SetAccessToken_ShouldIgnoreBlankToken()
+    {
+        _tokenStore.Setup(s => s.GetRefreshTokenAsync()).ReturnsAsync("refresh");
+        _auth0.Setup(a => a.RefreshAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Auth0TokenResult.FromSuccess("access", "refresh"));
+
+        var sut = CreateSut();
+        sut.SetAccessToken("   ");
+        var token = await sut.GetAccessTokenAsync();
+
+        // A blank seed must not poison the cache — the provider falls back to the refresh exchange.
+        Assert.Equal("access", token);
+    }
+
+    [Fact]
     public async Task Invalidate_ShouldForceReExchange_OnNextCall()
     {
         _tokenStore.Setup(s => s.GetRefreshTokenAsync()).ReturnsAsync("refresh");

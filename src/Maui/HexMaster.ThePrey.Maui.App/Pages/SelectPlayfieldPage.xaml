@@ -10,7 +10,7 @@
              Shell.PresentationMode="ModalAnimated"
              Title="{loc:Translate Select_Title}">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="28,44,28,28" RowSpacing="20">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="28" RowSpacing="20">
 
         <!-- Title -->
         <Label Grid.Row="0"

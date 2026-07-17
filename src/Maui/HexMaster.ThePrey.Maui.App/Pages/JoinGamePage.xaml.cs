@@ -5,7 +5,7 @@ namespace HexMaster.ThePrey.Maui.App.Pages;
 public partial class JoinGamePage : ContentPage, IQueryAttributable
 {
     // Laser cadence: a single top→bottom sweep every 10s (a ~1.8s sweep, then idle for the remainder).
-    private static readonly TimeSpan LaserSweepDuration = TimeSpan.FromSeconds(1.8);
+    private static readonly TimeSpan LaserSweepDuration = TimeSpan.FromSeconds(1.2);
     private static readonly TimeSpan LaserPeriod = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan LaserIdle = LaserPeriod - LaserSweepDuration;
 

@@ -15,6 +15,7 @@ public sealed class InteractiveLoginService : IInteractiveLoginService
 {
     private readonly IAuth0TokenClient _auth0;
     private readonly ITokenStore _tokenStore;
+    private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly IWebAuthenticator _webAuthenticator;
     private readonly ThePreyClientOptions _options;
     private readonly ILogger<InteractiveLoginService> _logger;
@@ -22,12 +23,14 @@ public sealed class InteractiveLoginService : IInteractiveLoginService
     public InteractiveLoginService(
         IAuth0TokenClient auth0,
         ITokenStore tokenStore,
+        IAccessTokenProvider accessTokenProvider,
         IWebAuthenticator webAuthenticator,
         IOptions<ThePreyClientOptions> options,
         ILogger<InteractiveLoginService> logger)
     {
         _auth0 = auth0;
         _tokenStore = tokenStore;
+        _accessTokenProvider = accessTokenProvider;
         _webAuthenticator = webAuthenticator;
         _options = options.Value;
         _logger = logger;
@@ -78,6 +81,11 @@ public sealed class InteractiveLoginService : IInteractiveLoginService
             }
 
             await _tokenStore.SetRefreshTokenAsync(tokenResult.RefreshToken!);
+
+            // Prime the shared access-token cache with the token the code exchange just returned. Without this
+            // the very next authenticated call would immediately spend (and rotate) the refresh token we just
+            // stored — a wasteful extra round-trip that, racing another caller, could revoke the token family.
+            _accessTokenProvider.SetAccessToken(tokenResult.AccessToken!);
             return InteractiveLoginOutcome.Success;
         }
         catch (TaskCanceledException)

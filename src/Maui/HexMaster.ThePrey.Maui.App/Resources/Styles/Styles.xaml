@@ -257,12 +257,22 @@
         <Setter Property="HorizontalTextAlignment" Value="Start" />
     </Style>
 
+    <!-- Landscape hero slogan: the two clauses joined onto ONE line. Smaller than the stacked
+         portrait slogan so all 24 characters stay on a single line on phone-width landscapes;
+         NoWrap guarantees it never spills to a second line. -->
+    <Style TargetType="Label" x:Key="MenuSloganLineWide" BasedOn="{StaticResource MenuSloganLine}">
+        <Setter Property="FontSize" Value="36" />
+        <Setter Property="MaxLines" Value="1" />
+        <Setter Property="LineBreakMode" Value="NoWrap" />
+    </Style>
+
     <!-- Very small signed-in player byline under the menu (display face, regular text color). Its
          per-character spans carry their own color so the code-behind can sweep a signal-green
          running light across them; the base/lit tokens are TpText and TpSignal from Colors.xaml. -->
     <Style TargetType="Label" x:Key="MenuPlayerName">
         <Setter Property="FontFamily" Value="{StaticResource TpDisplayFont}" />
-        <Setter Property="TextColor" Value="{StaticResource TpText}" />
+        <!-- Dim resting color so the code-behind's bright signal-green running light stands out. -->
+        <Setter Property="TextColor" Value="{StaticResource TpTextGhost}" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="CharacterSpacing" Value="3" />
         <Setter Property="HorizontalOptions" Value="Center" />
@@ -627,6 +637,61 @@
     <!-- Amber result/error message under the code field (reuses the shared alert style). -->
     <Style TargetType="Label" x:Key="JoinStateMessage" BasedOn="{StaticResource AlertLabel}" />
 
+    <!-- ============================================================= -->
+    <!-- Passcode entry control (reusable OTP-style digit boxes). Named  -->
+    <!-- neutrally so the control is not Join-specific. A single hidden  -->
+    <!-- Entry captures input; the boxes below show one digit each and   -->
+    <!-- the next box to fill is highlighted with a signal-green stroke. -->
+    <!-- ============================================================= -->
+
+    <!-- Horizontal row that lays out the digit boxes, centered. -->
+    <Style TargetType="HorizontalStackLayout" x:Key="PasscodeBoxRow">
+        <Setter Property="Spacing" Value="12" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+    </Style>
+
+    <!-- A single digit box (surface fill, soft line stroke). Mirrors the JoinCodeEntry look. -->
+    <Style TargetType="Border" x:Key="PasscodeBox">
+        <Setter Property="BackgroundColor" Value="{StaticResource TpBgSurface}" />
+        <Setter Property="Stroke" Value="{StaticResource TpLineBrush}" />
+        <Setter Property="StrokeThickness" Value="1.5" />
+        <Setter Property="StrokeShape" Value="Rectangle" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="WidthRequest" Value="56" />
+        <Setter Property="HeightRequest" Value="64" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <!-- The active / next-to-fill box: signal-green stroke over a raised surface. -->
+    <Style TargetType="Border" x:Key="PasscodeBoxActive" BasedOn="{StaticResource PasscodeBox}">
+        <Setter Property="BackgroundColor" Value="{StaticResource TpBgSurface2}" />
+        <Setter Property="Stroke" Value="{StaticResource TpSignalBrush}" />
+    </Style>
+
+    <!-- The large display digit centered inside each box. -->
+    <Style TargetType="Label" x:Key="PasscodeBoxDigit">
+        <Setter Property="FontFamily" Value="{StaticResource TpDisplayFont}" />
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="TextColor" Value="{StaticResource TpText}" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+        <Setter Property="VerticalTextAlignment" Value="Center" />
+    </Style>
+
+    <!-- Invisible input-capturing Entry laid over the boxes; delivers the whole pasted
+         value in one TextChanged so paste distributes across the boxes for free. -->
+    <Style TargetType="Entry" x:Key="PasscodeHiddenEntry">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="Transparent" />
+        <Setter Property="Keyboard" Value="Numeric" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="VerticalOptions" Value="Fill" />
+        <Setter Property="Opacity" Value="0.01" />
+    </Style>
+
     <!-- Full-bleed green scan beam that sweeps top→bottom over the Join backdrop every 10s. A soft
          vertical gradient band (bright signal-green core, transparent edges); the sweep and the
          between-sweep parking are driven in code-behind (see JoinGamePage). Starts hidden (Opacity 0)
@@ -641,7 +706,7 @@
         </Setter>
         <Setter Property="Stroke" Value="Transparent" />
         <Setter Property="StrokeThickness" Value="0" />
-        <Setter Property="HeightRequest" Value="60" />
+        <Setter Property="HeightRequest" Value="10" />
         <Setter Property="InputTransparent" Value="True" />
         <Setter Property="HorizontalOptions" Value="Fill" />
         <Setter Property="VerticalOptions" Value="Start" />

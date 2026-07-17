@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             xmlns:controls="clr-namespace:HexMaster.ThePrey.Maui.App.Controls"
              xmlns:vm="clr-namespace:HexMaster.ThePrey.Maui.App.ViewModels"
              x:Class="HexMaster.ThePrey.Maui.App.Pages.JoinGamePage"
              x:DataType="vm:JoinGameViewModel"
@@ -37,11 +38,9 @@
                     <Label Text="{loc:Translate Join_Code_Label}"
                            Style="{StaticResource SettingsFieldLabel}"
                            HorizontalTextAlignment="Center" />
-                    <Entry Text="{Binding Code, Mode=TwoWay}"
-                           Placeholder="{loc:Translate Join_Code_Placeholder}"
-                           Keyboard="Numeric"
-                           MaxLength="4"
-                           Style="{StaticResource JoinCodeEntry}" />
+                    <controls:PasscodeEntry Code="{Binding Code, Mode=TwoWay}"
+                                            Length="4"
+                                            HorizontalOptions="Center" />
 
                     <Button Text="{loc:Translate Join_Button}"
                             Style="{StaticResource PrimaryButton}"
