@@ -41,7 +41,7 @@
 
 ## 5. Lobby page integration
 
-- [x] 5.1 Listen for the `game-started` SSE event in `game-lobby.page.ts` and navigate to `/games/:id/play` on receipt, calling `GameLocationService.start()` with the game ID and calculated end time before navigating
+- [x] 5.1 Listen for the `game-started` Web PubSub event in `game-lobby.page.ts` and navigate to `/games/:id/play` on receipt, calling `GameLocationService.start()` with the game ID and calculated end time before navigating
 
 ## 6. Translations
 
