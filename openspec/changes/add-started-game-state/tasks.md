@@ -1,12 +1,12 @@
 ## 1. Server — domain state machine (Games module)
 
-- [ ] 1.1 Add `Started = 5` to `GameStatus` (`DomainModels/GameStatus.cs`) with an XML-doc note that the value is out of numeric order to preserve existing string/ordinal storage.
-- [ ] 1.2 In `DomainModels/Game.cs`, extract a status-independent `MeetsStartPreconditions` predicate (min players, designated hunter is a participant, all non-owner participants ready) and add `RecomputeLobbyReadiness()` that sets `Status = MeetsStartPreconditions ? Ready : Lobby` ONLY while `Status` is `Lobby` or `Ready`.
-- [ ] 1.3 Call `RecomputeLobbyReadiness()` at the end of `JoinLobby`, `RemoveLobbyPlayer`, `DesignateHunter`, `SetReady`, and `UpdateSettings`.
-- [ ] 1.4 Redefine `IsReadyToStart` to be `Status == GameStatus.Ready`.
-- [ ] 1.5 Change `Arm(hunterUserId)` precondition from `Status == Lobby` to `Status == Ready` and set `Status = Started` (keep the existing min-players/hunter/all-ready guards as defence in depth).
-- [ ] 1.6 Change `BeginPlay(startedAt)` precondition from `Status == Ready` to `Status == Started` (behaviour otherwise unchanged).
-- [ ] 1.7 Update `EndByOwner` so the cancel set is `Lobby | Ready | Started` → `Cancelled` (InProgress still computes the outcome; Completed still throws).
+- [x] 1.1 Add `Started = 5` to `GameStatus` (`DomainModels/GameStatus.cs`) with an XML-doc note that the value is out of numeric order to preserve existing string/ordinal storage.
+- [x] 1.2 In `DomainModels/Game.cs`, extract a status-independent `MeetsStartPreconditions` predicate (min players, designated hunter is a participant, all non-owner participants ready) and add `RecomputeLobbyReadiness()` that sets `Status = MeetsStartPreconditions ? Ready : Lobby` ONLY while `Status` is `Lobby` or `Ready`.
+- [x] 1.3 Call `RecomputeLobbyReadiness()` at the end of `JoinLobby`, `RemoveLobbyPlayer`, `DesignateHunter`, `SetReady`, and `UpdateSettings`.
+- [x] 1.4 Redefine `IsReadyToStart` to be `Status == GameStatus.Ready`.
+- [x] 1.5 Change `Arm(hunterUserId)` precondition from `Status == Lobby` to `Status == Ready` and set `Status = Started` (keep the existing min-players/hunter/all-ready guards as defence in depth).
+- [x] 1.6 Change `BeginPlay(startedAt)` precondition from `Status == Ready` to `Status == Started` (behaviour otherwise unchanged).
+- [x] 1.7 Update `EndByOwner` so the cancel set is `Lobby | Ready | Started` → `Cancelled` (InProgress still computes the outcome; Completed still throws).
 
 ## 2. Server — sweep, repository, and events
 
