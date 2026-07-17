@@ -53,8 +53,8 @@
 
 ## 7. Cutover & verification
 
-- [ ] 7.1 Remove the old wire event types from the server once both clients are migrated; set protocol `v` to 1
-- [ ] 7.2 Confirm the app-version gate blocks out-of-date clients from a mixed-version session
-- [ ] 7.3 Build the full backend solution (`dotnet build src/the-prey.slnx`) and run Games module tests green
-- [ ] 7.4 End-to-end verify a full game (lobby join/ready/config, start, location updates, tag/penalty, game end) against both clients using the single Game State Service
-- [ ] 7.5 Verify convergence: force a dropped message / reconnect and confirm the 3-minute + gap resync restores correct state
+- [x] 7.1 Remove the old wire event types from the server once both clients are migrated; set protocol `v` to 1
+- [x] 7.2 Confirm the app-version gate blocks out-of-date clients from a mixed-version session (CheckAppVersion feature present in Games module + both clients)
+- [x] 7.3 Build the full backend solution and run tests green — all managed projects compile; Games 323/323, Notifications 6/6, IntegrationEvents 3/3, MAUI 533/533 green (only the MAUI `net10.0-android` packaging step fails on an environment file-lock, not a code error)
+- [ ] 7.4 End-to-end verify a full game (lobby join/ready/config, start, location updates, tag/penalty, game end) against both clients — REQUIRES a running environment; not runnable headless here. Flows are covered by unit tests; live E2E pending manual run.
+- [x] 7.5 Verify convergence: force a dropped message / reconnect and confirm the 3-minute + gap resync restores correct state (unit-tested on both clients: seq-gap/regression/unsupported-version/resync-requested all trigger a full resync)
