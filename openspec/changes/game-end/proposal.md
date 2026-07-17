@@ -9,7 +9,7 @@ Games currently transition to the `InProgress` state when started, but there is 
 - The `EndGame` command handler enforces both end conditions and determines the winner.
 - The `GameStatusDto` (returned by `GET /games/{id}/status`) is extended with `winner` and `endedAt` so the client can render the end screen without a separate call.
 - The status endpoint relaxes its 409 guard so it also returns data for `Completed` games (not only `InProgress`).
-- The SSE stream endpoint already emits `state-changed` and closes the connection on `Completed`; no change is needed there, but the `game-end-conditions` spec will document how the transition fires the event bus.
+- The Web PubSub broadcast path already emits `state-changed` on `Completed`; no change is needed there, but the `game-end-conditions` spec will document how the transition fires the event bus.
 
 ## Capabilities
 
@@ -28,4 +28,4 @@ Games currently transition to the `InProgress` state when started, but there is 
 - **Games Abstractions** (`HexMaster.ThePrey.Games.Abstractions`): `GameStatusDto` extended; `GameDto` extended.
 - **Games API** (`HexMaster.ThePrey.Games.Api`): Status endpoint relaxed to serve `Completed` games.
 - **Games Data adapter**: EF Core mapping updated for new `EndedAt` and `Winner` columns; migration required.
-- **SSE stream** (`game-stream-endpoint`): No code change — it already emits `state-changed` on completion; the new background service triggers the existing flow.
+- **Web PubSub broadcast** (Notifications module): No code change — the `state-changed` event is already broadcast to the game's Web PubSub group on completion; the new background service triggers the existing flow.
