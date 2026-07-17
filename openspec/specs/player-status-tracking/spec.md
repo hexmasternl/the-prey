@@ -35,7 +35,7 @@ When a prey participant successfully records a GPS location, the system SHALL se
 
 ### Requirement: PlayerStateMonitor transitions Active→Passive after 5-minute silence
 
-The system SHALL run a background `PlayerStateMonitor` service that checks all prey participants in `InProgress` games every 30 seconds. Any prey with `PlayerState == Active` whose `LastLocationAt` is more than 5 minutes in the past (or null, with no location ever recorded after game start for more than 5 minutes) SHALL be transitioned to `Passive`. The monitor SHALL publish a `participant-status-changed` event via `IGameEventBus` for each transitioned participant.
+The system SHALL run a background `PlayerStateMonitor` service that checks all prey participants in `InProgress` games every 30 seconds. Any prey with `PlayerState == Active` whose `LastLocationAt` is more than 5 minutes in the past (or null, with no location ever recorded after game start for more than 5 minutes) SHALL be transitioned to `Passive`. The monitor SHALL publish a `participant-status-changed` event to the game's Azure Web PubSub group for each transitioned participant.
 
 #### Scenario: Active prey transitions to Passive after 5-minute silence
 

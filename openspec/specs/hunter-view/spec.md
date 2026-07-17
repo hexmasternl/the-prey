@@ -38,7 +38,7 @@ The hunter view SHALL request the device GPS position using `navigator.geolocati
 
 ### Requirement: Prey blips rendered at last known positions
 
-The hunter view SHALL render one blip marker per prey participant. On initial load, prey positions and states are sourced from the `Participants` array in the `GameStatusDto`. Subsequent SSE `participant-located` events with `participantRole: "Prey"` SHALL move the corresponding blip to the new coordinate and update the stored state. SSE `participant-status-changed` events SHALL update the stored state for the affected participant. A prey blip SHALL NOT be rendered if that prey has no recorded location (null coordinates). When a prey's position is updated via SSE, their blip SHALL animate to the new coordinate. Prey blips for participants with `State` `Active` or `Passive` SHALL render in hunter-red (`--hunter` #ff2f1f) with the flash animation. Prey blips for participants with `State` `Tagged` or `Out` SHALL render as grey (`#888888`) without the flash animation.
+The hunter view SHALL render one blip marker per prey participant. On initial load, prey positions and states are sourced from the `Participants` array in the `GameStatusDto`. Subsequent `player-location-updated` events (delivered over Web PubSub) with `participantRole: "Prey"` SHALL move the corresponding blip to the new coordinate and update the stored state. `participant-status-changed` events SHALL update the stored state for the affected participant. A prey blip SHALL NOT be rendered if that prey has no recorded location (null coordinates). When a prey's position is updated via a Web PubSub event, their blip SHALL animate to the new coordinate. Prey blips for participants with `State` `Active` or `Passive` SHALL render in hunter-red (`--hunter` #ff2f1f) with the flash animation. Prey blips for participants with `State` `Tagged` or `Out` SHALL render as grey (`#888888`) without the flash animation.
 
 #### Scenario: Initial prey blips rendered from status snapshot
 
@@ -48,21 +48,21 @@ The hunter view SHALL render one blip marker per prey participant. On initial lo
 #### Scenario: Prey blip hidden when no location recorded
 
 - **WHEN** a prey participant has null latitude/longitude in the status snapshot
-- **THEN** no blip is rendered for that prey until their first SSE location event is received
+- **THEN** no blip is rendered for that prey until their first player-location-updated event is received
 
-#### Scenario: SSE prey location event moves blip
+#### Scenario: Prey location event moves blip
 
-- **WHEN** a participant-located SSE event is received with participantRole: "Prey"
+- **WHEN** a player-location-updated event is received with participantRole: "Prey"
 - **THEN** the corresponding prey's blip moves to the new coordinates
 
 #### Scenario: participant-status-changed turns blip grey for Tagged state
 
-- **WHEN** a participant-status-changed SSE event is received with newState: "Tagged" for a prey
+- **WHEN** a participant-status-changed event is received with newState: "Tagged" for a prey
 - **THEN** that prey's blip changes to grey non-flashing style
 
 #### Scenario: participant-status-changed turns blip grey for Out state
 
-- **WHEN** a participant-status-changed SSE event is received with newState: "Out" for a prey
+- **WHEN** a participant-status-changed event is received with newState: "Out" for a prey
 - **THEN** that prey's blip changes to grey non-flashing style
 
 ### Requirement: HUD panel displays hunter vitals
@@ -91,12 +91,12 @@ The hunter view SHALL display a persistent HUD panel at the bottom of the screen
 
 #### Scenario: Preys-remaining count updates after participant-status-changed event
 
-- **WHEN** a participant-status-changed SSE event is received
+- **WHEN** a participant-status-changed event is received via Web PubSub
 - **THEN** the HUD preys-remaining count is recalculated as the count of participants with State Active or Passive
 
 ### Requirement: Status polling every reporting interval
 
-The hunter view SHALL call `GET /games/{gameId}/status` on mount and then repeatedly at the interval specified in the response's `reportingIntervalSeconds` field. Before the first response is received, the default polling interval is 30 seconds. Each status response refreshes prey blip positions from the `Participants` array for any preys whose SSE update may have been missed.
+The hunter view SHALL call `GET /games/{gameId}/status` on mount and then repeatedly at the interval specified in the response's `reportingIntervalSeconds` field. Before the first response is received, the default polling interval is 30 seconds. Each status response refreshes prey blip positions from the `Participants` array for any preys whose real-time update may have been missed.
 
 #### Scenario: First poll on mount
 
@@ -113,37 +113,37 @@ The hunter view SHALL call `GET /games/{gameId}/status` on mount and then repeat
 - **WHEN** the user navigates away from the hunter view
 - **THEN** the polling interval is cleared and no further requests are made
 
-### Requirement: SSE stream connection for real-time prey updates
+### Requirement: Web PubSub connection for real-time prey updates
 
-The hunter view SHALL establish a connection to `GET /games/{gameId}/stream` using the browser's `EventSource` API. The view SHALL handle `participant-located` events (to update prey blip positions), `state-changed` events, and `game-ended` events. On `game-ended`, the view SHALL navigate away from the hunter view and display a game-over message.
+The hunter view SHALL establish an Azure Web PubSub connection for the game: it SHALL request a group-scoped client access URL from `GET /games/{gameId}/notifications/token`, open a native WebSocket using the `json.webpubsub.azure.v1` subprotocol, and join the game's group (group name equal to the game id). The view SHALL handle `player-location-updated` events (to update prey blip positions), `state-changed` events, and `game-ended` events, each delivered as a `{ type, data }` envelope. On `game-ended`, the view SHALL navigate away from the hunter view and display a game-over message.
 
-#### Scenario: SSE connection established on mount
+#### Scenario: Connection established on mount
 
 - **WHEN** the hunter view initialises
-- **THEN** an EventSource connection to `/games/{gameId}/stream` is opened
+- **THEN** a Web PubSub WebSocket is opened using a token from `/games/{gameId}/notifications/token` and the game's group is joined
 
 #### Scenario: game-ended event triggers navigation
 
-- **WHEN** the SSE stream delivers a `game-ended` event
-- **THEN** the hunter view stops polling, closes the SSE connection, and navigates to a game-over screen
+- **WHEN** the Web PubSub connection delivers a `game-ended` event
+- **THEN** the hunter view stops polling, closes the Web PubSub connection, and navigates to a game-over screen
 
-#### Scenario: SSE reconnects after connection drop
+#### Scenario: Connection reconnects after connection drop
 
-- **WHEN** the SSE connection is lost due to a network interruption
-- **THEN** the client attempts to reconnect with exponential back-off up to a 30-second maximum delay
+- **WHEN** the Web PubSub connection is lost due to a network interruption
+- **THEN** the client attempts to reconnect with bounded exponential back-off up to a 30-second maximum delay and reconciles missed events via GET /games/{gameId}
 
-#### Scenario: SSE connection closed on view destroy
+#### Scenario: Connection closed on view destroy
 
 - **WHEN** the user navigates away from the hunter view before the game ends
-- **THEN** the EventSource connection is closed
+- **THEN** the Web PubSub connection is closed
 
-### Requirement: SSE participant-status-changed event handled in hunter view
+### Requirement: participant-status-changed event handled in hunter view
 
-The hunter view SHALL listen for `participant-status-changed` SSE events. On receipt, the view SHALL update the local participant state map for the affected participant, re-render the corresponding blip, and recalculate the HUD preys-remaining count.
+The hunter view SHALL listen for `participant-status-changed` events delivered over Web PubSub. On receipt, the view SHALL update the local participant state map for the affected participant, re-render the corresponding blip, and recalculate the HUD preys-remaining count.
 
 #### Scenario: Hunter view handles participant-status-changed event
 
-- **WHEN** a participant-status-changed SSE event arrives for a prey
+- **WHEN** a participant-status-changed event arrives for a prey
 - **THEN** the hunter view updates that prey's state, adjusts the blip style, and refreshes the preys-remaining counter
 
 ### Requirement: Visual style matches hunter-gameplay-view design

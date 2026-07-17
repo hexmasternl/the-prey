@@ -19,7 +19,7 @@ MAUI has **no** cross-platform background-execution or background-location primi
 **Non-Goals:**
 - Backend changes — the endpoint and contract already exist.
 - Windows / MacCatalyst background tracking beyond a foreground fallback (field play is phone-only; desktop targets report only while active).
-- Real-time consumption of other players' positions (SSE/Web PubSub receive path is a separate concern).
+- Real-time consumption of other players' positions (the Web PubSub receive path is a separate concern).
 - Batching/offline queueing of missed fixes across long outages (out of scope for v1; each tick reports the current fix only).
 
 ## Decisions

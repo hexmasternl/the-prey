@@ -77,7 +77,7 @@ The native WebSocket does not auto-reconnect, so on an unexpected close the impl
 
 - **Why:** this is the transport the backend exposes for in-game real-time and the one the Angular client uses (`WebPubSubStream`), so the MAUI client matches the proven server contract (group-scoped token, `joinGroup`, `{ type, data }` envelope). The seam's public shape (`IAsyncEnumerable<GameStreamEvent>`) is identical to the lobby's stream seam, so the VM is transport-agnostic and tested against a fake emitting scripted events; the token request, WebSocket, `joinGroup`, envelope unwrapping, and reconnect are all isolated in the impl.
 - **Token freshness:** a fresh connection URL is fetched on every (re)connect — the token comfortably outlasts a single connection attempt, and a `401` on the token request invalidates the cached access token (`IAccessTokenProvider.Invalidate`) like every other call.
-- **Alternative:** the SSE endpoint (`GET /games/{id}/stream`) — rejected here in favour of Web PubSub, the transport the server and web client already use for gameplay; SSE remains available if Web PubSub connectivity proves problematic.
+- **Alternative:** a separate per-page stream endpoint — rejected here in favour of Azure Web PubSub, the transport the server and web client already use for gameplay.
 - **Alternative:** poll `GET /games/{id}/status` alone on a timer — the VM does poll for re-sync/heal, but the Web PubSub push gives the live-tracking feel the hunt needs; poll-only is the degraded fallback when the channel can't connect.
 
 ### D8: `GetGameStatusAsync` added to the client in the established result-union style
@@ -95,7 +95,7 @@ Entry (D1) and the game-ended hand-off go through navigator seam methods mirrori
 - **Status endpoint 403/409 while `Ready`** → handled as "not live yet" (D8): the VM stays in Waiting/HeadStart and re-polls; it never surfaces these transient codes as errors. Resolved by detecting phase from `GetGame` first (D2).
 - **Head-start clock skew (device vs server)** → the countdown trusts the server's `HunterMayMoveAt` and only interpolates locally between syncs (D4); each status snapshot re-anchors it, so drift self-corrects.
 - **WebSocket drops (mobile NAT / backgrounding)** → the native socket does not auto-reconnect, so `IGameStreamClient` re-requests a fresh connection URL and reconnects with exponential backoff, re-joining the group; on reconnect the VM re-polls status to re-sync (D7). The initial status load means the map is never blank waiting for the channel.
-- **Prey dot never appears** → correct when a prey has not yet broadcast a location (no `LastKnownLocation`, no `participant-located` yet); the brief specifies dots show "if their location is broadcasted." No placeholder dot is drawn.
+- **Prey dot never appears** → correct when a prey has not yet broadcast a location (no `LastKnownLocation`, no `player-location-updated` yet); the brief specifies dots show "if their location is broadcasted." No placeholder dot is drawn.
 - **Compass unavailable / no heading** → the self arrow renders at the position without rotation (or a last-known heading) rather than disappearing; missing heading is an expected, non-fatal state.
 - **Resuming an already-live game** → D3 enters **Live** directly when `HunterMayMoveAt` is already past; entering during the head start shows the countdown for its remainder.
 - **Resuming a `Completed` game** → D2/D3 hand off to the outcome seam immediately; acceptable and idempotent.
@@ -109,6 +109,6 @@ Pure client addition. No backend, schema, or contract changes. Adds a new gamepl
 ## Open Questions
 
 - **Prey game play page** — the other hand-off branch; owned by a separate change. Until it lands, the router's prey branch targets a placeholder so the hunter path is fully wired.
-- **Real-time transport** — resolved: Azure Web PubSub (D7), matching the server contract and the Angular client. The SSE endpoint remains a fallback if Web PubSub connectivity proves problematic on device. If the lobby's stream seam settles on a different transport, the two seams stay independent (each isolates its transport behind the same `IAsyncEnumerable` shape).
+- **Real-time transport** — resolved: Azure Web PubSub (D7), matching the server contract and the Angular client.
 - **Hunter HUD contract** — the embedded region's exact interface (what state the page passes down: remaining time, next-ping, distances, tag action) is settled with the `hunter-hud` change; this page reserves and hosts the region.
 - **Outcome screen** — the concrete destination for the game-ended hand-off is a separate change; this change invokes the seam with the outcome payload only.
