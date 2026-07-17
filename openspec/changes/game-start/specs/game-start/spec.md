@@ -23,9 +23,13 @@ The system SHALL expose a `POST /games/{id}/start` endpoint restricted to the ga
 - **WHEN** the game owner calls `POST /games/{id}/start` and the game is already `InProgress` or `Completed`
 - **THEN** the system responds with HTTP 409 Conflict and the game state is unchanged
 
-### Requirement: game-started SSE event is broadcast on game start
-After a successful `POST /games/{id}/start`, the `ILobbyEventBus` SHALL publish a `game-started` event carrying the full updated `GameDto` to all connected clients for that game.
+### Requirement: game-started event is broadcast to the Web PubSub group on game start
+After a successful `POST /games/{id}/start`, the system SHALL broadcast a `game-started` event carrying the full updated `GameDto` to the game's Web PubSub group (group name equal to the game id). The command handler publishes on the in-process event bus, which is relayed as an integration event to the Notifications module, which calls `IWebPubSubBroadcaster.SendToGameAsync(gameId, "game-started", gameDto)`. The event SHALL be delivered as a `{ "type": "game-started", "data": <GameDto> }` group message. There is no per-request stream to close.
 
-#### Scenario: All connected lobby clients receive game-started
+#### Scenario: All connected clients receive game-started
 - **WHEN** `POST /games/{id}/start` succeeds
-- **THEN** all clients connected to `GET /games/{id}/lobby/stream` receive a `game-started` SSE event containing the updated `GameDto`, after which the stream closes
+- **THEN** every client connected to the game's Web PubSub group receives a `game-started` message containing the updated `GameDto` over its existing connection
+
+#### Scenario: No connected clients — no error
+- **WHEN** `POST /games/{id}/start` succeeds and no clients are connected to the game's Web PubSub group
+- **THEN** the start completes successfully with no error and the event is simply not received by anyone

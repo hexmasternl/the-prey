@@ -1,111 +1,45 @@
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.IntegrationEvents;
+using HexMaster.ThePrey.IntegrationEvents.Events;
 using Moq;
 
 namespace HexMaster.ThePrey.Games.Tests.Features;
 
 public sealed class InProcessGameEventBusTests
 {
-    private readonly InProcessGameEventBus _bus = new(Mock.Of<IIntegrationEventPublisher>());
+    private readonly Mock<IIntegrationEventPublisher> _integrationPublisherMock = new();
+    private readonly InProcessGameEventBus _sut;
 
-    [Fact]
-    public async Task PublishAsync_ShouldDeliverEvent_ToSubscriber()
+    public InProcessGameEventBusTests()
     {
-        var gameId = Guid.NewGuid();
-        var expected = new StateChangedEvent(gameId, "InProgress");
-
-        var subscription = _bus.Subscribe(gameId);
-        await _bus.PublishAsync(gameId, expected);
-        _bus.Complete(gameId);
-
-        var received = new List<GameEvent>();
-        await foreach (var evt in subscription)
-            received.Add(evt);
-
-        Assert.Single(received);
-        Assert.Equal(expected, received[0]);
+        _sut = new InProcessGameEventBus(_integrationPublisherMock.Object);
     }
 
     [Fact]
-    public async Task PublishAsync_ShouldDeliverEvent_ToAllSubscribers()
+    public async Task PublishAsync_ShouldBridgeToWebPubSub_ViaIntegrationEvent()
     {
-        // Regression: a single shared channel made subscribers compete for events, so in a game
-        // with multiple participants each event reached only one of them.
         var gameId = Guid.NewGuid();
-        var expected = new GameEndedEvent(gameId, "PreysWin", 1);
+        var payload = new { status = "InProgress" };
 
-        var subscriptionA = _bus.Subscribe(gameId);
-        var subscriptionB = _bus.Subscribe(gameId);
+        await _sut.PublishAsync(gameId, "configuration-changed", payload);
 
-        await _bus.PublishAsync(gameId, expected);
-        _bus.Complete(gameId);
-
-        var receivedA = new List<GameEvent>();
-        await foreach (var evt in subscriptionA)
-            receivedA.Add(evt);
-
-        var receivedB = new List<GameEvent>();
-        await foreach (var evt in subscriptionB)
-            receivedB.Add(evt);
-
-        Assert.Single(receivedA);
-        Assert.Single(receivedB);
-        Assert.Equal(expected, receivedA[0]);
-        Assert.Equal(expected, receivedB[0]);
+        _integrationPublisherMock.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e =>
+                e.GameId == gameId && e.Name == "configuration-changed" && Equals(e.Payload, payload)),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task PublishAsync_ShouldNotDeliverEvent_ToDifferentGameSubscriber()
-    {
-        var gameA = Guid.NewGuid();
-        var gameB = Guid.NewGuid();
-
-        var subscriptionB = _bus.Subscribe(gameB);
-
-        await _bus.PublishAsync(gameA, new StateChangedEvent(gameA, "InProgress"));
-        _bus.Complete(gameA);
-        _bus.Complete(gameB);
-
-        var received = new List<GameEvent>();
-        await foreach (var evt in subscriptionB)
-            received.Add(evt);
-
-        Assert.Empty(received);
-    }
-
-    [Fact]
-    public async Task Complete_ShouldCloseSubscriberStream()
+    public async Task PublishAsync_ShouldSwallowException_WhenIntegrationPublisherThrows()
     {
         var gameId = Guid.NewGuid();
-        var subscription = _bus.Subscribe(gameId);
+        var payload = new { outcome = "PreysWin", survivorCount = 1 };
+        _integrationPublisherMock
+            .Setup(p => p.PublishAsync(It.IsAny<GameNotificationIntegrationEvent>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("broker unavailable"));
 
-        _bus.Complete(gameId);
+        var exception = await Record.ExceptionAsync(() => _sut.PublishAsync(gameId, "game-ended", payload).AsTask());
 
-        var count = 0;
-        await foreach (var _ in subscription)
-            count++;
-
-        Assert.Equal(0, count);
-    }
-
-    [Fact]
-    public async Task PublishAsync_ShouldDeliverMultipleEvents_InOrder()
-    {
-        var gameId = Guid.NewGuid();
-        var subscription = _bus.Subscribe(gameId);
-
-        await _bus.PublishAsync(gameId, new StateChangedEvent(gameId, "InProgress"));
-        await _bus.PublishAsync(gameId, new ParticipantLocatedEvent(gameId, Guid.NewGuid(), "Hunter", 52.0, 5.0, "Active"));
-        await _bus.PublishAsync(gameId, new GameEndedEvent(gameId, "PreysWin", 1));
-        _bus.Complete(gameId);
-
-        var received = new List<GameEvent>();
-        await foreach (var evt in subscription)
-            received.Add(evt);
-
-        Assert.Equal(3, received.Count);
-        Assert.IsType<StateChangedEvent>(received[0]);
-        Assert.IsType<ParticipantLocatedEvent>(received[1]);
-        Assert.IsType<GameEndedEvent>(received[2]);
+        Assert.Null(exception);
     }
 }

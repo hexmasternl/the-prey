@@ -30,10 +30,10 @@
 - [ ] 4.3 Wire the hosted service to iterate expired game IDs, dispatch `EndGameCommand` for each, and log/continue on individual failures
 - [ ] 4.4 Register `GameEndHostedService` in `GamesModuleRegistration`
 
-## 5. SSE Event Update
+## 5. Real-Time Event Update
 
 - [ ] 5.1 Extend `GameEndedEvent` (or `StateChangedEvent`) payload to include `Winner` (nullable string)
-- [ ] 5.2 Update the SSE stream endpoint to emit `winner` in the `state-changed` event data when the game completes
+- [ ] 5.2 Ensure the `state-changed` event broadcast to the game's Web PubSub group includes `winner` in its data when the game completes
 
 ## 6. DTOs and Status Endpoint
 

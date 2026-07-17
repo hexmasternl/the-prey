@@ -52,13 +52,13 @@ All endpoints require a valid Bearer token unless noted otherwise.
 | `POST` | `/games/{id}/start` | Start the game (creator only) |
 | `POST` | `/games/{id}/end` | Force-end the game (creator only) |
 | `POST` | `/games/{id}/leave` | Leave/forfeit the game |
-| `GET` | `/games/{id}/lobby/stream` | **SSE** stream of lobby events (see [realtime.md](./realtime.md)) |
-| `GET` | `/games/{id}/stream` | **SSE** stream of in-game events (see [realtime.md](./realtime.md)) |
+| `GET` | `/games/{id}/notifications/token` | Get a short-lived, group-scoped Web PubSub client access URL (see [realtime.md](./realtime.md)) |
 
-> Real-time events are delivered over **Server-Sent Events**, not SignalR/WebSockets. The two
-> `…/stream` endpoints keep an HTTP connection open and emit `text/event-stream` events.
-> Because `EventSource` cannot set headers, the JWT is passed as `?token=<jwt>`. See
-> [realtime.md](./realtime.md) for event names and payloads.
+> Real-time events are delivered over **Azure Web PubSub** (native WebSocket, one group per
+> game). The client calls
+> `GET /games/{id}/notifications/token` to obtain a short-lived, group-scoped access URL, opens
+> a WebSocket with the `json.webpubsub.azure.v1` subprotocol, and joins the game's group. See
+> [realtime.md](./realtime.md) for the connection flow, event names, and payloads.
 
 ### `POST /games` — Request Body
 

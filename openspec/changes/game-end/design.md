@@ -1,8 +1,8 @@
 ## Context
 
-Games transition through `Lobby → InProgress → Completed`. The `Game.Complete()` method and `Completed` status already exist, but no mechanism ever calls them automatically. The `game-ended` SSE event and channel-close logic are wired up in the stream endpoint, waiting for a publisher.
+Games transition through `Lobby → InProgress → Completed`. The `Game.Complete()` method and `Completed` status already exist, but no mechanism ever calls them automatically. The `state-changed` / `game-ended` events already flow over the existing Web PubSub broadcast path (in-process event bus → integration event → Notifications module → `IWebPubSubBroadcaster.SendToGameAsync` → group `{gameId}`), waiting for a publisher.
 
-`GameStatusDto` already carries `IsEndgame` (final-stage flag) and `GameDurationLeft`, but has no `Winner` or `EndedAt` fields. The status endpoint currently returns HTTP 409 for non-`InProgress` games, so there is no way for the client to poll for end-of-game info after the SSE connection closes.
+`GameStatusDto` already carries `IsEndgame` (final-stage flag) and `GameDurationLeft`, but has no `Winner` or `EndedAt` fields. The status endpoint currently returns HTTP 409 for non-`InProgress` games, so there is no way for the client to poll for end-of-game info after the real-time connection drops.
 
 An untracked change (`game-play-tagging`) is planned to detect proximity-based tagging. This design introduces the **elimination concept** (`ParticipantActiveStatus`) so that tagging can call `EliminatePrey` once that change ships, without coupling the two changes.
 
@@ -17,7 +17,7 @@ An untracked change (`game-play-tagging`) is planned to detect proximity-based t
 **Non-Goals:**
 - Proximity detection for tagging (belongs to `game-play-tagging`).
 - Boundary-exit detection for `Out` status (belongs to the boundary-penalty feature).
-- Push notifications or separate "winner" endpoint — the existing SSE stream + status endpoint cover the client's needs.
+- Push notifications or separate "winner" endpoint — the existing Web PubSub broadcast + status endpoint cover the client's needs.
 - Per-game in-memory timers — simple polling is sufficient at current scale.
 
 ## Decisions
@@ -52,9 +52,9 @@ The existing HTTP 409 guard for non-`InProgress` games is tightened to only 409 
 
 **Alternative considered:** Separate `GET /games/{id}/result` endpoint. Rejected: the client already polls `GET /games/{id}/status`; adding a second polling target complicates the client with no benefit.
 
-### 6. `state-changed` SSE event carries `winner`
+### 6. `state-changed` Web PubSub event carries `winner`
 
-When game completes, `GameEndedEvent` (already exists) is published and the stream endpoint already closes the connection. The `state-changed` event payload is extended with an optional `winner` field (`"Hunter"` | `"Preys"`) so clients that are still connected learn the outcome without a separate HTTP call.
+When game completes, `GameEndedEvent` (already exists) is published and broadcast to the game's Web PubSub group by the Notifications module. The `state-changed` event payload is extended with an optional `winner` field (`"Hunter"` | `"Preys"`) so clients that are still connected learn the outcome without a separate HTTP call.
 
 ## Risks / Trade-offs
 

@@ -57,7 +57,7 @@ The prey view SHALL display a persistent HUD bar at the bottom of the screen, fo
 
 #### Scenario: Preys-remaining count updates on participant-status-changed event
 
-- **WHEN** a participant-status-changed SSE event is received
+- **WHEN** a participant-status-changed event is received via Web PubSub
 - **THEN** the HUD preys-remaining count is recalculated as the count of participants with State Active or Passive
 
 ### Requirement: Status polling every reporting interval
@@ -79,52 +79,52 @@ The prey view SHALL call `GET /games/{gameId}/status` on mount and then repeated
 - **WHEN** the user navigates away from the prey view
 - **THEN** the polling interval is cleared and no further requests are made
 
-### Requirement: SSE stream connection for real-time updates
+### Requirement: Web PubSub connection for real-time updates
 
-The prey view SHALL establish a connection to `GET /games/{gameId}/stream` using the browser's `EventSource` API. The view SHALL handle `state-changed`, `participant-located`, and `game-ended` SSE events. On `game-ended`, the view SHALL navigate away from the prey view and display a game-over message.
+The prey view SHALL establish an Azure Web PubSub connection for the game: it SHALL request a group-scoped client access URL from `GET /games/{gameId}/notifications/token`, open a native WebSocket using the `json.webpubsub.azure.v1` subprotocol, and join the game's group (group name equal to the game id). The view SHALL handle `state-changed`, `player-location-updated`, and `game-ended` events, each delivered as a `{ type, data }` envelope. On `game-ended`, the view SHALL navigate away from the prey view and display a game-over message.
 
-#### Scenario: SSE connection established on mount
+#### Scenario: Connection established on mount
 
 - **WHEN** the prey view initialises
-- **THEN** an EventSource connection to /games/{gameId}/stream is opened
+- **THEN** a Web PubSub WebSocket is opened using a token from /games/{gameId}/notifications/token and the game's group is joined
 
 #### Scenario: game-ended event triggers navigation
 
-- **WHEN** the SSE stream delivers a game-ended event
-- **THEN** the prey view stops polling, closes the SSE connection, and navigates to a game-over screen
+- **WHEN** the Web PubSub connection delivers a game-ended event
+- **THEN** the prey view stops polling, closes the Web PubSub connection, and navigates to a game-over screen
 
-#### Scenario: SSE reconnects after drop
+#### Scenario: Connection reconnects after drop
 
-- **WHEN** the SSE connection is lost (network interruption)
-- **THEN** the client attempts to reconnect with exponential back-off up to a 30-second maximum delay
+- **WHEN** the Web PubSub connection is lost (network interruption)
+- **THEN** the client attempts to reconnect with bounded exponential back-off up to a 30-second maximum delay and reconciles missed events via GET /games/{gameId}
 
-#### Scenario: SSE connection closed on view destroy
+#### Scenario: Connection closed on view destroy
 
 - **WHEN** the user navigates away from the prey view before the game ends
-- **THEN** the EventSource connection is closed
+- **THEN** the Web PubSub connection is closed
 
-### Requirement: SSE participant-status-changed event handled in prey view
+### Requirement: participant-status-changed event handled in prey view
 
-The prey view SHALL listen for `participant-status-changed` SSE events. On receipt, the view SHALL update the local participant state for the affected participant and recalculate the HUD preys-remaining count.
+The prey view SHALL listen for `participant-status-changed` events delivered over Web PubSub. On receipt, the view SHALL update the local participant state for the affected participant and recalculate the HUD preys-remaining count.
 
 #### Scenario: Prey view handles participant-status-changed for another prey
 
-- **WHEN** a participant-status-changed SSE event arrives for another prey
+- **WHEN** a participant-status-changed event arrives for another prey
 - **THEN** the prey view updates that prey's state and refreshes the preys-remaining counter
 
 ### Requirement: Prey view reacts to the calling player becoming Tagged or Out
 
-When the authenticated prey player receives a `participant-status-changed` SSE event where the `participantId` matches their own and `newState` is `Tagged` or `Out`, the prey view SHALL stop GPS polling, close the SSE connection, and display a contextual game-over message. For `Tagged`: "You have been tagged. Game over for you." For `Out`: "You left the area for too long. You are out."
+When the authenticated prey player receives a `participant-status-changed` event where the `participantId` matches their own and `newState` is `Tagged` or `Out`, the prey view SHALL stop GPS polling, close the Web PubSub connection, and display a contextual game-over message. For `Tagged`: "You have been tagged. Game over for you." For `Out`: "You left the area for too long. You are out."
 
 #### Scenario: Own-player Tagged event shows tagged game-over message
 
-- **WHEN** a participant-status-changed SSE event arrives with the calling player's participantId and newState: "Tagged"
-- **THEN** the prey view shows the message "You have been tagged. Game over for you.", stops polling, and closes the SSE connection
+- **WHEN** a participant-status-changed event arrives with the calling player's participantId and newState: "Tagged"
+- **THEN** the prey view shows the message "You have been tagged. Game over for you.", stops polling, and closes the Web PubSub connection
 
 #### Scenario: Own-player Out event shows out game-over message
 
-- **WHEN** a participant-status-changed SSE event arrives with the calling player's participantId and newState: "Out"
-- **THEN** the prey view shows the message "You left the area for too long. You are out.", stops polling, and closes the SSE connection
+- **WHEN** a participant-status-changed event arrives with the calling player's participantId and newState: "Out"
+- **THEN** the prey view shows the message "You left the area for too long. You are out.", stops polling, and closes the Web PubSub connection
 
 ### Requirement: Visual style matches the-prey-style-guide
 

@@ -1,0 +1,60 @@
+## 1. Protocol definition & docs
+
+- [x] 1.1 Define the versioned envelope shape (`v`, `type`, `gameId`, `seq`, `data`) and the canonical message-type constants in one shared location referenced by the server broadcaster
+- [x] 1.2 Document each catalog message (`participant-joined`, `participant-changed`, `participant-removed`, `configuration-changed`, `locations-updated`, `prey-updated`, `game-ended`, `resync-requested`) with its `data` shape
+- [x] 1.3 Rewrite `docs/api/realtime.md` to render the `realtime-game-protocol` spec: envelope, `v`, `seq`, per-message payloads, per-recipient scoping, and reconnect/resync guidance
+- [x] 1.4 Consult the hexmaster coding guidelines MCP (`0005`, `0007`, `0008`, `0009`, unit-testing) before touching server code
+
+## 2. Server — Notifications module (envelope, seq, fan-out)
+
+- [x] 2.1 Add per-game monotonic `seq` allocation at the broadcast boundary in `WebPubSubBroadcaster`
+- [x] 2.2 Wrap every broadcast in the versioned envelope (`v`, `type`, `gameId`, `seq`, `data`) with camelCase payloads
+- [x] 2.3 Add OpenTelemetry instrumentation (activity + tags) around envelope assembly and group send
+- [x] 2.4 Add the ability to broadcast a `resync-requested` control message
+- [x] 2.5 Update `NotificationSubscriptionEndpoints` forwarders to map Dapr integration events onto the canonical catalog message types
+
+## 3. Server — Games module (canonical events)
+
+- [x] 3.1 Replace full-`GameDto` lobby broadcasts with granular deltas: publish `participant-joined` on join, `participant-changed` on ready/callsign/role/state/penalty change, `participant-removed` on leave/remove
+- [x] 3.2 Publish `configuration-changed` (config + status) on settings edits and every status transition (`Lobby → Ready → Started → InProgress → Completed`) and hunter designation; retire `settings-updated`/`ready-updated`/`hunter-designated`/`hunter-changed`/`game-started`/`state-changed` wire types
+- [x] 3.3 Batch location fan-out in `GameSweepProcessor` into `locations-updated` arrays (broadcast to the group; clients filter by role)
+- [x] 3.4 Map tag/penalty transitions onto `prey-updated`; consolidate `player-status-changed` + `participant-status-changed` into `participant-changed`/`prey-updated`
+- [x] 3.5 Emit `game-ended` exactly once on the game channel; remove the duplicate lobby-channel `game-ended`
+- [x] 3.6 Remove the retired `participant-located` reference in `InProcessGameEventBus`
+- [x] 3.7 Update Games module unit tests (`InProcessGameEventBusTests`, `InProcessLobbyEventBusTests`, sweep/handler tests) for the new catalog with xUnit + Moq + Bogus
+
+## 4. MAUI client — conform Game State Service
+
+- [x] 4.1 Update `GameRealtimeEventTypes` / `GameRealtimePayloads` to the canonical catalog and payload shapes
+- [x] 4.2 Parse and honor the versioned envelope (`v`, `seq`) in `GameRealtimeConnection` / `GameStateService.ApplyEnvelope`; ignore unsupported `v` and resync
+- [x] 4.3 Implement `seq` gap/regression detection that triggers a full snapshot resync
+- [x] 4.4 Handle `resync-requested` by pulling a full snapshot
+- [x] 4.5 Change the periodic reconcile heartbeat from 5 minutes to 3 minutes
+- [x] 4.6 Apply lobby deltas (`participant-joined/-changed/-removed`, `configuration-changed`) and batched `locations-updated` incrementally
+- [x] 4.7 Update MAUI game-state and viewmodel tests to the new catalog and 3-minute resync
+
+## 5. Ionic client — build Game State Service
+
+- [x] 5.1 Create a root-singleton `GameStateService` (signal-backed) holding the full authoritative game state
+- [x] 5.2 Load the full snapshot on start (`GET /games/{id}`, plus `/status` and role-specific `/state` while InProgress)
+- [x] 5.3 Update `WebPubSubStream` / `GameStreamService` to parse the versioned envelope and expose typed catalog messages
+- [x] 5.4 Apply lobby deltas, `configuration-changed`, batched `locations-updated`, `prey-updated`, and `game-ended` to the state slices
+- [x] 5.5 Implement 3-minute periodic resync, reconnect resync, `seq`-gap resync, and `resync-requested` handling
+- [x] 5.6 Broadcast state-changed notifications to subscribers with subscriber isolation
+- [x] 5.7 Fail safe: bounded-backoff retry on transient errors; stop and report "unavailable" on terminal 403
+
+## 6. Ionic client — migrate UI onto the service
+
+- [x] 6.1 Refactor the lobby page to subscribe to `GameStateService` and drop its own `WebPubSubStream`/`getGame` state
+- [x] 6.2 Refactor the prey page to subscribe to `GameStateService`; remove its status-polling loop and duplicated marker state
+- [x] 6.3 Refactor the hunter page to subscribe to `GameStateService`; remove its status-polling loop and duplicated marker state
+- [x] 6.4 Point the HUD at `GameStateService` as its single source (HUD is inline in the prey/hunter pages)
+- [x] 6.5 Verify no game UI polls the server or holds an independent state copy
+
+## 7. Cutover & verification
+
+- [x] 7.1 Remove the old wire event types from the server once both clients are migrated; set protocol `v` to 1
+- [x] 7.2 Confirm the app-version gate blocks out-of-date clients from a mixed-version session (CheckAppVersion feature present in Games module + both clients)
+- [x] 7.3 Build the full backend solution and run tests green — all managed projects compile; Games 323/323, Notifications 6/6, IntegrationEvents 3/3, MAUI 533/533 green (only the MAUI `net10.0-android` packaging step fails on an environment file-lock, not a code error)
+- [ ] 7.4 End-to-end verify a full game (lobby join/ready/config, start, location updates, tag/penalty, game end) against both clients — REQUIRES a running environment; not runnable headless here. Flows are covered by unit tests; live E2E pending manual run.
+- [x] 7.5 Verify convergence: force a dropped message / reconnect and confirm the 3-minute + gap resync restores correct state (unit-tested on both clients: seq-gap/regression/unsupported-version/resync-requested all trigger a full resync)

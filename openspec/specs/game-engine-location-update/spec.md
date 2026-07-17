@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines the internal `POST /game-engine/{gameId}/location-update` endpoint and the `GET /game-engine/{gameId}/stream` SSE endpoint in the Games API. The location-update endpoint is called exclusively by the game engine Job to push batched participant coordinates; the SSE stream endpoint delivers those location events to connected game clients in real time.
+Defines the internal `POST /game-engine/{gameId}/location-update` endpoint in the Games API and how accepted coordinates are broadcast to game clients over Azure Web PubSub. The location-update endpoint is called exclusively by the game engine Job to push batched participant coordinates; each accepted coordinate is published as a `player-location-updated` event to the game's Web PubSub group (one group per game), from which connected clients receive it in real time.
 
 ## Requirements
 
@@ -33,35 +33,37 @@ The system SHALL expose a `POST /game-engine/{gameId}/location-update` endpoint 
 #### Scenario: Empty array results in no broadcast
 
 - **WHEN** the request body is an empty array
-- **THEN** the system responds with HTTP 200 OK and emits no SSE events
+- **THEN** the system responds with HTTP 200 OK and emits no location events
 
-### Requirement: Broadcast via Server-Sent Events
+### Requirement: Broadcast via Azure Web PubSub
 
-For each valid `{ UserId, GpsLocation }` entry in the accepted payload, the system SHALL emit an SSE event to all clients currently connected to the game's SSE stream. Each event SHALL carry the `UserId` and the `GpsLocation`. The SSE stream for a game SHALL be accessible at `GET /game-engine/{gameId}/stream` and SHALL use the `text/event-stream` content type. Clients MUST connect to the stream before game events are emitted; the system does not buffer past events for late-connecting clients.
+For each valid `{ UserId, GpsLocation }` entry in the accepted payload, the system SHALL publish a `player-location-updated` event to the game's Azure Web PubSub group (one group per game, group name equal to the game id). Each event SHALL be a `{ "type": "player-location-updated", "data": <payload> }` envelope whose `data` carries the participant's identity, role, GPS location, and current player state. Clients receive events over native WebSocket connections established via the notifications token endpoint; the system does not buffer past events for clients that connect later.
+
+To prevent information leakage between prey, the system SHALL NOT deliver a prey participant's location to other prey. Hunter location updates SHALL be delivered to every prey in the game; a prey's location update SHALL be delivered only to the hunter.
 
 #### Scenario: Connected clients receive location events
 
-- **WHEN** the location-update endpoint processes a payload with N valid entries and K clients are connected to the game's SSE stream
-- **THEN** each of the K clients receives N SSE events, one per eligible participant, each carrying that participant's `UserId` and `GpsLocation`
+- **WHEN** the location-update endpoint processes a payload with N valid entries and K clients are joined to the game's Web PubSub group
+- **THEN** each eligible client receives a `player-location-updated` event per eligible participant, each carrying that participant's identity, role, `GpsLocation`, and current player state
 
 #### Scenario: No connected clients results in no error
 
-- **WHEN** the location-update endpoint processes a valid payload but no clients are connected to the game's SSE stream
+- **WHEN** the location-update endpoint processes a valid payload but no clients are joined to the game's Web PubSub group
 - **THEN** the endpoint still responds with HTTP 200 OK and no error occurs
 
-#### Scenario: Client connects to SSE stream
+#### Scenario: Hunter location broadcast to prey
 
-- **WHEN** an authenticated game participant sends a GET request to `/game-engine/{gameId}/stream`
-- **THEN** the connection is held open with `Content-Type: text/event-stream` and the client receives future location events for that game
+- **WHEN** the hunter's coordinate is in the accepted payload while the game is InProgress
+- **THEN** each connected prey participant receives a `player-location-updated` event carrying the hunter's coordinates and role `Hunter`
 
-#### Scenario: SSE stream for unknown game is rejected
+#### Scenario: Prey location not delivered to other prey
 
-- **WHEN** a client requests the SSE stream for a `gameId` that does not exist
-- **THEN** the system responds with HTTP 404 Not Found
+- **WHEN** a prey participant's coordinate is in the accepted payload
+- **THEN** the prey's location is delivered only to the hunter and no `player-location-updated` event for it reaches other prey participants
 
 ### Requirement: Internal endpoint protection
 
-The `POST /game-engine/{gameId}/location-update` endpoint SHALL NOT be accessible from the public internet. It SHALL be restricted to calls originating from within the Azure Container Apps environment. Additionally, the endpoint SHALL require a shared secret — passed as an `X-Engine-Key` HTTP header — that is configured via environment variable. Requests missing the header or presenting the wrong value SHALL be rejected with HTTP 401 Unauthorized. The `GET /game-engine/{gameId}/stream` SSE endpoint SHALL require a valid user authentication token (the same JWT authentication used by all other Games API endpoints).
+The `POST /game-engine/{gameId}/location-update` endpoint SHALL NOT be accessible from the public internet. It SHALL be restricted to calls originating from within the Azure Container Apps environment. Additionally, the endpoint SHALL require a shared secret — passed as an `X-Engine-Key` HTTP header — that is configured via environment variable. Requests missing the header or presenting the wrong value SHALL be rejected with HTTP 401 Unauthorized. Client access to the game's Web PubSub group SHALL require a valid user authentication token: clients obtain a short-lived, group-scoped access URL from the notifications token endpoint using the same JWT authentication used by all other Games API endpoints.
 
 #### Scenario: Request with correct engine key is accepted
 
@@ -73,7 +75,7 @@ The `POST /game-engine/{gameId}/location-update` endpoint SHALL NOT be accessibl
 - **WHEN** the location-update endpoint receives a request with a missing or incorrect `X-Engine-Key` header
 - **THEN** the system responds with HTTP 401 Unauthorized
 
-#### Scenario: SSE stream requires user authentication
+#### Scenario: Real-time access requires user authentication
 
-- **WHEN** an unauthenticated client requests the SSE stream
+- **WHEN** an unauthenticated client requests a Web PubSub access token for the game
 - **THEN** the system responds with HTTP 401 Unauthorized

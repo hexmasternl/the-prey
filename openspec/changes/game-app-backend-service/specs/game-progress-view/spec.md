@@ -10,7 +10,7 @@ single shared progress page, because hunters and preys see different information
 
 Both routes SHALL be protected by the authentication guard. The lobby page SHALL
 navigate the player to the route matching their role when the game transitions to
-the InProgress state (detected via the SSE `game-started` event). Each page SHALL
+the InProgress state (detected via the Web PubSub `game-started` event). Each page SHALL
 display the player's role context and a location-tracking status indicator.
 
 #### Scenario: Player arrives at the role-specific page after game starts
@@ -55,7 +55,7 @@ warning that location reporting is inactive.
 ### Requirement: Location tracking stops when the game ends
 
 The in-game pages SHALL call `GameLocationService.stop()` when they detect the game
-has ended (received from the backend via the SSE `game-ended` event or the service's
+has ended (received from the backend via the Web PubSub `game-ended` event or the service's
 own end-time guard) or when the local player is eliminated (Tagged / Out). After
 stopping, the page SHALL navigate the player away from the in-game view (to a results
 screen if one exists, otherwise to home).

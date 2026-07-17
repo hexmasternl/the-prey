@@ -80,7 +80,7 @@ Android requires a persistent notification for foreground services. The notifica
 
 ### Decision 7: Game end time calculated by the client
 
-The service receives `gameEndTime: Date` computed as `startedAt + gameDuration * 60 * 1000`. When the current time exceeds this, the service calls `stop()` automatically. This is the primary stop condition; a secondary stop is triggered when the game-progress page navigates away (game ended detected via SSE or polling on that page).
+The service receives `gameEndTime: Date` computed as `startedAt + gameDuration * 60 * 1000`. When the current time exceeds this, the service calls `stop()` automatically. This is the primary stop condition; a secondary stop is triggered when the game-progress page navigates away (game ended detected via the Web PubSub event or polling on that page).
 
 ## Risks / Trade-offs
 

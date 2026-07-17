@@ -2,20 +2,23 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
 import { GameStreamService } from './game-stream.service';
 import * as WebPubSubStreamModule from '../core/web-pubsub-stream';
+import { RealtimeEnvelope } from '../core/web-pubsub-stream';
 
 /** Lightweight stand-in that captures callbacks without opening a real WebSocket. */
 class FakeWebPubSubStream {
   started = false;
   stopped = false;
 
-  private messageHandler?: (envelope: { type: string; data: unknown }) => void;
+  private messageHandler?: (envelope: RealtimeEnvelope) => void;
   private reconnectedHandler?: () => void;
   private connectedHandler?: () => void;
+  private unavailableHandler?: () => void;
 
   constructor(public options: WebPubSubStreamModule.WebPubSubStreamOptions) {
     this.messageHandler = options.onMessage;
     this.connectedHandler = options.onConnected;
     this.reconnectedHandler = options.onReconnected;
+    this.unavailableHandler = options.onUnavailable;
   }
 
   async start(): Promise<void> {
@@ -28,13 +31,17 @@ class FakeWebPubSubStream {
   }
 
   /** Test helper: simulate a group-message arriving from the server. */
-  emit(type: string, data: unknown): void {
-    this.messageHandler?.({ type, data });
+  emit(type: string, data: unknown, seq = 1, v = 1): void {
+    this.messageHandler?.({ v, type, gameId: 'game-1', seq, data });
   }
 
   /** Test helper: simulate the SDK reconnecting after a drop. */
   simulateReconnect(): void {
     this.reconnectedHandler?.();
+  }
+
+  simulateUnavailable(): void {
+    this.unavailableHandler?.();
   }
 }
 
@@ -70,27 +77,26 @@ describe('GameStreamService', () => {
     expect(lastFakeStream.started).toBeTrue();
   });
 
-  it('dispatches received messages to registered handlers', async () => {
-    const received: unknown[] = [];
+  it('forwards the full versioned envelope to the registered message handler', async () => {
+    const received: RealtimeEnvelope[] = [];
     service.connect('game-1');
-    service.on<{ gameId: string; newState: string }>('state-changed', (p) => received.push(p));
+    service.onMessage((envelope) => received.push(envelope));
     await Promise.resolve();
 
-    lastFakeStream.emit('state-changed', { gameId: 'game-1', newState: 'InProgress' });
+    lastFakeStream.emit('configuration-changed', { status: 'InProgress' }, 7);
 
-    expect(received).toEqual([{ gameId: 'game-1', newState: 'InProgress' }]);
+    expect(received).toEqual([
+      { v: 1, type: 'configuration-changed', gameId: 'game-1', seq: 7, data: { status: 'InProgress' } },
+    ]);
   });
 
-  it('does not call handlers for unregistered event types', async () => {
-    const called = jasmine.createSpy('handler');
+  it('fires onConnected once the socket joins the group', async () => {
+    const handler = jasmine.createSpy('connected');
     service.connect('game-1');
-    service.on('player-location-updated', called);
+    service.onConnected(handler);
     await Promise.resolve();
 
-    // Emit an event that has no handler registered
-    lastFakeStream.emit('state-changed', { gameId: 'game-1' });
-
-    expect(called).not.toHaveBeenCalled();
+    expect(handler).toHaveBeenCalled();
   });
 
   it('fires onReconnected after a stream reconnect', async () => {
@@ -104,10 +110,21 @@ describe('GameStreamService', () => {
     expect(reconnects).toBe(1);
   });
 
+  it('fires onUnavailable when the stream reports a terminal 403', async () => {
+    const handler = jasmine.createSpy('unavailable');
+    service.connect('game-1');
+    service.onUnavailable(handler);
+    await Promise.resolve();
+
+    lastFakeStream.simulateUnavailable();
+
+    expect(handler).toHaveBeenCalled();
+  });
+
   it('stops the stream and clears handlers on disconnect()', async () => {
     const handler = jasmine.createSpy('handler');
     service.connect('game-1');
-    service.on('game-ended', handler);
+    service.onMessage(handler);
     await Promise.resolve();
 
     service.disconnect();
@@ -119,9 +136,9 @@ describe('GameStreamService', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it('does not throw when a handler throws', async () => {
+  it('does not throw when a message handler throws', async () => {
     service.connect('game-1');
-    service.on('game-ended', () => { throw new Error('handler error'); });
+    service.onMessage(() => { throw new Error('handler error'); });
     await Promise.resolve();
 
     expect(() => lastFakeStream.emit('game-ended', {})).not.toThrow();

@@ -32,9 +32,10 @@ public class GameRealtimeConnectionTests
     private const string AckSuccess = """{"type":"ack","ackId":1,"success":true}""";
     private const string AckDuplicate = """{"type":"ack","ackId":1,"success":false,"error":{"name":"Duplicate"}}""";
 
-    private static string GroupMessage(string eventType) =>
-        "{\"type\":\"message\",\"from\":\"group\",\"data\":{\"type\":\"" + eventType +
-        "\",\"data\":{\"gameId\":\"" + Guid.NewGuid() + "\"}}}";
+    // Mirrors the canonical envelope { v, type, gameId, seq, data } from docs/api/realtime.md.
+    private static string GroupMessage(string eventType, int v = 1, long seq = 1, Guid? gameId = null) =>
+        "{\"type\":\"message\",\"from\":\"group\",\"data\":{\"v\":" + v + ",\"type\":\"" + eventType +
+        "\",\"gameId\":\"" + (gameId ?? Guid.NewGuid()) + "\",\"seq\":" + seq + ",\"data\":{}}}";
 
     // Advances the fake clock in coarse steps until a condition holds (fires whatever backoff timer is pending).
     private static async Task AdvanceUntilAsync(Func<bool> condition, FakeTimeProvider time)
@@ -111,10 +112,32 @@ public class GameRealtimeConnectionTests
         sut.Start(Guid.NewGuid());
         await socket.Opened.WaitAsync(Timeout);
         socket.Push(AckSuccess);
-        socket.Push(GroupMessage("state-changed"));
+        socket.Push(GroupMessage("configuration-changed"));
 
         var received = await envelope.Task.WaitAsync(Timeout);
-        Assert.Equal("state-changed", received.Type);
+        Assert.Equal("configuration-changed", received.Type);
+        await sut.StopAsync();
+    }
+
+    [Fact]
+    public async Task GroupMessage_ShouldParseVersionSeqAndGameId()
+    {
+        var gameId = Guid.NewGuid();
+        var socket = new FakeWebSocketConnection();
+        var (sut, _, _, _, _) = Build(socket);
+        var envelope = new TaskCompletionSource<GameRealtimeEnvelope>(TaskCreationOptions.RunContinuationsAsynchronously);
+        sut.EnvelopeReceived += e => envelope.TrySetResult(e);
+
+        sut.Start(gameId);
+        await socket.Opened.WaitAsync(Timeout);
+        socket.Push(AckSuccess);
+        socket.Push(GroupMessage("prey-updated", v: 1, seq: 42, gameId: gameId));
+
+        var received = await envelope.Task.WaitAsync(Timeout);
+        Assert.Equal("prey-updated", received.Type);
+        Assert.Equal(1, received.Version);
+        Assert.Equal(42, received.Seq);
+        Assert.Equal(gameId, received.GameId);
         await sut.StopAsync();
     }
 

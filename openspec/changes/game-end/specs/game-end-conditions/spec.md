@@ -31,7 +31,7 @@ The `Game` aggregate SHALL support eliminating a prey participant via `Eliminate
 
 ### Requirement: Game ends when all preys are eliminated
 
-The system SHALL automatically transition an `InProgress` game to `Completed` when all preys have a `ParticipantActiveStatus` of `Tagged` or `Out`. When this condition is detected, the `Winner` SHALL be `Hunter` and `EndedAt` SHALL be set to the current UTC time. The system SHALL publish a `state-changed` SSE event carrying `newState: "Completed"` and `winner: "Hunter"`.
+The system SHALL automatically transition an `InProgress` game to `Completed` when all preys have a `ParticipantActiveStatus` of `Tagged` or `Out`. When this condition is detected, the `Winner` SHALL be `Hunter` and `EndedAt` SHALL be set to the current UTC time. The system SHALL broadcast a `state-changed` event to the game's Web PubSub group carrying `newState: "Completed"` and `winner: "Hunter"`.
 
 #### Scenario: Last prey is eliminated and game ends
 
@@ -45,7 +45,7 @@ The system SHALL automatically transition an `InProgress` game to `Completed` wh
 
 ### Requirement: Game ends when scheduled duration expires
 
-The system SHALL automatically detect when an `InProgress` game's `ScheduledEndAt` (start time plus `GameDuration`) has passed and transition it to `Completed`. If at least one prey is still `Active` at expiry, the `Winner` SHALL be `Preys`. If all preys are `Tagged` or `Out` at expiry, the `Winner` SHALL be `Hunter`. `EndedAt` SHALL be set to the current UTC time. The system SHALL publish a `state-changed` SSE event carrying `newState: "Completed"` and the determined `winner`.
+The system SHALL automatically detect when an `InProgress` game's `ScheduledEndAt` (start time plus `GameDuration`) has passed and transition it to `Completed`. If at least one prey is still `Active` at expiry, the `Winner` SHALL be `Preys`. If all preys are `Tagged` or `Out` at expiry, the `Winner` SHALL be `Hunter`. `EndedAt` SHALL be set to the current UTC time. The system SHALL broadcast a `state-changed` event to the game's Web PubSub group carrying `newState: "Completed"` and the determined `winner`.
 
 #### Scenario: Time expires with at least one active prey
 
@@ -104,11 +104,11 @@ The `Game` aggregate SHALL carry a nullable `Winner` field (enum: `Hunter`, `Pre
 - **WHEN** `Game.Complete` is called on a game that is already `Completed`
 - **THEN** the aggregate throws `InvalidOperationException`
 
-### Requirement: state-changed SSE event carries winner
+### Requirement: state-changed Web PubSub event carries winner
 
-When a game transitions to `Completed`, the `state-changed` SSE event data SHALL include a `winner` field containing `"Hunter"` or `"Preys"`.
+When a game transitions to `Completed`, the `state-changed` event broadcast to the game's Web PubSub group SHALL include a `winner` field containing `"Hunter"` or `"Preys"`.
 
 #### Scenario: state-changed event includes winner on game end
 
-- **WHEN** the game transitions to `Completed` and a `state-changed` event is published via `IGameEventBus`
-- **THEN** connected SSE clients receive a `state-changed` event with `newState: "Completed"` and `winner` set to the determined winner string
+- **WHEN** the game transitions to `Completed` and a `state-changed` event is published on the in-process event bus and broadcast to the game's Web PubSub group
+- **THEN** connected clients receive a `state-changed` event with `newState: "Completed"` and `winner` set to the determined winner string

@@ -24,30 +24,16 @@ The system SHALL allow the owner of a game that is in the `Lobby` state to delet
 - **WHEN** an authenticated user sends a delete request for a game identifier that does not exist
 - **THEN** the system responds with HTTP 404 Not Found
 
-### Requirement: SSE game-events stream
+### Requirement: Game-deleted event broadcast to the Web PubSub group
 
-The system SHALL expose a `GET /games/{id}/events` endpoint that streams Server-Sent Events to authenticated callers. The endpoint SHALL accept the bearer token either in the `Authorization` header or as a `token` query parameter, to accommodate clients that cannot set custom headers (e.g., browser `EventSource`). The stream SHALL remain open until the server closes it or the client disconnects. Only authenticated users MAY subscribe to the stream.
-
-#### Scenario: Authenticated client subscribes to events
-
-- **WHEN** an authenticated client connects to `GET /games/{id}/events`
-- **THEN** the server establishes an SSE stream and holds it open
-
-#### Scenario: Unauthenticated client is rejected
-
-- **WHEN** a client connects to `GET /games/{id}/events` without a valid token
-- **THEN** the server responds with HTTP 401 Unauthorized
-
-### Requirement: Game-deleted SSE notification
-
-When a game is deleted, the system SHALL broadcast a `game-deleted` SSE event to every client currently subscribed to that game's event stream. The event payload SHALL include the game identifier and the event type `game-deleted`. After broadcasting, the server SHALL close the SSE stream for that game (no further events are possible on a deleted game).
+When a game is deleted, the system SHALL broadcast a `game-deleted` event to the game's Web PubSub group (group name equal to the game id) over the existing real-time path: the command handler publishes to the in-process event bus, which is relayed as an integration event over Dapr pub/sub to the Notifications module, which calls `IWebPubSubBroadcaster.SendToGameAsync(gameId, "game-deleted", payload)`. The event SHALL be delivered as a `{ "type": "game-deleted", "data": <payload> }` message whose payload includes the game identifier. No new streaming endpoint is introduced.
 
 #### Scenario: Connected participants receive the game-deleted event
 
-- **WHEN** the owner deletes a Lobby-state game and one or more clients are subscribed to `GET /games/{id}/events`
-- **THEN** each subscribed client receives an SSE event with type `game-deleted` and the game identifier, and the stream is subsequently closed by the server
+- **WHEN** the owner deletes a Lobby-state game and one or more clients are connected to that game's Web PubSub group
+- **THEN** each connected client receives a `game-deleted` message carrying the game identifier over its existing Web PubSub connection
 
-#### Scenario: No event sent when no clients are subscribed
+#### Scenario: No event delivered when no clients are connected
 
-- **WHEN** the owner deletes a game and no clients are currently subscribed to the event stream
-- **THEN** the deletion completes successfully with no error
+- **WHEN** the owner deletes a game and no clients are currently connected to the game's Web PubSub group
+- **THEN** the deletion completes successfully with no error and the event is simply not received by anyone

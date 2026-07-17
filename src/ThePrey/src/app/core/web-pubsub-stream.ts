@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -8,24 +8,43 @@ interface ConnectionTokenResponse {
 }
 
 /**
+ * The versioned real-time envelope every group message carries — see
+ * `docs/api/realtime.md`. `v` is the protocol major version, `seq` a per-game
+ * monotonically increasing sequence number (gap detection), and `data`'s shape
+ * depends on `type`.
+ */
+export interface RealtimeEnvelope<T = unknown> {
+  v: number;
+  type: string;
+  gameId: string;
+  seq: number;
+  data: T;
+}
+
+/**
  * Options for WebPubSubStream.
  *
  * - `gameId` — the game to join; used to build the token URL and the group name.
  * - `http` — Angular HttpClient that already has `authTokenInterceptor` attached,
  *   so the token request carries the user's Bearer token automatically.
  * - `onMessage` — called for every group message arriving from the server;
- *   receives the raw `{ type, data }` envelope already parsed.
+ *   receives the versioned envelope already parsed.
  * - `onConnected` / `onReconnected` — called once the socket is open AND we have
- *   joined the game's group (first connect / after a drop). Pages call
- *   `pollStatus()` from here to catch events missed while the socket was down.
+ *   joined the game's group (first connect / after a drop). Callers use this to
+ *   trigger a full-snapshot resync so nothing missed while the socket was down
+ *   (or before the first connect) is lost.
+ * - `onUnavailable` — called once the token endpoint returns a terminal `403`
+ *   (the caller is no longer a member of the game). The stream stops permanently
+ *   and does not schedule further reconnects.
  * - `log` / `logError` — optional debug sinks (console.info / console.error by default).
  */
 export interface WebPubSubStreamOptions {
   gameId: string;
   http: HttpClient;
-  onMessage: (envelope: { type: string; data: unknown }) => void;
+  onMessage: (envelope: RealtimeEnvelope) => void;
   onConnected?: () => void;
   onReconnected?: () => void;
+  onUnavailable?: () => void;
   log?: (msg: string) => void;
   logError?: (msg: string, ...args: unknown[]) => void;
 }
@@ -98,6 +117,15 @@ export class WebPubSubStream {
     try {
       url = await this.fetchConnectionUrl();
     } catch (err) {
+      if (err instanceof HttpErrorResponse && err.status === 403) {
+        // Terminal: the caller is no longer a member of this game's group. Stop
+        // permanently rather than retrying forever against a token endpoint that
+        // will never succeed for us again.
+        this.logError('token request forbidden (403) — stopping, reporting unavailable', err);
+        this.stopped = true;
+        this.options.onUnavailable?.();
+        return;
+      }
       this.logError('failed to obtain Web PubSub connection url', err);
       this.scheduleReconnect();
       return;
@@ -183,7 +211,8 @@ export class WebPubSubStream {
 
   private dispatchGroupData(data: unknown): void {
     // The server sends ApplicationJson, so with the json subprotocol `data` is already the
-    // parsed envelope `{ type, data }`. Be defensive in case it arrives as a JSON string.
+    // parsed versioned envelope `{ v, type, gameId, seq, data }`. Be defensive in case it
+    // arrives as a JSON string.
     let envelope: unknown;
     try {
       envelope = typeof data === 'string' ? JSON.parse(data) : data;
@@ -192,7 +221,16 @@ export class WebPubSubStream {
       return;
     }
     if (envelope && typeof envelope === 'object' && typeof (envelope as { type?: unknown }).type === 'string') {
-      this.options.onMessage(envelope as { type: string; data: unknown });
+      const raw = envelope as { v?: unknown; type: string; gameId?: unknown; seq?: unknown; data?: unknown };
+      this.options.onMessage({
+        // Missing/non-numeric v or seq are surfaced as NaN so the consumer's version/gap
+        // checks — which never treat NaN as a supported/continuous value — force a resync.
+        v: typeof raw.v === 'number' ? raw.v : NaN,
+        type: raw.type,
+        gameId: typeof raw.gameId === 'string' ? raw.gameId : this.options.gameId,
+        seq: typeof raw.seq === 'number' ? raw.seq : NaN,
+        data: raw.data,
+      });
     } else {
       this.logError('group message without a type field — ignored', envelope);
     }

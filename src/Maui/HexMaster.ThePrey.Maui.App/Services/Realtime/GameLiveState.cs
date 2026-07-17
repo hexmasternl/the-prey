@@ -51,6 +51,9 @@ public sealed record GameLiveState
     /// <summary>Prey locations supplied to a hunter viewer by the role-specific state read.</summary>
     public IReadOnlyList<GpsCoordinate> PreyLocations { get; init; } = [];
 
+    /// <summary>The game's outcome once known (<c>configuration-changed</c>/<c>game-ended</c>), or <c>null</c> before then.</summary>
+    public string? Outcome { get; init; }
+
     /// <summary>True while the game is actively running.</summary>
     public bool IsInProgress => string.Equals(Status, "InProgress", StringComparison.OrdinalIgnoreCase);
 

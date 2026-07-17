@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games;
+using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.IntegrationEvents;
 
 namespace HexMaster.ThePrey.Games.Features.TagPlayer;
 
@@ -48,13 +50,13 @@ public sealed class TagPlayerCommandHandler : ICommandHandler<TagPlayerCommand, 
 
             await _games.UpdateAsync(game, ct);
 
-            await _eventBus.PublishAsync(game.Id,
-                new ParticipantStatusChangedEvent(game.Id, command.TargetParticipantId, "Prey", "Tagged"), ct);
+            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.PreyUpdated,
+                new PreyUpdatedDto(command.TargetParticipantId, RealtimeProtocol.PreyEvents.Tagged, "Tagged", null, null), ct);
 
             if (gameEnded)
             {
                 _metrics.RecordGameCompleted(game.Outcome.ToString());
-                await _eventBus.PublishAsync(game.Id, game.ToGameEndedEvent(), ct);
+                await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded, game.ToGameEndedNotificationDto(), ct);
             }
 
             return new TagPlayerResult();

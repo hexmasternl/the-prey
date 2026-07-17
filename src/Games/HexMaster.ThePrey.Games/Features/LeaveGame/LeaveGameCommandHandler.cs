@@ -4,6 +4,7 @@ using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Games;
+using HexMaster.ThePrey.IntegrationEvents;
 
 namespace HexMaster.ThePrey.Games.Features.LeaveGame;
 
@@ -80,8 +81,7 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
             // Owner leaving the lobby cancels (ends) the game.
             game.EndByOwner(_timeProvider.GetUtcNow());
             await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, game.ToGameEndedEvent(), ct);
-            await _lobbyEventBus.PublishAsync(game.Id, "game-ended", game.ToDto(), ct);
+            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded, game.ToGameEndedNotificationDto(), ct);
         }
         else
         {
@@ -90,7 +90,7 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
 
             game.RemoveLobbyPlayer(userId);
             await _games.UpdateAsync(game, ct);
-            await _lobbyEventBus.PublishAsync(game.Id, "lobby-updated", game.ToDto(), ct);
+            await _lobbyEventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantRemoved, new { userId }, ct);
         }
     }
 
@@ -106,8 +106,7 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
         {
             game.EndByOwner(_timeProvider.GetUtcNow());
             await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, game.ToGameEndedEvent(), ct);
-            await _lobbyEventBus.PublishAsync(game.Id, "game-ended", game.ToDto(), ct);
+            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded, game.ToGameEndedNotificationDto(), ct);
         }
         else
         {
@@ -125,15 +124,15 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
             // Hunter leaving an in-progress game ends it.
             game.EndByOwner(_timeProvider.GetUtcNow());
             await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, game.ToGameEndedEvent(), ct);
+            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded, game.ToGameEndedNotificationDto(), ct);
         }
         else
         {
             // Prey forfeits.
             game.Forfeit(userId);
             await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id,
-                new ParticipantStatusChangedEvent(game.Id, userId, "Prey", "Out"), ct);
+            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged,
+                game.ToParticipantDto(userId), ct);
         }
     }
 }

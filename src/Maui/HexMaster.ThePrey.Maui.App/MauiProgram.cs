@@ -192,14 +192,6 @@ namespace HexMaster.ThePrey.Maui.App
                 client.Timeout = TimeSpan.FromSeconds(15);
             });
 
-            // Lobby live-event stream (typed HttpClient). The SSE connection is long-lived, so it must
-            // not carry a request timeout that would abort the stream — teardown is via cancellation.
-            services.AddHttpClient<ILobbyStreamClient, LobbyStreamClient>(client =>
-            {
-                client.BaseAddress = new Uri(EnsureTrailingSlash(options.BackendBaseUrl));
-                client.Timeout = Timeout.InfiniteTimeSpan;
-            });
-
             // In-game real-time state. One shared singleton owns a single Web PubSub connection for the
             // active game and is the app's single source of truth for its state. The token flow reuses the
             // IGameApiClient typed HttpClient (a short GET); the long-lived transport is the ClientWebSocket

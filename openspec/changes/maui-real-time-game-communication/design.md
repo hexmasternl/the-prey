@@ -7,7 +7,7 @@ The MAUI app already contains a complete, unit-tested, DI-registered shared game
 
 Nothing consumes this stack. The live paths actually in use today are three **separate** connections:
 
-- `GameLobbyViewModel` → `ILobbyStreamClient` (SSE, `GET /games/{id}/lobby/stream`), started on `ActivateAsync`, stopped on `Deactivate`.
+- `GameLobbyViewModel` → `ILobbyStreamClient` (a separate lobby-stream connection over the legacy transport), started on `ActivateAsync`, stopped on `Deactivate`.
 - `HunterGameViewModel` → `IGameStreamClient` (its own Web PubSub socket), started on `ActivateAsync`, stopped on `Deactivate`.
 - `PreyGameViewModel` → `IGameStreamClient` (its own Web PubSub socket), started on `ActivateAsync`, stopped on `Deactivate`.
 
@@ -29,7 +29,7 @@ Constraints:
 
 **Non-Goals:**
 - No change to `GameStateService` / `GameRealtimeConnection` internals or to `maui-game-state-service` spec behavior — they already do what we need.
-- No backend change. The token endpoint, group-broadcast event contract, and `GET /games/{id}/status` are untouched. (The backend SSE lobby-stream endpoint simply stops being called by MAUI.)
+- No backend change in this change. The token endpoint, group-broadcast event contract, and `GET /games/{id}/status` are untouched. (The backend lobby-stream endpoint simply stops being called by MAUI, and has since been removed.)
 - No change to how the play pages obtain static geometry — they keep the one-time `GET /games/{id}/status` seed and the head-start countdown.
 - No change to background location reporting.
 
@@ -60,7 +60,7 @@ Alternative — expose the typed envelope stream from the shared connection to t
 
 ### Decision 4: Retire `ILobbyStreamClient` and `IGameStreamClient`
 
-Once all three ViewModels are on the shared service, the SSE lobby client and the per-page Web PubSub client are unreferenced. Remove the interfaces, implementations, DI registrations, and their tests. This is the point of the change — collapse three connection implementations into one.
+Once all three ViewModels are on the shared service, the legacy lobby client and the per-page Web PubSub client are unreferenced. Remove the interfaces, implementations, DI registrations, and their tests. This is the point of the change — collapse three connection implementations into one.
 
 ## Risks / Trade-offs
 

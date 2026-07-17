@@ -5,6 +5,8 @@ using HexMaster.ThePrey.Maui.App.Services.Authentication;
 using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
 using HexMaster.ThePrey.Maui.App.Services.Platform;
+using HexMaster.ThePrey.Maui.App.Services.Realtime;
+using HexMaster.ThePrey.Maui.App.Services.Session;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -30,7 +32,8 @@ public sealed class GameLobbyViewModel : ObservableObject
     public const string GameIdQueryKey = "gameId";
 
     private readonly IGameApiClient _gameApi;
-    private readonly ILobbyStreamClient _stream;
+    private readonly IGameStateService _gameState;
+    private readonly ICurrentUserProvider _currentUser;
     private readonly IShareService _shareService;
     private readonly ILobbyNavigator _navigator;
     private readonly IAccessTokenProvider _accessTokenProvider;
@@ -41,13 +44,12 @@ public sealed class GameLobbyViewModel : ObservableObject
     private Guid? _targetGameId;
     private Guid? _gameId;
     private Guid? _hunterUserId;
-    private string? _lastToken;
+    private Guid? _selfUserId;
     private GameDetails? _lastSnapshot;
     private bool _seeding;
     private bool _handedOff;
     private bool _isReadyToStart;
-
-    private CancellationTokenSource? _streamCts;
+    private bool _subscribed;
 
     private bool _isBusy;
     private bool _isLoaded;
@@ -63,7 +65,8 @@ public sealed class GameLobbyViewModel : ObservableObject
 
     public GameLobbyViewModel(
         IGameApiClient gameApi,
-        ILobbyStreamClient stream,
+        IGameStateService gameState,
+        ICurrentUserProvider currentUser,
         IShareService shareService,
         ILobbyNavigator navigator,
         IAccessTokenProvider accessTokenProvider,
@@ -72,7 +75,8 @@ public sealed class GameLobbyViewModel : ObservableObject
         ILogger<GameLobbyViewModel> logger)
     {
         _gameApi = gameApi;
-        _stream = stream;
+        _gameState = gameState;
+        _currentUser = currentUser;
         _shareService = shareService;
         _navigator = navigator;
         _accessTokenProvider = accessTokenProvider;
@@ -194,9 +198,6 @@ public sealed class GameLobbyViewModel : ObservableObject
     /// <summary>Start is enabled only when the loaded game reports it is ready to start (and not busy).</summary>
     public bool CanStart => IsOwner && _isReadyToStart && !IsBusy;
 
-    /// <summary>Exposed for tests: awaits the in-flight lobby-stream consumption started by <see cref="ActivateAsync"/>.</summary>
-    internal Task? StreamTask { get; private set; }
-
     /// <summary>
     /// Sets the specific game the lobby should open, supplied by the page from the <c>gameId</c> navigation
     /// query when arriving from create/join. When set, <see cref="LoadAsync"/> loads this game directly by
@@ -207,19 +208,56 @@ public sealed class GameLobbyViewModel : ObservableObject
 
     /// <summary>
     /// Called when the page appears: loads the current game, then (if it loaded and has not already handed
-    /// off to gameplay) subscribes to the live lobby stream.
+    /// off to gameplay) opens the shared Web PubSub game channel and subscribes to its live snapshots.
     /// </summary>
     public async Task ActivateAsync()
     {
         _handedOff = false;
+        _selfUserId = await _currentUser.GetUserIdAsync() ?? _selfUserId;
         await LoadAsync();
 
-        if (!HasError && !_handedOff && _gameId is Guid id && _lastToken is string token)
-            StartStream(id, token);
+        if (HasError || _handedOff || _gameId is not Guid id)
+            return;
+
+        // One shared connection per active game (lobby → gameplay). Start it here; the service reconciles a
+        // full snapshot on connect and pushes each lobby event as a full game snapshot over Web PubSub.
+        _gameState.Start(id);
+        if (!_subscribed)
+        {
+            _gameState.Subscribe(OnGameStateChanged);
+            _subscribed = true;
+        }
+
+        // Apply the freshest snapshot in case the service advanced between our load and the subscription.
+        if (_gameState.CurrentGame is { } latest)
+            ApplySnapshot(latest, allowHandOff: true);
     }
 
-    /// <summary>Called when the page disappears: cancels the live lobby subscription.</summary>
-    public void Deactivate() => StopStream();
+    /// <summary>Called when the page disappears: unsubscribes and tears down the live connection.</summary>
+    public void Deactivate()
+    {
+        if (_subscribed)
+        {
+            _gameState.Unsubscribe(OnGameStateChanged);
+            _subscribed = false;
+        }
+
+        _ = _gameState.StopAsync();
+    }
+
+    // Each notification the shared store publishes (connect/reconcile GET, or a participant/configuration
+    // delta merged onto the store's game record) carries the current raw game record. A group broadcast is
+    // one shared payload for the whole group, so its per-recipient IsOwnerPlayer arrives false —
+    // ApplySnapshot derives ownership itself.
+    private void OnGameStateChanged(GameStateChanged change)
+    {
+        if (_handedOff)
+            return;
+
+        // A configuration-changed delta reporting Started/InProgress is the genuine signal to hand off.
+        if (change.Game is { } game)
+            ApplySnapshot(game, allowHandOff: true);
+    }
 
     /// <summary>Resolves the active game and loads its full state, mapping each outcome to a distinct display state.</summary>
     public async Task LoadAsync()
@@ -235,8 +273,6 @@ public sealed class GameLobbyViewModel : ObservableObject
                 SetLoadError();
                 return;
             }
-
-            _lastToken = token;
 
             var gameId = await ResolveGameIdAsync(token);
             if (gameId is not Guid id)
@@ -301,10 +337,10 @@ public sealed class GameLobbyViewModel : ObservableObject
     }
 
     // Replaces the whole VM state from a snapshot (load, command response, or stream event). Only a load
-    // (resuming an already-started game) or a live stream frame (the game-started broadcast) may hand off
-    // to gameplay — signalled by <paramref name="allowHandOff"/>. A lobby command response (designate
-    // hunter, set ready, save settings) is always a pure lobby action that cannot start the game, so it
-    // must never navigate, even if the server echoes back an unexpected status.
+    // (resuming an already-started game) or a live stream update (a configuration-changed delta reporting
+    // Started/InProgress) may hand off to gameplay — signalled by <paramref name="allowHandOff"/>. A lobby
+    // command response (designate hunter, set ready, save settings) is always a pure lobby action that
+    // cannot start the game, so it must never navigate, even if the server echoes back an unexpected status.
     private void ApplySnapshot(GameDetails game, bool allowHandOff = false)
     {
         _lastSnapshot = game;
@@ -313,7 +349,14 @@ public sealed class GameLobbyViewModel : ObservableObject
         _isReadyToStart = game.IsReadyToStart;
 
         PassCode = game.GameCode;
-        IsOwner = game.IsOwnerPlayer;
+
+        // Ownership is stamped per-recipient only on the direct GET (which the load and the channel's
+        // connect/reconcile use, so it starts correct). A live Web PubSub event, by contrast, is one shared
+        // GameDto broadcast to the whole group with IsOwnerPlayer=false — so never downgrade a known owner,
+        // and derive from the owner id when we know our own user. Mirrors the Ionic lobby.
+        IsOwner = game.IsOwnerPlayer
+            || IsOwner
+            || (_selfUserId is Guid self && game.OwnerUserId == self);
 
         SeedSelectors(game.Configuration);
         RebuildParticipants(game);
@@ -571,43 +614,6 @@ public sealed class GameLobbyViewModel : ObservableObject
 
         _handedOff = true;
         await _navigator.GoToGameplayAsync();
-    }
-
-    private void StartStream(Guid gameId, string accessToken)
-    {
-        StopStream();
-        var cts = new CancellationTokenSource();
-        _streamCts = cts;
-        StreamTask = ConsumeStreamAsync(gameId, accessToken, cts.Token);
-    }
-
-    private async Task ConsumeStreamAsync(Guid gameId, string accessToken, CancellationToken ct)
-    {
-        try
-        {
-            await foreach (var snapshot in _stream.Subscribe(gameId, accessToken, ct).WithCancellation(ct))
-            {
-                if (_handedOff)
-                    break;
-                // The live stream carries the game-started broadcast — the genuine signal to hand off.
-                ApplySnapshot(snapshot, allowHandOff: true);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Normal on deactivate.
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "The lobby stream ended unexpectedly.");
-        }
-    }
-
-    private void StopStream()
-    {
-        _streamCts?.Cancel();
-        _streamCts?.Dispose();
-        _streamCts = null;
     }
 
     private void UpdateDerived()

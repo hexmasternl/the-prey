@@ -13,7 +13,7 @@ The system SHALL validate:
 3. The current time is at or after the game's `HunterMayMoveAt` (`StartedAt + HunterDelayTime`).
 4. The target participant exists in the game, has role `Prey`, and has `PlayerState` of `Active` or `Passive`.
 
-On success the system SHALL set the target participant's `PlayerState` to `Tagged` (irreversible) and publish a `participant-status-changed` event via `IGameEventBus`.
+On success the system SHALL set the target participant's `PlayerState` to `Tagged` (irreversible) and publish a `participant-status-changed` event to the game's Azure Web PubSub group.
 
 #### Scenario: Hunter successfully tags an Active prey
 

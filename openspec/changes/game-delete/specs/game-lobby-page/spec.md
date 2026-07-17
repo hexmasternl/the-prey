@@ -14,30 +14,30 @@ The client application SHALL provide a Game Lobby page at the route `/games/:id/
 - **WHEN** an unauthenticated user navigates to `/games/:id/lobby`
 - **THEN** the application redirects them to the login page
 
-### Requirement: SSE subscription for real-time game events
+### Requirement: Consume the Web PubSub group for real-time game events
 
-The lobby page SHALL subscribe to the server-sent events stream at `GET /games/:id/events` using the browser `EventSource` API when the page becomes active (`ionViewWillEnter`). The subscription SHALL use the authenticated user's access token passed as a `token` query parameter. The page SHALL close the `EventSource` connection when the component is destroyed (`ngOnDestroy`). On loss of connection the client SHALL attempt to reconnect and, on reconnect, re-fetch the current game state as a fallback to detect events missed during the gap.
+The lobby page SHALL consume the game's existing group-scoped Web PubSub connection (obtained via the token endpoint `GET /games/:id/notifications/token`, native WebSocket with subprotocol `json.webpubsub.azure.v1`, joined to group `{gameId}`) rather than opening its own real-time transport. The page SHALL handle incoming `{ type, data }` messages for the current game. On loss of connection the client SHALL reconnect with backoff and, on reconnect, re-fetch the current game state via `GET /games/:id` to reconcile events missed during the gap.
 
-#### Scenario: Lobby page subscribes on enter
+#### Scenario: Lobby page receives events over the shared connection
 
-- **WHEN** the lobby page becomes active
-- **THEN** an `EventSource` connection is opened to `GET /games/:id/events?token=<jwt>`
+- **WHEN** the lobby page becomes active for a game
+- **THEN** it consumes the game's group-scoped Web PubSub connection and receives `{ type, data }` messages for that game without opening a second transport
 
-#### Scenario: Connection is closed on destroy
+#### Scenario: Missed events are reconciled on reconnect
 
-- **WHEN** the user navigates away from the lobby page
-- **THEN** the `EventSource` connection is closed
+- **WHEN** the Web PubSub connection drops and later reconnects
+- **THEN** the page re-fetches the current game state via `GET /games/:id` and reconciles any events missed during the gap
 
 ### Requirement: Game-deleted alert in the lobby
 
-When the lobby page receives a `game-deleted` SSE event, the page SHALL display a dismissible, thematically styled (military/tactical language) red alert banner informing participants that the game session was aborted by the host. The alert text SHALL use translated strings that match the overall tone of the application. The Create Game button (or any start action) SHALL become disabled. The user MAY tap a button in the alert to return to the home page.
+When the lobby page receives a `game-deleted` event over its Web PubSub connection, the page SHALL display a dismissible, thematically styled (military/tactical language) red alert banner informing participants that the game session was aborted by the host. The alert text SHALL use translated strings that match the overall tone of the application. The Create Game button (or any start action) SHALL become disabled. The user MAY tap a button in the alert to return to the home page.
 
 #### Scenario: Participants see the game-deleted alert
 
-- **WHEN** the lobby page receives a `game-deleted` SSE event for the current game
+- **WHEN** the lobby page receives a `game-deleted` event for the current game
 - **THEN** a red dismissible alert is displayed with thematic text indicating the host aborted the operation, and a navigation button to the home page is shown
 
 #### Scenario: Alert is also shown when re-fetched state is Deleted
 
-- **WHEN** the lobby page re-fetches game state on SSE reconnect and the status is Deleted
-- **THEN** the same red alert is displayed as if the SSE event had been received
+- **WHEN** the lobby page re-fetches game state on Web PubSub reconnect and the status is Deleted
+- **THEN** the same red alert is displayed as if the `game-deleted` event had been received

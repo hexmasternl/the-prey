@@ -1,8 +1,10 @@
+using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Games.Tests.Factories;
+using HexMaster.ThePrey.IntegrationEvents;
 using Moq;
 
 namespace HexMaster.ThePrey.Games.Tests.Features;
@@ -20,7 +22,7 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
     public RecordPlayerLocationCommandHandlerTests()
     {
-        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
+        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
             .Returns(ValueTask.CompletedTask);
         _handler = CreateHandler(Now);
     }
@@ -103,9 +105,9 @@ public sealed class RecordPlayerLocationCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldNotPublishParticipantLocatedEvent_WhenHunterRecordsLocation()
+    public async Task Handle_ShouldNotPublishLocationsUpdated_WhenHunterRecordsLocation()
     {
-        // Broadcasts are now sweep-only; ingest must NOT emit ParticipantLocatedEvent.
+        // Broadcasts are now sweep-only; ingest must NOT emit locations-updated.
         var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: GameFaker.ValidConfiguration());
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
@@ -114,14 +116,15 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         _eventBus.Verify(b => b.PublishAsync(
             It.IsAny<Guid>(),
-            It.IsAny<ParticipantLocatedEvent>(),
+            RealtimeProtocol.MessageTypes.LocationsUpdated,
+            It.IsAny<object>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_ShouldNotPublishParticipantLocatedEvent_WhenPreyRecordsLocation()
+    public async Task Handle_ShouldNotPublishLocationsUpdated_WhenPreyRecordsLocation()
     {
-        // Broadcasts are now sweep-only; ingest must NOT emit ParticipantLocatedEvent.
+        // Broadcasts are now sweep-only; ingest must NOT emit locations-updated.
         var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
@@ -130,7 +133,8 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         _eventBus.Verify(b => b.PublishAsync(
             It.IsAny<Guid>(),
-            It.IsAny<ParticipantLocatedEvent>(),
+            RealtimeProtocol.MessageTypes.LocationsUpdated,
+            It.IsAny<object>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -145,7 +149,8 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         _eventBus.Verify(b => b.PublishAsync(
             It.IsAny<Guid>(),
-            It.IsAny<ParticipantStatusChangedEvent>(),
+            RealtimeProtocol.MessageTypes.ParticipantChanged,
+            It.IsAny<object>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -165,8 +170,8 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         _eventBus.Verify(b => b.PublishAsync(
             game.Id,
-            It.Is<ParticipantStatusChangedEvent>(e =>
-                e.ParticipantId == preyId && e.NewState == "Active" && e.ParticipantRole == "Prey"),
+            RealtimeProtocol.MessageTypes.ParticipantChanged,
+            It.Is<ParticipantDto>(d => d.UserId == preyId && d.State == "Active"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -185,7 +190,8 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         _eventBus.Verify(b => b.PublishAsync(
             It.IsAny<Guid>(),
-            It.IsAny<ParticipantStatusChangedEvent>(),
+            RealtimeProtocol.MessageTypes.ParticipantChanged,
+            It.IsAny<object>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -209,7 +215,8 @@ public sealed class RecordPlayerLocationCommandHandlerTests
         // No status events should have been emitted either.
         _eventBus.Verify(b => b.PublishAsync(
             It.IsAny<Guid>(),
-            It.IsAny<ParticipantStatusChangedEvent>(),
+            RealtimeProtocol.MessageTypes.ParticipantChanged,
+            It.IsAny<object>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 

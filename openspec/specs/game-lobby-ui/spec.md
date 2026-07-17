@@ -75,14 +75,14 @@ Each participant who is not the game owner SHALL see a "Ready" button that they 
 
 #### Scenario: Ready button re-enabled after settings change
 - **WHEN** the game owner updates a setting and the server resets all non-owner ready states
-- **THEN** the SSE update arrives and the "Ready" button becomes enabled again for all non-ready participants
+- **THEN** the lobby snapshot arrives via Web PubSub and the "Ready" button becomes enabled again for all non-ready participants
 
 #### Scenario: Game owner does not see a Ready button
 - **WHEN** the game owner views the lobby page
 - **THEN** no "Ready" button is displayed
 
-### Requirement: Real-time lobby updates via SSE
-The lobby page SHALL maintain a live connection to the server SSE stream for the duration of the lobby visit. All participant and settings changes SHALL be reflected immediately without a manual refresh.
+### Requirement: Real-time lobby updates via Web PubSub
+The lobby page SHALL maintain a live Azure Web PubSub connection for the duration of the lobby visit. On entering the page it SHALL request a group-scoped client access URL from `GET /games/{id}/notifications/token`, open a native WebSocket using the `json.webpubsub.azure.v1` subprotocol, and join the game's group (group name equal to the game id). Each lobby event (`lobby-updated`, `settings-updated`, `ready-updated`, `hunter-designated`, `hunter-changed`, `game-started`) arrives as a `{ type, data }` envelope whose `data` is the full `GameDto`, so all participant and settings changes are reflected immediately without a manual refresh. On leaving the page the connection SHALL be closed.
 
 #### Scenario: Player joins while lobby is open
 - **WHEN** another player joins the lobby while the current user's lobby page is open
@@ -90,15 +90,15 @@ The lobby page SHALL maintain a live connection to the server SSE stream for the
 
 #### Scenario: Settings updated while lobby is open
 - **WHEN** the game owner updates settings
-- **THEN** all participants' lobby pages reflect the new configuration immediately via the SSE event
+- **THEN** all participants' lobby pages reflect the new configuration immediately via the Web PubSub event
 
-#### Scenario: SSE stream opened on page enter
+#### Scenario: Web PubSub connection opened on page enter
 - **WHEN** a participant navigates to the lobby page
-- **THEN** an SSE connection is established to `GET /games/{id}/lobby/stream`
+- **THEN** the page requests a token from `GET /games/{id}/notifications/token`, opens a Web PubSub WebSocket, and joins the game's group
 
-#### Scenario: SSE stream closed on page leave
+#### Scenario: Web PubSub connection closed on page leave
 - **WHEN** a participant navigates away from the lobby page
-- **THEN** the SSE connection is closed
+- **THEN** the Web PubSub connection is closed
 
 ### Requirement: Lobby navigates participants to their role view when the game is armed
 

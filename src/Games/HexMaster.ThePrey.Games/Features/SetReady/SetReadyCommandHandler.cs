@@ -2,6 +2,7 @@ using System.Diagnostics;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.IntegrationEvents;
 
 namespace HexMaster.ThePrey.Games.Features.SetReady;
 
@@ -35,7 +36,7 @@ public sealed class SetReadyCommandHandler : ICommandHandler<SetReadyCommand, Se
             game.SetReady(command.UserId);
 
             await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, "ready-updated", game.ToDto(), ct);
+            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged, game.ToParticipantDto(command.UserId), ct);
 
             return new SetReadyResult(game.ToDto(command.UserId));
         }

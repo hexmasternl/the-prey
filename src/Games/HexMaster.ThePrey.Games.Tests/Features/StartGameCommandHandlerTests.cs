@@ -1,3 +1,4 @@
+using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.StartGame;
 using HexMaster.ThePrey.Games.Notifications;
@@ -12,20 +13,16 @@ public sealed class StartGameCommandHandlerTests
 {
     private readonly Mock<IGameRepository> _repository = new();
     private readonly Mock<IGameMetrics> _metrics = new();
-    private readonly Mock<IGameEventBus> _eventBus = new();
     private readonly Mock<ILobbyEventBus> _lobbyEventBus = new();
     private readonly StartGameCommandHandler _handler;
 
     public StartGameCommandHandlerTests()
     {
-        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
-            .Returns(ValueTask.CompletedTask);
-        _lobbyEventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()))
+        _lobbyEventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
             .Returns(ValueTask.CompletedTask);
         _handler = new StartGameCommandHandler(
             _repository.Object,
             _metrics.Object,
-            _eventBus.Object,
             _lobbyEventBus.Object,
             Mock.Of<ILogger<StartGameCommandHandler>>());
     }
@@ -51,22 +48,7 @@ public sealed class StartGameCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldPublishStartedStateChanged_WhenArmed()
-    {
-        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
-        game.DesignateHunter(ids[0]);
-        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
-
-        await _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None);
-
-        _eventBus.Verify(b => b.PublishAsync(
-            game.Id,
-            It.Is<StateChangedEvent>(e => e.NewState == "Started"),
-            It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldPublishLobbyGameStartedEvent_WhenArmed()
+    public async Task Handle_ShouldPublishConfigurationChanged_WhenArmed()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
         game.DesignateHunter(ids[0]);
@@ -76,8 +58,8 @@ public sealed class StartGameCommandHandlerTests
 
         _lobbyEventBus.Verify(b => b.PublishAsync(
             game.Id,
-            "game-started",
-            It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(),
+            "configuration-changed",
+            It.Is<GameConfigurationChangedDto>(d => d.Status == GameStatus.Started.ToString()),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

@@ -1,3 +1,4 @@
+using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.GameEngine;
 using HexMaster.ThePrey.Games.Observability;
@@ -76,7 +77,7 @@ public sealed class GameSweepProcessorTests
         Assert.NotNull(prey.Location);
         Assert.All(prey.Locations, l => Assert.True(l.Checked));
         _publisher.Verify(p => p.PublishAsync(
-            It.Is<PlayerLocationUpdatedIntegrationEvent>(e => e.UserId == preyIds[0]),
+            It.Is<GameNotificationIntegrationEvent>(e => HasLocationFor(e, preyIds[0])),
             It.IsAny<CancellationToken>()), Times.Once);
         _games.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -133,7 +134,7 @@ public sealed class GameSweepProcessorTests
         Assert.True(prey.HasActivePenalty(now));
         Assert.Equal(now.AddMinutes(Game.PenaltyDurationMinutes), prey.ActivePenaltyEndsAt(now));
         _publisher.Verify(p => p.PublishAsync(
-            It.Is<PlayerPenalizedIntegrationEvent>(e => e.UserId == preyIds[0]),
+            It.Is<GameNotificationIntegrationEvent>(e => IsPenaltyFor(e, preyIds[0])),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -167,7 +168,9 @@ public sealed class GameSweepProcessorTests
         var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
 
         Assert.Equal(0, result.Penalties);
-        _publisher.Verify(p => p.PublishAsync(It.IsAny<PlayerPenalizedIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => e.Name == RealtimeProtocol.MessageTypes.PreyUpdated),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -188,7 +191,7 @@ public sealed class GameSweepProcessorTests
         Assert.Equal(1, second.Broadcasts); // re-broadcast while the penalty is active, without new readings
         Assert.Equal(0, second.Penalties);  // no stacking while the penalty is active
         _publisher.Verify(p => p.PublishAsync(
-            It.Is<PlayerLocationUpdatedIntegrationEvent>(e => e.UserId == preyIds[0]),
+            It.Is<GameNotificationIntegrationEvent>(e => HasLocationFor(e, preyIds[0])),
             It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
@@ -206,7 +209,9 @@ public sealed class GameSweepProcessorTests
 
         Assert.Equal(1, first.Penalties);
         Assert.Equal(1, afterExpiry.Penalties);
-        _publisher.Verify(p => p.PublishAsync(It.IsAny<PlayerPenalizedIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => e.Name == RealtimeProtocol.MessageTypes.PreyUpdated),
+            It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -233,7 +238,9 @@ public sealed class GameSweepProcessorTests
         var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
 
         Assert.Equal(0, result.Penalties);
-        _publisher.Verify(p => p.PublishAsync(It.IsAny<PlayerPenalizedIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => e.Name == RealtimeProtocol.MessageTypes.PreyUpdated),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -246,7 +253,9 @@ public sealed class GameSweepProcessorTests
 
         Assert.True(result.Completed);
         Assert.Equal(GameStatus.Completed, game.Status);
-        _publisher.Verify(p => p.PublishAsync(It.IsAny<GameEndedIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Once);
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => e.Name == RealtimeProtocol.MessageTypes.GameEnded),
+            It.IsAny<CancellationToken>()), Times.Once);
         _metrics.Verify(m => m.RecordGameCompleted(It.IsAny<string>()), Times.Once);
         _games.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -275,11 +284,12 @@ public sealed class GameSweepProcessorTests
         var expectedEndsAt = game.HunterMayMoveAt!.Value.AddMinutes(Game.HunterDelayPenaltyMinutes);
         Assert.True(hunter.HasActivePenalty(now));
         _publisher.Verify(p => p.PublishAsync(
-            It.Is<PlayerPenalizedIntegrationEvent>(e =>
+            It.Is<GameNotificationIntegrationEvent>(e =>
                 e.GameId == game.Id &&
-                e.UserId == hunterId &&
-                e.PenaltyEndsAt == expectedEndsAt &&
-                e.Reason == "moved-during-delay"),
+                e.Name == RealtimeProtocol.MessageTypes.PreyUpdated &&
+                ((PreyUpdatedDto)e.Payload).UserId == hunterId &&
+                ((PreyUpdatedDto)e.Payload).PenaltyEndsAt == expectedEndsAt &&
+                ((PreyUpdatedDto)e.Payload).Reason == "moved-during-delay"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -301,7 +311,7 @@ public sealed class GameSweepProcessorTests
 
         Assert.Equal(1, result.Penalties);
         _publisher.Verify(p => p.PublishAsync(
-            It.Is<PlayerPenalizedIntegrationEvent>(e => e.UserId == hunterId && e.Reason == "moved-during-delay"),
+            It.Is<GameNotificationIntegrationEvent>(e => IsHeadStartPenaltyFor(e, hunterId)),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -323,7 +333,7 @@ public sealed class GameSweepProcessorTests
         Assert.Equal(1, first.Penalties);
         Assert.Equal(0, second.Penalties);
         _publisher.Verify(p => p.PublishAsync(
-            It.Is<PlayerPenalizedIntegrationEvent>(e => e.Reason == "moved-during-delay"),
+            It.Is<GameNotificationIntegrationEvent>(e => IsHeadStartPenalty(e)),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -342,7 +352,7 @@ public sealed class GameSweepProcessorTests
 
         Assert.Equal(0, result.Penalties);
         _publisher.Verify(p => p.PublishAsync(
-            It.Is<PlayerPenalizedIntegrationEvent>(e => e.Reason == "moved-during-delay"),
+            It.Is<GameNotificationIntegrationEvent>(e => IsHeadStartPenalty(e)),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -450,7 +460,7 @@ public sealed class GameSweepProcessorTests
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldPublishStateChangedBroadcast_WhenPromotingArmedGame()
+    public async Task ProcessAsync_ShouldPublishConfigurationChangedBroadcast_WhenPromotingArmedGame()
     {
         var game = ArmedGame(out _, out _);
         SetupGame(game);
@@ -459,7 +469,7 @@ public sealed class GameSweepProcessorTests
 
         _publisher.Verify(p => p.PublishAsync(
             It.Is<GameNotificationIntegrationEvent>(e =>
-                e.GameId == game.Id && e.Name == "state-changed"),
+                e.GameId == game.Id && e.Name == RealtimeProtocol.MessageTypes.ConfigurationChanged),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -504,9 +514,9 @@ public sealed class GameSweepProcessorTests
 
         // StartedAt must not change.
         Assert.Equal(originalStartedAt, game.StartedAt);
-        // No state-changed GameNotification should ever be published.
+        // No configuration-changed GameNotification should ever be published for an already-InProgress game.
         _publisher.Verify(p => p.PublishAsync(
-            It.Is<GameNotificationIntegrationEvent>(e => e.Name == "state-changed"),
+            It.Is<GameNotificationIntegrationEvent>(e => e.Name == RealtimeProtocol.MessageTypes.ConfigurationChanged),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -521,4 +531,22 @@ public sealed class GameSweepProcessorTests
         Assert.Equal(GameTickResult.None, result);
         _games.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    // ── GameNotificationIntegrationEvent payload matchers ───────────────────────
+
+    private static bool HasLocationFor(GameNotificationIntegrationEvent e, Guid userId) =>
+        e.Name == RealtimeProtocol.MessageTypes.LocationsUpdated
+        && ((LocationsUpdatedDto)e.Payload).Locations.Any(l => l.UserId == userId);
+
+    private static bool IsPenaltyFor(GameNotificationIntegrationEvent e, Guid userId) =>
+        e.Name == RealtimeProtocol.MessageTypes.PreyUpdated
+        && ((PreyUpdatedDto)e.Payload).UserId == userId
+        && ((PreyUpdatedDto)e.Payload).Event == RealtimeProtocol.PreyEvents.Penalized;
+
+    private static bool IsHeadStartPenalty(GameNotificationIntegrationEvent e) =>
+        e.Name == RealtimeProtocol.MessageTypes.PreyUpdated
+        && ((PreyUpdatedDto)e.Payload).Reason == "moved-during-delay";
+
+    private static bool IsHeadStartPenaltyFor(GameNotificationIntegrationEvent e, Guid userId) =>
+        IsHeadStartPenalty(e) && ((PreyUpdatedDto)e.Payload).UserId == userId;
 }

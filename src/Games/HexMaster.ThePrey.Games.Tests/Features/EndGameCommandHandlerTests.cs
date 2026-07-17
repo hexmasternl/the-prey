@@ -1,7 +1,9 @@
+using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.EndGame;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Tests.Factories;
+using HexMaster.ThePrey.IntegrationEvents;
 using Moq;
 
 namespace HexMaster.ThePrey.Games.Tests.Features;
@@ -12,21 +14,16 @@ public sealed class EndGameCommandHandlerTests
 
     private readonly Mock<IGameRepository> _repository = new();
     private readonly Mock<IGameEventBus> _eventBus = new();
-    private readonly Mock<ILobbyEventBus> _lobbyEventBus = new();
     private readonly EndGameCommandHandler _handler;
 
     public EndGameCommandHandlerTests()
     {
-        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
-            .Returns(ValueTask.CompletedTask);
-        _lobbyEventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(),
-                It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()))
+        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
             .Returns(ValueTask.CompletedTask);
 
         _handler = new EndGameCommandHandler(
             _repository.Object,
             _eventBus.Object,
-            _lobbyEventBus.Object,
             new FixedTimeProvider(Now));
     }
 
@@ -54,7 +51,7 @@ public sealed class EndGameCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldEndLobbyGame_AndPublishToBothBuses()
+    public async Task Handle_ShouldEndLobbyGame_AndPublishGameEnded()
     {
         var game = GameFaker.LobbyGameWithPlayers(2, out _);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
@@ -64,13 +61,12 @@ public sealed class EndGameCommandHandlerTests
         Assert.NotNull(result);
         Assert.Equal(GameStatus.Completed, game.Status);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
-        _eventBus.Verify(b => b.PublishAsync(game.Id, It.IsAny<GameEndedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
-        _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, "game-ended",
-            It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Once);
+        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded,
+            It.IsAny<GameEndedNotificationDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldEndInProgressGame_PublishGameEventOnly()
+    public async Task Handle_ShouldEndInProgressGame_AndPublishGameEnded()
     {
         var game = GameFaker.StartedGame(out _, out _, Now);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
@@ -80,9 +76,8 @@ public sealed class EndGameCommandHandlerTests
         Assert.NotNull(result);
         Assert.Equal(GameStatus.Completed, game.Status);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
-        _eventBus.Verify(b => b.PublishAsync(game.Id, It.IsAny<GameEndedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
-        _lobbyEventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(),
-            It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded,
+            It.IsAny<GameEndedNotificationDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

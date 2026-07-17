@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: GameCountdownPage is shown to all participants on game start
-When the `GameLobbyPage` receives a `game-started` SSE event, the app SHALL navigate to `GameCountdownPage`. The page SHALL display a full-screen countdown from 10 to 0 using large, high-contrast digits centered on a dark background. When the countdown reaches 0 the page SHALL automatically navigate to `GameInProgressPage`.
+When the `GameLobbyPage` receives a `game-started` event over its Web PubSub connection, the app SHALL navigate to `GameCountdownPage`. The page SHALL display a full-screen countdown from 10 to 0 using large, high-contrast digits centered on a dark background. When the countdown reaches 0 the page SHALL automatically navigate to `GameInProgressPage`.
 
 #### Scenario: Countdown starts immediately on navigation
 - **WHEN** `GameCountdownPage` becomes active
