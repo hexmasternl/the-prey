@@ -305,7 +305,20 @@ public sealed class GameRealtimeConnection : IGameRealtimeConnection
 
         var eventType = typeEl.GetString()!;
         var payload = envelope.TryGetProperty("data", out var d) ? d.Clone() : default;
-        EnvelopeReceived?.Invoke(new GameRealtimeEnvelope(eventType, payload));
+
+        var version = envelope.TryGetProperty("v", out var vEl) && vEl.ValueKind == JsonValueKind.Number
+            ? vEl.GetInt32()
+            : (int?)null;
+        var seq = envelope.TryGetProperty("seq", out var seqEl) && seqEl.ValueKind == JsonValueKind.Number
+            ? seqEl.GetInt64()
+            : (long?)null;
+        var gameId = envelope.TryGetProperty("gameId", out var gameIdEl)
+            && gameIdEl.ValueKind == JsonValueKind.String
+            && Guid.TryParse(gameIdEl.GetString(), out var parsedGameId)
+                ? parsedGameId
+                : (Guid?)null;
+
+        EnvelopeReceived?.Invoke(new GameRealtimeEnvelope(eventType, payload, version, seq, gameId));
     }
 
     private void OnJoined()

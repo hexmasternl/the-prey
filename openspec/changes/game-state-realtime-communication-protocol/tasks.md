@@ -25,13 +25,13 @@
 
 ## 4. MAUI client — conform Game State Service
 
-- [ ] 4.1 Update `GameRealtimeEventTypes` / `GameRealtimePayloads` to the canonical catalog and payload shapes
-- [ ] 4.2 Parse and honor the versioned envelope (`v`, `seq`) in `GameRealtimeConnection` / `GameStateService.ApplyEnvelope`; ignore unsupported `v` and resync
-- [ ] 4.3 Implement `seq` gap/regression detection that triggers a full snapshot resync
-- [ ] 4.4 Handle `resync-requested` by pulling a full snapshot
-- [ ] 4.5 Change the periodic reconcile heartbeat from 5 minutes to 3 minutes
-- [ ] 4.6 Apply lobby deltas (`participant-joined/-changed/-removed`, `configuration-changed`) and batched `locations-updated` incrementally
-- [ ] 4.7 Update MAUI game-state and viewmodel tests to the new catalog and 3-minute resync
+- [x] 4.1 Update `GameRealtimeEventTypes` / `GameRealtimePayloads` to the canonical catalog and payload shapes
+- [x] 4.2 Parse and honor the versioned envelope (`v`, `seq`) in `GameRealtimeConnection` / `GameStateService.ApplyEnvelope`; ignore unsupported `v` and resync
+- [x] 4.3 Implement `seq` gap/regression detection that triggers a full snapshot resync
+- [x] 4.4 Handle `resync-requested` by pulling a full snapshot
+- [x] 4.5 Change the periodic reconcile heartbeat from 5 minutes to 3 minutes
+- [x] 4.6 Apply lobby deltas (`participant-joined/-changed/-removed`, `configuration-changed`) and batched `locations-updated` incrementally
+- [x] 4.7 Update MAUI game-state and viewmodel tests to the new catalog and 3-minute resync
 
 ## 5. Ionic client — build Game State Service
 

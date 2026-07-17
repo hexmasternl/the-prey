@@ -7,17 +7,22 @@ namespace HexMaster.ThePrey.Maui.App.Services.Realtime;
 
 /// <summary>
 /// Default <see cref="IGameStateService"/> — the single in-game store. Subscribes to an
-/// <see cref="IGameRealtimeConnection"/>: each real-time envelope is applied to the in-memory
-/// <see cref="GameLiveState"/> composite, and every (re)connect plus a periodic heartbeat triggers a full
-/// reconcile (game record + rich status + role-specific state) so gaps while the socket was down — and any
-/// values the channel never pushes, like the game clock — are healed. Every change is broadcast to
-/// subscribers, each isolated so one failure cannot starve the others. The service is UI-agnostic; callers
-/// marshal to the UI thread at the subscription boundary.
+/// <see cref="IGameRealtimeConnection"/>: each real-time envelope is checked for protocol version and
+/// sequence continuity, then applied to the in-memory <see cref="GameLiveState"/> composite (and the raw
+/// <see cref="GameDetails"/> the lobby reads) as an additive merge onto that one slice. Every (re)connect,
+/// a periodic heartbeat, a sequence gap/regression, an unsupported protocol version, and a server
+/// <c>resync-requested</c> hint all trigger a full reconcile (game record + rich status + role-specific
+/// state) so gaps while the socket was down — and any values the channel never pushes, like the game clock
+/// — are healed. Every change is broadcast to subscribers, each isolated so one failure cannot starve the
+/// others. The service is UI-agnostic; callers marshal to the UI thread at the subscription boundary.
 /// </summary>
 public sealed class GameStateService : IGameStateService
 {
     /// <summary>Heartbeat cadence for the safety-net reconcile that heals silent drift.</summary>
-    private static readonly TimeSpan ReconcileInterval = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan ReconcileInterval = TimeSpan.FromMinutes(3);
+
+    /// <summary>The highest envelope protocol version this client understands (see <c>docs/api/realtime.md</c>).</summary>
+    private const int SupportedProtocolVersion = 1;
 
     private static readonly JsonSerializerOptions PayloadOptions = new(JsonSerializerDefaults.Web);
 
@@ -34,6 +39,7 @@ public sealed class GameStateService : IGameStateService
     private GameLiveState? _current;
     private GameDetails? _currentGame;
     private Guid _gameId;
+    private long? _lastAppliedSeq;
     private ITimer? _reconcileTimer;
 
     public GameStateService(
@@ -126,7 +132,11 @@ public sealed class GameStateService : IGameStateService
 
     // On (re)connect, pull the authoritative snapshot so any events missed while the socket was down are
     // reconciled. Fire-and-forget: the connection's event is synchronous and must not block its loop.
-    private void OnConnectedOrReconnected() => _ = SafeReconcileAsync();
+    private void OnConnectedOrReconnected() => TriggerResync();
+
+    // Fire-and-forget: used on (re)connect, the periodic heartbeat is separate (owns its own timer callback),
+    // and every resync trigger below (unsupported version, sequence gap/regression, resync-requested).
+    private void TriggerResync() => _ = SafeReconcileAsync();
 
     private async Task SafeReconcileAsync()
     {
@@ -182,6 +192,9 @@ public sealed class GameStateService : IGameStateService
             built = BuildState(game, details, state, _current);
             _current = built;
             _currentGame = game;
+            // A full snapshot is now authoritative; the next delta's seq becomes the new baseline rather
+            // than being checked against whatever we last applied (which may now be stale or unknown).
+            _lastAppliedSeq = null;
         }
         Broadcast(built);
     }
@@ -198,102 +211,183 @@ public sealed class GameStateService : IGameStateService
             Broadcast(updated);
     }
 
-    // Applies one event to the current snapshot under the state lock. Returns the new snapshot when the
-    // state changed, or null when the event was a no-op (unknown type, malformed payload, missing target).
+    // Applies one envelope to the current snapshot. Returns the new snapshot when the state changed, or
+    // null when it did not (unsupported version, sequence gap, a resync hint, unknown type, malformed
+    // payload, missing target, or no baseline snapshot yet) — in every one of those "not applied" cases
+    // other than the last, a full resync has been triggered instead so the state still converges.
     private GameLiveState? ApplyEnvelope(GameRealtimeEnvelope envelope)
     {
         if (string.IsNullOrWhiteSpace(envelope.Type))
+            return null; // Malformed: no type. Ignore, keep the connection open.
+
+        if (envelope.Version is { } version && version > SupportedProtocolVersion)
+        {
+            _logger.LogInformation(
+                "Received protocol version {Version} (supported: {Supported}); triggering a resync instead of applying it.",
+                version, SupportedProtocolVersion);
+            TriggerResync();
             return null;
+        }
+
+        if (string.Equals(envelope.Type, GameRealtimeEventTypes.ResyncRequested, StringComparison.Ordinal))
+        {
+            var reason = Deserialize<ResyncRequestedPayload>(envelope.Data)?.Reason ?? "unspecified";
+            _logger.LogInformation("Server requested a resync ({Reason}).", reason);
+            TriggerResync();
+            return null;
+        }
 
         lock (_stateGate)
         {
-            if (GameRealtimeEventTypes.FullSnapshotEvents.Contains(envelope.Type))
+            if (envelope.Seq is { } seq && !AdmitSequence(seq))
             {
-                var game = Deserialize<GameDetails>(envelope.Data);
-                if (game is null)
-                    return null;
-                // A full-snapshot event (lobby/game-started) carries only the game record; merge it onto the
-                // previous composite so the map's polygon and the participants' last-known locations survive.
-                _current = BuildState(game, details: null, state: null, _current);
-                _currentGame = game;
-                return _current;
+                _logger.LogInformation("Sequence gap/regression detected (seq {Seq}); triggering a resync instead of applying it.", seq);
+                TriggerResync();
+                return null;
             }
 
             var current = _current;
+            if (current is null)
+                return null; // No baseline snapshot yet — nothing to overlay a delta onto.
+
+            var game = _currentGame;
             switch (envelope.Type)
             {
-                case GameRealtimeEventTypes.StateChanged:
+                case GameRealtimeEventTypes.ParticipantJoined:
+                case GameRealtimeEventTypes.ParticipantChanged:
                 {
-                    if (current is null)
-                        return null;
-                    var payload = Deserialize<StateChangedPayload>(envelope.Data);
-                    if (payload is null || string.IsNullOrEmpty(payload.NewState))
-                        return null;
-                    _current = current with { Status = payload.NewState };
-                    return _current;
-                }
-
-                case GameRealtimeEventTypes.PlayerLocationUpdated:
-                {
-                    if (current is null)
-                        return null;
-                    var payload = Deserialize<PlayerLocationUpdatedPayload>(envelope.Data);
+                    var payload = Deserialize<ParticipantPayload>(envelope.Data);
                     if (payload is null)
                         return null;
-                    var participants = UpdateParticipant(current.Participants, payload.UserId, p => p with
-                    {
-                        Location = new GpsCoordinate(payload.Latitude, payload.Longitude),
-                        State = string.IsNullOrEmpty(payload.ParticipantState) ? p.State : payload.ParticipantState,
-                    });
-                    if (participants is null)
-                        return null;
+
+                    var participants = UpsertLiveParticipant(current.Participants, payload);
                     _current = current with
                     {
                         Participants = participants,
                         PreysLeft = CountActivePreys(participants, current.HunterUserId),
                     };
+                    if (game is not null)
+                        _currentGame = game with { Participants = UpsertGameParticipant(game.Participants, payload) };
                     return _current;
                 }
 
-                case GameRealtimeEventTypes.ParticipantStatusChanged:
+                case GameRealtimeEventTypes.ParticipantRemoved:
                 {
-                    if (current is null)
+                    var payload = Deserialize<ParticipantRemovedPayload>(envelope.Data);
+                    if (payload is null)
                         return null;
-                    var payload = Deserialize<ParticipantStatusChangedPayload>(envelope.Data);
-                    if (payload is null || string.IsNullOrEmpty(payload.NewState))
-                        return null;
-                    var participants = UpdateParticipant(current.Participants, payload.ParticipantId,
-                        p => p with { State = payload.NewState });
+
+                    var participants = RemoveById(current.Participants, payload.UserId, p => p.UserId);
                     if (participants is null)
-                        return null;
+                        return null; // Unknown participant — no-op.
+
                     _current = current with
                     {
                         Participants = participants,
                         PreysLeft = CountActivePreys(participants, current.HunterUserId),
                     };
+                    if (game is not null)
+                    {
+                        var gameParticipants = RemoveById(game.Participants, payload.UserId, p => p.UserId);
+                        if (gameParticipants is not null)
+                            _currentGame = game with { Participants = gameParticipants };
+                    }
                     return _current;
                 }
 
-                case GameRealtimeEventTypes.PlayerPenalized:
+                case GameRealtimeEventTypes.ConfigurationChanged:
                 {
-                    if (current is null)
-                        return null;
-                    var payload = Deserialize<PlayerPenalizedPayload>(envelope.Data);
+                    var payload = Deserialize<ConfigurationChangedPayload>(envelope.Data);
                     if (payload is null)
                         return null;
-                    var participants = UpdateParticipant(current.Participants, payload.UserId,
-                        p => p with { PenaltyEndsAt = payload.PenaltyEndsAt });
-                    if (participants is null)
+
+                    _current = current with
+                    {
+                        Status = payload.Status,
+                        HunterUserId = payload.HunterUserId,
+                        Outcome = payload.Outcome,
+                        PreysLeft = CountActivePreys(current.Participants, payload.HunterUserId),
+                    };
+                    if (game is not null)
+                    {
+                        _currentGame = game with
+                        {
+                            GameCode = payload.GameCode,
+                            Status = payload.Status,
+                            Configuration = payload.Configuration ?? game.Configuration,
+                            HunterUserId = payload.HunterUserId,
+                            OwnerUserId = payload.OwnerUserId,
+                            // Participants, IsOwnerPlayer, and IsReadyToStart are deliberately absent from
+                            // this game-level slice — preserved verbatim from the current game record.
+                        };
+                    }
+                    return _current;
+                }
+
+                case GameRealtimeEventTypes.LocationsUpdated:
+                {
+                    var payload = Deserialize<LocationsUpdatedPayload>(envelope.Data);
+                    if (payload is null || payload.Locations.Count == 0)
                         return null;
-                    _current = current with { Participants = participants };
+
+                    var byUserId = payload.Locations.ToDictionary(l => l.UserId);
+                    var matched = false;
+                    var participants = current.Participants.Select(p =>
+                    {
+                        if (!byUserId.TryGetValue(p.UserId, out var location))
+                            return p;
+                        matched = true;
+                        return p with { Location = new GpsCoordinate(location.Latitude, location.Longitude), State = location.State };
+                    }).ToList();
+                    if (!matched)
+                        return null;
+
+                    _current = current with
+                    {
+                        Participants = participants,
+                        PreysLeft = CountActivePreys(participants, current.HunterUserId),
+                    };
+                    if (game is not null)
+                    {
+                        var gameParticipants = game.Participants.Select(p =>
+                            byUserId.TryGetValue(p.UserId, out var location)
+                                ? p with { State = location.State, Latitude = location.Latitude, Longitude = location.Longitude }
+                                : p).ToList();
+                        _currentGame = game with { Participants = gameParticipants };
+                    }
+                    return _current;
+                }
+
+                case GameRealtimeEventTypes.PreyUpdated:
+                {
+                    var payload = Deserialize<PreyUpdatedPayload>(envelope.Data);
+                    if (payload is null)
+                        return null;
+
+                    var participants = UpdateById(current.Participants, payload.UserId, p => p.UserId,
+                        p => ApplyPreyEvent(p, payload));
+                    if (participants is null)
+                        return null; // Unknown participant — no-op.
+
+                    _current = current with
+                    {
+                        Participants = participants,
+                        PreysLeft = CountActivePreys(participants, current.HunterUserId),
+                    };
+                    if (game is not null)
+                    {
+                        var gameParticipants = UpdateById(game.Participants, payload.UserId, p => p.UserId,
+                            p => ApplyPreyEventToGameParticipant(p, payload));
+                        if (gameParticipants is not null)
+                            _currentGame = game with { Participants = gameParticipants };
+                    }
                     return _current;
                 }
 
                 case GameRealtimeEventTypes.GameEnded:
                 {
-                    if (current is null)
-                        return null;
-                    _current = current with { Status = "Completed" };
+                    var payload = Deserialize<GameEndedPayload>(envelope.Data);
+                    _current = current with { Status = "Completed", Outcome = payload?.Outcome ?? current.Outcome };
                     return _current;
                 }
 
@@ -302,6 +396,16 @@ public sealed class GameStateService : IGameStateService
                     return null;
             }
         }
+    }
+
+    // Must be called while holding _stateGate. Accepts (and records) an in-order seq; rejects a gap or
+    // regression without recording it, so the caller can trigger a resync instead of applying the delta.
+    private bool AdmitSequence(long seq)
+    {
+        if (_lastAppliedSeq is { } last && (seq <= last || seq > last + 1))
+            return false;
+        _lastAppliedSeq = seq;
+        return true;
     }
 
     // Merges the authoritative reads into a fresh composite, overlaying the previous snapshot for anything
@@ -328,7 +432,7 @@ public sealed class GameStateService : IGameStateService
         }
         else
         {
-            // No in-progress status read (lobby/ready, or a full-snapshot event): use the game roster and
+            // No in-progress status read (the game is still Lobby/Ready/Started): use the game roster and
             // preserve any location/penalty already known so the map does not blink out.
             participants = game.Participants.Select(p =>
             {
@@ -354,6 +458,7 @@ public sealed class GameStateService : IGameStateService
             PreysLeft = details?.PreysLeft ?? CountActivePreys(participants, hunterUserId),
             HunterDistanceMeters = state?.HunterDistanceMeters ?? previous?.HunterDistanceMeters,
             PreyLocations = state?.PreyLocations ?? previous?.PreyLocations ?? [],
+            Outcome = previous?.Outcome,
         };
     }
 
@@ -396,29 +501,100 @@ public sealed class GameStateService : IGameStateService
         return count;
     }
 
-    // Returns a new participant list with the matching participant transformed, or null when no
-    // participant matches (so the caller can treat it as a no-op instead of a spurious change).
-    private static IReadOnlyList<GameLiveParticipant>? UpdateParticipant(
-        IReadOnlyList<GameLiveParticipant> participants,
-        Guid userId,
-        Func<GameLiveParticipant, GameLiveParticipant> transform)
+    // Adds the payload's participant if absent, or replaces it wholesale if present — a full participant
+    // payload carries every field this composite tracks, so nothing is lost either way. A penalty flag of
+    // false clears any known end time; a flag of true keeps whatever end time we already knew (the exact
+    // instant is authoritative only via prey-updated), since this payload does not carry it.
+    private static IReadOnlyList<GameLiveParticipant> UpsertLiveParticipant(
+        IReadOnlyList<GameLiveParticipant> participants, ParticipantPayload payload)
     {
-        var index = -1;
-        for (var i = 0; i < participants.Count; i++)
-        {
-            if (participants[i].UserId == userId)
-            {
-                index = i;
-                break;
-            }
-        }
+        var index = IndexOf(participants, payload.UserId, p => p.UserId);
+        var previousPenalty = index >= 0 ? participants[index].PenaltyEndsAt : null;
+        var updated = new GameLiveParticipant(
+            payload.UserId,
+            payload.State,
+            payload.LastKnownLocation,
+            payload.HasActivePenalty ? previousPenalty : null);
 
+        if (index < 0)
+            return [.. participants, updated];
+
+        var copy = participants.ToArray();
+        copy[index] = updated;
+        return copy;
+    }
+
+    // Same upsert as above, but for the raw GameDetails.Participants the lobby renders.
+    private static IReadOnlyList<GameParticipantDetails> UpsertGameParticipant(
+        IReadOnlyList<GameParticipantDetails> participants, ParticipantPayload payload)
+    {
+        var index = IndexOf(participants, payload.UserId, p => p.UserId);
+        var previousPenalty = index >= 0 ? participants[index].PenaltyEndsAt : null;
+        var updated = new GameParticipantDetails(
+            payload.UserId,
+            payload.DisplayName,
+            payload.IsReady,
+            payload.State,
+            payload.LastKnownLocation?.Latitude,
+            payload.LastKnownLocation?.Longitude,
+            payload.HasActivePenalty ? previousPenalty : null);
+
+        if (index < 0)
+            return [.. participants, updated];
+
+        var copy = participants.ToArray();
+        copy[index] = updated;
+        return copy;
+    }
+
+    private static GameLiveParticipant ApplyPreyEvent(GameLiveParticipant participant, PreyUpdatedPayload payload) =>
+        payload.Event switch
+        {
+            GameRealtimeEventTypes.PreyEvents.Tagged => participant with { State = payload.State ?? participant.State },
+            GameRealtimeEventTypes.PreyEvents.Penalized => participant with { PenaltyEndsAt = payload.PenaltyEndsAt },
+            GameRealtimeEventTypes.PreyEvents.PenaltyCleared => participant with { PenaltyEndsAt = null },
+            _ => participant,
+        };
+
+    private static GameParticipantDetails ApplyPreyEventToGameParticipant(GameParticipantDetails participant, PreyUpdatedPayload payload) =>
+        payload.Event switch
+        {
+            GameRealtimeEventTypes.PreyEvents.Tagged => participant with { State = payload.State ?? participant.State },
+            GameRealtimeEventTypes.PreyEvents.Penalized => participant with { PenaltyEndsAt = payload.PenaltyEndsAt },
+            GameRealtimeEventTypes.PreyEvents.PenaltyCleared => participant with { PenaltyEndsAt = null },
+            _ => participant,
+        };
+
+    private static int IndexOf<T>(IReadOnlyList<T> items, Guid userId, Func<T, Guid> idSelector)
+    {
+        for (var i = 0; i < items.Count; i++)
+        {
+            if (idSelector(items[i]) == userId)
+                return i;
+        }
+        return -1;
+    }
+
+    // Returns a new list with the matching item transformed, or null when no item matches (a no-op rather
+    // than a spurious change/broadcast).
+    private static IReadOnlyList<T>? UpdateById<T>(
+        IReadOnlyList<T> items, Guid userId, Func<T, Guid> idSelector, Func<T, T> transform)
+    {
+        var index = IndexOf(items, userId, idSelector);
         if (index < 0)
             return null;
 
-        var copy = participants.ToArray();
+        var copy = items.ToArray();
         copy[index] = transform(copy[index]);
         return copy;
+    }
+
+    // Returns a new list with the matching item removed, or null when no item matched (a no-op rather than
+    // a spurious change/broadcast).
+    private static IReadOnlyList<T>? RemoveById<T>(IReadOnlyList<T> items, Guid userId, Func<T, Guid> idSelector)
+    {
+        var filtered = items.Where(i => idSelector(i) != userId).ToList();
+        return filtered.Count == items.Count ? null : filtered;
     }
 
     private static T? Deserialize<T>(JsonElement data) where T : class

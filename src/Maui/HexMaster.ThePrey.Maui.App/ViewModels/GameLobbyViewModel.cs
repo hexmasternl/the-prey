@@ -245,15 +245,16 @@ public sealed class GameLobbyViewModel : ObservableObject
         _ = _gameState.StopAsync();
     }
 
-    // Each snapshot the shared channel publishes (connect/reconcile GET, or a full-snapshot lobby event over
-    // Web PubSub) carries the raw game record. The Web PubSub broadcast is one shared payload for the whole
-    // group, so its per-recipient IsOwnerPlayer arrives false — ApplySnapshot derives ownership itself.
+    // Each notification the shared store publishes (connect/reconcile GET, or a participant/configuration
+    // delta merged onto the store's game record) carries the current raw game record. A group broadcast is
+    // one shared payload for the whole group, so its per-recipient IsOwnerPlayer arrives false —
+    // ApplySnapshot derives ownership itself.
     private void OnGameStateChanged(GameStateChanged change)
     {
         if (_handedOff)
             return;
 
-        // The live stream carries the game-started snapshot — the genuine signal to hand off.
+        // A configuration-changed delta reporting Started/InProgress is the genuine signal to hand off.
         if (change.Game is { } game)
             ApplySnapshot(game, allowHandOff: true);
     }
@@ -336,10 +337,10 @@ public sealed class GameLobbyViewModel : ObservableObject
     }
 
     // Replaces the whole VM state from a snapshot (load, command response, or stream event). Only a load
-    // (resuming an already-started game) or a live stream frame (the game-started broadcast) may hand off
-    // to gameplay — signalled by <paramref name="allowHandOff"/>. A lobby command response (designate
-    // hunter, set ready, save settings) is always a pure lobby action that cannot start the game, so it
-    // must never navigate, even if the server echoes back an unexpected status.
+    // (resuming an already-started game) or a live stream update (a configuration-changed delta reporting
+    // Started/InProgress) may hand off to gameplay — signalled by <paramref name="allowHandOff"/>. A lobby
+    // command response (designate hunter, set ready, save settings) is always a pure lobby action that
+    // cannot start the game, so it must never navigate, even if the server echoes back an unexpected status.
     private void ApplySnapshot(GameDetails game, bool allowHandOff = false)
     {
         _lastSnapshot = game;
