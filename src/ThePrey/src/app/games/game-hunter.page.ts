@@ -31,33 +31,24 @@ import {
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import * as L from 'leaflet';
-import { App } from '@capacitor/app';
-import type { PluginListenerHandle } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   GameDto,
-  GameParticipantStatusDto,
   GameStatusDto,
   GamesService,
   TagCandidateDto,
 } from './games.service';
 import { computeThreatState, ThreatState } from './threat-state';
 import { MAP_COLORS } from '../shared/map-colors';
-import {
-  GameStreamService,
-  PlayerLocationUpdatedPayload,
-  PlayerStatusChangedPayload,
-  ParticipantStatusChangedPayload,
-  PlayerPenalizedPayload,
-  GameEndedPayload,
-} from './game-stream.service';
+import { countActivePreys, GameStateService } from './game-state.service';
 import { GameLocationService } from './game-location.service';
 import { CompassService } from './compass.service';
 import { HunterDelayOverlayComponent } from './hunter-delay-overlay.component';
 import { GameTourComponent, TourStep } from './game-tour.component';
 import { TourService } from './tour.service';
+import { UserStateService } from '../users/user-state.service';
 
 @Component({
   selector: 'app-game-hunter',
@@ -87,8 +78,9 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly gamesService = inject(GamesService);
-  private readonly streamService = inject(GameStreamService);
+  private readonly gameState = inject(GameStateService);
   private readonly locationService = inject(GameLocationService);
+  private readonly userState = inject(UserStateService);
   private readonly compass = inject(CompassService);
   private readonly toastCtrl = inject(ToastController);
   private readonly translate = inject(TranslateService);
@@ -97,13 +89,13 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   /** Device compass heading (degrees clockwise from north); rotates the self arrow. */
   readonly heading = this.compass.heading;
 
-  /** The authenticated user's Auth0 sub — populated from the first status poll. */
+  /** The authenticated user's internal id (User.Id), same identity source as the lobby. */
   private currentUserId: string | null = null;
 
   readonly showSurroundingsWarning = signal(false);
   readonly warningAcknowledged = signal(false);
 
-  /** Seconds left in the game, resynced from the server each poll and ticked down locally every second. */
+  /** Seconds left in the game, reseeded from every full resync and ticked down locally every second. */
   readonly secondsRemaining = signal<number | null>(null);
   readonly timeRemaining = computed(() =>
     this.formatDuration(this.secondsRemaining()),
@@ -153,8 +145,18 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     return !isNaN(metres) && metres < 30;
   });
 
-  readonly preysLeft = signal(0);
-  readonly hasActivePenalty = signal(false);
+  /** Active preys, derived live from the shared game state — never waits for a resync. */
+  readonly preysLeft = computed(() => {
+    const game = this.gameState.state()?.game;
+    return game ? countActivePreys(game) : 0;
+  });
+
+  /** This player's own penalty flag (e.g. for leaving the playfield), read live. */
+  readonly hasActivePenalty = computed(() => {
+    const game = this.gameState.state()?.game;
+    return game?.participants.find((p) => p.userId === this.currentUserId)?.hasActivePenalty ?? false;
+  });
+
   readonly nearestDistance = signal<string>('--');
   /** Collapsed by default: only game time + next-ping show until the HUD is tapped. */
   readonly hudExpanded = signal(false);
@@ -197,10 +199,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   });
   readonly gpsAlert = signal<string | null>(null);
   readonly pingCountdown = signal(30);
-  /** Server-supplied full ping interval (seconds) used as the NEXT UPDATE bar denominator. */
+  /** Latest known full ping interval (seconds) used as the NEXT UPDATE bar denominator. */
   currentPingInterval = 30;
   /** True while the game is in the Started state (armed by the owner but not yet committed by the sweep). */
-  readonly waitingForStart = signal(false);
+  readonly waitingForStart = computed(() => this.gameState.state()?.game.status === 'Started');
   /** Fixed bar duration (seconds) used as MAX when the player is under a boundary penalty. */
   private readonly PENALTY_BAR_SECONDS = 30;
   /** NEXT UPDATE bar fill percentage: countdown / currentPingInterval, clamped 0–100. */
@@ -220,9 +222,9 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly tagAcknowledged = signal(false);
   /** Drives the separate confirmation popup; open whenever a target is pending. */
   readonly tagConfirmOpen = computed(() => this.pendingTag() !== null);
-  /** ISO timestamp at which the hunter may move, from the status poll; drives the countdown overlay. */
+  /** ISO timestamp at which the hunter may move; drives the countdown overlay. */
   readonly hunterMayMoveAt = signal<string | null>(null);
-  /** Ticked every second by the duration timer so delay gating flips without a poll. */
+  /** Ticked every second by the duration timer so delay gating flips without a resync. */
   private readonly nowTick = signal(Date.now());
   /** True while the hunter head-start delay is still running — gates the Tag button. */
   readonly hunterDelayActive = computed(() => {
@@ -249,19 +251,16 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   private preyMarkers = new Map<string, L.CircleMarker>();
   /** Epoch ms when each prey's location was last received, keyed by userId. */
   private preyLastUpdate = new Map<string, number>();
-  /** Local participant state map keyed by userId */
-  private participantStates = new Map<string, string>();
-  private pollTimer: ReturnType<typeof setTimeout> | null = null;
-  private pingIntervalTimer: ReturnType<typeof setInterval> | null = null;
   private durationTimer: ReturnType<typeof setInterval> | null = null;
+  private pingIntervalTimer: ReturnType<typeof setInterval> | null = null;
   private watchId: string | null = null;
-  pollIntervalSeconds = 30;
   private autoFollow = true;
   private selfLatLng: L.LatLng | null = null;
+  /** Detects a fresh full resync (vs. an incremental delta) by object-identity change. */
+  private lastSeenStatus: GameStatusDto | null = null;
+  private lastPenalised: boolean | null = null;
   /** Guard: prevent duplicate game-ended handling */
   private gameEndedHandled = false;
-  /** Capacitor App foreground/background listener — drives resume resync. */
-  private resumeListener: PluginListenerHandle | null = null;
 
   constructor() {
     // Spin the self arrow to match the compass whenever a new heading arrives.
@@ -280,6 +279,58 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         !this.hunterDelayActive() &&
         this.secondsRemaining() !== null;
       if (ready) void this.maybeStartTour();
+    });
+
+    // The single source of truth for everything gameplay-related: reseed the locally-ticked
+    // clock/endgame/hunter-delay values on every fresh full resync (status object identity
+    // change), and keep the NEXT UPDATE bar's cadence in step with the latest known interval
+    // and this player's own penalty state.
+    effect(() => {
+      const status = this.gameState.state()?.status ?? null;
+      const penalised = this.hasActivePenalty();
+
+      const statusChanged = status !== this.lastSeenStatus;
+      const penalisedChanged = penalised !== this.lastPenalised;
+      this.lastSeenStatus = status;
+      this.lastPenalised = penalised;
+
+      if (statusChanged && status) {
+        this.secondsRemaining.set(status.gameDurationLeft);
+        this.isEndgame.set(status.isEndgame ?? false);
+        this.hunterMayMoveAt.set(status.hunterMayMoveAt ?? null);
+        this.drawPlayfield(status.playfieldCoordinates);
+      }
+
+      if (status && (statusChanged || penalisedChanged)) {
+        this.syncPingCadence(status, penalised);
+      }
+    });
+
+    // Render every prey visible to the hunter, sourced from the shared state — never a
+    // separate copy. Skips self; the GPS watch draws the hunter's own marker.
+    effect(() => {
+      const state = this.gameState.state();
+      if (!state || !this.currentUserId) return;
+      for (const p of this.gameState.visibleParticipants(this.currentUserId)) {
+        if (!p.lastKnownLocation) continue;
+        this.upsertPreyBlip(p.userId, p.lastKnownLocation.latitude, p.lastKnownLocation.longitude, p.state);
+      }
+      this.updateNearestDistance();
+    });
+
+    // The game ended — hand off to the outcome screen exactly once.
+    effect(() => {
+      const game = this.gameState.state()?.game;
+      if (game?.status === 'Completed') {
+        this.handleGameEnded(game.outcome, countActivePreys(game));
+      }
+    });
+
+    // A terminal authorization failure — nothing left to reconcile.
+    effect(() => {
+      if (this.gameState.unavailable()) {
+        this.handleGameEnded();
+      }
     });
   }
 
@@ -315,63 +366,17 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.gameId = this.route.snapshot.paramMap.get('id') ?? '';
 
     this.checkSurroundingsWarning();
+    this.currentUserId = this.userState.profile()?.userId ?? null;
 
     this.initMap();
     void this.startGps();
     void this.compass.start();
 
-    // Check if we're entering a game that is still in the Started state (armed by the host
-    // but not yet committed by the sweep). If so, show the waiting overlay immediately
-    // and skip the ping countdown until InProgress arrives via stream.
-    await this.checkReadyState();
-
-    await this.pollStatus();
+    // The single source of truth: loads the full snapshot (idempotent if the lobby already
+    // started it for this game) and keeps the one real-time connection alive.
+    await this.gameState.start(this.gameId);
+    await this.ensureTracking();
     this.startDurationTimer();
-    this.connectStream();
-    void this.registerResumeListener();
-  }
-
-  /**
-   * Check whether the game is currently in the Started state. If so, set waitingForStart
-   * so the overlay is shown and the ping countdown is suppressed until InProgress arrives.
-   */
-  private async checkReadyState(): Promise<void> {
-    try {
-      const game = await this.gamesService.getGame(this.gameId);
-      if (game.status === 'Started') {
-        this.waitingForStart.set(true);
-      }
-    } catch {
-      // Non-fatal — pollStatus will handle any further issues.
-    }
-  }
-
-  /**
-   * Web PubSub delivers nothing while the app is backgrounded or the tab is hidden,
-   * and a socket suspended in the background can be left silently half-open (its
-   * `onclose` never fires, so the stream's own reconnect never kicks in). When the
-   * app returns to the foreground we therefore both re-establish the realtime channel
-   * and re-fetch the status to reconcile anything missed while away. The Capacitor App
-   * plugin fires `appStateChange` on native resume and on web via document visibility.
-   */
-  private async registerResumeListener(): Promise<void> {
-    this.resumeListener = await App.addListener(
-      'appStateChange',
-      ({ isActive }) => {
-        if (isActive) {
-          this.resyncOnResume();
-        }
-      },
-    );
-  }
-
-  private resyncOnResume(): void {
-    if (this.gameEndedHandled) return;
-    // Reconnect the realtime channel (handles the silently-dead-socket case)…
-    this.connectStream();
-    // …and force an immediate status refresh to catch events missed while suspended.
-    this.clearPoll();
-    void this.pollStatus();
   }
 
   /**
@@ -384,15 +389,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   ngOnDestroy(): void {
-    this.clearPoll();
     this.clearPingInterval();
     this.clearDurationTimer();
-    this.streamService.disconnect();
     this.compass.stop();
-    void this.resumeListener?.remove();
-    this.resumeListener = null;
-    // NOTE: intentionally do NOT stop location tracking here — the service must keep
-    // broadcasting while the game is in progress even if the player leaves this page.
+    // NOTE: intentionally do NOT stop location tracking or the shared GameStateService here —
+    // both must keep running while the game is in progress even if the player leaves this page.
     if (this.watchId !== null) {
       Geolocation.clearWatch({ id: this.watchId });
       this.watchId = null;
@@ -423,9 +424,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       }
     }
 
-    // 2. No (valid) stored context — derive the end time from the live game.
+    // 2. No (valid) stored context — derive the end time from the live game (the shared
+    // state if already loaded, else a one-off REST fetch as a cold-start fallback).
     try {
-      const game = await this.gamesService.getGame(this.gameId);
+      const game = this.gameState.state()?.game ?? (await this.gamesService.getGame(this.gameId));
       const end = this.deriveGameEnd(game);
       if (end && end.getTime() > Date.now()) {
         await this.locationService.start(this.gameId, end);
@@ -559,16 +561,10 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     }
   }
 
-  /** Pull-to-refresh: fetch the latest game status and apply it immediately. */
+  /** Pull-to-refresh: force an immediate full resync of the shared game state. */
   async handleRefresh(event: RefresherCustomEvent): Promise<void> {
-    try {
-      const status = await this.gamesService.getGameStatus(this.gameId);
-      this.applyStatus(status);
-    } catch {
-      // Silently ignore — the poll timer will retry shortly
-    } finally {
-      await event.target.complete();
-    }
+    await this.gameState.refreshNow();
+    await event.target.complete();
   }
 
   private initMap(): void {
@@ -675,109 +671,21 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     this.selfArrowEl.style.transform = `rotate(${this.renderedHeading}deg)`;
   }
 
-  private async pollStatus(): Promise<void> {
-    try {
-      const status = await this.gamesService.getGameStatus(this.gameId);
-      // Capture the hunter's own userId from the first status poll
-      if (!this.currentUserId && status.hunterUserId) {
-        this.currentUserId = status.hunterUserId;
-      }
-      this.applyStatus(status);
+  // -------------------------------------------------------------------------
+  // HUD cadence
+  // -------------------------------------------------------------------------
 
-      // A successful status poll means the game is InProgress (the status endpoint only
-      // serves running games). If we entered during the Started state, startedAt was null
-      // and tracking never started — (re)start it now that the game is live. Idempotent:
-      // ensureTracking short-circuits once the location service is broadcasting.
-      void this.ensureTracking();
+  /** Sync the NEXT UPDATE bar's cadence to the latest known interval and penalty regime. */
+  private syncPingCadence(status: GameStatusDto, penalised: boolean): void {
+    const barMax = penalised ? this.PENALTY_BAR_SECONDS : status.currentPingInterval || 30;
+    const sync = penalised
+      ? (status.nextPingDurationWithPenalty ?? barMax)
+      : (status.nextPingDuration ?? barMax);
 
-      // Choose bar regime: penalised players run on a fixed 30-second cadence;
-      // everyone else uses the server-supplied interval.
-      // applyStatus() (called above) has already refreshed hasActivePenalty.
-      const penalised = this.hasActivePenalty();
-      const barMax = penalised
-        ? this.PENALTY_BAR_SECONDS
-        : status.currentPingInterval || 30;
-      const sync = penalised
-        ? (status.nextPingDurationWithPenalty ?? barMax)
-        : (status.nextPingDuration ?? barMax);
-
-      this.currentPingInterval = barMax; // NEXT UPDATE bar denominator
-      this.pollIntervalSeconds = barMax; // steady poll cadence, decoupled from boundary time
-
-      // Only start the ping countdown when the game is actually running.
-      if (!this.waitingForStart()) {
-        // A sync of 0 means a broadcast is imminent — start a fresh full sweep.
-        this.startPingCountdown(sync > 0 ? sync : barMax, barMax);
-      }
-      this.pollTimer = setTimeout(
-        () => this.pollStatus(),
-        this.pollIntervalSeconds * 1000,
-      );
-    } catch {
-      // The status endpoint only serves in-progress games, so an error here may mean the
-      // game ended while we were backgrounded/disconnected and we missed `game-ended`.
-      // Confirm against the full game record before falling back to a plain retry.
-      if (await this.checkGameEndedOnServer()) return;
-      this.pollTimer = setTimeout(() => this.pollStatus(), 30_000);
+    this.currentPingInterval = barMax;
+    if (!this.waitingForStart()) {
+      this.startPingCountdown(sync > 0 ? sync : barMax, barMax);
     }
-  }
-
-  /**
-   * Authoritative fallback for a missed `game-ended` event: fetch the full game record and,
-   * if it has completed, hand off to the outcome screen. Returns true when the game has ended
-   * (navigation triggered), false otherwise. Idempotent via `handleGameEnded`'s guard.
-   * Also sets `waitingForStart` if the game is still in the Started state (status poll failed
-   * because the game is not yet InProgress).
-   */
-  private async checkGameEndedOnServer(): Promise<boolean> {
-    try {
-      const game = await this.gamesService.getGame(this.gameId);
-      if (game.status === 'Completed') {
-        const survivorCount = game.participants.filter(
-          (p) =>
-            p.userId !== game.hunterUserId &&
-            (p.state === 'Active' || p.state === 'Passive'),
-        ).length;
-        this.handleGameEnded({
-          gameId: this.gameId,
-          outcome: game.outcome,
-          survivorCount,
-        });
-        return true;
-      }
-      if (game.status === 'Started') {
-        // The game was armed but the sweep hasn't promoted it yet. Show the waiting overlay.
-        this.waitingForStart.set(true);
-      }
-    } catch {
-      // Game record unreachable — let the caller retry.
-    }
-    return false;
-  }
-
-  private applyStatus(status: GameStatusDto): void {
-    this.secondsRemaining.set(status.gameDurationLeft);
-    this.isEndgame.set(status.isEndgame ?? false);
-    this.preysLeft.set(status.preysLeft);
-    this.hunterMayMoveAt.set(status.hunterMayMoveAt ?? null);
-
-    const hunter =
-      status.participants.find((p) => p.userId === status.hunterUserId) ?? null;
-    const preys = status.participants.filter(
-      (p) => p.userId !== status.hunterUserId,
-    );
-
-    const me = hunter;
-    this.hasActivePenalty.set(me?.hasActivePenalty ?? false);
-
-    // Seed the local state cache from the status snapshot
-    for (const prey of preys) {
-      this.participantStates.set(prey.userId, prey.state);
-    }
-
-    this.drawPlayfield(status.playfieldCoordinates);
-    this.updatePreyBlips(preys);
-    this.updateNearestDistance();
   }
 
   private drawPlayfield(
@@ -796,18 +704,6 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       weight: 2,
     }).addTo(this.map);
     this.map.fitBounds(this.playfieldPolygon.getBounds());
-  }
-
-  private updatePreyBlips(preys: GameParticipantStatusDto[]): void {
-    for (const prey of preys) {
-      if (!prey.lastKnownLocation) continue;
-      this.upsertPreyBlip(
-        prey.userId,
-        prey.lastKnownLocation.latitude,
-        prey.lastKnownLocation.longitude,
-        prey.state,
-      );
-    }
   }
 
   private upsertPreyBlip(
@@ -837,7 +733,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     const existing = this.preyMarkers.get(userId);
     if (existing) {
       // Stamp the receipt time only when the position actually moved, so the
-      // "Ns ago" descriptor reflects a genuinely fresh fix rather than every poll.
+      // "Ns ago" descriptor reflects a genuinely fresh fix rather than every render.
       const prev = existing.getLatLng();
       if (prev.lat !== lat || prev.lng !== lng) {
         this.preyLastUpdate.set(userId, Date.now());
@@ -857,10 +753,11 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       this.nearestUpdatedAt.set(null);
       return;
     }
+    const game = this.gameState.state()?.game;
     let minMetres = Infinity;
     let nearestUserId: string | null = null;
     for (const [userId, marker] of this.preyMarkers.entries()) {
-      const state = this.participantStates.get(userId) ?? 'Active';
+      const state = game?.participants.find((p) => p.userId === userId)?.state ?? 'Active';
       if (state === 'Tagged' || state === 'Out') continue;
       const d = this.selfLatLng.distanceTo(marker.getLatLng());
       if (d < minMetres) {
@@ -905,9 +802,9 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   /**
-   * Tick the next-update countdown down once per second until the next poll resyncs it.
-   * When the counter reaches 0 it rolls over to `max` for a clean full sweep rather than
-   * sticking at 0 until the poll fires.
+   * Tick the next-update countdown down once per second until the next resync/penalty
+   * change resyncs it. When the counter reaches 0 it rolls over to `max` for a clean full
+   * sweep rather than sticking at 0.
    */
   private startPingCountdown(seconds: number, max: number): void {
     this.clearPingInterval();
@@ -918,162 +815,18 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     }, 1000);
   }
 
-  private connectStream(): void {
-    this.streamService.connect(this.gameId);
-
-    // WebSocket reconnected after a drop — refresh the status snapshot immediately
-    // instead of waiting for the next poll tick to catch any missed events.
-    this.streamService.onReconnected(() => {
-      this.clearPoll();
-      void this.pollStatus();
-    });
-
-    // `player-location-updated` replaces the old `participant-located` event.
-    // Arrives ~every 30 s from the sweep; updates the prey blip on the map. Our own
-    // location is drawn in green by the GPS watch, so never plot the hunter's last-known
-    // location as a (red) prey blip.
-    this.streamService.on<PlayerLocationUpdatedPayload>(
-      'player-location-updated',
-      (payload) => {
-        if (payload.userId === this.currentUserId) return;
-        const state =
-          payload.participantState ??
-          this.participantStates.get(payload.userId) ??
-          'Active';
-        this.participantStates.set(payload.userId, state);
-        this.upsertPreyBlip(
-          payload.userId,
-          payload.latitude,
-          payload.longitude,
-          state,
-        );
-        this.updateNearestDistance();
-      },
-    );
-
-    // Status changes arrive from both event names — treat them identically.
-    const onStatusChanged = (userId: string, newState: string): void => {
-      this.participantStates.set(userId, newState);
-      const marker = this.preyMarkers.get(userId);
-      if (marker) {
-        const isInactive = newState === 'Tagged' || newState === 'Out';
-        marker.setStyle(
-          isInactive
-            ? {
-                color: MAP_COLORS.TAGGED,
-                fillColor: MAP_COLORS.TAGGED,
-                fillOpacity: 0.7,
-              }
-            : {
-                color: MAP_COLORS.HUNTER,
-                fillColor: MAP_COLORS.HUNTER,
-                fillOpacity: 0.9,
-              },
-        );
-      }
-      const activeCount = [...this.participantStates.values()].filter(
-        (s) => s === 'Active' || s === 'Passive',
-      ).length;
-      this.preysLeft.set(activeCount);
-      this.updateNearestDistance();
-    };
-
-    this.streamService.on<PlayerStatusChangedPayload>(
-      'player-status-changed',
-      (payload) => {
-        onStatusChanged(payload.userId, payload.newState);
-      },
-    );
-
-    this.streamService.on<ParticipantStatusChangedPayload>(
-      'participant-status-changed',
-      (payload) => {
-        onStatusChanged(payload.participantId, payload.newState);
-      },
-    );
-
-    // Hunter penalty (e.g. for leaving the playfield) — switch to the 30-second penalty
-    // regime immediately so the bar reflects the new cadence without waiting for the next poll.
-    this.streamService.on<PlayerPenalizedPayload>(
-      'player-penalized',
-      (payload) => {
-        if (payload.userId === this.currentUserId) {
-          this.hasActivePenalty.set(true);
-          this.currentPingInterval = this.PENALTY_BAR_SECONDS;
-          this.pollIntervalSeconds = this.PENALTY_BAR_SECONDS;
-          this.startPingCountdown(
-            this.PENALTY_BAR_SECONDS,
-            this.PENALTY_BAR_SECONDS,
-          );
-        }
-      },
-    );
-
-    this.streamService.on('state-changed', () => {
-      this.handleStateChanged();
-    });
-
-    this.streamService.on<GameEndedPayload>('game-ended', (payload) => {
-      this.handleGameEnded(payload);
-    });
-  }
-
-  /**
-   * Handle a game-state transition broadcast from the stream. When the game moves from
-   * Started to InProgress, remove the waiting overlay, seed the ping countdown, and let
-   * normal gameplay begin. The next status poll will supply the full HUD values.
-   */
-  private handleStateChanged(): void {
-    if (this.waitingForStart()) {
-      // Trigger an immediate status poll so the InProgress values (hunterMayMoveAt etc.)
-      // are applied without waiting for the next scheduled tick.
-      this.clearPoll();
-      void this.pollStatusForInProgress();
+  private clearPingInterval(): void {
+    if (this.pingIntervalTimer !== null) {
+      clearInterval(this.pingIntervalTimer);
+      this.pingIntervalTimer = null;
     }
   }
 
-  private async pollStatusForInProgress(): Promise<void> {
-    try {
-      const status = await this.gamesService.getGameStatus(this.gameId);
-      if (!this.currentUserId && status.hunterUserId) {
-        this.currentUserId = status.hunterUserId;
-      }
-      this.applyStatus(status);
-      // Game is now InProgress — lift the waiting overlay and start the countdown.
-      this.waitingForStart.set(false);
-      // The game just went live; start broadcasting location now (we entered during Started,
-      // when startedAt was null and ensureTracking could not start). Idempotent.
-      void this.ensureTracking();
-
-      // Apply the same regime logic as the main pollStatus path.
-      // applyStatus() above has already refreshed hasActivePenalty.
-      const penalised = this.hasActivePenalty();
-      const barMax = penalised
-        ? this.PENALTY_BAR_SECONDS
-        : status.currentPingInterval || 30;
-      const sync = penalised
-        ? (status.nextPingDurationWithPenalty ?? barMax)
-        : (status.nextPingDuration ?? barMax);
-
-      this.currentPingInterval = barMax;
-      this.pollIntervalSeconds = barMax;
-      this.startPingCountdown(sync > 0 ? sync : barMax, barMax);
-      this.pollTimer = setTimeout(
-        () => this.pollStatus(),
-        this.pollIntervalSeconds * 1_000,
-      );
-    } catch {
-      // Status endpoint not yet serving (game still transitioning) — retry shortly.
-      this.pollTimer = setTimeout(() => this.pollStatus(), 5_000);
-    }
-  }
-
-  /** Idempotent: safe to call from both Web PubSub events and the poll path. */
-  private handleGameEnded(payload?: GameEndedPayload): void {
+  /** Idempotent: safe to call from every effect that can observe the game ending. */
+  private handleGameEnded(outcome?: string, survivorCount?: number): void {
     if (this.gameEndedHandled) return;
     this.gameEndedHandled = true;
-    this.clearPoll();
-    this.streamService.disconnect();
+    this.gameState.stop();
     void this.locationService.stop();
     // Hand the result to the debrief screen; it confirms against the server too, so
     // missing values here are non-fatal. null query params are dropped by the router.
@@ -1081,23 +834,9 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       replaceUrl: true,
       queryParams: {
         role: 'hunter',
-        outcome: payload?.outcome ?? null,
-        survivors: payload?.survivorCount ?? null,
+        outcome: outcome ?? null,
+        survivors: survivorCount ?? null,
       },
     });
-  }
-
-  private clearPoll(): void {
-    if (this.pollTimer !== null) {
-      clearTimeout(this.pollTimer);
-      this.pollTimer = null;
-    }
-  }
-
-  private clearPingInterval(): void {
-    if (this.pingIntervalTimer !== null) {
-      clearInterval(this.pingIntervalTimer);
-      this.pingIntervalTimer = null;
-    }
   }
 }

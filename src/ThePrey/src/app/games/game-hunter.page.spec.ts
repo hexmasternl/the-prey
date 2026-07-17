@@ -5,11 +5,22 @@ import { ToastController } from '@ionic/angular/standalone';
 import { TranslateService } from '@ngx-translate/core';
 
 import { GameHunterPage } from './game-hunter.page';
-import { GamesService } from './games.service';
-import { GameStreamService } from './game-stream.service';
+import { GamesService, ParticipantDto } from './games.service';
+import { GameLiveState, GameStateService } from './game-state.service';
 import { GameLocationService } from './game-location.service';
 import { CompassService } from './compass.service';
 import { TourService } from './tour.service';
+import { UserStateService } from '../users/user-state.service';
+
+/** Minimal stand-in for the single source-of-truth service the page now reads from. */
+class FakeGameStateService {
+  readonly state = signal<GameLiveState | null>(null);
+  readonly unavailable = signal(false);
+  start = jasmine.createSpy('start').and.resolveTo();
+  stop = jasmine.createSpy('stop');
+  refreshNow = jasmine.createSpy('refreshNow').and.resolveTo();
+  visibleParticipants = (): ParticipantDto[] => [];
+}
 
 describe('GameHunterPage tour', () => {
   let component: GameHunterPage;
@@ -25,7 +36,7 @@ describe('GameHunterPage tour', () => {
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => 'g1' } } } },
         { provide: Router, useValue: jasmine.createSpyObj<Router>('Router', ['navigate']) },
         { provide: GamesService, useValue: {} },
-        { provide: GameStreamService, useValue: {} },
+        { provide: GameStateService, useValue: new FakeGameStateService() },
         {
           provide: GameLocationService,
           useValue: {
@@ -38,6 +49,7 @@ describe('GameHunterPage tour', () => {
         { provide: ToastController, useValue: jasmine.createSpyObj<ToastController>('ToastController', ['create']) },
         { provide: TranslateService, useValue: { instant: (k: string) => k } },
         { provide: TourService, useValue: tour },
+        { provide: UserStateService, useValue: { profile: () => null } },
       ],
     });
 

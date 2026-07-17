@@ -1,76 +1,61 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { WebPubSubStream } from '../core/web-pubsub-stream';
+import { RealtimeEnvelope, WebPubSubStream } from '../core/web-pubsub-stream';
 
-// ── Lobby events ────────────────────────────────────────────────────────────
-// All lobby events carry a full GameDto as their `data`.
-export type LobbyEventType =
-  | 'lobby-updated'
-  | 'settings-updated'
-  | 'ready-updated'
-  | 'hunter-designated'
-  | 'hunter-changed'
-  | 'game-started';
-
-// ── In-game events ───────────────────────────────────────────────────────────
-export type GameEventType =
-  | 'state-changed'
-  | 'player-location-updated'
-  | 'player-status-changed'
-  | 'participant-status-changed'
-  | 'player-penalized'
-  | 'game-ended';
-
-export type AnyEventType = LobbyEventType | GameEventType;
-
-export interface StateChangedPayload         { gameId: string; newState: string; }
-export interface PlayerLocationUpdatedPayload { gameId: string; userId: string; latitude: number; longitude: number; participantState: string; }
-export interface PlayerStatusChangedPayload  { gameId: string; userId: string; role: string; newState: string; }
-export interface ParticipantStatusChangedPayload { gameId: string; participantId: string; participantRole: string; newState: string; }
-export interface PlayerPenalizedPayload      { gameId: string; userId: string; penaltyEndsAt: string; reason: string; }
-export interface GameEndedPayload            { gameId: string; outcome?: string; survivorCount?: number; }
-
-type HandlerMap = Map<string, (payload: unknown) => void>;
+export type { RealtimeEnvelope } from '../core/web-pubsub-stream';
 
 /**
- * Typed real-time event dispatcher backed by Azure Web PubSub.
+ * Thin Angular-injectable wrapper around exactly one {@link WebPubSubStream} for the
+ * active game's real-time channel. It owns the transport lifecycle (token fetch,
+ * `joinGroup`, exponential-backoff reconnect) and forwards every group message as the
+ * full versioned envelope `{ v, type, gameId, seq, data }` — see `docs/api/realtime.md`.
  *
- * Drop-in replacement for the old SSE-based `GameStreamService`. The public API
- * (`connect`, `on`, `onReconnected`, `disconnect`) is identical so pages need
- * minimal changes. The transport is a native browser WebSocket (see
- * `WebPubSubStream`), which requests a fresh group-scoped access URL from the
- * Games API on every (re)connect and joins the game's group after connecting.
- *
- * Event envelope from the server:
- *   `{ "type": "<event-name>", "data": { ...payload... } }`
- *
- * The service dispatches `data` to the registered handler for `type`.
+ * This service does not interpret message types or maintain any game state itself;
+ * `GameStateService` is the sole consumer and the sole source of truth for the active
+ * game. Only one caller should ever hold an active `connect()` for a given game, which
+ * `GameStateService` guarantees by being the only page-facing entry point.
  */
 @Injectable({ providedIn: 'root' })
 export class GameStreamService {
   private readonly http = inject(HttpClient);
 
   private stream: WebPubSubStream | null = null;
-  private handlers: HandlerMap = new Map();
+  private messageHandler: ((envelope: RealtimeEnvelope) => void) | null = null;
+  private connectedHandler: (() => void) | null = null;
   private reconnectedHandler: (() => void) | null = null;
+  private unavailableHandler: (() => void) | null = null;
 
   /**
    * Opens the Web PubSub WebSocket for the given game. The Games API token endpoint
    * is called automatically (and re-called on every reconnect) so the access URL is
-   * always fresh.
+   * always fresh. Register handlers via `onMessage`/`onConnected`/`onReconnected`/
+   * `onUnavailable` before (or after) calling this — they are read live on each event and,
+   * unlike the transport itself, survive a later `connect()` call (e.g. `GameStateService`
+   * forcing a fresh connection on app resume), so callers only need to register them once.
    */
   connect(gameId: string): void {
-    this.disconnect();
+    this.stopTransport();
     this.stream = new WebPubSubStream({
       gameId,
       http: this.http,
-      onMessage: (envelope) => this.dispatch(envelope.type, envelope.data),
+      onMessage: (envelope) => {
+        try {
+          this.messageHandler?.(envelope);
+        } catch (err) {
+          console.error('[GameStream] message handler threw', err);
+        }
+      },
       onConnected: () => {
         console.info(`[GameStream] connected — gameId=${gameId}`);
+        this.connectedHandler?.();
       },
       onReconnected: () => {
-        console.info(`[GameStream] reconnected — gameId=${gameId}; triggering missed-event recovery`);
+        console.info(`[GameStream] reconnected — gameId=${gameId}; triggering resync`);
         this.reconnectedHandler?.();
+      },
+      onUnavailable: () => {
+        console.error(`[GameStream] unavailable (403) — gameId=${gameId}`);
+        this.unavailableHandler?.();
       },
       log: (msg) => console.info(`[GameStream] ${msg}`),
       logError: (msg, ...args) => console.error(`[GameStream] ${msg}`, ...args),
@@ -78,9 +63,14 @@ export class GameStreamService {
     void this.stream.start();
   }
 
-  /** Register a handler for a specific event type. */
-  on<T>(eventType: string, handler: (payload: T) => void): void {
-    this.handlers.set(eventType, handler as (p: unknown) => void);
+  /** Register the handler invoked for every incoming envelope. */
+  onMessage(handler: (envelope: RealtimeEnvelope) => void): void {
+    this.messageHandler = handler;
+  }
+
+  /** Register a callback fired once the socket first opens and joins the group. */
+  onConnected(handler: () => void): void {
+    this.connectedHandler = handler;
   }
 
   /** Register a callback fired after the WebSocket re-opens following a drop. */
@@ -88,20 +78,23 @@ export class GameStreamService {
     this.reconnectedHandler = handler;
   }
 
-  disconnect(): void {
-    this.stream?.stop();
-    this.stream = null;
-    this.handlers.clear();
-    this.reconnectedHandler = null;
+  /** Register a callback fired once the connection is terminally unavailable (403). */
+  onUnavailable(handler: () => void): void {
+    this.unavailableHandler = handler;
   }
 
-  private dispatch(type: string, data: unknown): void {
-    const handler = this.handlers.get(type);
-    if (!handler) return;
-    try {
-      handler(data);
-    } catch (err) {
-      console.error(`[GameStream] handler for '${type}' threw`, err);
-    }
+  /** Stops the transport and clears every registered handler — call on final teardown. */
+  disconnect(): void {
+    this.stopTransport();
+    this.messageHandler = null;
+    this.connectedHandler = null;
+    this.reconnectedHandler = null;
+    this.unavailableHandler = null;
+  }
+
+  /** Stops just the transport, preserving registered handlers for a subsequent `connect()`. */
+  private stopTransport(): void {
+    this.stream?.stop();
+    this.stream = null;
   }
 }

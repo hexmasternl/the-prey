@@ -1,6 +1,4 @@
-import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, effect, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonButton,
@@ -17,7 +15,6 @@ import {
   RefresherCustomEvent,
   ToastController,
   ViewWillEnter,
-  ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBack, personRemove, shareSocial } from 'ionicons/icons';
@@ -26,8 +23,8 @@ import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { GameConfigurationDto, GameDto, GamesService } from './games.service';
 import { GameLocationService } from './game-location.service';
+import { GameStateService } from './game-state.service';
 import { UserStateService } from '../users/user-state.service';
-import { WebPubSubStream } from '../core/web-pubsub-stream';
 
 /**
  * Base of the Android App Link for joining a game. Tapping
@@ -57,37 +54,43 @@ const GAME_JOIN_LINK_BASE = 'https://theprey.nl/games/join';
     IonSpinner,
   ],
 })
-export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
+export class GameLobbyPage implements ViewWillEnter {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly gamesService = inject(GamesService);
   private readonly locationService = inject(GameLocationService);
   private readonly userState = inject(UserStateService);
-  private readonly http = inject(HttpClient);
+  private readonly gameState = inject(GameStateService);
   private readonly toastCtrl = inject(ToastController);
   private readonly translate = inject(TranslateService);
 
-  readonly game = signal<GameDto | null>(null);
-  readonly isLoading = signal(true);
-  private stream: WebPubSubStream | null = null;
+  /** The full game record, read solely from the single source-of-truth GameStateService. */
+  readonly game = computed<GameDto | null>(() => this.gameState.state()?.game ?? null);
+  readonly isLoading = computed(() => this.game() === null && !this.gameState.unavailable());
 
-  // Config signals — initialised from game on load, kept in sync via Web PubSub
-  readonly gameDuration = signal(60);
-  readonly hunterDelay = signal(10);
-  readonly endgameDuration = signal(10);
-  readonly locationInterval = signal(3);
-  readonly endgameInterval = signal(1);
+  // Config signals — mirror the game's configuration so ion-select bindings stay simple;
+  // kept in sync from `game()` via the effect in the constructor.
+  readonly gameDuration = computed(() => this.withFallback(this.game()?.configuration.gameDuration, 60));
+  readonly hunterDelay = computed(() => this.withFallback(this.game()?.configuration.hunterDelayTime, 10));
+  readonly endgameDuration = computed(() => this.withFallback(this.game()?.configuration.finalStageDuration, 10));
+  readonly locationInterval = computed(() =>
+    Math.round((this.game()?.configuration.defaultLocationInterval ?? 180) / 60),
+  );
+  readonly endgameInterval = computed(() =>
+    Math.round((this.game()?.configuration.finalLocationInterval ?? 60) / 60),
+  );
 
   readonly gameId = computed(() => this.route.snapshot.paramMap.get('id') ?? '');
 
-  /** Ownership is decided server-side (per caller) and surfaced on the DTO — no local derivation. */
-  readonly isOwner = computed(() => this.game()?.isOwnerPlayer ?? false);
+  /** Ownership is derived locally (sticky across snapshots) — see GameStateService. */
+  readonly isOwner = computed(() => this.gameState.state()?.isOwner ?? false);
 
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
 
   /**
-   * Whether the game may be started. The server computes this (enough players, a designated hunter,
-   * and every non-host operative readied up) and exposes it on the DTO, so the client just reflects it.
+   * Whether the game may be started. The server computes this (enough players, a designated
+   * hunter, and every non-host operative readied up) and exposes it on the DTO, so the client
+   * just reflects it.
    */
   readonly canStart = computed(() => this.game()?.isReadyToStart ?? false);
 
@@ -97,109 +100,51 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       (typeof navigator !== 'undefined' && !!navigator.share),
   );
 
+  /** Guards against re-navigating/re-toasting on every subsequent state change once we've left. */
+  private navigatingAway = false;
+
   constructor() {
     addIcons({ chevronBack, personRemove, shareSocial });
+
+    // React to every applied change (snapshot or delta) from the single source of truth:
+    // detect a status transition that means "the lobby is over" for this page.
+    effect(() => {
+      const game = this.game();
+      if (!game || this.navigatingAway) return;
+      if (game.status === 'Started' || game.status === 'InProgress') {
+        this.navigatingAway = true;
+        this.enterStartedGame(game);
+      } else if (game.status === 'Completed') {
+        this.navigatingAway = true;
+        void this.leaveDeadLobby();
+      }
+    });
+
+    // A terminal authorization failure (403/404/410) — the game is gone or we're no longer
+    // a member. Leave rather than sitting on stale state.
+    effect(() => {
+      if (this.gameState.unavailable() && !this.navigatingAway) {
+        this.navigatingAway = true;
+        void this.leaveDeadLobby();
+      }
+    });
   }
 
   async ionViewWillEnter(): Promise<void> {
-    const id = this.gameId();
-    this.isLoading.set(true);
-    try {
-      const game = await this.gamesService.getGame(id);
-      this.setGameState(game);
-      this.syncConfigFromGame(game);
-    } catch {
-      await this.showError('GAME_LOBBY.LOAD_ERROR');
-    } finally {
-      this.isLoading.set(false);
-    }
-    this.connectStream();
-  }
-
-  ionViewWillLeave(): void {
-    this.closeStream();
-  }
-
-  ngOnDestroy(): void {
-    this.closeStream();
-  }
-
-  private connectStream(): void {
-    const gameId = this.gameId();
-    this.streamLog(`connecting — gameId=${gameId}`);
-    this.stream = new WebPubSubStream({
-      gameId,
-      http: this.http,
-      onMessage: (envelope) => {
-        const { type, data } = envelope;
-        if (type === 'game-started') {
-          this.onGameStarted(data);
-        } else {
-          this.onLobbyEvent(type, data);
-        }
-      },
-      // The WebSocket was down — refetch the game so missed events can't strand us.
-      // refreshGame also detects a game that started while we were disconnected
-      // and runs the same navigation as onGameStarted.
-      onReconnected: () => void this.refreshGame(),
-      log: (msg) => this.streamLog(msg),
-      logError: (msg, ...args) => this.streamError(msg, ...args),
-    });
-    void this.stream.start();
-  }
-
-  private onLobbyEvent(type: string, data: unknown): void {
-    this.streamLog(`event '${type}' received`);
-    // The Web PubSub envelope carries a full GameDto directly in `data`
-    // (not wrapped in a `.payload` property like the old SSE events were).
-    const game = data as GameDto;
-    if (game && typeof game === 'object' && 'id' in game) {
-      this.setGameState(game);
-      this.syncConfigFromGame(game);
-      this.streamLog(`event '${type}' applied to game state`);
-    } else {
-      this.streamError(`event '${type}' did not carry a recognisable GameDto`, data);
-    }
-  }
-
-  private onGameStarted(data: unknown): void {
-    this.streamLog(`event 'game-started' received`);
-    const game = data as GameDto;
-    if (!game || typeof game !== 'object' || !('id' in game)) {
-      this.streamError(`event 'game-started' did not carry a recognisable GameDto`, data);
-      return;
-    }
-
-    // Reflect the new state locally and confirm the game has been started by the owner
-    // (Started or InProgress both trigger navigation to the role view). Ready — the
-    // all-players-ready state that merely enables the owner's start button — never navigates.
-    this.setGameState(game);
-    this.syncConfigFromGame(game);
-
-    if (game.status === 'Started' || game.status === 'InProgress') {
-      this.enterStartedGame(game);
-    } else {
-      this.streamError(`event 'game-started' carried unexpected status '${game.status}' (expected 'Started' or 'InProgress') — not navigating`);
-    }
+    await this.gameState.start(this.gameId());
   }
 
   /**
-   * The owner has started the game (Started or InProgress) — stop the lobby stream and
-   * route the player to their role's view. Location tracking is started only when the
-   * game is InProgress (has a real startedAt); during Started there is no clock yet.
-   * Reached via the `game-started` event or via a post-reconnect refresh.
+   * The owner has started the game (Started or InProgress) — route the player to their
+   * role's view. The GameStateService keeps running (single connection persists across the
+   * lobby → hunt/play navigation); location tracking starts only when the game is
+   * InProgress (has a real startedAt) — during Started there is no clock yet.
    */
   private enterStartedGame(game: GameDto): void {
     const uid = this.currentUserId();
-    this.closeStream();
-
     const isHunter = game.hunterUserId === uid;
     const isPrey = game.preys.includes(uid);
-    this.streamLog(`game ${game.status} — uid=${uid} isHunter=${isHunter} isPrey=${isPrey}`);
 
-    // Start background location tracking only when the game is actually running
-    // (InProgress has startedAt; Started does not). The in-game page's ionViewWillEnter
-    // is a no-op when a session for this game is already active (idempotent start).
     if ((isHunter || isPrey) && game.status === 'InProgress' && game.startedAt) {
       const startedAt = new Date(game.startedAt);
       const endTime = new Date(startedAt.getTime() + game.configuration.gameDuration * 60_000);
@@ -207,83 +152,29 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     }
 
     if (isHunter) {
-      this.streamLog(`navigating to hunt view for game ${game.id}`);
       this.router.navigate(['/games', game.id, 'hunt'], { replaceUrl: true });
     } else if (isPrey) {
-      this.streamLog(`navigating to play view for game ${game.id}`);
       this.router.navigate(['/games', game.id, 'play'], { replaceUrl: true });
     } else {
-      this.streamError(`game left lobby but current user ${uid} is neither hunter nor prey — staying put`);
+      console.error(`[GameLobby] game left lobby but current user ${uid} is neither hunter nor prey — staying put`);
+      this.navigatingAway = false;
     }
   }
 
-  private async refreshGame(): Promise<void> {
-    try {
-      const game = await this.gamesService.getGame(this.gameId());
-      this.setGameState(game);
-      this.syncConfigFromGame(game);
-      if (game.status === 'Started' || game.status === 'InProgress') {
-        this.streamLog(`refresh found game in status '${game.status}' (missed game-started event) — entering game`);
-        this.enterStartedGame(game);
-      } else if (game.status === 'Completed') {
-        this.streamLog('refresh found the game completed — leaving lobby');
-        await this.leaveDeadLobby();
-      }
-    } catch (err) {
-      // A vanished game (cleaned up server-side) leaves nothing to wait for. Anything
-      // else is transient: stay and retry on the next reconnect.
-      if (err instanceof HttpErrorResponse && (err.status === 404 || err.status === 410)) {
-        this.streamLog(`refresh got ${err.status} — game no longer exists, leaving lobby`);
-        await this.leaveDeadLobby();
-      }
-    }
-  }
-
-  /** The game can never resume from here (completed or deleted) — stop streaming and go home. */
+  /** The game can never resume from here (completed, deleted, or we're no longer a member). */
   private async leaveDeadLobby(): Promise<void> {
-    this.closeStream();
+    this.gameState.stop();
     await this.showError('GAME_LOBBY.GAME_GONE');
     this.router.navigate(['/home'], { replaceUrl: true });
   }
 
   async handleRefresh(event: RefresherCustomEvent): Promise<void> {
-    await this.refreshGame();
+    await this.gameState.refreshNow();
     await event.target.complete();
   }
 
-  private closeStream(): void {
-    this.stream?.stop();
-    this.stream = null;
-  }
-
-  // ── Stream diagnostics ───────────────────────────────────────────────────
-  // Tagged so logs are easy to filter on-device (logcat / Chrome remote devtools).
-  private readonly streamTag = '[LobbyStream]';
-
-  private streamLog(message: string, ...args: unknown[]): void {
-    console.info(`${this.streamTag} ${message}`, ...args);
-  }
-
-  private streamError(message: string, ...args: unknown[]): void {
-    console.error(`${this.streamTag} ${message}`, ...args);
-  }
-
-  private syncConfigFromGame(g: GameDto): void {
-    this.gameDuration.set(g.configuration.gameDuration);
-    this.hunterDelay.set(g.configuration.hunterDelayTime);
-    this.endgameDuration.set(g.configuration.finalStageDuration);
-    this.locationInterval.set(Math.round(g.configuration.defaultLocationInterval / 60));
-    this.endgameInterval.set(Math.round(g.configuration.finalLocationInterval / 60));
-  }
-
-  private setGameState(game: GameDto): void {
-    const currentUserId = this.currentUserId();
-    const isOwnerPlayer =
-      game.isOwnerPlayer ||
-      this.game()?.isOwnerPlayer === true ||
-      (!!currentUserId && game.ownerUserId === currentUserId);
-
-    this.game.set(isOwnerPlayer === game.isOwnerPlayer ? game : { ...game, isOwnerPlayer });
+  private withFallback(value: number | undefined, fallback: number): number {
+    return value !== undefined ? value : fallback;
   }
 
   private buildConfig(g: GameDto): GameConfigurationDto {
@@ -298,51 +189,45 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     };
   }
 
-  private async saveConfig(): Promise<void> {
+  private async saveConfig(overrides: Partial<GameConfigurationDto>): Promise<void> {
     const g = this.game();
     if (!g || !this.isOwner()) return;
     try {
-      const updated = await this.gamesService.updateConfig(this.gameId(), this.buildConfig(g));
-      this.setGameState(updated);
-      this.syncConfigFromGame(updated);
+      const updated = await this.gamesService.updateConfig(this.gameId(), {
+        ...this.buildConfig(g),
+        ...overrides,
+      });
+      this.gameState.applyOwnMutation(updated);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
-      // Revert display to last confirmed server state
-      const current = this.game();
-      if (current) this.syncConfigFromGame(current);
     }
   }
 
   async onDurationChange(e: Event): Promise<void> {
-    this.gameDuration.set(+(e as CustomEvent).detail.value);
-    await this.saveConfig();
+    await this.saveConfig({ gameDuration: +(e as CustomEvent).detail.value });
   }
 
   async onHunterDelayChange(e: Event): Promise<void> {
-    this.hunterDelay.set(+(e as CustomEvent).detail.value);
-    await this.saveConfig();
+    await this.saveConfig({ hunterDelayTime: +(e as CustomEvent).detail.value });
   }
 
   async onEndgameDurationChange(e: Event): Promise<void> {
-    this.endgameDuration.set(+(e as CustomEvent).detail.value);
-    await this.saveConfig();
+    await this.saveConfig({ finalStageDuration: +(e as CustomEvent).detail.value });
   }
 
   async onLocationIntervalChange(e: Event): Promise<void> {
-    this.locationInterval.set(+(e as CustomEvent).detail.value);
-    await this.saveConfig();
+    await this.saveConfig({ defaultLocationInterval: +(e as CustomEvent).detail.value * 60 });
   }
 
   async onEndgameIntervalChange(e: Event): Promise<void> {
-    this.endgameInterval.set(+(e as CustomEvent).detail.value);
-    await this.saveConfig();
+    await this.saveConfig({ finalLocationInterval: +(e as CustomEvent).detail.value * 60 });
   }
 
   async designateHunter(userId: string): Promise<void> {
     if (!this.isOwner()) return;
     try {
       const game = await this.gamesService.setHunter(this.gameId(), userId);
-      this.setGameState(game);
+      this.gameState.applyOwnMutation(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
     }
@@ -352,7 +237,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     if (!this.isOwner()) return;
     try {
       const game = await this.gamesService.removePlayer(this.gameId(), userId);
-      this.setGameState(game);
+      this.gameState.applyOwnMutation(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
     }
@@ -362,10 +247,10 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     const g = this.game();
     if (!g || !this.isOwner() || !g.hunterUserId) return;
     try {
-      // The owner is a participant too, so the resulting `game-started` Web PubSub event
-      // drives navigation for everyone (owner included) via onGameStarted — no manual nav here.
+      // The owner is a participant too, so the resulting broadcast drives navigation for
+      // everyone (owner included) via the state effect above — no manual nav here.
       const game = await this.gamesService.startGame(this.gameId(), g.hunterUserId);
-      this.setGameState(game);
+      this.gameState.applyOwnMutation(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
     }
@@ -374,7 +259,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   async markReady(): Promise<void> {
     try {
       const game = await this.gamesService.setReady(this.gameId());
-      this.setGameState(game);
+      this.gameState.applyOwnMutation(game);
     } catch {
       await this.showError('GAME_LOBBY.ACTION_ERROR');
     }
@@ -410,6 +295,8 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
   }
 
   back(): void {
+    this.navigatingAway = true;
+    this.gameState.stop();
     this.router.navigate(['/home']);
   }
 

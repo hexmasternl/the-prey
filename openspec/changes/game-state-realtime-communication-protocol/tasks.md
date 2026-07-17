@@ -35,21 +35,21 @@
 
 ## 5. Ionic client — build Game State Service
 
-- [ ] 5.1 Create a root-singleton `GameStateService` (signal-backed) holding the full authoritative game state
-- [ ] 5.2 Load the full snapshot on start (`GET /games/{id}`, plus `/status` and role-specific `/state` while InProgress)
-- [ ] 5.3 Update `WebPubSubStream` / `GameStreamService` to parse the versioned envelope and expose typed catalog messages
-- [ ] 5.4 Apply lobby deltas, `configuration-changed`, batched `locations-updated`, `prey-updated`, and `game-ended` to the state slices
-- [ ] 5.5 Implement 3-minute periodic resync, reconnect resync, `seq`-gap resync, and `resync-requested` handling
-- [ ] 5.6 Broadcast state-changed notifications to subscribers with subscriber isolation
-- [ ] 5.7 Fail safe: bounded-backoff retry on transient errors; stop and report "unavailable" on terminal 403
+- [x] 5.1 Create a root-singleton `GameStateService` (signal-backed) holding the full authoritative game state
+- [x] 5.2 Load the full snapshot on start (`GET /games/{id}`, plus `/status` and role-specific `/state` while InProgress)
+- [x] 5.3 Update `WebPubSubStream` / `GameStreamService` to parse the versioned envelope and expose typed catalog messages
+- [x] 5.4 Apply lobby deltas, `configuration-changed`, batched `locations-updated`, `prey-updated`, and `game-ended` to the state slices
+- [x] 5.5 Implement 3-minute periodic resync, reconnect resync, `seq`-gap resync, and `resync-requested` handling
+- [x] 5.6 Broadcast state-changed notifications to subscribers with subscriber isolation
+- [x] 5.7 Fail safe: bounded-backoff retry on transient errors; stop and report "unavailable" on terminal 403
 
 ## 6. Ionic client — migrate UI onto the service
 
-- [ ] 6.1 Refactor the lobby page to subscribe to `GameStateService` and drop its own `WebPubSubStream`/`getGame` state
-- [ ] 6.2 Refactor the prey page to subscribe to `GameStateService`; remove its status-polling loop and duplicated marker state
-- [ ] 6.3 Refactor the hunter page to subscribe to `GameStateService`; remove its status-polling loop and duplicated marker state
-- [ ] 6.4 Point the HUD at `GameStateService` as its single source
-- [ ] 6.5 Verify no game UI polls the server or holds an independent state copy
+- [x] 6.1 Refactor the lobby page to subscribe to `GameStateService` and drop its own `WebPubSubStream`/`getGame` state
+- [x] 6.2 Refactor the prey page to subscribe to `GameStateService`; remove its status-polling loop and duplicated marker state
+- [x] 6.3 Refactor the hunter page to subscribe to `GameStateService`; remove its status-polling loop and duplicated marker state
+- [x] 6.4 Point the HUD at `GameStateService` as its single source (HUD is inline in the prey/hunter pages)
+- [x] 6.5 Verify no game UI polls the server or holds an independent state copy
 
 ## 7. Cutover & verification
 
