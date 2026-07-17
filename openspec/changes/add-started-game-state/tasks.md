@@ -18,11 +18,11 @@
 
 ## 3. Server — tests
 
-- [ ] 3.1 `DomainModels/GameTests.cs` / `GameLifecycleTests.cs`: cover `Lobby → Ready` on last ready, `Ready → Lobby` on lost readiness, `Arm` requires `Ready` and yields `Started`, `BeginPlay` requires `Started`, and `EndByOwner` cancels from `Started`.
-- [ ] 3.2 `GameEngine/GameSweepProcessorTests.cs`: a `Started` game is promoted to `InProgress`; a `Ready` game is NOT promoted.
-- [ ] 3.3 `Features/StartGameCommandHandlerTests.cs`: starting a `Ready` game yields `Started` and broadcasts `state-changed` with `Started`; starting a non-`Ready` game is rejected.
-- [ ] 3.4 Repository/query test (or sweep test) asserting `Started` and `InProgress` games are selected and `Ready` games are not.
-- [ ] 3.5 Run `dotnet test` for the Games test project and fix regressions from the readiness/`Started` changes.
+- [x] 3.1 `DomainModels/GameTests.cs` / `GameLifecycleTests.cs`: cover `Lobby → Ready` on last ready, `Ready → Lobby` on lost readiness, `Arm` requires `Ready` and yields `Started`, `BeginPlay` requires `Started`, and `EndByOwner` cancels from `Started`.
+- [x] 3.2 `GameEngine/GameSweepProcessorTests.cs`: a `Started` game is promoted to `InProgress`; a `Ready` game is NOT promoted.
+- [x] 3.3 `Features/StartGameCommandHandlerTests.cs`: starting a `Ready` game yields `Started` and broadcasts `state-changed` with `Started`; starting a non-`Ready` game is rejected.
+- [x] 3.4 Repository/query test (or sweep test) asserting `Started` and `InProgress` games are selected and `Ready` games are not.
+- [x] 3.5 Run `dotnet test` for the Games test project and fix regressions from the readiness/`Started` changes.
 
 ## 4. Ionic client (`src/ThePrey`)
 

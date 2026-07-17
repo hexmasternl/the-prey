@@ -83,8 +83,29 @@ internal static class GameFaker
         var game = LobbyGameWithPlayers(playerCount, out var ids, configuration);
         hunterId = ids[0];
         preyIds = ids.Skip(1).ToList();
+        // Designating the hunter with every non-owner readied brings the game to Ready, which Arm now requires.
+        game.DesignateHunter(hunterId);
         game.Arm(hunterId);
         game.BeginPlay(startedAt);
+        return game;
+    }
+
+    /// <summary>
+    /// An armed (<see cref="GameStatus.Started"/>) game whose sweep has not yet committed play: the first
+    /// player is the hunter, the rest preys. Returned before <see cref="Game.BeginPlay"/> so a test can drive
+    /// the Started→InProgress promotion itself.
+    /// </summary>
+    internal static Game ArmedGame(
+        out Guid hunterId,
+        out IReadOnlyList<Guid> preyIds,
+        int playerCount = 3,
+        GameConfiguration? configuration = null)
+    {
+        var game = LobbyGameWithPlayers(playerCount, out var ids, configuration);
+        hunterId = ids[0];
+        preyIds = ids.Skip(1).ToList();
+        game.DesignateHunter(hunterId);
+        game.Arm(hunterId);
         return game;
     }
 }

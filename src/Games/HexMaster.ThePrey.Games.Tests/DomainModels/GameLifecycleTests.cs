@@ -54,12 +54,13 @@ public sealed class GameLifecycleTests
     {
         var config = GameFaker.ValidConfiguration(gameDuration: 60);
         var game = GameFaker.LobbyGameWithPlayers(2, out var ids, config);
+        game.DesignateHunter(ids[0]);
 
         game.Arm(ids[0]);
 
         Assert.Null(game.EndsAt);
         Assert.Null(game.StartedAt);
-        Assert.Equal(GameStatus.Ready, game.Status);
+        Assert.Equal(GameStatus.Started, game.Status);
     }
 
     [Fact]
@@ -67,6 +68,7 @@ public sealed class GameLifecycleTests
     {
         var config = GameFaker.ValidConfiguration(gameDuration: 60);
         var game = GameFaker.LobbyGameWithPlayers(2, out var ids, config);
+        game.DesignateHunter(ids[0]);
 
         game.Arm(ids[0]);
         game.BeginPlay(Start);
@@ -80,6 +82,7 @@ public sealed class GameLifecycleTests
         var config = GameFaker.ValidConfiguration(gameDuration: 30);
         var game = GameFaker.LobbyGameWithPlayers(2, out var ids, config);
         var startTime = new DateTimeOffset(2026, 6, 9, 15, 0, 0, TimeSpan.Zero);
+        game.DesignateHunter(ids[0]);
 
         game.Arm(ids[0]);
         game.BeginPlay(startTime);

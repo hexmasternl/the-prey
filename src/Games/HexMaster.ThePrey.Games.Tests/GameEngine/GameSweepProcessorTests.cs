@@ -383,21 +383,31 @@ public sealed class GameSweepProcessorTests
         _games.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    // ── Theme B: Ready → InProgress promotion ─────────────────────────────────
+    // ── Theme B: Started → InProgress promotion ─────────────────────────────────
 
-    private static Game ReadyGame(out Guid hunterId, out IReadOnlyList<Guid> preyIds, int playerCount = 3, GameConfiguration? configuration = null)
+    private static Game ArmedGame(out Guid hunterId, out IReadOnlyList<Guid> preyIds, int playerCount = 3, GameConfiguration? configuration = null)
+        => GameFaker.ArmedGame(out hunterId, out preyIds, playerCount, configuration);
+
+    [Fact]
+    public async Task ProcessAsync_ShouldNotPromoteReadyGame_ToInProgress()
     {
-        var game = GameFaker.LobbyGameWithPlayers(playerCount, out var ids, configuration);
-        hunterId = ids[0];
-        preyIds = ids.Skip(1).ToList();
-        game.Arm(hunterId);
-        return game;
+        // A game that is merely Ready (all readied, not yet started by the owner) must NOT be committed by
+        // the sweep — only Started games are promoted.
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids, markReady: true);
+        game.DesignateHunter(ids[0]);
+        Assert.Equal(GameStatus.Ready, game.Status);
+        SetupGame(game);
+
+        await _sut.ProcessAsync(game.Id, Start, CancellationToken.None);
+
+        Assert.Equal(GameStatus.Ready, game.Status);
+        Assert.Null(game.StartedAt);
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldPromoteReadyGame_ToInProgress_WithBackdatedStartedAt()
+    public async Task ProcessAsync_ShouldPromoteArmedGame_ToInProgress_WithBackdatedStartedAt()
     {
-        var game = ReadyGame(out _, out _);
+        var game = ArmedGame(out _, out _);
         SetupGame(game);
         var now = Start;
 
@@ -409,10 +419,10 @@ public sealed class GameSweepProcessorTests
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldSetEndsAt_WhenPromotingReadyGame()
+    public async Task ProcessAsync_ShouldSetEndsAt_WhenPromotingArmedGame()
     {
         var config = GameFaker.ValidConfiguration(gameDuration: 60);
-        var game = ReadyGame(out _, out _, configuration: config);
+        var game = ArmedGame(out _, out _, configuration: config);
         SetupGame(game);
         var now = Start;
 
@@ -423,12 +433,12 @@ public sealed class GameSweepProcessorTests
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldSeedNextScheduledBroadcastOn_WhenPromotingReadyGame()
+    public async Task ProcessAsync_ShouldSeedNextScheduledBroadcastOn_WhenPromotingArmedGame()
     {
         // BeginPlay seeds NextScheduledBroadcastOn = now - 3s.
         // Because now - 3s < now, the regular tick is immediately due, so SweepLocations advances the
         // schedule by DefaultLocationInterval (30 s default) → (now - 3s) + 30s.
-        var game = ReadyGame(out _, out _);
+        var game = ArmedGame(out _, out _);
         SetupGame(game);
         var now = Start;
 
@@ -440,9 +450,9 @@ public sealed class GameSweepProcessorTests
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldPublishStateChangedBroadcast_WhenPromotingReadyGame()
+    public async Task ProcessAsync_ShouldPublishStateChangedBroadcast_WhenPromotingArmedGame()
     {
-        var game = ReadyGame(out _, out _);
+        var game = ArmedGame(out _, out _);
         SetupGame(game);
 
         await _sut.ProcessAsync(game.Id, Start, CancellationToken.None);
@@ -454,9 +464,9 @@ public sealed class GameSweepProcessorTests
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldPersistGame_WhenPromotingReadyGame()
+    public async Task ProcessAsync_ShouldPersistGame_WhenPromotingArmedGame()
     {
-        var game = ReadyGame(out _, out _);
+        var game = ArmedGame(out _, out _);
         SetupGame(game);
 
         await _sut.ProcessAsync(game.Id, Start, CancellationToken.None);
@@ -470,7 +480,7 @@ public sealed class GameSweepProcessorTests
         // A game promoted in the same tick continues through the regular sweep steps.
         // Even when there are no locations/penalties/timeouts the game is persisted because promotion
         // marks changed = true, and the game is InProgress by the end of the tick.
-        var game = ReadyGame(out _, out _);
+        var game = ArmedGame(out _, out _);
         SetupGame(game);
 
         await _sut.ProcessAsync(game.Id, Start, CancellationToken.None);
