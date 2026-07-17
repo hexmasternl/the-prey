@@ -40,6 +40,6 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Consult the hexmaster-coding-guidelines MCP (`0008-adopt-opentelemetry-for-observability`, CQRS, testing docs) and confirm any new/changed handler paths keep OTel instrumentation and CQRS conventions intact.
-- [ ] 6.2 Build the full backend solution (`dotnet build src/the-prey.slnx`) and run all affected test projects (server + both clients) green.
-- [ ] 6.3 Manual/E2E sanity: all-ready → game shows `Ready` (button enabled, no navigation) → owner starts → game `Started` (both clients navigate, waiting overlay) → sweep promotes → `InProgress` (overlay lifts, clock/countdown runs).
+- [x] 6.1 Consult the hexmaster-coding-guidelines MCP (`0008-adopt-opentelemetry-for-observability`, CQRS, testing docs) and confirm any new/changed handler paths keep OTel instrumentation and CQRS conventions intact.
+- [x] 6.2 Build the full backend solution (`dotnet build src/the-prey.slnx`) and run all affected test projects (server + both clients) green.
+- [ ] 6.3 Manual/E2E sanity: all-ready → game shows `Ready` (button enabled, no navigation) → owner starts → game `Started` (both clients navigate, waiting overlay) → sweep promotes → `InProgress` (overlay lifts, clock/countdown runs). _(Requires the live Aspire app + two clients; unit-tested at every layer but not driven end-to-end here — left for a manual run.)_
