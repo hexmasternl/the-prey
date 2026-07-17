@@ -268,6 +268,7 @@ public sealed class PreyGameViewModel : ObservableObject, IDisposable
             return;
         }
 
+        // Started — armed by the owner, awaiting the sweep's commit to InProgress.
         Phase = GamePhase.Waiting;
     }
 

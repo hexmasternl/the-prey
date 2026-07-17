@@ -73,6 +73,11 @@
   <data name="Menu_SloganLine2Accent" xml:space="preserve"><value>SMART.</value></data>
   <data name="Menu_Tagline" xml:space="preserve"><value>A GPS-based, real-world hide-and-seek game. Enter the playfield. Don't get caught.</value></data>
 
+  <!-- Debug-only join-by-URL entry (compiled out of release builds) -->
+  <data name="Debug_JoinPromptTitle" xml:space="preserve"><value>JOIN GAME (DEBUG)</value></data>
+  <data name="Debug_JoinPromptMessage" xml:space="preserve"><value>Paste an invite URL, e.g. https://theprey.nl/join/{gameId}</value></data>
+  <data name="Debug_JoinPromptPlaceholder" xml:space="preserve"><value>https://theprey.nl/join/…</value></data>
+
   <!-- Welcome / splash -->
   <data name="Welcome_Subtitle" xml:space="preserve"><value>LOCATION-BASED FIELD OPERATIONS</value></data>
   <data name="Welcome_SloganLine1Lead" xml:space="preserve"><value>STAY </value></data>

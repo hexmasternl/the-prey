@@ -18,6 +18,15 @@ public sealed record GameDetails(
 {
     /// <summary>True while the game is still in its lobby phase (settings + readiness editable).</summary>
     public bool IsLobby => string.Equals(Status, "Lobby", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// True once the owner has started the game — the game is Started (armed, awaiting the sweep) or already
+    /// InProgress. This is the signal to hand off from the lobby to the gameplay page. The Ready state (every
+    /// non-owner readied up, enabling the owner's start button) is deliberately excluded: it must NOT navigate.
+    /// </summary>
+    public bool IsArmed =>
+        string.Equals(Status, "Started", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(Status, "InProgress", StringComparison.OrdinalIgnoreCase);
 }
 
 /// <summary>

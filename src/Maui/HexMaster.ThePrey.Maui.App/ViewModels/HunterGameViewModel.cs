@@ -247,7 +247,8 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // Lobby / Ready — armed, not yet committed by the sweep.
+        // Started — armed by the owner, not yet committed by the sweep. (The page is only ever reached in
+        // Started/InProgress; Lobby/Ready would also land here defensively.)
         Phase = GamePhase.Waiting;
     }
 

@@ -77,14 +77,16 @@ public sealed class GameTests
     }
 
     [Fact]
-    public void Arm_ShouldDesignateHunterAndSetReady()
+    public void Arm_ShouldFixRolesAndTransitionToStarted()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
         var hunterId = ids[0];
+        game.DesignateHunter(hunterId);
+        Assert.Equal(GameStatus.Ready, game.Status);
 
         game.Arm(hunterId);
 
-        Assert.Equal(GameStatus.Ready, game.Status);
+        Assert.Equal(GameStatus.Started, game.Status);
         Assert.Equal(hunterId, game.HunterUserId);
         Assert.Equal(2, game.Preys.Count);
         Assert.DoesNotContain(game.Preys, id => id == hunterId);
@@ -93,9 +95,10 @@ public sealed class GameTests
     }
 
     [Fact]
-    public void BeginPlay_ShouldTransitionToInProgress_WhenReady()
+    public void BeginPlay_ShouldTransitionToInProgress_WhenStarted()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.DesignateHunter(ids[0]);
         game.Arm(ids[0]);
 
         game.BeginPlay(Start);
@@ -165,14 +168,70 @@ public sealed class GameTests
     [Fact]
     public void Arm_ShouldKeepParticipants_NotRecreate()
     {
-        // Participants from the lobby carry through to Ready without being cleared.
+        // Participants from the lobby carry through to Started without being cleared.
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
         Assert.Equal(3, game.Participants.Count);
+        game.DesignateHunter(ids[0]);
 
         game.Arm(ids[0]);
 
         Assert.Equal(3, game.Participants.Count);
         Assert.All(ids, id => Assert.Contains(game.Participants, p => p.UserId == id));
+    }
+
+    // ── Automatic Lobby ↔ Ready readiness transition ──────────────────────────
+
+    [Fact]
+    public void Status_ShouldBecomeReady_WhenLastNonOwnerReadiesUpWithHunterDesignated()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids, markReady: false);
+        game.DesignateHunter(ids[0]);
+        game.SetReady(ids[0]);
+        game.SetReady(ids[1]);
+        Assert.Equal(GameStatus.Lobby, game.Status); // ids[2] still not ready
+
+        game.SetReady(ids[2]);
+
+        Assert.Equal(GameStatus.Ready, game.Status);
+        Assert.True(game.IsReadyToStart);
+    }
+
+    [Fact]
+    public void Status_ShouldRevertToLobby_WhenSettingsChangeResetsReadiness()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.DesignateHunter(ids[0]);
+        Assert.Equal(GameStatus.Ready, game.Status);
+
+        game.UpdateSettings(GameFaker.ValidConfiguration(gameDuration: 90));
+
+        Assert.Equal(GameStatus.Lobby, game.Status);
+        Assert.False(game.IsReadyToStart);
+    }
+
+    [Fact]
+    public void Status_ShouldRevertToLobby_WhenDesignatedHunterLeaves()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.DesignateHunter(ids[0]);
+        Assert.Equal(GameStatus.Ready, game.Status);
+
+        game.RemoveLobbyPlayer(ids[0]);
+
+        Assert.Equal(GameStatus.Lobby, game.Status);
+        Assert.Null(game.HunterUserId);
+    }
+
+    [Fact]
+    public void EndByOwner_ShouldCancel_WhenStarted()
+    {
+        var game = GameFaker.ArmedGame(out _, out _);
+        Assert.Equal(GameStatus.Started, game.Status);
+
+        game.EndByOwner(Start);
+
+        Assert.Equal(GameStatus.Completed, game.Status);
+        Assert.Equal(GameOutcome.Cancelled, game.Outcome);
     }
 
     [Fact]

@@ -10,11 +10,11 @@
     <Grid RowDefinitions="Auto,Auto"
           VerticalOptions="End"
           BackgroundColor="Transparent"
-          Padding="12,0,12,12"
+          Padding="0"
           RowSpacing="8">
 
         <!-- Right-aligned icon buttons above the HUD: Center toggle and hunter-only Tag. -->
-        <HorizontalStackLayout Grid.Row="0" HorizontalOptions="End" Spacing="8">
+        <HorizontalStackLayout Grid.Row="0" HorizontalOptions="End" Spacing="0">
             <Button Text="{loc:Translate Hud_Center}"
                     Command="{Binding ToggleCenterCommand}"
                     Style="{StaticResource HudCenterButton}"

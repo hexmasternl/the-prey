@@ -162,12 +162,20 @@ public sealed class Game
         return game;
     }
 
+    /// <summary>
+    /// True while the lobby is open to changes — the game is gathering players (<see cref="GameStatus.Lobby"/>)
+    /// or every non-owner participant has readied up (<see cref="GameStatus.Ready"/>) but the owner has not yet
+    /// started. Lobby mutations (join, leave, designate, ready, settings) are permitted in both states and the
+    /// game auto-flips between them via <see cref="RecomputeLobbyReadiness"/>.
+    /// </summary>
+    private bool IsLobbyOpen => Status is GameStatus.Lobby or GameStatus.Ready;
+
     /// <summary>Adds a player to the participants list. Only allowed before the game starts; rejects duplicates and a full lobby.</summary>
     public void JoinLobby(GameParticipant participant)
     {
         ArgumentNullException.ThrowIfNull(participant);
 
-        if (Status != GameStatus.Lobby)
+        if (!IsLobbyOpen)
             throw new GameNotJoinableException();
 
         if (_participants.Any(p => p.UserId == participant.UserId))
@@ -177,6 +185,7 @@ public sealed class Game
             throw new LobbyFullException(MaxLobbySize);
 
         _participants.Add(participant);
+        RecomputeLobbyReadiness();
     }
 
     /// <summary>
@@ -185,11 +194,12 @@ public sealed class Game
     /// </summary>
     public void DesignateHunter(Guid userId)
     {
-        if (Status != GameStatus.Lobby)
-            throw new InvalidOperationException("Hunter can only be designated while the game is in the lobby.");
+        if (!IsLobbyOpen)
+            throw new InvalidOperationException("Hunter can only be designated before the game starts.");
         if (_participants.All(p => p.UserId != userId))
             throw new ArgumentException("The designated hunter must be a participant.", nameof(userId));
         HunterUserId = userId;
+        RecomputeLobbyReadiness();
     }
 
     /// <summary>
@@ -198,13 +208,14 @@ public sealed class Game
     /// </summary>
     public void RemoveLobbyPlayer(Guid userId)
     {
-        if (Status != GameStatus.Lobby)
-            throw new InvalidOperationException("Players can only be removed while the game is in the lobby.");
+        if (!IsLobbyOpen)
+            throw new InvalidOperationException("Players can only be removed before the game starts.");
         var player = _participants.FirstOrDefault(p => p.UserId == userId)
             ?? throw new ArgumentException("This player is not in the lobby.", nameof(userId));
         _participants.Remove(player);
         if (HunterUserId == userId)
             HunterUserId = null;
+        RecomputeLobbyReadiness();
     }
 
     /// <summary>
@@ -214,11 +225,12 @@ public sealed class Game
     public void UpdateSettings(GameConfiguration config)
     {
         ArgumentNullException.ThrowIfNull(config);
-        if (Status != GameStatus.Lobby)
-            throw new InvalidOperationException("Settings can only be updated while the game is in the lobby.");
+        if (!IsLobbyOpen)
+            throw new InvalidOperationException("Settings can only be updated before the game starts.");
         Configuration = config;
         foreach (var p in _participants.Where(p => p.UserId != OwnerUserId))
             p.SetReady(false);
+        RecomputeLobbyReadiness();
     }
 
     /// <summary>
@@ -230,30 +242,58 @@ public sealed class Game
         var participant = FindParticipant(userId)
             ?? throw new ArgumentException("This player is not in the lobby.", nameof(userId));
         participant.SetReady(true);
+        RecomputeLobbyReadiness();
     }
 
     /// <summary>
-    /// Whether every precondition of <see cref="Start"/> is currently met: the game is still in the
-    /// lobby, has at least <see cref="MinimumPlayersToStart"/> players, has a designated hunter who is a
-    /// participant, and every non-owner player has readied up.
+    /// Whether every precondition to start is currently met: at least <see cref="MinimumPlayersToStart"/>
+    /// players, a designated hunter who is a participant, and every non-owner player readied up. Independent
+    /// of the current status, so it can drive the automatic <see cref="GameStatus.Lobby"/> ↔
+    /// <see cref="GameStatus.Ready"/> transition in <see cref="RecomputeLobbyReadiness"/>.
     /// </summary>
-    public bool IsReadyToStart =>
-        Status == GameStatus.Lobby
-        && _participants.Count >= MinimumPlayersToStart
+    private bool MeetsStartPreconditions =>
+        _participants.Count >= MinimumPlayersToStart
         && HunterUserId is { } hunterId
         && _participants.Any(p => p.UserId == hunterId)
         && _participants.All(p => p.UserId == OwnerUserId || p.IsReady);
 
     /// <summary>
+    /// Keeps the status synchronized with readiness while the lobby is open: promotes
+    /// <see cref="GameStatus.Lobby"/> to <see cref="GameStatus.Ready"/> once every start precondition is met
+    /// and reverts <see cref="GameStatus.Ready"/> to <see cref="GameStatus.Lobby"/> when readiness is lost.
+    /// A no-op once the game is <see cref="GameStatus.Started"/>, <see cref="GameStatus.InProgress"/>, or
+    /// <see cref="GameStatus.Completed"/>. Returns true when the status actually changed.
+    /// </summary>
+    public bool RecomputeLobbyReadiness()
+    {
+        if (!IsLobbyOpen)
+            return false;
+
+        var target = MeetsStartPreconditions ? GameStatus.Ready : GameStatus.Lobby;
+        if (Status == target)
+            return false;
+
+        Status = target;
+        return true;
+    }
+
+    /// <summary>
+    /// True once the game has reached the <see cref="GameStatus.Ready"/> state — every non-owner participant
+    /// readied up and the owner's start action is enabled. Exposed on the game DTO for clients.
+    /// </summary>
+    public bool IsReadyToStart => Status == GameStatus.Ready;
+
+    /// <summary>
     /// Arms the game: validates all start preconditions, designates the hunter, turns every other
-    /// lobby member into a prey, and transitions to <see cref="GameStatus.Ready"/>. Does NOT stamp
-    /// <see cref="StartedAt"/>, <see cref="EndsAt"/>, or <see cref="NextScheduledBroadcastOn"/> —
-    /// those are set by the game engine sweep via <see cref="BeginPlay"/>.
+    /// lobby member into a prey, and transitions to <see cref="GameStatus.Started"/> — the owner's
+    /// commitment to start. Only allowed from <see cref="GameStatus.Ready"/> (every non-owner participant
+    /// readied up). Does NOT stamp <see cref="StartedAt"/>, <see cref="EndsAt"/>, or
+    /// <see cref="NextScheduledBroadcastOn"/> — those are set by the game engine sweep via <see cref="BeginPlay"/>.
     /// </summary>
     public void Arm(Guid hunterUserId)
     {
-        if (Status != GameStatus.Lobby)
-            throw new InvalidOperationException("Only a game in the lobby can be started.");
+        if (Status != GameStatus.Ready)
+            throw new InvalidOperationException("Only a game that is ready to start can be started.");
 
         if (_participants.Count < MinimumPlayersToStart)
             throw new InvalidOperationException($"A game requires at least {MinimumPlayersToStart} players to start.");
@@ -265,19 +305,20 @@ public sealed class Game
             throw new InvalidOperationException("All players must be ready before the game can start.");
 
         HunterUserId = hunterUserId;
-        Status = GameStatus.Ready;
+        Status = GameStatus.Started;
     }
 
     /// <summary>
     /// Commits the game start, stamping <see cref="StartedAt"/>, deriving <see cref="EndsAt"/> and
     /// <see cref="NextScheduledBroadcastOn"/>, and transitioning to <see cref="GameStatus.InProgress"/>.
-    /// Must only be called from the game engine sweep after <see cref="Arm"/> has been called.
+    /// Must only be called from the game engine sweep after <see cref="Arm"/> has moved the game to
+    /// <see cref="GameStatus.Started"/>.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when the game is not in the <see cref="GameStatus.Ready"/> state.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the game is not in the <see cref="GameStatus.Started"/> state.</exception>
     public void BeginPlay(DateTimeOffset startedAt)
     {
-        if (Status != GameStatus.Ready)
-            throw new InvalidOperationException("Only a Ready game can be committed to InProgress.");
+        if (Status != GameStatus.Started)
+            throw new InvalidOperationException("Only a Started game can be committed to InProgress.");
 
         StartedAt = startedAt;
         EndsAt = startedAt.AddMinutes(Configuration.GameDuration);
@@ -557,15 +598,17 @@ public sealed class Game
     }
 
     /// <summary>
-    /// Ends the game on behalf of its owner. Allowed from Lobby or Ready (cancel) and InProgress (force-complete).
-    /// Throws when the game is already Completed.
+    /// Ends the game on behalf of its owner. Allowed from Lobby, Ready, or Started (cancel) and InProgress
+    /// (force-complete). Throws when the game is already Completed.
     /// </summary>
     public void EndByOwner(DateTimeOffset now)
     {
         if (Status == GameStatus.Completed)
             throw new InvalidOperationException("The game has already been completed.");
 
-        var outcome = Status is GameStatus.Lobby or GameStatus.Ready ? GameOutcome.Cancelled : ComputeOutcome();
+        var outcome = Status is GameStatus.Lobby or GameStatus.Ready or GameStatus.Started
+            ? GameOutcome.Cancelled
+            : ComputeOutcome();
         ApplyCompletion(now, outcome);
     }
 

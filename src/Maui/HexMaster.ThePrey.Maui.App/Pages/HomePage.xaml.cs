@@ -1,4 +1,8 @@
 using System.ComponentModel;
+#if DEBUG
+using HexMaster.ThePrey.Maui.App.Services.Localization;
+using HexMaster.ThePrey.Maui.App.Services.Navigation;
+#endif
 using HexMaster.ThePrey.Maui.App.ViewModels;
 
 namespace HexMaster.ThePrey.Maui.App.Pages;
@@ -27,6 +31,34 @@ public partial class HomePage : ContentPage
     private CancellationTokenSource? _panCts;
     private CancellationTokenSource? _sweepCts;
 
+#if DEBUG
+    // Debug-only: lets a developer paste an invite URL and jump straight into the join flow (the OS deep
+    // link often does not resolve on a dev machine/emulator). Reuses the invite handler so the parsing and
+    // routing cannot drift from the real https://theprey.nl/join/{gameId} deep link. Absent in release.
+    private readonly IInviteDeepLinkHandler _inviteDeepLinkHandler;
+    private readonly ILocalizationService _localization;
+
+    public HomePage(
+        MainMenuViewModel viewModel,
+        IInviteDeepLinkHandler inviteDeepLinkHandler,
+        ILocalizationService localization)
+    {
+        _inviteDeepLinkHandler = inviteDeepLinkHandler;
+        _localization = localization;
+
+        InitializeComponent();
+        BindingContext = _viewModel = viewModel;
+
+        _playerNameBase = ResolveColor("TpTextGhost", "#5a6553");
+        _playerNameLit = ResolveColor("TpSignal", "#64ff00");
+
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        // The byline is only visible once signed in with a resolved name, so the tap target only exists then.
+        PlayerNameLabel.GestureRecognizers.Add(
+            new TapGestureRecognizer { Command = new Command(async () => await PromptJoinByUrlAsync()) });
+    }
+#else
     public HomePage(MainMenuViewModel viewModel)
     {
         InitializeComponent();
@@ -37,6 +69,29 @@ public partial class HomePage : ContentPage
 
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
     }
+#endif
+
+#if DEBUG
+    // Debug-only: prompt for an invite URL, then route into the join flow via the shared invite handler.
+    // Cancel, empty input, an unparseable URL, or a URL the handler rejects (wrong host/path/id) are all
+    // quiet no-ops — nothing navigates and nothing is surfaced to the user.
+    private async Task PromptJoinByUrlAsync()
+    {
+        var url = await DisplayPromptAsync(
+            _localization["Debug_JoinPromptTitle"],
+            _localization["Debug_JoinPromptMessage"],
+            placeholder: _localization["Debug_JoinPromptPlaceholder"],
+            keyboard: Keyboard.Url);
+
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+
+        if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri))
+            return;
+
+        await _inviteDeepLinkHandler.TryHandleAsync(uri);
+    }
+#endif
 
     protected override async void OnAppearing()
     {

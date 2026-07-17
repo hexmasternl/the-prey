@@ -34,13 +34,14 @@ public sealed class StartGameCommandHandlerTests
     public async Task Handle_ShouldArmGame_WhenOwnerStartsWithValidHunter()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.DesignateHunter(ids[0]); // game reaches Ready — the state from which the owner may start
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         var result = await _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None);
 
         Assert.NotNull(result);
-        // Handler arms the game → Ready; the sweep will promote to InProgress.
-        Assert.Equal(GameStatus.Ready.ToString(), result!.Game.Status);
+        // Handler arms the game → Started; the sweep will promote to InProgress.
+        Assert.Equal(GameStatus.Started.ToString(), result!.Game.Status);
         Assert.Equal(ids[0], result.Game.HunterUserId);
         Assert.Equal(2, result.Game.Preys.Count);
         Assert.Null(result.Game.StartedAt);
@@ -50,16 +51,17 @@ public sealed class StartGameCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldPublishReadyStateChanged_WhenArmed()
+    public async Task Handle_ShouldPublishStartedStateChanged_WhenArmed()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.DesignateHunter(ids[0]);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         await _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None);
 
         _eventBus.Verify(b => b.PublishAsync(
             game.Id,
-            It.Is<StateChangedEvent>(e => e.NewState == "Ready"),
+            It.Is<StateChangedEvent>(e => e.NewState == "Started"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -67,6 +69,7 @@ public sealed class StartGameCommandHandlerTests
     public async Task Handle_ShouldPublishLobbyGameStartedEvent_WhenArmed()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.DesignateHunter(ids[0]);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         await _handler.Handle(new StartGameCommand(game.Id, game.OwnerUserId, ids[0]), CancellationToken.None);
@@ -119,6 +122,7 @@ public sealed class StartGameCommandHandlerTests
     public async Task Handle_ShouldRecordStarted_AfterGameIsPersisted()
     {
         var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.DesignateHunter(ids[0]);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
         var callOrder = new List<string>();

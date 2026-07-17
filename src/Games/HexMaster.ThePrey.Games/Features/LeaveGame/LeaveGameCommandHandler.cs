@@ -41,8 +41,15 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
 
             switch (game.Status)
             {
+                // The lobby is open in both Lobby and Ready; a non-owner leaving may drop readiness and
+                // revert Ready back to Lobby (handled by the aggregate's recompute inside RemoveLobbyPlayer).
                 case GameStatus.Lobby:
+                case GameStatus.Ready:
                     await HandleLobbyLeave(game, command.UserId, ct);
+                    break;
+
+                case GameStatus.Started:
+                    await HandleStartedLeave(game, command.UserId, ct);
                     break;
 
                 case GameStatus.InProgress:
@@ -84,6 +91,27 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
             game.RemoveLobbyPlayer(userId);
             await _games.UpdateAsync(game, ct);
             await _lobbyEventBus.PublishAsync(game.Id, "lobby-updated", game.ToDto(), ct);
+        }
+    }
+
+    // A game the owner started but the sweep has not yet promoted (transient, ~one tick). The owner or the
+    // fixed hunter leaving cancels it; a prey leaving cannot mutate the armed roster and is rejected — the
+    // sweep will promote to InProgress within a tick, where a forfeit is the correct path.
+    private async Task HandleStartedLeave(Game game, Guid userId, CancellationToken ct)
+    {
+        if (!game.IsParticipant(userId) && game.OwnerUserId != userId)
+            throw new ArgumentException("This user is not in the game.", nameof(userId));
+
+        if (game.OwnerUserId == userId || game.HunterUserId == userId)
+        {
+            game.EndByOwner(_timeProvider.GetUtcNow());
+            await _games.UpdateAsync(game, ct);
+            await _eventBus.PublishAsync(game.Id, game.ToGameEndedEvent(), ct);
+            await _lobbyEventBus.PublishAsync(game.Id, "game-ended", game.ToDto(), ct);
+        }
+        else
+        {
+            throw new InvalidOperationException("Cannot leave a game that is starting.");
         }
     }
 

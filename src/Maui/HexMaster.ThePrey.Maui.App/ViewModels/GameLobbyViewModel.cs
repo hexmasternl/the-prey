@@ -322,7 +322,9 @@ public sealed class GameLobbyViewModel : ObservableObject
         IsLoaded = true;
         UpdateDerived();
 
-        if (allowHandOff && !game.IsLobby)
+        // Only Started/InProgress hands off to gameplay. The automatic Lobby→Ready readiness transition
+        // must never navigate anyone — it merely enables the owner's start button.
+        if (allowHandOff && game.IsArmed)
             _ = HandOffAsync();
     }
 

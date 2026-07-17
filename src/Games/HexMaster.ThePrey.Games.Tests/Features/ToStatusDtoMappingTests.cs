@@ -172,6 +172,7 @@ public sealed class ToStatusDtoMappingTests
         game.JoinLobby(GameFaker.Player(secondPlayer));
         game.SetReady(playerId);
         game.SetReady(secondPlayer);
+        game.DesignateHunter(playerId);
         game.Arm(playerId);
         game.BeginPlay(DateTimeOffset.UtcNow.AddMinutes(-5));
 
