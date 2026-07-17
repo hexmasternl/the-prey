@@ -2,7 +2,7 @@
 
 - [x] 1.1 Define the versioned envelope shape (`v`, `type`, `gameId`, `seq`, `data`) and the canonical message-type constants in one shared location referenced by the server broadcaster
 - [x] 1.2 Document each catalog message (`participant-joined`, `participant-changed`, `participant-removed`, `configuration-changed`, `locations-updated`, `prey-updated`, `game-ended`, `resync-requested`) with its `data` shape
-- [ ] 1.3 Rewrite `docs/api/realtime.md` to render the `realtime-game-protocol` spec: envelope, `v`, `seq`, per-message payloads, per-recipient scoping, and reconnect/resync guidance
+- [x] 1.3 Rewrite `docs/api/realtime.md` to render the `realtime-game-protocol` spec: envelope, `v`, `seq`, per-message payloads, per-recipient scoping, and reconnect/resync guidance
 - [x] 1.4 Consult the hexmaster coding guidelines MCP (`0005`, `0007`, `0008`, `0009`, unit-testing) before touching server code
 
 ## 2. Server — Notifications module (envelope, seq, fan-out)
