@@ -1,10 +1,11 @@
-using System.Runtime.CompilerServices;
 using HexMaster.ThePrey.Maui.App.Configuration;
 using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Authentication;
 using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
 using HexMaster.ThePrey.Maui.App.Services.Platform;
+using HexMaster.ThePrey.Maui.App.Services.Realtime;
+using HexMaster.ThePrey.Maui.App.Services.Session;
 using HexMaster.ThePrey.Maui.App.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -19,16 +20,18 @@ public class GameLobbyViewModelTests
     private readonly Mock<ILobbyNavigator> _navigator = new();
     private readonly Mock<IAccessTokenProvider> _tokenProvider = new();
     private readonly Mock<ILocalizationService> _localization = new();
-    private FakeLobbyStream _stream = new([]);
+    private readonly Mock<ICurrentUserProvider> _currentUser = new();
+    private readonly FakeGameStateService _gameState = new();
 
     public GameLobbyViewModelTests()
     {
         _tokenProvider.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("token");
         _localization.Setup(l => l[It.IsAny<string>()]).Returns<string>(k => k);
+        _currentUser.Setup(u => u.GetUserIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync((Guid?)null);
     }
 
     private GameLobbyViewModel CreateSut() => new(
-        _gameApi.Object, _stream, _share.Object, _navigator.Object, _tokenProvider.Object,
+        _gameApi.Object, _gameState, _currentUser.Object, _share.Object, _navigator.Object, _tokenProvider.Object,
         _localization.Object, Options.Create(new ThePreyClientOptions()),
         NullLogger<GameLobbyViewModel>.Instance);
 
@@ -397,15 +400,61 @@ public class GameLobbyViewModelTests
             IsReadyToStart = true,
             Participants = [participant with { IsReady = true }]
         };
-        _stream = new FakeLobbyStream([updated]);
         SetupLoad(initial);
         var sut = CreateSut();
 
         await sut.ActivateAsync();
-        await sut.StreamTask!;
+        _gameState.Push(updated);
 
         Assert.True(sut.Participants[0].IsReady);
         Assert.True(sut.CanStart);
+    }
+
+    [Fact]
+    public async Task LiveUpdate_OwnerSnapshotWithoutPersonalizedOwnerFlag_ShouldNotFlipOwner_NorLoseParticipants()
+    {
+        // Regression (the original report): the owner's lobby flipped to the participant view and the
+        // roster vanished on the first live update. The Web PubSub group broadcast is one shared GameDto,
+        // so its per-recipient IsOwnerPlayer arrives false. The owner must stay the owner (sticky) and the
+        // participants must survive — ApplySnapshot never downgrades a known owner off a shared snapshot.
+        var owner = Participant(Guid.NewGuid(), "Owner");
+        var other = Participant(Guid.NewGuid(), "Bob", ready: true);
+        var initial = Game(isOwner: true, participants: [owner, other]);          // load: personalized owner = true
+        var liveShared = initial with { IsOwnerPlayer = false };                   // Web PubSub broadcast: false
+        SetupLoad(initial);
+        var sut = CreateSut();
+
+        await sut.ActivateAsync();
+        Assert.True(sut.IsOwner);
+
+        _gameState.Push(liveShared);
+
+        Assert.True(sut.IsOwner);            // did not flip to the participant view
+        Assert.True(sut.ShowStart);
+        Assert.False(sut.ShowReady);
+        Assert.Equal(2, sut.Participants.Count); // roster preserved
+    }
+
+    [Fact]
+    public async Task LiveUpdate_SharedSnapshot_ShouldDeriveOwnershipFromOwnerId_WhenSelfKnown()
+    {
+        // Even without a prior personalized load establishing ownership, the lobby derives ownership from
+        // the owner id vs. the signed-in user — so a shared broadcast with IsOwnerPlayer=false still shows
+        // the owner controls to the actual owner.
+        var ownerId = Guid.NewGuid();
+        _currentUser.Setup(u => u.GetUserIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync(ownerId);
+        var initial = new GameDetails(
+            Guid.NewGuid(), "1234", "Lobby",
+            new GameConfigurationDetails(30, 5, 10, 120, 60),
+            [Participant(ownerId, "Owner")],
+            HunterUserId: null, OwnerUserId: ownerId, IsOwnerPlayer: false, IsReadyToStart: false);
+        SetupLoad(initial);
+        var sut = CreateSut();
+
+        await sut.ActivateAsync();
+        _gameState.Push(initial);
+
+        Assert.True(sut.IsOwner);
     }
 
     [Fact]
@@ -413,12 +462,11 @@ public class GameLobbyViewModelTests
     {
         var initial = Game(isOwner: false);
         var started = initial with { Status = "InProgress" };
-        _stream = new FakeLobbyStream([started]);
         SetupLoad(initial);
         var sut = CreateSut();
 
         await sut.ActivateAsync();
-        await sut.StreamTask!;
+        _gameState.Push(started);
 
         _navigator.Verify(n => n.GoToGameplayAsync(), Times.Once);
     }
@@ -430,12 +478,11 @@ public class GameLobbyViewModelTests
         // hand-off signal, exactly like InProgress.
         var initial = Game(isOwner: false);
         var started = initial with { Status = "Started" };
-        _stream = new FakeLobbyStream([started]);
         SetupLoad(initial);
         var sut = CreateSut();
 
         await sut.ActivateAsync();
-        await sut.StreamTask!;
+        _gameState.Push(started);
 
         _navigator.Verify(n => n.GoToGameplayAsync(), Times.Once);
     }
@@ -447,12 +494,11 @@ public class GameLobbyViewModelTests
         // navigate anyone. Only the owner actually starting (→ Started) hands off.
         var initial = Game(isOwner: false);
         var ready = initial with { Status = "Ready", IsReadyToStart = true };
-        _stream = new FakeLobbyStream([ready]);
         SetupLoad(initial);
         var sut = CreateSut();
 
         await sut.ActivateAsync();
-        await sut.StreamTask!;
+        _gameState.Push(ready);
 
         _navigator.Verify(n => n.GoToGameplayAsync(), Times.Never);
     }
@@ -460,18 +506,17 @@ public class GameLobbyViewModelTests
     [Fact]
     public async Task LiveUpdate_PartialFrameWithoutConfigOrParticipants_ShouldNotThrow_KeepSeededValues_AndStillHandOff()
     {
-        // A lobby-stream frame can be partial: the backend's JSON may omit the configuration/participants
+        // A live snapshot can be partial: the backend's JSON may omit the configuration/participants
         // (e.g. a state-changed event that starts the game). These deserialize to null despite the
         // non-nullable record annotations, so ApplySnapshot must not dereference them — and, crucially, it
         // must still run the started→gameplay hand-off (regression: the NRE previously aborted before it).
         var initial = Game(isOwner: false, pingSeconds: 120, endgamePingSeconds: 60);
         var partialStart = initial with { Status = "InProgress", Configuration = null!, Participants = null! };
-        _stream = new FakeLobbyStream([partialStart]);
         SetupLoad(initial);
         var sut = CreateSut();
 
         await sut.ActivateAsync();
-        await sut.StreamTask!;
+        _gameState.Push(partialStart);
 
         // Selectors keep the values seeded from the full initial load rather than being cleared/crashing.
         Assert.Equal(2, sut.SelectedPing);
@@ -480,18 +525,32 @@ public class GameLobbyViewModelTests
     }
 
     [Fact]
-    public async Task Deactivate_ShouldCancelSubscription()
+    public async Task Activate_ShouldStartSharedChannel_AndSubscribe()
     {
         var game = Game(isOwner: true);
-        _stream = new FakeLobbyStream([game], blockAfterSnapshots: true);
         SetupLoad(game);
         var sut = CreateSut();
 
         await sut.ActivateAsync();
-        sut.Deactivate();
-        await sut.StreamTask!;
 
-        Assert.True(_stream.Token!.Value.IsCancellationRequested);
+        Assert.Equal(game.Id, _gameState.StartedGameId);
+        Assert.Equal(1, _gameState.SubscriberCount);
+    }
+
+    [Fact]
+    public async Task Deactivate_ShouldUnsubscribe_AndStopChannel()
+    {
+        var game = Game(isOwner: true);
+        SetupLoad(game);
+        var sut = CreateSut();
+
+        await sut.ActivateAsync();
+        Assert.Equal(1, _gameState.SubscriberCount);
+
+        sut.Deactivate();
+
+        Assert.Equal(0, _gameState.SubscriberCount);
+        Assert.True(_gameState.Stopped);
     }
 
     // ---- Share ----
@@ -520,33 +579,4 @@ public class GameLobbyViewModelTests
         Assert.Contains($"https://theprey.nl/join/{gameId}", sharedText);
     }
 
-    /// <summary>A scripted lobby stream: yields the given snapshots, then optionally blocks until cancelled.</summary>
-    private sealed class FakeLobbyStream : ILobbyStreamClient
-    {
-        private readonly IReadOnlyList<GameDetails> _snapshots;
-        private readonly bool _blockAfterSnapshots;
-
-        public FakeLobbyStream(IReadOnlyList<GameDetails> snapshots, bool blockAfterSnapshots = false)
-        {
-            _snapshots = snapshots;
-            _blockAfterSnapshots = blockAfterSnapshots;
-        }
-
-        /// <summary>The cancellation token the VM passed to the subscription (captured on first enumeration).</summary>
-        public CancellationToken? Token { get; private set; }
-
-        public async IAsyncEnumerable<GameDetails> Subscribe(
-            Guid gameId, string accessToken, [EnumeratorCancellation] CancellationToken ct)
-        {
-            Token = ct;
-            foreach (var snapshot in _snapshots)
-            {
-                ct.ThrowIfCancellationRequested();
-                yield return snapshot;
-            }
-
-            if (_blockAfterSnapshots)
-                await Task.Delay(Timeout.Infinite, ct);
-        }
-    }
 }

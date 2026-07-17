@@ -32,6 +32,7 @@ public sealed class GameStateService : IGameStateService
     private readonly List<Action<GameStateChanged>> _subscribers = new();
 
     private GameLiveState? _current;
+    private GameDetails? _currentGame;
     private Guid _gameId;
     private ITimer? _reconcileTimer;
 
@@ -57,6 +58,11 @@ public sealed class GameStateService : IGameStateService
     public GameLiveState? CurrentState
     {
         get { lock (_stateGate) { return _current; } }
+    }
+
+    public GameDetails? CurrentGame
+    {
+        get { lock (_stateGate) { return _currentGame; } }
     }
 
     public async Task<GameLiveState?> StartAsync(CancellationToken ct = default)
@@ -175,6 +181,7 @@ public sealed class GameStateService : IGameStateService
         {
             built = BuildState(game, details, state, _current);
             _current = built;
+            _currentGame = game;
         }
         Broadcast(built);
     }
@@ -208,6 +215,7 @@ public sealed class GameStateService : IGameStateService
                 // A full-snapshot event (lobby/game-started) carries only the game record; merge it onto the
                 // previous composite so the map's polygon and the participants' last-known locations survive.
                 _current = BuildState(game, details: null, state: null, _current);
+                _currentGame = game;
                 return _current;
             }
 
@@ -354,7 +362,9 @@ public sealed class GameStateService : IGameStateService
         Action<GameStateChanged>[] handlers;
         lock (_subscriberGate) { handlers = _subscribers.ToArray(); }
 
-        var message = new GameStateChanged(state);
+        GameDetails? game;
+        lock (_stateGate) { game = _currentGame; }
+        var message = new GameStateChanged(state, game);
         foreach (var handler in handlers)
         {
             try

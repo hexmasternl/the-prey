@@ -1,3 +1,5 @@
+using HexMaster.ThePrey.Maui.App.Services.Api;
+
 namespace HexMaster.ThePrey.Maui.App.Services.Realtime;
 
 /// <summary>
@@ -11,6 +13,13 @@ public interface IGameStateService
 {
     /// <summary>The latest composite state, or <c>null</c> before the first snapshot has been fetched.</summary>
     GameLiveState? CurrentState { get; }
+
+    /// <summary>
+    /// The raw game record behind <see cref="CurrentState"/> — the fields the lobby needs that the composite
+    /// does not carry (pass code, configuration, participant names/ready, owner). <c>null</c> before the
+    /// first snapshot.
+    /// </summary>
+    GameDetails? CurrentGame { get; }
 
     /// <summary>
     /// Resolves the caller's active game, seeds the first snapshot, starts the periodic reconcile, and opens

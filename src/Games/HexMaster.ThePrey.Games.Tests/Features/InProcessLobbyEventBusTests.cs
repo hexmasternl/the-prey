@@ -1,56 +1,47 @@
 using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.IntegrationEvents;
+using HexMaster.ThePrey.IntegrationEvents.Events;
 using Moq;
 
 namespace HexMaster.ThePrey.Games.Tests.Features;
 
 public sealed class InProcessLobbyEventBusTests
 {
-    private readonly InProcessLobbyEventBus _bus = new(Mock.Of<IIntegrationEventPublisher>());
+    private readonly Mock<IIntegrationEventPublisher> _integrationPublisherMock = new();
+    private readonly InProcessLobbyEventBus _sut;
+
+    public InProcessLobbyEventBusTests()
+    {
+        _sut = new InProcessLobbyEventBus(_integrationPublisherMock.Object);
+    }
 
     [Fact]
-    public async Task PublishAsync_ShouldDeliverEvent_ToAllSubscribers()
+    public async Task PublishAsync_ShouldBridgeToWebPubSub_ViaIntegrationEvent()
     {
         var gameId = Guid.NewGuid();
         var payload = CreatePayload(gameId);
 
-        var subscriptionA = _bus.Subscribe(gameId);
-        var subscriptionB = _bus.Subscribe(gameId);
+        await _sut.PublishAsync(gameId, "lobby-updated", payload);
 
-        await _bus.PublishAsync(gameId, "lobby-updated", payload);
-        _bus.Complete(gameId);
-
-        var receivedA = new List<LobbyEvent>();
-        await foreach (var evt in subscriptionA)
-            receivedA.Add(evt);
-
-        var receivedB = new List<LobbyEvent>();
-        await foreach (var evt in subscriptionB)
-            receivedB.Add(evt);
-
-        Assert.Single(receivedA);
-        Assert.Single(receivedB);
-        Assert.Equal("lobby-updated", receivedA[0].EventType);
-        Assert.Equal("lobby-updated", receivedB[0].EventType);
+        _integrationPublisherMock.Verify(p => p.PublishAsync(
+            It.Is<LobbyNotificationIntegrationEvent>(e =>
+                e.GameId == gameId && e.Name == "lobby-updated" && Equals(e.Payload, payload)),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task PublishAsync_ShouldNotDeliverEvent_ToDifferentGameSubscriber()
+    public async Task PublishAsync_ShouldSwallowException_WhenIntegrationPublisherThrows()
     {
-        var gameA = Guid.NewGuid();
-        var gameB = Guid.NewGuid();
+        var gameId = Guid.NewGuid();
+        var payload = CreatePayload(gameId);
+        _integrationPublisherMock
+            .Setup(p => p.PublishAsync(It.IsAny<LobbyNotificationIntegrationEvent>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("broker unavailable"));
 
-        var subscriptionB = _bus.Subscribe(gameB);
-        await _bus.PublishAsync(gameA, "lobby-updated", CreatePayload(gameA));
-        _bus.Complete(gameA);
-        _bus.Complete(gameB);
+        var exception = await Record.ExceptionAsync(() => _sut.PublishAsync(gameId, "lobby-updated", payload).AsTask());
 
-        var received = new List<LobbyEvent>();
-        await foreach (var evt in subscriptionB)
-            received.Add(evt);
-
-        Assert.Empty(received);
+        Assert.Null(exception);
     }
 
     private static GameDto CreatePayload(Guid gameId)

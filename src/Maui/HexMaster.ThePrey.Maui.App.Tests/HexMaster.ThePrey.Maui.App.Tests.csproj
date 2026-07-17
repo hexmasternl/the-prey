@@ -126,8 +126,6 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameSettingsParameters.cs" Link="Linked\GameSettingsParameters.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\CreateGameResult.cs" Link="Linked\CreateGameResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\CreateGameParameters.cs" Link="Linked\CreateGameParameters.cs" />
-    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\ILobbyStreamClient.cs" Link="Linked\ILobbyStreamClient.cs" />
-    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\LobbyStreamClient.cs" Link="Linked\LobbyStreamClient.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IShareService.cs" Link="Linked\IShareService.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\ILobbyNavigator.cs" Link="Linked\ILobbyNavigator.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\LobbyParticipant.cs" Link="Linked\LobbyParticipant.cs" />
