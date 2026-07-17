@@ -199,7 +199,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   readonly pingCountdown = signal(30);
   /** Server-supplied full ping interval (seconds) used as the NEXT UPDATE bar denominator. */
   currentPingInterval = 30;
-  /** True while the game is in the Ready state (armed but not yet started by the sweep). */
+  /** True while the game is in the Started state (armed by the owner but not yet committed by the sweep). */
   readonly waitingForStart = signal(false);
   /** Fixed bar duration (seconds) used as MAX when the player is under a boundary penalty. */
   private readonly PENALTY_BAR_SECONDS = 30;
@@ -320,7 +320,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
     void this.startGps();
     void this.compass.start();
 
-    // Check if we're entering a game that is still in the Ready state (armed by the host
+    // Check if we're entering a game that is still in the Started state (armed by the host
     // but not yet committed by the sweep). If so, show the waiting overlay immediately
     // and skip the ping countdown until InProgress arrives via stream.
     await this.checkReadyState();
@@ -332,13 +332,13 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   /**
-   * Check whether the game is currently in the Ready state. If so, set waitingForStart
+   * Check whether the game is currently in the Started state. If so, set waitingForStart
    * so the overlay is shown and the ping countdown is suppressed until InProgress arrives.
    */
   private async checkReadyState(): Promise<void> {
     try {
       const game = await this.gamesService.getGame(this.gameId);
-      if (game.status === 'Ready') {
+      if (game.status === 'Started') {
         this.waitingForStart.set(true);
       }
     } catch {
@@ -685,7 +685,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       this.applyStatus(status);
 
       // A successful status poll means the game is InProgress (the status endpoint only
-      // serves running games). If we entered during the Ready state, startedAt was null
+      // serves running games). If we entered during the Started state, startedAt was null
       // and tracking never started — (re)start it now that the game is live. Idempotent:
       // ensureTracking short-circuits once the location service is broadcasting.
       void this.ensureTracking();
@@ -726,7 +726,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
    * Authoritative fallback for a missed `game-ended` event: fetch the full game record and,
    * if it has completed, hand off to the outcome screen. Returns true when the game has ended
    * (navigation triggered), false otherwise. Idempotent via `handleGameEnded`'s guard.
-   * Also sets `waitingForStart` if the game is still in the Ready state (status poll failed
+   * Also sets `waitingForStart` if the game is still in the Started state (status poll failed
    * because the game is not yet InProgress).
    */
   private async checkGameEndedOnServer(): Promise<boolean> {
@@ -745,7 +745,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
         });
         return true;
       }
-      if (game.status === 'Ready') {
+      if (game.status === 'Started') {
         // The game was armed but the sweep hasn't promoted it yet. Show the waiting overlay.
         this.waitingForStart.set(true);
       }
@@ -1020,7 +1020,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
 
   /**
    * Handle a game-state transition broadcast from the stream. When the game moves from
-   * Ready to InProgress, remove the waiting overlay, seed the ping countdown, and let
+   * Started to InProgress, remove the waiting overlay, seed the ping countdown, and let
    * normal gameplay begin. The next status poll will supply the full HUD values.
    */
   private handleStateChanged(): void {
@@ -1041,7 +1041,7 @@ export class GameHunterPage implements OnInit, OnDestroy, ViewWillEnter {
       this.applyStatus(status);
       // Game is now InProgress — lift the waiting overlay and start the countdown.
       this.waitingForStart.set(false);
-      // The game just went live; start broadcasting location now (we entered during Ready,
+      // The game just went live; start broadcasting location now (we entered during Started,
       // when startedAt was null and ensureTracking could not start). Idempotent.
       void this.ensureTracking();
 

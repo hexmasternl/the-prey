@@ -170,22 +170,23 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       return;
     }
 
-    // Reflect the new state locally and confirm the game has left the lobby
-    // (Ready or InProgress both trigger navigation to the role view).
+    // Reflect the new state locally and confirm the game has been started by the owner
+    // (Started or InProgress both trigger navigation to the role view). Ready — the
+    // all-players-ready state that merely enables the owner's start button — never navigates.
     this.setGameState(game);
     this.syncConfigFromGame(game);
 
-    if (game.status === 'Ready' || game.status === 'InProgress') {
+    if (game.status === 'Started' || game.status === 'InProgress') {
       this.enterStartedGame(game);
     } else {
-      this.streamError(`event 'game-started' carried unexpected status '${game.status}' (expected 'Ready' or 'InProgress') — not navigating`);
+      this.streamError(`event 'game-started' carried unexpected status '${game.status}' (expected 'Started' or 'InProgress') — not navigating`);
     }
   }
 
   /**
-   * The game has left the lobby (Ready or InProgress) — stop the lobby stream and
+   * The owner has started the game (Started or InProgress) — stop the lobby stream and
    * route the player to their role's view. Location tracking is started only when the
-   * game is InProgress (has a real startedAt); during Ready there is no clock yet.
+   * game is InProgress (has a real startedAt); during Started there is no clock yet.
    * Reached via the `game-started` event or via a post-reconnect refresh.
    */
   private enterStartedGame(game: GameDto): void {
@@ -197,7 +198,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
     this.streamLog(`game ${game.status} — uid=${uid} isHunter=${isHunter} isPrey=${isPrey}`);
 
     // Start background location tracking only when the game is actually running
-    // (InProgress has startedAt; Ready does not). The in-game page's ionViewWillEnter
+    // (InProgress has startedAt; Started does not). The in-game page's ionViewWillEnter
     // is a no-op when a session for this game is already active (idempotent start).
     if ((isHunter || isPrey) && game.status === 'InProgress' && game.startedAt) {
       const startedAt = new Date(game.startedAt);
@@ -221,7 +222,7 @@ export class GameLobbyPage implements ViewWillEnter, ViewWillLeave, OnDestroy {
       const game = await this.gamesService.getGame(this.gameId());
       this.setGameState(game);
       this.syncConfigFromGame(game);
-      if (game.status === 'Ready' || game.status === 'InProgress') {
+      if (game.status === 'Started' || game.status === 'InProgress') {
         this.streamLog(`refresh found game in status '${game.status}' (missed game-started event) — entering game`);
         this.enterStartedGame(game);
       } else if (game.status === 'Completed') {

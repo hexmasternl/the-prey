@@ -26,10 +26,10 @@
 
 ## 4. Ionic client (`src/ThePrey`)
 
-- [ ] 4.1 `games/game-lobby.page.ts`: change both navigation guards (the `game-started` handler and post-reconnect `refreshGame`) from `status === 'Ready' || 'InProgress'` to `status === 'Started' || 'InProgress'`; keep location-tracking start gated on `InProgress` + `startedAt`.
-- [ ] 4.2 `games/game-hunter.page.ts`: change the waiting-overlay/`checkReadyState` logic keyed on `status === 'Ready'` to `status === 'Started'`; keep lifting the overlay on the `InProgress` state-changed event.
-- [ ] 4.3 `games/game-prey.page.ts`: apply the same `Ready` → `Started` waiting-overlay change.
-- [ ] 4.4 Update Ionic unit tests/specs (`game-lobby.page.spec.ts`, `game-stream.service.spec.ts`, and hunter/prey page specs) for the new `Started` status; run the client test suite.
+- [x] 4.1 `games/game-lobby.page.ts`: change both navigation guards (the `game-started` handler and post-reconnect `refreshGame`) from `status === 'Ready' || 'InProgress'` to `status === 'Started' || 'InProgress'`; keep location-tracking start gated on `InProgress` + `startedAt`.
+- [x] 4.2 `games/game-hunter.page.ts`: change the waiting-overlay/`checkReadyState` logic keyed on `status === 'Ready'` to `status === 'Started'`; keep lifting the overlay on the `InProgress` state-changed event.
+- [x] 4.3 `games/game-prey.page.ts`: apply the same `Ready` → `Started` waiting-overlay change.
+- [x] 4.4 Update Ionic unit tests/specs (`game-lobby.page.spec.ts`, `game-stream.service.spec.ts`, and hunter/prey page specs) for the new `Started` status; run the client test suite.
 
 ## 5. MAUI client (`src/Maui`)
 
