@@ -33,9 +33,10 @@ public sealed class SetHunterCommandHandler : ICommandHandler<SetHunterCommand, 
 
         try
         {
-            if (game.Status == GameStatus.Lobby)
+            if (game.Status is GameStatus.Lobby or GameStatus.Ready)
             {
-                // Lobby: owner designates the pre-game hunter
+                // Pre-start (Lobby or Ready): owner designates the pre-game hunter. Re-designating while the
+                // game is Ready is allowed and may keep it Ready (the aggregate recomputes readiness).
                 if (game.OwnerUserId != command.CallerUserId)
                     return null;
 

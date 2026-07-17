@@ -10,11 +10,11 @@
 
 ## 2. Server — sweep, repository, and events
 
-- [ ] 2.1 In `GameEngine/GameSweepProcessor.cs`, change the task-0 promotion guard from `game.Status == GameStatus.Ready` to `game.Status == GameStatus.Started` (broadcast of `state-changed { newState: "InProgress" }` unchanged).
-- [ ] 2.2 In `Data.Postgres/GameRepository.cs`, change `GetInProgressGameIdsAsync` filter from `Status == Ready || Status == InProgress` to `Status == Started || Status == InProgress`.
-- [ ] 2.3 In `Features/StartGame/StartGameCommandHandler.cs`, change the broadcast `StateChangedEvent(..., "Ready")` to `"Started"` and update the accompanying comment; keep the `game-started` lobby event publishing the full DTO.
-- [ ] 2.4 Ensure the lobby command handlers (`SetReady`, `UpdateGameSettings`, `LeaveGame`, `JoinGame`, `SetHunter`, `RemoveLobbyPlayer`) persist after readiness recompute and broadcast a `state-changed` event when the status actually flips between `Lobby` and `Ready` (the full-DTO lobby event already fires per mutation).
-- [ ] 2.5 Confirm `GetActiveGameForUserAsync` / `GetActiveGame` behaviour is acceptable for a `Started` game (navigation is stream-driven; document if a `Started` game should be resumable via `/games/active`).
+- [x] 2.1 In `GameEngine/GameSweepProcessor.cs`, change the task-0 promotion guard from `game.Status == GameStatus.Ready` to `game.Status == GameStatus.Started` (broadcast of `state-changed { newState: "InProgress" }` unchanged).
+- [x] 2.2 In `Data.Postgres/GameRepository.cs`, change `GetInProgressGameIdsAsync` filter from `Status == Ready || Status == InProgress` to `Status == Started || Status == InProgress`.
+- [x] 2.3 In `Features/StartGame/StartGameCommandHandler.cs`, change the broadcast `StateChangedEvent(..., "Ready")` to `"Started"` and update the accompanying comment; keep the `game-started` lobby event publishing the full DTO.
+- [x] 2.4 Ensure the lobby command handlers (`SetReady`, `UpdateGameSettings`, `LeaveGame`, `JoinGame`, `SetHunter`, `RemoveLobbyPlayer`) persist after readiness recompute and broadcast a `state-changed` event when the status actually flips between `Lobby` and `Ready` (the full-DTO lobby event already fires per mutation).
+- [x] 2.5 Confirm `GetActiveGameForUserAsync` / `GetActiveGame` behaviour is acceptable for a `Started` game (navigation is stream-driven; document if a `Started` game should be resumable via `/games/active`).
 
 ## 3. Server — tests
 

@@ -47,12 +47,12 @@ public sealed class StartGameCommandHandler : ICommandHandler<StartGameCommand, 
 
         await _games.UpdateAsync(game, ct);
 
-        // The game is now Ready; the always-running sweep (GameTickService) will promote it to
+        // The game is now Started; the always-running sweep (GameTickService) will promote it to
         // InProgress on its next tick, stamping StartedAt at that point.
         _metrics.RecordGameStarted();
         _logger.LogInformation("Game {GameId} armed with hunter {HunterId}", game.Id, command.HunterUserId);
 
-        await _eventBus.PublishAsync(game.Id, new StateChangedEvent(game.Id, "Ready"), ct);
+        await _eventBus.PublishAsync(game.Id, new StateChangedEvent(game.Id, "Started"), ct);
         await _lobbyEventBus.PublishAsync(game.Id, "game-started", game.ToDto(), ct);
 
         return new StartGameResult(game.ToDto(command.RequestingUserId));

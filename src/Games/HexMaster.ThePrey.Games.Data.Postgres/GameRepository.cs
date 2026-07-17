@@ -76,7 +76,7 @@ public sealed class GameRepository : IGameRepository
 
     public async Task<IReadOnlyList<Guid>> GetInProgressGameIdsAsync(CancellationToken ct)
         => await _db.Games
-            .Where(g => g.Status == GameStatus.Ready || g.Status == GameStatus.InProgress)
+            .Where(g => g.Status == GameStatus.Started || g.Status == GameStatus.InProgress)
             .Select(g => g.Id)
             .ToListAsync(ct);
 
