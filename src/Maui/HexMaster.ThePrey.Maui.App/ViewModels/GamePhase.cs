@@ -6,7 +6,7 @@ namespace HexMaster.ThePrey.Maui.App.ViewModels;
 /// </summary>
 public enum GamePhase
 {
-    /// <summary>Game is armed (<c>Ready</c>) but the backend sweep has not committed it — waiting overlay.</summary>
+    /// <summary>Game is armed (<c>Started</c>) but the backend sweep has not committed it — waiting overlay.</summary>
     Waiting,
 
     /// <summary>Game is <c>InProgress</c> and the hunter's head-start countdown is still running.</summary>

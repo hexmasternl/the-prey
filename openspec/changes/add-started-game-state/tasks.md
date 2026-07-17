@@ -33,10 +33,10 @@
 
 ## 5. MAUI client (`src/Maui`)
 
-- [ ] 5.1 `Services/Api/GameDetails.cs`: add an `IsArmed`/`IsStarted` helper true only for `Started` or `InProgress`.
-- [ ] 5.2 `ViewModels/GameLobbyViewModel.cs`: replace the `!game.IsLobby` hand-off guard in `ApplySnapshot` with the armed check so an auto `Ready` transition never navigates; only `Started`/`InProgress` hands off.
-- [ ] 5.3 `ViewModels/GamePhase.cs` + `PreyGameViewModel.cs` / `HunterGameViewModel.cs`: derive `GamePhase.Waiting` from `Started` (update comments referencing `Ready` as the armed state).
-- [ ] 5.4 Update MAUI unit tests (`GameLobbyViewModelTests`, `PreyGameViewModelTests`, `HunterGameViewModelTests`, `GameStateServiceTests`) so the "waiting" phase and hand-off assertions use `Started`; run the MAUI test project.
+- [x] 5.1 `Services/Api/GameDetails.cs`: add an `IsArmed`/`IsStarted` helper true only for `Started` or `InProgress`.
+- [x] 5.2 `ViewModels/GameLobbyViewModel.cs`: replace the `!game.IsLobby` hand-off guard in `ApplySnapshot` with the armed check so an auto `Ready` transition never navigates; only `Started`/`InProgress` hands off.
+- [x] 5.3 `ViewModels/GamePhase.cs` + `PreyGameViewModel.cs` / `HunterGameViewModel.cs`: derive `GamePhase.Waiting` from `Started` (update comments referencing `Ready` as the armed state).
+- [x] 5.4 Update MAUI unit tests (`GameLobbyViewModelTests`, `PreyGameViewModelTests`, `HunterGameViewModelTests`, `GameStateServiceTests`) so the "waiting" phase and hand-off assertions use `Started`; run the MAUI test project.
 
 ## 6. Verification
 

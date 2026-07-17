@@ -76,9 +76,10 @@ public class HunterGameViewModelTests
     // ---- phase ----
 
     [Fact]
-    public async Task Phase_Ready_IsWaiting()
+    public async Task Phase_Started_IsWaiting()
     {
-        _state.SeedState = State("Ready");
+        // Started is the armed, pre-commit state the gameplay page is entered in — shows the waiting overlay.
+        _state.SeedState = State("Started");
         var sut = CreateSut();
 
         await sut.LoadAsync();

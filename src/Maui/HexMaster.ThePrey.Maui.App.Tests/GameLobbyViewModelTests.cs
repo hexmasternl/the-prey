@@ -424,6 +424,40 @@ public class GameLobbyViewModelTests
     }
 
     [Fact]
+    public async Task LiveUpdate_StartedStatusSnapshot_ShouldHandOff()
+    {
+        // The owner pressing START moves the game to Started (armed, awaiting the sweep) — this is a genuine
+        // hand-off signal, exactly like InProgress.
+        var initial = Game(isOwner: false);
+        var started = initial with { Status = "Started" };
+        _stream = new FakeLobbyStream([started]);
+        SetupLoad(initial);
+        var sut = CreateSut();
+
+        await sut.ActivateAsync();
+        await sut.StreamTask!;
+
+        _navigator.Verify(n => n.GoToGameplayAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task LiveUpdate_ReadySnapshot_ShouldNotHandOff()
+    {
+        // Ready means every non-owner readied up (the owner's START button is now enabled) — it must NOT
+        // navigate anyone. Only the owner actually starting (→ Started) hands off.
+        var initial = Game(isOwner: false);
+        var ready = initial with { Status = "Ready", IsReadyToStart = true };
+        _stream = new FakeLobbyStream([ready]);
+        SetupLoad(initial);
+        var sut = CreateSut();
+
+        await sut.ActivateAsync();
+        await sut.StreamTask!;
+
+        _navigator.Verify(n => n.GoToGameplayAsync(), Times.Never);
+    }
+
+    [Fact]
     public async Task LiveUpdate_PartialFrameWithoutConfigOrParticipants_ShouldNotThrow_KeepSeededValues_AndStillHandOff()
     {
         // A lobby-stream frame can be partial: the backend's JSON may omit the configuration/participants
