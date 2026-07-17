@@ -25,7 +25,7 @@ public sealed class JoinGameCommandHandlerTests
         Assert.NotNull(result);
         Assert.Single(result!.Game.Participants);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
-        _eventBus.Verify(b => b.PublishAsync(game.Id, "lobby-updated", It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Once);
+        _eventBus.Verify(b => b.PublishAsync(game.Id, "participant-joined", It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.ParticipantDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class JoinGameCommandHandlerTests
 
         Assert.Null(result);
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
-        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class JoinGameCommandHandlerTests
             _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), "9999", "Bob", null), CancellationToken.None));
 
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
-        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class JoinGameCommandHandlerTests
             _handler.Handle(new JoinGameCommand(game.Id, existingPlayer.UserId, game.GameCode, existingPlayer.DisplayName, null), CancellationToken.None));
 
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
-        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public sealed class JoinGameCommandHandlerTests
             _handler.Handle(new JoinGameCommand(started.Id, Guid.NewGuid(), started.GameCode, "Carol", null), CancellationToken.None));
 
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
-        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -93,6 +93,6 @@ public sealed class JoinGameCommandHandlerTests
             _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), game.GameCode, "Late", null), CancellationToken.None));
 
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
-        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

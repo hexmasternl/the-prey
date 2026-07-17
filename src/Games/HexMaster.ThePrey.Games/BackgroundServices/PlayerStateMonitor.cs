@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.IntegrationEvents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -50,10 +51,10 @@ public sealed class PlayerStateMonitor : BackgroundService
                 await repo.UpdateAsync(game, ct);
                 totalTransitions += changes.Count;
 
-                foreach (var (userId, newState) in changes)
+                foreach (var (userId, _) in changes)
                 {
-                    await eventBus.PublishAsync(game.Id,
-                        new ParticipantStatusChangedEvent(game.Id, userId, "Prey", newState.ToString()), ct);
+                    await eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged,
+                        game.ToParticipantDto(userId), ct);
                 }
             }
 

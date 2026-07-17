@@ -4,7 +4,6 @@ using Azure;
 using Azure.Core;
 using Azure.Messaging.WebPubSub;
 using HexMaster.ThePrey.IntegrationEvents;
-using HexMaster.ThePrey.IntegrationEvents.Events;
 using HexMaster.ThePrey.Notifications;
 using HexMaster.ThePrey.Notifications.Observability;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -26,9 +25,9 @@ public sealed class WebPubSubBroadcasterTests
 
         var sut = new WebPubSubBroadcaster(client.Object, Mock.Of<INotificationsMetrics>(), NullLogger<WebPubSubBroadcaster>.Instance);
         var gameId = Guid.NewGuid();
-        var evt = new PlayerPenalizedIntegrationEvent(gameId, Guid.NewGuid(), DateTimeOffset.UtcNow, "left-playfield");
+        var payload = new { userId = Guid.NewGuid(), penaltyEndsAt = DateTimeOffset.UtcNow, reason = "left-playfield" };
 
-        await sut.SendToGameAsync(gameId, evt.Topic, evt, CancellationToken.None);
+        await sut.SendToGameAsync(gameId, "prey-updated", payload, CancellationToken.None);
 
         client.Verify(c => c.SendToGroupAsync(
                 gameId.ToString(),

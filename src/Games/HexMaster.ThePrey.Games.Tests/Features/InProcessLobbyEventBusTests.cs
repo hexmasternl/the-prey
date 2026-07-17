@@ -22,11 +22,11 @@ public sealed class InProcessLobbyEventBusTests
         var gameId = Guid.NewGuid();
         var payload = CreatePayload(gameId);
 
-        await _sut.PublishAsync(gameId, "lobby-updated", payload);
+        await _sut.PublishAsync(gameId, "participant-joined", payload);
 
         _integrationPublisherMock.Verify(p => p.PublishAsync(
             It.Is<LobbyNotificationIntegrationEvent>(e =>
-                e.GameId == gameId && e.Name == "lobby-updated" && Equals(e.Payload, payload)),
+                e.GameId == gameId && e.Name == "participant-joined" && Equals(e.Payload, payload)),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -39,7 +39,7 @@ public sealed class InProcessLobbyEventBusTests
             .Setup(p => p.PublishAsync(It.IsAny<LobbyNotificationIntegrationEvent>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("broker unavailable"));
 
-        var exception = await Record.ExceptionAsync(() => _sut.PublishAsync(gameId, "lobby-updated", payload).AsTask());
+        var exception = await Record.ExceptionAsync(() => _sut.PublishAsync(gameId, "participant-joined", payload).AsTask());
 
         Assert.Null(exception);
     }

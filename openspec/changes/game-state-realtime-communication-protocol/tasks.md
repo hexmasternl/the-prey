@@ -11,17 +11,17 @@
 - [x] 2.2 Wrap every broadcast in the versioned envelope (`v`, `type`, `gameId`, `seq`, `data`) with camelCase payloads
 - [x] 2.3 Add OpenTelemetry instrumentation (activity + tags) around envelope assembly and group send
 - [x] 2.4 Add the ability to broadcast a `resync-requested` control message
-- [ ] 2.5 Update `NotificationSubscriptionEndpoints` forwarders to map Dapr integration events onto the canonical catalog message types
+- [x] 2.5 Update `NotificationSubscriptionEndpoints` forwarders to map Dapr integration events onto the canonical catalog message types
 
 ## 3. Server — Games module (canonical events)
 
-- [ ] 3.1 Replace full-`GameDto` lobby broadcasts with granular deltas: publish `participant-joined` on join, `participant-changed` on ready/callsign/role/state/penalty change, `participant-removed` on leave/remove
-- [ ] 3.2 Publish `configuration-changed` (config + status) on settings edits and every status transition (`Lobby → Ready → Started → InProgress → Completed`) and hunter designation; retire `settings-updated`/`ready-updated`/`hunter-designated`/`hunter-changed`/`game-started`/`state-changed` wire types
-- [ ] 3.3 Batch location fan-out in `GameSweepProcessor` into `locations-updated` arrays, preserving prey→hunter-only and hunter→all-prey scoping
-- [ ] 3.4 Map tag/penalty transitions (`PlayerStateMonitor`, TagPlayer) onto `prey-updated`; consolidate `player-status-changed` + `participant-status-changed` into `participant-changed`/`prey-updated`
-- [ ] 3.5 Emit `game-ended` exactly once on the game channel; remove the duplicate lobby-channel `game-ended`
-- [ ] 3.6 Remove the retired `participant-located` reference in `InProcessGameEventBus`
-- [ ] 3.7 Update Games module unit tests (`InProcessGameEventBusTests`, `InProcessLobbyEventBusTests`, sweep/monitor/handler tests) for the new catalog with xUnit + Moq + Bogus
+- [x] 3.1 Replace full-`GameDto` lobby broadcasts with granular deltas: publish `participant-joined` on join, `participant-changed` on ready/callsign/role/state/penalty change, `participant-removed` on leave/remove
+- [x] 3.2 Publish `configuration-changed` (config + status) on settings edits and every status transition (`Lobby → Ready → Started → InProgress → Completed`) and hunter designation; retire `settings-updated`/`ready-updated`/`hunter-designated`/`hunter-changed`/`game-started`/`state-changed` wire types
+- [x] 3.3 Batch location fan-out in `GameSweepProcessor` into `locations-updated` arrays (broadcast to the group; clients filter by role)
+- [x] 3.4 Map tag/penalty transitions onto `prey-updated`; consolidate `player-status-changed` + `participant-status-changed` into `participant-changed`/`prey-updated`
+- [x] 3.5 Emit `game-ended` exactly once on the game channel; remove the duplicate lobby-channel `game-ended`
+- [x] 3.6 Remove the retired `participant-located` reference in `InProcessGameEventBus`
+- [x] 3.7 Update Games module unit tests (`InProcessGameEventBusTests`, `InProcessLobbyEventBusTests`, sweep/handler tests) for the new catalog with xUnit + Moq + Bogus
 
 ## 4. MAUI client — conform Game State Service
 

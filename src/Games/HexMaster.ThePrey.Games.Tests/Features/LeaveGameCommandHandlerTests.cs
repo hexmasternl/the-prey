@@ -1,7 +1,9 @@
+using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.LeaveGame;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Tests.Factories;
+using HexMaster.ThePrey.IntegrationEvents;
 using Moq;
 
 namespace HexMaster.ThePrey.Games.Tests.Features;
@@ -17,10 +19,9 @@ public sealed class LeaveGameCommandHandlerTests
 
     public LeaveGameCommandHandlerTests()
     {
-        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
+        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
             .Returns(ValueTask.CompletedTask);
-        _lobbyEventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(),
-                It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()))
+        _lobbyEventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
             .Returns(ValueTask.CompletedTask);
 
         _handler = new LeaveGameCommandHandler(
@@ -69,8 +70,8 @@ public sealed class LeaveGameCommandHandlerTests
         Assert.Equal(GameStatus.Lobby, game.Status);
         Assert.DoesNotContain(game.Participants, p => p.UserId == nonOwner);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
-        _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, "lobby-updated",
-            It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Once);
+        _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantRemoved,
+            It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -98,9 +99,10 @@ public sealed class LeaveGameCommandHandlerTests
         Assert.NotNull(result);
         Assert.Equal(GameStatus.Completed, game.Status);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
-        _eventBus.Verify(b => b.PublishAsync(game.Id, It.IsAny<GameEndedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
-        _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, "game-ended",
-            It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Once);
+        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded,
+            It.IsAny<GameEndedNotificationDto>(), It.IsAny<CancellationToken>()), Times.Once);
+        _lobbyEventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(),
+            It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     // ---------- InProgress: non-participant ----------
@@ -133,8 +135,8 @@ public sealed class LeaveGameCommandHandlerTests
         var prey = game.Participants.Single(p => p.UserId == preyId);
         Assert.Equal(PlayerState.Out, prey.State);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
-        _eventBus.Verify(b => b.PublishAsync(game.Id,
-            It.Is<ParticipantStatusChangedEvent>(e => e.ParticipantId == preyId && e.NewState == "Out"),
+        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged,
+            It.Is<ParticipantDto>(d => d.UserId == preyId && d.State == "Out"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -151,9 +153,10 @@ public sealed class LeaveGameCommandHandlerTests
         Assert.NotNull(result);
         Assert.Equal(GameStatus.Completed, game.Status);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
-        _eventBus.Verify(b => b.PublishAsync(game.Id, It.IsAny<GameEndedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
+        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded,
+            It.IsAny<GameEndedNotificationDto>(), It.IsAny<CancellationToken>()), Times.Once);
         // Lobby bus must NOT be called for in-progress games.
         _lobbyEventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(),
-            It.IsAny<HexMaster.ThePrey.Games.Abstractions.DataTransferObjects.GameDto>(), It.IsAny<CancellationToken>()), Times.Never);
+            It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

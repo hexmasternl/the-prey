@@ -17,13 +17,13 @@ public sealed class DaprIntegrationEventPublisherTests
             .Returns(Task.CompletedTask);
 
         var sut = new DaprIntegrationEventPublisher(dapr.Object, NullLogger<DaprIntegrationEventPublisher>.Instance);
-        var evt = new PlayerPenalizedIntegrationEvent(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow, "boundary");
+        var evt = new GameNotificationIntegrationEvent(Guid.NewGuid(), "prey-updated", new { });
 
         await sut.PublishAsync(evt, CancellationToken.None);
 
         dapr.Verify(d => d.PublishEventAsync(
                 DaprIntegrationEventPublisher.PubSubName,
-                IntegrationEventTopics.PlayerPenalized,
+                IntegrationEventTopics.GameNotification,
                 It.Is<object>(o => ReferenceEquals(o, evt)),
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -36,9 +36,7 @@ public sealed class DaprIntegrationEventPublisherTests
 
     public static TheoryData<IIntegrationEvent, string> EventTopicCases() => new()
     {
-        { new PlayerLocationUpdatedIntegrationEvent(Guid.NewGuid(), Guid.NewGuid(), 1, 2, "Active"), IntegrationEventTopics.PlayerLocationUpdated },
-        { new PlayerStatusChangedIntegrationEvent(Guid.NewGuid(), Guid.NewGuid(), "Prey", "Out"), IntegrationEventTopics.PlayerStatusChanged },
-        { new PlayerPenalizedIntegrationEvent(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow, "boundary"), IntegrationEventTopics.PlayerPenalized },
-        { new GameEndedIntegrationEvent(Guid.NewGuid(), "HuntersWin", 0), IntegrationEventTopics.GameEnded },
+        { new GameNotificationIntegrationEvent(Guid.NewGuid(), "prey-updated", new { }), IntegrationEventTopics.GameNotification },
+        { new LobbyNotificationIntegrationEvent(Guid.NewGuid(), "participant-joined", new { }), IntegrationEventTopics.LobbyNotification },
     };
 }

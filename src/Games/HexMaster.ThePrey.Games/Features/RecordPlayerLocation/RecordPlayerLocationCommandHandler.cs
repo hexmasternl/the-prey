@@ -4,6 +4,7 @@ using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.IntegrationEvents;
 
 namespace HexMaster.ThePrey.Games.Features.RecordPlayerLocation;
 
@@ -56,8 +57,8 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
             var prey = game.Participants.FirstOrDefault(p => p.UserId == command.UserId);
             if (prey is not null && previousState == PlayerState.Passive && prey.State == PlayerState.Active)
             {
-                await _eventBus.PublishAsync(game.Id,
-                    new ParticipantStatusChangedEvent(game.Id, command.UserId, "Prey", "Active"), ct);
+                await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged,
+                    game.ToParticipantDto(command.UserId), ct);
             }
         }
 

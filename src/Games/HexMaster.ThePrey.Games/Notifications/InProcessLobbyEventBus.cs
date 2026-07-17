@@ -1,4 +1,3 @@
-using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.IntegrationEvents;
 using HexMaster.ThePrey.IntegrationEvents.Events;
 using Microsoft.Extensions.Logging;
@@ -21,7 +20,7 @@ public sealed class InProcessLobbyEventBus : ILobbyEventBus
         _logger = logger ?? NullLogger<InProcessLobbyEventBus>.Instance;
     }
 
-    public async ValueTask PublishAsync(Guid gameId, string eventType, GameDto payload, CancellationToken ct = default)
+    public async ValueTask PublishAsync(Guid gameId, string eventType, object payload, CancellationToken ct = default)
     {
         try
         {

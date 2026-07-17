@@ -138,12 +138,41 @@ internal static class GameMappings
             game.IsReadyToStart);
     }
 
-    internal static GameEndedEvent ToGameEndedEvent(this Game game) =>
+    internal static GameEndedNotificationDto ToGameEndedNotificationDto(this Game game) =>
         new(
-            game.Id,
             game.Outcome.ToString(),
             game.Participants.Where(p => p.UserId != game.HunterUserId)
-                             .Count(p => p.State is PlayerState.Active or PlayerState.Passive));
+                             .Count(p => p.State is PlayerState.Active or PlayerState.Passive),
+            game.CompletedAt);
+
+    /// <summary>Maps the participant identified by <paramref name="userId"/> to its wire <see cref="ParticipantDto"/>.</summary>
+    internal static ParticipantDto ToParticipantDto(this Game game, Guid userId)
+    {
+        var participant = game.Participants.First(p => p.UserId == userId);
+        return participant.ToDto(DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>Maps the game-level slice (status, configuration, hunter, timing) for a <c>configuration-changed</c> broadcast.</summary>
+    internal static GameConfigurationChangedDto ToConfigurationChangedDto(this Game game) =>
+        new(
+            game.Id,
+            game.GameCode,
+            game.PlayfieldId,
+            game.OwnerUserId,
+            game.Status.ToString(),
+            game.Configuration.ToDto(),
+            game.HunterUserId,
+            game.Preys,
+            game.StartedAt,
+            game.CreatedAt,
+            game.EndsAt,
+            game.CleanUpAfter,
+            game.Outcome.ToString(),
+            game.CompletedAt);
+
+    /// <summary>Maps a single broadcast coordinate for a <c>locations-updated</c> batch entry.</summary>
+    internal static ParticipantLocationDto ToParticipantLocationDto(this Game game, Guid userId, double lat, double lng, string state) =>
+        new(userId, game.HunterUserId == userId ? "Hunter" : "Prey", lat, lng, state);
 
     internal static GameSummaryDto ToSummaryDto(this Game game) =>
         new(game.Id, game.GameCode, game.PlayfieldId, game.OwnerUserId, game.Status.ToString(), game.Participants.Count);

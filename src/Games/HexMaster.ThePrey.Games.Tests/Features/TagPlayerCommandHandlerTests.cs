@@ -1,8 +1,10 @@
+using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.TagPlayer;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Games.Tests.Factories;
+using HexMaster.ThePrey.IntegrationEvents;
 using Moq;
 
 namespace HexMaster.ThePrey.Games.Tests.Features;
@@ -21,7 +23,7 @@ public sealed class TagPlayerCommandHandlerTests
 
     public TagPlayerCommandHandlerTests()
     {
-        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEvent>(), It.IsAny<CancellationToken>()))
+        _eventBus.Setup(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
             .Returns(ValueTask.CompletedTask);
         _handler = new TagPlayerCommandHandler(_repository.Object, _eventBus.Object, _metrics.Object, new FixedTimeProvider(Now));
     }
@@ -41,8 +43,9 @@ public sealed class TagPlayerCommandHandlerTests
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _eventBus.Verify(b => b.PublishAsync(
             game.Id,
-            It.Is<ParticipantStatusChangedEvent>(e =>
-                e.ParticipantId == preyIds[0] && e.NewState == "Tagged" && e.ParticipantRole == "Prey"),
+            RealtimeProtocol.MessageTypes.PreyUpdated,
+            It.Is<PreyUpdatedDto>(d =>
+                d.UserId == preyIds[0] && d.Event == RealtimeProtocol.PreyEvents.Tagged && d.State == "Tagged"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -133,7 +136,7 @@ public sealed class TagPlayerCommandHandlerTests
         await _handler.Handle(new TagPlayerCommand(game.Id, hunterId, preyIds[0]), CancellationToken.None);
 
         Assert.Equal(GameStatus.InProgress, game.Status);
-        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<GameEndedEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), RealtimeProtocol.MessageTypes.GameEnded, It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
         _metrics.Verify(m => m.RecordGameCompleted(It.IsAny<string>()), Times.Never);
     }
 
@@ -154,7 +157,8 @@ public sealed class TagPlayerCommandHandlerTests
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _eventBus.Verify(b => b.PublishAsync(
             game.Id,
-            It.Is<GameEndedEvent>(e => e.Outcome == nameof(GameOutcome.HuntersWin) && e.SurvivorCount == 0),
+            RealtimeProtocol.MessageTypes.GameEnded,
+            It.Is<GameEndedNotificationDto>(d => d.Outcome == nameof(GameOutcome.HuntersWin) && d.SurvivorCount == 0),
             It.IsAny<CancellationToken>()), Times.Once);
         _metrics.Verify(m => m.RecordGameCompleted(nameof(GameOutcome.HuntersWin)), Times.Once);
     }
@@ -174,7 +178,7 @@ public sealed class TagPlayerCommandHandlerTests
         Assert.Equal(GameStatus.Completed, game.Status);
         Assert.Equal(GameOutcome.HuntersWin, game.Outcome);
         _eventBus.Verify(b => b.PublishAsync(
-            game.Id, It.IsAny<GameEndedEvent>(), It.IsAny<CancellationToken>()), Times.Once);
+            game.Id, RealtimeProtocol.MessageTypes.GameEnded, It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

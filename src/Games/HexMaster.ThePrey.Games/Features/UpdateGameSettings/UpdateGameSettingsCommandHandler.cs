@@ -3,6 +3,7 @@ using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.IntegrationEvents;
 
 namespace HexMaster.ThePrey.Games.Features.UpdateGameSettings;
 
@@ -45,7 +46,7 @@ public sealed class UpdateGameSettingsCommandHandler : ICommandHandler<UpdateGam
             game.UpdateSettings(config);
 
             await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, "settings-updated", game.ToDto(), ct);
+            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
 
             return new UpdateGameSettingsResult(game.ToDto(command.OwnerUserId));
         }

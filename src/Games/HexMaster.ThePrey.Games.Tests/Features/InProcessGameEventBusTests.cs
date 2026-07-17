@@ -19,40 +19,26 @@ public sealed class InProcessGameEventBusTests
     public async Task PublishAsync_ShouldBridgeToWebPubSub_ViaIntegrationEvent()
     {
         var gameId = Guid.NewGuid();
-        var evt = new StateChangedEvent(gameId, "InProgress");
+        var payload = new { status = "InProgress" };
 
-        await _sut.PublishAsync(gameId, evt);
+        await _sut.PublishAsync(gameId, "configuration-changed", payload);
 
         _integrationPublisherMock.Verify(p => p.PublishAsync(
             It.Is<GameNotificationIntegrationEvent>(e =>
-                e.GameId == gameId && e.Name == evt.EventType && Equals(e.Payload, evt)),
+                e.GameId == gameId && e.Name == "configuration-changed" && Equals(e.Payload, payload)),
             It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task PublishAsync_ShouldNotBridgeToWebPubSub_WhenEventIsParticipantLocated()
-    {
-        // participant-located is high-frequency (one per GPS post); the sweep broadcasts it
-        // (throttled) instead, so bridging it here would flood the Web PubSub hub.
-        var gameId = Guid.NewGuid();
-        var evt = new ParticipantLocatedEvent(gameId, Guid.NewGuid(), "Hunter", 52.0, 5.0, "Active");
-
-        await _sut.PublishAsync(gameId, evt);
-
-        _integrationPublisherMock.Verify(p => p.PublishAsync(
-            It.IsAny<GameNotificationIntegrationEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task PublishAsync_ShouldSwallowException_WhenIntegrationPublisherThrows()
     {
         var gameId = Guid.NewGuid();
-        var evt = new GameEndedEvent(gameId, "PreysWin", 1);
+        var payload = new { outcome = "PreysWin", survivorCount = 1 };
         _integrationPublisherMock
             .Setup(p => p.PublishAsync(It.IsAny<GameNotificationIntegrationEvent>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("broker unavailable"));
 
-        var exception = await Record.ExceptionAsync(() => _sut.PublishAsync(gameId, evt).AsTask());
+        var exception = await Record.ExceptionAsync(() => _sut.PublishAsync(gameId, "game-ended", payload).AsTask());
 
         Assert.Null(exception);
     }

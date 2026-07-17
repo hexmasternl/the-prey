@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.IntegrationEvents;
@@ -59,8 +60,8 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
         {
             game.BeginPlay(now - TimeSpan.FromSeconds(3));
             changed = true;
-            events.Add(new GameNotificationIntegrationEvent(game.Id, "state-changed",
-                new { gameId = game.Id, newState = "InProgress" }));
+            events.Add(new GameNotificationIntegrationEvent(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged,
+                game.ToConfigurationChangedDto()));
             activity?.SetTag("game.tick.promoted", true);
         }
 
@@ -69,17 +70,20 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
 
         // 1. Player status transitions (folds in the old PlayerStateMonitor responsibility).
         var transitions = game.ApplyTimeoutTransitions(now);
-        foreach (var (userId, newState) in transitions)
+        foreach (var (userId, _) in transitions)
         {
             changed = true;
-            events.Add(new PlayerStatusChangedIntegrationEvent(game.Id, userId, RoleOf(game, userId), newState.ToString()));
+            events.Add(new GameNotificationIntegrationEvent(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged,
+                game.ToParticipantDto(userId)));
         }
 
         // 2. Consume new (unchecked) readings. The sweep advances NextScheduledBroadcastOn and
         //    copies the latest coordinate into Location for every participant that is broadcast
-        //    this tick (regular schedule or active penalty).
+        //    this tick (regular schedule or active penalty). All of a tick's broadcasts are batched
+        //    into a single locations-updated message rather than one message per coordinate.
         var sweeps = game.SweepLocations(now);
         var broadcasts = 0;
+        var locations = new List<ParticipantLocationDto>();
         foreach (var sweep in sweeps)
         {
             if (sweep.NewCoordinates.Count > 0)
@@ -89,10 +93,13 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
             {
                 broadcasts++;
                 changed = true; // broadcast mutates Location and may advance NextScheduledBroadcastOn
-                events.Add(new PlayerLocationUpdatedIntegrationEvent(
-                    game.Id, broadcast.UserId, broadcast.Latitude, broadcast.Longitude, broadcast.State));
+                locations.Add(game.ToParticipantLocationDto(broadcast.UserId, broadcast.Latitude, broadcast.Longitude, broadcast.State));
             }
         }
+
+        if (locations.Count > 0)
+            events.Add(new GameNotificationIntegrationEvent(game.Id, RealtimeProtocol.MessageTypes.LocationsUpdated,
+                new LocationsUpdatedDto(locations)));
 
         // 3. Boundary penalties: every reading consumed this sweep is assessed.
         var penalties = await ApplyBoundaryPenaltiesAsync(game, sweeps, now, events, ct);
@@ -104,7 +111,8 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
         {
             penalties++;
             changed = true;
-            events.Add(new PlayerPenalizedIntegrationEvent(game.Id, hsPenaltyHunterId, hsPenalty.EndsAt, HeadStartPenaltyReason));
+            events.Add(new GameNotificationIntegrationEvent(game.Id, RealtimeProtocol.MessageTypes.PreyUpdated,
+                new PreyUpdatedDto(hsPenaltyHunterId, RealtimeProtocol.PreyEvents.Penalized, null, hsPenalty.EndsAt, HeadStartPenaltyReason)));
         }
 
         // 4. Completion when the scheduled end time has passed.
@@ -115,7 +123,8 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
             changed = true;
             completed = true;
             _metrics.RecordGameCompleted(game.Outcome.ToString());
-            events.Add(new GameEndedIntegrationEvent(game.Id, game.Outcome.ToString(), game.SurvivingPreyCount));
+            events.Add(new GameNotificationIntegrationEvent(game.Id, RealtimeProtocol.MessageTypes.GameEnded,
+                game.ToGameEndedNotificationDto()));
         }
 
         // 5. Persist once, then notify (so clients never see state we failed to save).
@@ -173,7 +182,8 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
             if (game.TryApplyBoundaryPenalty(participant.UserId, now) is { } penalty)
             {
                 penalties++;
-                events.Add(new PlayerPenalizedIntegrationEvent(game.Id, participant.UserId, penalty.EndsAt, BoundaryPenaltyReason));
+                events.Add(new GameNotificationIntegrationEvent(game.Id, RealtimeProtocol.MessageTypes.PreyUpdated,
+                    new PreyUpdatedDto(participant.UserId, RealtimeProtocol.PreyEvents.Penalized, null, penalty.EndsAt, BoundaryPenaltyReason)));
                 _logger.LogInformation(
                     "Applied boundary penalty to {UserId} in game {GameId} until {EndsAt}",
                     participant.UserId, game.Id, penalty.EndsAt);
@@ -182,6 +192,4 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
 
         return penalties;
     }
-
-    private static string RoleOf(Game game, Guid userId) => game.HunterUserId == userId ? "Hunter" : "Prey";
 }

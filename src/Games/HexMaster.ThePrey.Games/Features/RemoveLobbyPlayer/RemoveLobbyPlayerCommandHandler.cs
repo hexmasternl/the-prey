@@ -2,6 +2,7 @@ using System.Diagnostics;
 using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.IntegrationEvents;
 
 namespace HexMaster.ThePrey.Games.Features.RemoveLobbyPlayer;
 
@@ -35,7 +36,7 @@ public sealed class RemoveLobbyPlayerCommandHandler : ICommandHandler<RemoveLobb
             game.RemoveLobbyPlayer(command.TargetUserId);
 
             await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, "lobby-updated", game.ToDto(), ct);
+            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantRemoved, new { userId = command.TargetUserId }, ct);
 
             return new RemoveLobbyPlayerResult(game.ToDto(command.OwnerUserId));
         }

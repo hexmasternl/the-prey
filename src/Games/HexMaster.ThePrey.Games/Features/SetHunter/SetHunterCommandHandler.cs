@@ -3,6 +3,7 @@ using HexMaster.ThePrey.Core;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Observability;
+using HexMaster.ThePrey.IntegrationEvents;
 using Microsoft.Extensions.Logging;
 
 namespace HexMaster.ThePrey.Games.Features.SetHunter;
@@ -42,7 +43,7 @@ public sealed class SetHunterCommandHandler : ICommandHandler<SetHunterCommand, 
 
                 game.DesignateHunter(command.NewHunterUserId);
                 await _games.UpdateAsync(game, ct);
-                await _eventBus.PublishAsync(game.Id, "hunter-designated", game.ToDto(), ct);
+                await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
 
                 _logger.LogInformation("Game {GameId} lobby hunter designated to {NewHunterId}", game.Id, command.NewHunterUserId);
             }
@@ -54,7 +55,7 @@ public sealed class SetHunterCommandHandler : ICommandHandler<SetHunterCommand, 
 
                 game.SetHunter(command.NewHunterUserId);
                 await _games.UpdateAsync(game, ct);
-                await _eventBus.PublishAsync(game.Id, "hunter-changed", game.ToDto(), ct);
+                await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
 
                 _logger.LogInformation("Game {GameId} hunter changed to {NewHunterId}", game.Id, command.NewHunterUserId);
             }
