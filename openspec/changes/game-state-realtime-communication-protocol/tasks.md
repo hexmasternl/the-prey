@@ -1,16 +1,16 @@
 ## 1. Protocol definition & docs
 
-- [ ] 1.1 Define the versioned envelope shape (`v`, `type`, `gameId`, `seq`, `data`) and the canonical message-type constants in one shared location referenced by the server broadcaster
-- [ ] 1.2 Document each catalog message (`participant-joined`, `participant-changed`, `participant-removed`, `configuration-changed`, `locations-updated`, `prey-updated`, `game-ended`, `resync-requested`) with its `data` shape
+- [x] 1.1 Define the versioned envelope shape (`v`, `type`, `gameId`, `seq`, `data`) and the canonical message-type constants in one shared location referenced by the server broadcaster
+- [x] 1.2 Document each catalog message (`participant-joined`, `participant-changed`, `participant-removed`, `configuration-changed`, `locations-updated`, `prey-updated`, `game-ended`, `resync-requested`) with its `data` shape
 - [ ] 1.3 Rewrite `docs/api/realtime.md` to render the `realtime-game-protocol` spec: envelope, `v`, `seq`, per-message payloads, per-recipient scoping, and reconnect/resync guidance
-- [ ] 1.4 Consult the hexmaster coding guidelines MCP (`0005`, `0007`, `0008`, `0009`, unit-testing) before touching server code
+- [x] 1.4 Consult the hexmaster coding guidelines MCP (`0005`, `0007`, `0008`, `0009`, unit-testing) before touching server code
 
 ## 2. Server — Notifications module (envelope, seq, fan-out)
 
-- [ ] 2.1 Add per-game monotonic `seq` allocation at the broadcast boundary in `WebPubSubBroadcaster`
-- [ ] 2.2 Wrap every broadcast in the versioned envelope (`v`, `type`, `gameId`, `seq`, `data`) with camelCase payloads
-- [ ] 2.3 Add OpenTelemetry instrumentation (activity + tags) around envelope assembly and group send
-- [ ] 2.4 Add the ability to broadcast a `resync-requested` control message
+- [x] 2.1 Add per-game monotonic `seq` allocation at the broadcast boundary in `WebPubSubBroadcaster`
+- [x] 2.2 Wrap every broadcast in the versioned envelope (`v`, `type`, `gameId`, `seq`, `data`) with camelCase payloads
+- [x] 2.3 Add OpenTelemetry instrumentation (activity + tags) around envelope assembly and group send
+- [x] 2.4 Add the ability to broadcast a `resync-requested` control message
 - [ ] 2.5 Update `NotificationSubscriptionEndpoints` forwarders to map Dapr integration events onto the canonical catalog message types
 
 ## 3. Server — Games module (canonical events)

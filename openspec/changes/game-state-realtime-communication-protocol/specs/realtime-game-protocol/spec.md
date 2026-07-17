@@ -95,16 +95,21 @@ The server SHALL be able to broadcast a `resync-requested` control message (`dat
 - **WHEN** a client receives a `resync-requested` message
 - **THEN** the client requests a full snapshot from the server and adopts it as the current state
 
-### Requirement: Per-recipient location scoping is preserved
+### Requirement: Location visibility is derived by the client
 
-The protocol SHALL preserve visibility scoping across recipients: a prey participant's location SHALL be delivered only to the hunter, and the hunter's location SHALL be delivered to every prey. Because group broadcast cannot personalize per recipient, the server SHALL send role-appropriate `locations-updated` messages so that no prey receives another prey's location.
+Group broadcast delivers one shared payload to every joined client and cannot be personalized per recipient. A `locations-updated` message therefore carries every broadcast participant's identity, role, location, and state to the whole group, and each client SHALL derive what to display from the entry roles locally: the hunter renders prey blips; a prey renders only the hunter. The protocol SHALL NOT place any per-recipient secret in a broadcast payload.
 
-#### Scenario: Prey location reaches only the hunter
+#### Scenario: Hunter renders prey locations
 
-- **WHEN** the server broadcasts a prey participant's location
-- **THEN** the hunter receives it in a `locations-updated` message and no other prey receives that prey's coordinates
+- **WHEN** a client acting as the hunter receives a `locations-updated` message containing prey entries
+- **THEN** it renders those prey locations
 
-#### Scenario: Hunter location reaches all prey
+#### Scenario: Prey renders only the hunter
 
-- **WHEN** the server broadcasts the hunter's location
-- **THEN** every connected prey receives it in a `locations-updated` message
+- **WHEN** a client acting as a prey receives a `locations-updated` message containing both prey and hunter entries
+- **THEN** it renders only the hunter entry and does not display other prey locations
+
+#### Scenario: No per-recipient secret in the payload
+
+- **WHEN** the server broadcasts any message to the group
+- **THEN** the payload contains no field whose correct value depends on which recipient reads it
