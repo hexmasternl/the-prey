@@ -14,6 +14,12 @@ namespace HexMaster.ThePrey.Maui.App
         {
             InitializeComponent();
 
+            // Force dark mode app-wide, regardless of the operational OS theme. The app's own look is
+            // a fixed tactical dark palette; this keeps the platform-drawn native popups (Android
+            // Picker/alert dialogs, iOS pickers/UIAlertController) dark too. iOS/Mac reinforce this at
+            // launch via UIUserInterfaceStyle=Dark in Info.plist.
+            UserAppTheme = AppTheme.Dark;
+
             _deepLinkHandler = deepLinkHandler;
 
             // Apply the resolved language (persisted preference, else device language) before the

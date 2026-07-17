@@ -3,10 +3,14 @@ using Microsoft.Extensions.Logging;
 namespace HexMaster.ThePrey.Maui.App.Services.Authentication;
 
 /// <summary>
-/// Default <see cref="IAccessTokenProvider"/>. Reads the refresh token via <see cref="ITokenStore"/>,
-/// exchanges it via <see cref="IAuth0TokenClient.RefreshAsync"/> (persisting a rotated refresh token,
-/// mirroring <c>SessionService</c>), and caches the resulting access token in memory. Registered as a
-/// singleton so the cache is shared across screens. Never throws — a failed exchange returns <c>null</c>.
+/// Default <see cref="IAccessTokenProvider"/>. The single owner of the refresh-token exchange: reads the
+/// refresh token via <see cref="ITokenStore"/>, exchanges it via <see cref="IAuth0TokenClient.RefreshAsync"/>
+/// (persisting a rotated refresh token), and caches the resulting access token in memory. Registered as a
+/// singleton so the cache — and the single-flight <see cref="_gate"/> around the rotating, single-use refresh
+/// token — are shared across every signed-in screen and by <c>SessionService</c>. Consolidating all refresh
+/// exchanges here prevents two callers from racing on the same refresh token (which, under Auth0 rotation +
+/// reuse detection, revokes the whole token family and forces a re-login). Never throws — a failed exchange
+/// returns <c>null</c>.
 /// </summary>
 public sealed class AccessTokenProvider : IAccessTokenProvider
 {
@@ -72,6 +76,12 @@ public sealed class AccessTokenProvider : IAccessTokenProvider
         {
             _gate.Release();
         }
+    }
+
+    public void SetAccessToken(string accessToken)
+    {
+        if (!string.IsNullOrWhiteSpace(accessToken))
+            _cachedAccessToken = accessToken;
     }
 
     public void Invalidate() => _cachedAccessToken = null;

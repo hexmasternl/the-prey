@@ -17,6 +17,8 @@
 	</array>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.lifestyle</string>
+		<key>UIUserInterfaceStyle</key>
+		<string>Dark</string>
 	<!-- Location usage descriptions. MacCatalyst reports only while the app is active (foreground-only,
 	     per the non-goals); the "Always" text is present so the same location prompts read correctly. -->
 	<key>NSLocationWhenInUseUsageDescription</key>

@@ -12,64 +12,178 @@
     <Grid>
 
         <ScrollView>
-            <VerticalStackLayout Spacing="24" Padding="28,44,28,28">
+            <VerticalStackLayout Spacing="24" Padding="28">
 
                 <Label Text="{loc:Translate StartGame_Title}" Style="{StaticResource TacticalTitle}" />
 
-                <!-- Operation settings -->
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="{loc:Translate Lobby_Settings_Title}" Style="{StaticResource HudLabel}" HorizontalOptions="Start" />
+                <!-- Portrait fields: the six inputs stacked one per row. -->
+                <VerticalStackLayout x:Name="PortraitFields" Spacing="24">
 
-                    <Label Text="{loc:Translate Lobby_Setting_Duration}" Style="{StaticResource SettingsFieldLabel}" />
-                    <Picker Style="{StaticResource LobbySettingPicker}"
-                            ItemsSource="{Binding DurationChoices}"
-                            SelectedItem="{Binding SelectedDuration, Mode=TwoWay}" />
+                    <!-- Operation settings -->
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="{loc:Translate Lobby_Settings_Title}" Style="{StaticResource HudLabel}" HorizontalOptions="Start" />
 
-                    <Label Text="{loc:Translate Lobby_Setting_Headstart}" Style="{StaticResource SettingsFieldLabel}" />
-                    <Picker Style="{StaticResource LobbySettingPicker}"
-                            ItemsSource="{Binding HeadstartChoices}"
-                            SelectedItem="{Binding SelectedHeadstart, Mode=TwoWay}" />
+                        <Label Text="{loc:Translate Lobby_Setting_Duration}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding DurationChoices}"
+                                SelectedItem="{Binding SelectedDuration, Mode=TwoWay}" />
 
-                    <Label Text="{loc:Translate Lobby_Setting_Endgame}" Style="{StaticResource SettingsFieldLabel}" />
-                    <Picker Style="{StaticResource LobbySettingPicker}"
-                            ItemsSource="{Binding EndgameChoices}"
-                            SelectedItem="{Binding SelectedEndgame, Mode=TwoWay}" />
+                        <Label Text="{loc:Translate Lobby_Setting_Headstart}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding HeadstartChoices}"
+                                SelectedItem="{Binding SelectedHeadstart, Mode=TwoWay}" />
 
-                    <Label Text="{loc:Translate Lobby_Setting_Ping}" Style="{StaticResource SettingsFieldLabel}" />
-                    <Picker Style="{StaticResource LobbySettingPicker}"
-                            ItemsSource="{Binding PingChoices}"
-                            SelectedItem="{Binding SelectedPing, Mode=TwoWay}" />
+                        <Label Text="{loc:Translate Lobby_Setting_Endgame}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding EndgameChoices}"
+                                SelectedItem="{Binding SelectedEndgame, Mode=TwoWay}" />
 
-                    <Label Text="{loc:Translate Lobby_Setting_EndgamePing}" Style="{StaticResource SettingsFieldLabel}" />
-                    <Picker Style="{StaticResource LobbySettingPicker}"
-                            ItemsSource="{Binding EndgamePingChoices}"
-                            SelectedItem="{Binding SelectedEndgamePing, Mode=TwoWay}" />
+                        <Label Text="{loc:Translate Lobby_Setting_Ping}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding PingChoices}"
+                                SelectedItem="{Binding SelectedPing, Mode=TwoWay}" />
+
+                        <Label Text="{loc:Translate Lobby_Setting_EndgamePing}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding EndgamePingChoices}"
+                                SelectedItem="{Binding SelectedEndgamePing, Mode=TwoWay}" />
+                    </VerticalStackLayout>
+
+                    <!-- Playfield selection -->
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="{loc:Translate StartGame_Playfield_Label}" Style="{StaticResource HudLabel}" HorizontalOptions="Start" />
+
+                        <Border Style="{StaticResource StartGamePlayfieldRow}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectPlayfieldCommand}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <!-- Selected name (once chosen) or the choose-one prompt -->
+                                <Label Grid.Column="0"
+                                       Text="{Binding SelectedPlayfieldName}"
+                                       Style="{StaticResource LocationItemName}"
+                                       IsVisible="{Binding HasSelectedPlayfield}" />
+                                <Label Grid.Column="0"
+                                       Text="{loc:Translate StartGame_Playfield_Prompt}"
+                                       Style="{StaticResource StartGamePlayfieldPrompt}"
+                                       IsVisible="{Binding HasNoSelectedPlayfield}" />
+                                <Label Grid.Column="1"
+                                       Text="{loc:Translate StartGame_Playfield_Change}"
+                                       Style="{StaticResource StartGamePlayfieldChange}" />
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="OrientationStates">
+                                <VisualState x:Name="Portrait">
+                                    <VisualState.StateTriggers>
+                                        <OrientationStateTrigger Orientation="Portrait" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Property="IsVisible" Value="True" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Landscape">
+                                    <VisualState.StateTriggers>
+                                        <OrientationStateTrigger Orientation="Landscape" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                    </VisualStateManager.VisualStateGroups>
                 </VerticalStackLayout>
 
-                <!-- Playfield selection -->
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="{loc:Translate StartGame_Playfield_Label}" Style="{StaticResource HudLabel}" HorizontalOptions="Start" />
+                <!-- Landscape fields: the six inputs divided over two columns and three rows. -->
+                <Grid x:Name="LandscapeFields" IsVisible="False"
+                      ColumnDefinitions="*,*"
+                      RowDefinitions="Auto,Auto,Auto"
+                      ColumnSpacing="20" RowSpacing="16">
 
-                    <Border Style="{StaticResource StartGamePlayfieldRow}">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding SelectPlayfieldCommand}" />
-                        </Border.GestureRecognizers>
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                            <!-- Selected name (once chosen) or the choose-one prompt -->
-                            <Label Grid.Column="0"
-                                   Text="{Binding SelectedPlayfieldName}"
-                                   Style="{StaticResource LocationItemName}"
-                                   IsVisible="{Binding HasSelectedPlayfield}" />
-                            <Label Grid.Column="0"
-                                   Text="{loc:Translate StartGame_Playfield_Prompt}"
-                                   Style="{StaticResource StartGamePlayfieldPrompt}"
-                                   IsVisible="{Binding HasNoSelectedPlayfield}" />
-                            <Label Grid.Column="1"
-                                   Text="{loc:Translate StartGame_Playfield_Change}"
-                                   Style="{StaticResource StartGamePlayfieldChange}" />
-                        </Grid>
-                    </Border>
-                </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="8">
+                        <Label Text="{loc:Translate Lobby_Setting_Duration}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding DurationChoices}"
+                                SelectedItem="{Binding SelectedDuration, Mode=TwoWay}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="8">
+                        <Label Text="{loc:Translate Lobby_Setting_Headstart}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding HeadstartChoices}"
+                                SelectedItem="{Binding SelectedHeadstart, Mode=TwoWay}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Row="1" Grid.Column="0" Spacing="8">
+                        <Label Text="{loc:Translate Lobby_Setting_Endgame}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding EndgameChoices}"
+                                SelectedItem="{Binding SelectedEndgame, Mode=TwoWay}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="8">
+                        <Label Text="{loc:Translate Lobby_Setting_Ping}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding PingChoices}"
+                                SelectedItem="{Binding SelectedPing, Mode=TwoWay}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Row="2" Grid.Column="0" Spacing="8">
+                        <Label Text="{loc:Translate Lobby_Setting_EndgamePing}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Picker Style="{StaticResource LobbySettingPicker}"
+                                ItemsSource="{Binding EndgamePingChoices}"
+                                SelectedItem="{Binding SelectedEndgamePing, Mode=TwoWay}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Row="2" Grid.Column="1" Spacing="8">
+                        <Label Text="{loc:Translate StartGame_Playfield_Label}" Style="{StaticResource SettingsFieldLabel}" />
+                        <Border Style="{StaticResource StartGamePlayfieldRow}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectPlayfieldCommand}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <Label Grid.Column="0"
+                                       Text="{Binding SelectedPlayfieldName}"
+                                       Style="{StaticResource LocationItemName}"
+                                       IsVisible="{Binding HasSelectedPlayfield}" />
+                                <Label Grid.Column="0"
+                                       Text="{loc:Translate StartGame_Playfield_Prompt}"
+                                       Style="{StaticResource StartGamePlayfieldPrompt}"
+                                       IsVisible="{Binding HasNoSelectedPlayfield}" />
+                                <Label Grid.Column="1"
+                                       Text="{loc:Translate StartGame_Playfield_Change}"
+                                       Style="{StaticResource StartGamePlayfieldChange}" />
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="OrientationStates">
+                                <VisualState x:Name="Portrait">
+                                    <VisualState.StateTriggers>
+                                        <OrientationStateTrigger Orientation="Portrait" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Landscape">
+                                    <VisualState.StateTriggers>
+                                        <OrientationStateTrigger Orientation="Landscape" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Property="IsVisible" Value="True" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                    </VisualStateManager.VisualStateGroups>
+                </Grid>
 
                 <!-- Create action -->
                 <Button Text="{loc:Translate StartGame_Create}"

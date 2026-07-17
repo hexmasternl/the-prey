@@ -108,6 +108,7 @@
   <data name="Join_SignIn_Button" xml:space="preserve"><value>AANMELDEN</value></data>
   <data name="Join_Code_Label" xml:space="preserve"><value>TOEGANGSCODE</value></data>
   <data name="Join_Code_Placeholder" xml:space="preserve"><value>0000</value></data>
+  <data name="Passcode_AccessibilityLabel" xml:space="preserve"><value>Toegangscode invoer</value></data>
   <data name="Join_Button" xml:space="preserve"><value>DEELNEMEN</value></data>
   <data name="Join_Error_InvalidCode" xml:space="preserve"><value>Die toegangscode is ongeldig. Controleer deze en probeer opnieuw.</value></data>
   <data name="Join_Error_NotFound" xml:space="preserve"><value>Deze operatie is niet gevonden. De uitnodiging is mogelijk verlopen.</value></data>
