@@ -3,21 +3,21 @@
 - [ ] 1.1 Add `InProgress` to `GameState` enum in the Games domain
 - [ ] 1.2 Add `StartedAt` (nullable `DateTimeOffset`) property to the `Game` aggregate
 - [ ] 1.3 Add `StartedAt` (nullable `DateTimeOffset`) field to `GameDto`
-- [ ] 1.4 Add `GameStarted` value to `LobbyEventType` enum
+- [ ] 1.4 Define a `game-started` integration event carrying the full `GameDto` for the Notifications module to broadcast
 
 ## 2. Backend — StartGame Command Handler
 
 - [ ] 2.1 Create `StartGameCommand` sealed record in `Features/StartGame/`
 - [ ] 2.2 Implement `StartGameCommandHandler` with precondition validation: caller is owner, ≥2 players in lobby, all non-owner players `IsReady = true`, game is in `Lobby` state
 - [ ] 2.3 Set `game.State = InProgress` and `game.StartedAt = DateTimeOffset.UtcNow` on success
-- [ ] 2.4 Call `_repository.UpdateAsync(game)` and publish `LobbyEvent` of type `GameStarted` via `ILobbyEventBus`
+- [ ] 2.4 Call `_repository.UpdateAsync(game)` and publish the `game-started` event carrying the full `GameDto` on the in-process event bus (`PublishAsync`)
 - [ ] 2.5 Return 403 for non-owner, 422 for precondition failures, 409 for wrong state
 - [ ] 2.6 Instrument handler with OTel activity (`GamesActivitySource`) and set error status on exception
 - [ ] 2.7 Register `StartGameCommandHandler` in `GamesModuleRegistration.cs`
 
-## 3. Backend — SSE Stream Update
+## 3. Backend — Web PubSub Broadcast
 
-- [ ] 3.1 Update SSE stream event-loop handler to detect `LobbyEventType.GameStarted`, write a final `game-started` SSE event, and break out of the loop to close the response
+- [ ] 3.1 Ensure the Notifications module maps the `game-started` integration event to `IWebPubSubBroadcaster.SendToGameAsync(gameId, "game-started", gameDto)`, broadcasting the full `GameDto` to Web PubSub group `{gameId}` (reuse the existing bridge; no stream to close)
 
 ## 4. Backend — Endpoint
 
@@ -56,8 +56,8 @@
 
 ## 10. Frontend — GameLobbyPage Integration
 
-- [ ] 10.1 Handle `game-started` SSE event type in `GameLobbyPage`'s SSE message handler
-- [ ] 10.2 On `game-started` event, close the SSE connection and navigate to `GameCountdownPage`
+- [ ] 10.1 Handle the `game-started` event in `GameLobbyPage`'s Web PubSub message handler
+- [ ] 10.2 On `game-started`, navigate to `GameCountdownPage` (the shared Web PubSub connection stays open and continues carrying in-game events)
 - [ ] 10.3 Add "Start Game" button to the lobby UI (owner only, enabled when ≥2 players and all non-owners ready)
 - [ ] 10.4 Wire "Start Game" button to call `POST /games/{id}/start` via `GamesService`
 - [ ] 10.5 Add `startGame(gameId)` method to `GamesService`
