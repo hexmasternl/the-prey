@@ -39,6 +39,12 @@ public sealed record GameLiveState
     /// <summary>The full ping interval (seconds) — the denominator for the HUD's next-ping bar.</summary>
     public int CurrentPingInterval { get; init; }
 
+    /// <summary>
+    /// Seconds until the next sweep tick while the local player is penalised (clamped to [0, 30]); 0 when
+    /// not penalised. Seeds the HUD's fixed-30-second penalty countdown bar.
+    /// </summary>
+    public int NextPingDurationWithPenalty { get; init; }
+
     /// <summary>True once the game has entered its final stage.</summary>
     public bool IsEndgame { get; init; }
 
