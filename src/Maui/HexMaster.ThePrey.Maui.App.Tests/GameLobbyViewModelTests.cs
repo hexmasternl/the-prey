@@ -22,6 +22,7 @@ public class GameLobbyViewModelTests
     private readonly Mock<ILocalizationService> _localization = new();
     private readonly Mock<ICurrentUserProvider> _currentUser = new();
     private readonly FakeGameStateService _gameState = new();
+    private IUiDispatcher _uiDispatcher = new ImmediateUiDispatcher();
 
     public GameLobbyViewModelTests()
     {
@@ -32,7 +33,7 @@ public class GameLobbyViewModelTests
 
     private GameLobbyViewModel CreateSut() => new(
         _gameApi.Object, _gameState, _currentUser.Object, _share.Object, _navigator.Object, _tokenProvider.Object,
-        _localization.Object, Options.Create(new ThePreyClientOptions()),
+        _localization.Object, _uiDispatcher, Options.Create(new ThePreyClientOptions()),
         NullLogger<GameLobbyViewModel>.Instance);
 
     private static GameParticipantDetails Participant(Guid id, string name = "Alice", bool ready = false) =>
@@ -483,6 +484,32 @@ public class GameLobbyViewModelTests
 
         await sut.ActivateAsync();
         _gameState.Push(started);
+
+        _navigator.Verify(n => n.GoToGameplayAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task LiveUpdate_ShouldApplyOnTheUiThread_NotThePublishingThread()
+    {
+        // The state service publishes on the socket's receive-loop thread. Applying a snapshot there would
+        // raise property-changed on bound properties, rebuild the bound Participants collection, and
+        // navigate — all illegal off the UI thread, and the resulting exception is swallowed by the
+        // service's per-subscriber try/catch, silently stranding non-host players in the lobby. So the
+        // whole callback must go through the UI dispatcher rather than running inline.
+        var dispatcher = new QueueingUiDispatcher();
+        _uiDispatcher = dispatcher;
+        var initial = Game(isOwner: false);
+        SetupLoad(initial);
+        var sut = CreateSut();
+
+        await sut.ActivateAsync();
+        dispatcher.RunPending();
+        _gameState.Push(initial with { Status = "Started" });
+
+        // Nothing applied yet — the callback was handed to the dispatcher, not executed inline.
+        _navigator.Verify(n => n.GoToGameplayAsync(), Times.Never);
+
+        dispatcher.RunPending();
 
         _navigator.Verify(n => n.GoToGameplayAsync(), Times.Once);
     }

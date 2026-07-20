@@ -127,6 +127,8 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\CreateGameResult.cs" Link="Linked\CreateGameResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\CreateGameParameters.cs" Link="Linked\CreateGameParameters.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IShareService.cs" Link="Linked\IShareService.cs" />
+    <!-- UI-thread marshalling seam (interface only — MauiUiDispatcher wraps MainThread and is excluded). -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Platform\IUiDispatcher.cs" Link="Linked\IUiDispatcher.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\ILobbyNavigator.cs" Link="Linked\ILobbyNavigator.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\LobbyParticipant.cs" Link="Linked\LobbyParticipant.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GameLobbyViewModel.cs" Link="Linked\GameLobbyViewModel.cs" />

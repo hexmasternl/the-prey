@@ -206,17 +206,24 @@ public sealed class GameStateService : IGameStateService
 
     private void OnEnvelopeReceived(GameRealtimeEnvelope envelope)
     {
-        var updated = ApplyEnvelope(envelope);
+        var updated = ApplyEnvelope(envelope, out var needsResync);
         if (updated is not null)
             Broadcast(updated);
+        // Triggered outside the state lock: the delta was applied, but it moved the game into a phase whose
+        // fields only the REST reads carry.
+        if (needsResync)
+            TriggerResync();
     }
 
     // Applies one envelope to the current snapshot. Returns the new snapshot when the state changed, or
     // null when it did not (unsupported version, sequence gap, a resync hint, unknown type, malformed
     // payload, missing target, or no baseline snapshot yet) — in every one of those "not applied" cases
     // other than the last, a full resync has been triggered instead so the state still converges.
-    private GameLiveState? ApplyEnvelope(GameRealtimeEnvelope envelope)
+    // <paramref name="needsResync"/> reports that an *applied* delta additionally needs a reconcile.
+    private GameLiveState? ApplyEnvelope(GameRealtimeEnvelope envelope, out bool needsResync)
     {
+        needsResync = false;
+
         if (string.IsNullOrWhiteSpace(envelope.Type))
             return null; // Malformed: no type. Ignore, keep the connection open.
 
@@ -300,6 +307,14 @@ public sealed class GameStateService : IGameStateService
                     var payload = Deserialize<ConfigurationChangedPayload>(envelope.Data);
                     if (payload is null)
                         return null;
+
+                    // A status transition (notably Started → InProgress, when the sweep commits the game)
+                    // brings fields into scope that no delta ever carries — HunterMayMoveAt, the playfield
+                    // polygon, the game clock, the ping schedule. They come only from the /status read,
+                    // which the last reconcile skipped because the game was not InProgress yet. Without
+                    // this, HunterMayMoveAt stays null through the whole head start, so the countdown
+                    // overlay never shows and both game pages jump straight to Live.
+                    needsResync = !string.Equals(payload.Status, current.Status, StringComparison.OrdinalIgnoreCase);
 
                     _current = current with
                     {

@@ -38,6 +38,7 @@ public sealed class GameLobbyViewModel : ObservableObject
     private readonly ILobbyNavigator _navigator;
     private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly ILocalizationService _localization;
+    private readonly IUiDispatcher _uiDispatcher;
     private readonly ThePreyClientOptions _options;
     private readonly ILogger<GameLobbyViewModel> _logger;
 
@@ -71,6 +72,7 @@ public sealed class GameLobbyViewModel : ObservableObject
         ILobbyNavigator navigator,
         IAccessTokenProvider accessTokenProvider,
         ILocalizationService localization,
+        IUiDispatcher uiDispatcher,
         IOptions<ThePreyClientOptions> options,
         ILogger<GameLobbyViewModel> logger)
     {
@@ -81,6 +83,7 @@ public sealed class GameLobbyViewModel : ObservableObject
         _navigator = navigator;
         _accessTokenProvider = accessTokenProvider;
         _localization = localization;
+        _uiDispatcher = uiDispatcher;
         _options = options.Value;
         _logger = logger;
 
@@ -249,7 +252,13 @@ public sealed class GameLobbyViewModel : ObservableObject
     // delta merged onto the store's game record) carries the current raw game record. A group broadcast is
     // one shared payload for the whole group, so its per-recipient IsOwnerPlayer arrives false —
     // ApplySnapshot derives ownership itself.
-    private void OnGameStateChanged(GameStateChanged change)
+    //
+    // The store is UI-agnostic and publishes on the socket's receive-loop thread, so marshal to the UI
+    // thread here — ApplySnapshot raises property-changed on bound properties, rebuilds the bound
+    // Participants collection, and may navigate, none of which is legal off the UI thread. Off-thread it
+    // throws inside the store's per-subscriber try/catch, which swallows it, so the hand-off below is
+    // silently skipped and non-host players are stranded in the lobby when the game starts.
+    private void OnGameStateChanged(GameStateChanged change) => _uiDispatcher.Dispatch(() =>
     {
         if (_handedOff)
             return;
@@ -257,7 +266,7 @@ public sealed class GameLobbyViewModel : ObservableObject
         // A configuration-changed delta reporting Started/InProgress is the genuine signal to hand off.
         if (change.Game is { } game)
             ApplySnapshot(game, allowHandOff: true);
-    }
+    });
 
     /// <summary>Resolves the active game and loads its full state, mapping each outcome to a distinct display state.</summary>
     public async Task LoadAsync()

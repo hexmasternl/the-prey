@@ -317,26 +317,48 @@ public class GameStateServiceTests
     // ---- configuration-changed ----
 
     [Fact]
-    public void ConfigurationChanged_ShouldUpdateStatusAndConfig_AndPreserveParticipants()
+    public void ConfigurationChanged_ShouldMergeConfig_AndPreserveParticipants_WithoutResync()
     {
+        // A config-only edit in the lobby: the delta is authoritative on its own slice, and costs no
+        // extra REST reads (only a status transition pulls in fields the channel never carries).
         var participant = Participant(Guid.NewGuid(), "Bob");
         var game = Seed(null, "Lobby", null, participant);
         var sut = StartedWith(game);
 
         _connection.RaiseEnvelope(Envelope(GameRealtimeEventTypes.ConfigurationChanged,
             new ConfigurationChangedPayload(
-                game.Id, "9999", game.OwnerUserId, "InProgress",
+                game.Id, "9999", game.OwnerUserId, "Lobby",
                 new GameConfigurationDetails(60, 10, 15, 180, 90),
                 HunterUserId: null, Outcome: "None", CompletedAt: null),
             seq: 1));
 
-        Assert.Equal("InProgress", sut.CurrentState!.Status);
-        Assert.Equal("InProgress", sut.CurrentGame!.Status);
-        Assert.Equal("9999", sut.CurrentGame.GameCode);
+        Assert.Equal("Lobby", sut.CurrentState!.Status);
+        Assert.Equal("9999", sut.CurrentGame!.GameCode);
         Assert.Equal(60, sut.CurrentGame.Configuration.GameDuration);
         Assert.Single(sut.CurrentState.Participants);
         Assert.Equal(participant.UserId, sut.CurrentState.Participants[0].UserId);
         Assert.Single(sut.CurrentGame.Participants);
+        // Once for the seeding reconcile, and no more.
+        _gameApi.Verify(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public void ConfigurationChanged_ShouldStillApplyStatus_WhenTheFollowUpResyncFails()
+    {
+        var game = Seed(null, "Started");
+        var sut = StartedWith(game);
+        _gameApi.Setup(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetGameResult.Error);
+
+        _connection.RaiseEnvelope(Envelope(GameRealtimeEventTypes.ConfigurationChanged,
+            new ConfigurationChangedPayload(
+                game.Id, game.GameCode, game.OwnerUserId, "InProgress", null,
+                HunterUserId: null, Outcome: "None", CompletedAt: null),
+            seq: 1));
+
+        // The delta stands on its own — the resync only heals what the delta could not carry.
+        Assert.Equal("InProgress", sut.CurrentState!.Status);
+        Assert.Equal("InProgress", sut.CurrentGame!.Status);
     }
 
     [Fact]
@@ -358,6 +380,40 @@ public class GameStateServiceTests
 
         Assert.Equal(hunterId, sut.CurrentState!.HunterUserId);
         Assert.Equal(2, sut.CurrentState.PreysLeft);
+    }
+
+    [Fact]
+    public void ConfigurationChanged_ShouldTriggerResync_WhenStatusTransitions()
+    {
+        // The game is armed but not yet committed, so the seeding reconcile skipped the /status read and
+        // the composite has no HunterMayMoveAt. The sweep then commits it to InProgress over the channel.
+        var game = Seed(null, "Started");
+        var sut = StartedWith(game);
+        Assert.Null(sut.CurrentState!.HunterMayMoveAt);
+
+        var mayMoveAt = DateTimeOffset.Parse("2026-07-15T10:05:00Z");
+        SetupReconcile(game with { Status = "InProgress" }, new GameStatusDetails(
+            PlayfieldCoordinates: Array.Empty<GpsCoordinate>(),
+            Participants: Array.Empty<GameParticipantStatusDetails>(),
+            HunterUserId: null,
+            GameDurationLeft: 1800,
+            HunterMayMoveAt: mayMoveAt,
+            IsEndgame: false,
+            PreysLeft: 1,
+            NextPingDuration: 20,
+            CurrentPingInterval: 30));
+
+        _connection.RaiseEnvelope(Envelope(GameRealtimeEventTypes.ConfigurationChanged,
+            new ConfigurationChangedPayload(
+                game.Id, game.GameCode, game.OwnerUserId, "InProgress", null,
+                HunterUserId: null, Outcome: "None", CompletedAt: null),
+            seq: 1));
+
+        // The head-start deadline the delta never carries is now healed by the follow-up reconcile.
+        Assert.Equal("InProgress", sut.CurrentState!.Status);
+        Assert.Equal(mayMoveAt, sut.CurrentState.HunterMayMoveAt);
+        Assert.Equal(1800, sut.CurrentState.GameDurationLeft);
+        _gameApi.Verify(a => a.GetGameStatusDetailsAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     // ---- locations-updated (batched) ----

@@ -208,6 +208,9 @@ namespace HexMaster.ThePrey.Maui.App
             // Native share sheet.
             services.AddSingleton<IShareService, ShareService>();
 
+            // UI-thread marshalling for view models driven by the background real-time receive loop.
+            services.AddSingleton<IUiDispatcher, MauiUiDispatcher>();
+
             // Current-user id (from GET /users/me) — used to determine role at the gameplay hand-off.
             services.AddSingleton<ICurrentUserProvider, CurrentUserProvider>();
 
