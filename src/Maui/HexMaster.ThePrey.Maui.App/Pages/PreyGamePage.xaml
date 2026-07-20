@@ -46,7 +46,7 @@
                            VerticalOptions="Center" HorizontalOptions="Center" />
 
         <!-- Reserved prey HUD region (content owned by the separate prey-hud capability). -->
-        <ContentView x:Name="HudRegion" VerticalOptions="End" InputTransparent="False" />
+        <ContentView x:Name="HudRegion" VerticalOptions="Fill" InputTransparent="False" />
     </Grid>
 
 </ContentPage>
