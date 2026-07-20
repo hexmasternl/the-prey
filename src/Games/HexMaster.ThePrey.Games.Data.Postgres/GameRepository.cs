@@ -61,11 +61,12 @@ public sealed class GameRepository : IGameRepository
         // Participants are an owned collection mapped via the aggregate's "_participants" backing field
         // (see GameEntityTypeConfiguration). It has no DbSet — owned types are queried through their owner —
         // so reach it inside the predicate with EF.Property, which EF Core translates to a SQL subquery.
-        // "Active" is defined by timing columns rather than Status: the game has started and has not
-        // been completed yet.
+        // "Active" is defined by Status, not by timing columns. Arm() moves the game to Started without
+        // stamping StartedAt — only the sweep's BeginPlay() does that when it promotes Started to
+        // InProgress. A StartedAt-based predicate therefore misses the whole Started window, during which
+        // clients must already be routed to their role-specific gameplay page.
         return await _db.Games
-            .Where(g => g.StartedAt != null
-                     && g.CompletedAt == null
+            .Where(g => (g.Status == GameStatus.Started || g.Status == GameStatus.InProgress)
                      && EF.Property<ICollection<GameParticipant>>(g, "_participants")
                           .Any(p => p.UserId == userId))
             .FirstOrDefaultAsync(ct);
