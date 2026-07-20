@@ -117,6 +117,10 @@ namespace HexMaster.ThePrey.Maui.App
             // Confirm/cancel dialog seam (the delete flow's confirmation gate).
             services.AddSingleton<IConfirmationDialog, ConfirmationDialog>();
 
+            // Background-location prominent-disclosure consent gate (Google Play policy): shown before
+            // the OS location-permission prompt, reuses IConfirmationDialog for its surface.
+            services.AddSingleton<ILocationConsentGate, LocationConsentGate>();
+
             // Create / area-editor navigation seam. One Shell-backed singleton carries the result
             // hand-off for both directions, exposed under both interfaces.
             services.AddSingleton<ShellPlayfieldNavigator>();
@@ -206,6 +210,10 @@ namespace HexMaster.ThePrey.Maui.App
             // Current-user id (from GET /users/me) — used to determine role at the gameplay hand-off.
             services.AddSingleton<ICurrentUserProvider, CurrentUserProvider>();
 
+            // Post-game hand-off seam: gameplay → outcome page (once per game) and outcome → main menu.
+            // A singleton so the once-per-game guard outlives the gameplay page being torn down.
+            services.AddSingleton<IOutcomeNavigator, ShellOutcomeNavigator>();
+
             // Gameplay router: fulfils the lobby's onward hand-off (ILobbyNavigator) by resolving the
             // active game's role and routing to the hunter/prey game page, and owns the outcome hand-off
             // (IGameplayNavigator). One Shell/navigator-backed singleton exposed under both interfaces.
@@ -232,6 +240,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<GameHudViewModel>();
             services.AddTransient<HunterGameViewModel>();
             services.AddTransient<PreyGameViewModel>();
+            services.AddTransient<OutcomeViewModel>();
             services.AddTransient<SelectPlayfieldViewModel>();
             services.AddTransient<StartGameViewModel>();
             services.AddTransient<JoinGameViewModel>();
@@ -246,6 +255,7 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddTransient<GameLobbyPage>();
             services.AddTransient<HunterGamePage>();
             services.AddTransient<PreyGamePage>();
+            services.AddTransient<OutcomePage>();
             services.AddTransient<SelectPlayfieldPage>();
             services.AddTransient<StartGamePage>();
             services.AddTransient<JoinGamePage>();
