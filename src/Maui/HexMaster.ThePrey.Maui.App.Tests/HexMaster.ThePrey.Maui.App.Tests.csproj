@@ -156,6 +156,14 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\HunterGameViewModel.cs" Link="Linked\HunterGameViewModel.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\PreyGameViewModel.cs" Link="Linked\PreyGameViewModel.cs" />
 
+    <!-- Post-game outcome screen: the outcome value types, the pure win/lose resolver, the navigation
+         seam (interface only), and the outcome view model. All plain .NET; ShellOutcomeNavigator and the
+         page itself touch Shell/MAUI APIs and are deliberately excluded. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GameOutcome.cs" Link="Linked\GameOutcome.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GameOutcomeResolver.cs" Link="Linked\GameOutcomeResolver.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IOutcomeNavigator.cs" Link="Linked\IOutcomeNavigator.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\OutcomeViewModel.cs" Link="Linked\OutcomeViewModel.cs" />
+
     <!-- Playfield-selection modal: the selectable item, the navigator seam interfaces, and the modal
          view model. All plain .NET; the Shell-backed navigator implementation is MAUI-only and excluded. -->
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\SelectablePlayFieldItem.cs" Link="Linked\SelectablePlayFieldItem.cs" />
@@ -200,6 +208,12 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\LocationReportClient.cs" Link="Linked\LocationReportClient.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GameLocationTrackerCoordinator.cs" Link="Linked\GameLocationTrackerCoordinator.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GameLocationTracker.cs" Link="Linked\GameLocationTracker.cs" />
+
+    <!-- Background-location consent gate: the interface (mockable seam for the coordinator test) and the
+         pure show-or-skip policy. LocationConsentGate.cs itself touches Preferences/Permissions (MAUI
+         Essentials) and is deliberately excluded, mirroring ConfirmationDialog.cs above. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\ILocationConsentGate.cs" Link="Linked\ILocationConsentGate.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\LocationConsentPolicy.cs" Link="Linked\LocationConsentPolicy.cs" />
   </ItemGroup>
 
 </Project>
