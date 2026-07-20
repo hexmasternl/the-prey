@@ -2,6 +2,7 @@ using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
+using HexMaster.ThePrey.Maui.App.Services.Platform;
 using HexMaster.ThePrey.Maui.App.Services.Realtime;
 using HexMaster.ThePrey.Maui.App.Services.Session;
 using HexMaster.ThePrey.Maui.App.ViewModels;
@@ -31,9 +32,10 @@ public class PreyGameViewModelTests
         _currentUser.Setup(c => c.GetUserIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync(_selfId);
     }
 
-    private PreyGameViewModel CreateSut() => new(
+    private PreyGameViewModel CreateSut(IUiDispatcher? uiDispatcher = null) => new(
         _state, _position.Object, _heading.Object, _nav.Object,
-        _currentUser.Object, _locationTracker.Object, _localization.Object, _time,
+        _currentUser.Object, _locationTracker.Object, _localization.Object,
+        uiDispatcher ?? new ImmediateUiDispatcher(), _time,
         NullLogger<PreyGameViewModel>.Instance);
 
     private GameLiveState State(
@@ -208,6 +210,29 @@ public class PreyGameViewModelTests
 
         _state.Push(State("Completed"));
         _state.Push(State("Completed"));
+
+        Assert.Equal(GamePhase.Ended, sut.Phase);
+        _nav.Verify(n => n.GoToOutcomeAsync(_gameId, false), Times.Once);
+        sut.Deactivate();
+    }
+
+    [Fact]
+    public async Task Live_GameEnded_MarshalsHandOffToUiThread()
+    {
+        // Real-time snapshots arrive on the store's background receive-loop thread. The hand-off navigates
+        // via Shell, which is illegal off the UI thread — so the callback MUST be marshalled. Model that with
+        // a dispatcher that queues instead of running inline.
+        var dispatcher = new QueueingUiDispatcher();
+        _state.SeedState = State("InProgress");
+        using var sut = CreateSut(dispatcher);
+        await sut.ActivateAsync();
+
+        _state.Push(State("Completed"));
+
+        // Until the UI thread pumps, nothing has navigated (off-thread it would have thrown + been swallowed).
+        _nav.Verify(n => n.GoToOutcomeAsync(It.IsAny<Guid>(), It.IsAny<bool>()), Times.Never);
+
+        dispatcher.RunPending();
 
         Assert.Equal(GamePhase.Ended, sut.Phase);
         _nav.Verify(n => n.GoToOutcomeAsync(_gameId, false), Times.Once);

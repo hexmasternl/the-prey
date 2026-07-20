@@ -2,6 +2,7 @@ using HexMaster.ThePrey.Maui.App.Services.Api;
 using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
+using HexMaster.ThePrey.Maui.App.Services.Platform;
 using HexMaster.ThePrey.Maui.App.Services.Realtime;
 using Microsoft.Extensions.Logging;
 
@@ -25,6 +26,7 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
     private readonly IGameplayNavigator _navigator;
     private readonly IGameLocationTracker _locationTracker;
     private readonly ILocalizationService _localization;
+    private readonly IUiDispatcher _uiDispatcher;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<HunterGameViewModel> _logger;
 
@@ -54,6 +56,7 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
         IGameplayNavigator navigator,
         IGameLocationTracker locationTracker,
         ILocalizationService localization,
+        IUiDispatcher uiDispatcher,
         TimeProvider timeProvider,
         ILogger<HunterGameViewModel> logger)
     {
@@ -63,6 +66,7 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
         _navigator = navigator;
         _locationTracker = locationTracker;
         _localization = localization;
+        _uiDispatcher = uiDispatcher;
         _timeProvider = timeProvider;
         _logger = logger;
     }
@@ -205,7 +209,12 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
         _stateService.Unsubscribe(OnStateChanged);
     }
 
-    private void OnStateChanged(GameStateChanged change) => ApplyState(change.State);
+    // The store is UI-agnostic and publishes on the socket's receive-loop thread, so marshal to the UI
+    // thread here — ApplyState raises property-changed on bound properties and, on game-ended, navigates to
+    // the outcome page. Off-thread, Shell navigation throws inside the store's per-subscriber try/catch,
+    // which swallows it, so the hand-off is silently skipped and players are stranded on the game map when
+    // the game ends. (Same fix as GameLobbyViewModel.OnGameStateChanged.)
+    private void OnStateChanged(GameStateChanged change) => _uiDispatcher.Dispatch(() => ApplyState(change.State));
 
     // Projects one store snapshot onto the map: status/phase, the polygon, and the hunter-perspective dots.
     private void ApplyState(GameLiveState state)
