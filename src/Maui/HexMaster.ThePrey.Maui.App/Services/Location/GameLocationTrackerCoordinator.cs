@@ -37,6 +37,7 @@ public sealed class GameLocationTrackerCoordinator
     private readonly IBackgroundExecutionHost _host;
     private readonly ILocationReportClient _reportClient;
     private readonly IAccessTokenProvider _accessTokenProvider;
+    private readonly ILocationConsentGate _consentGate;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<GameLocationTrackerCoordinator> _logger;
 
@@ -54,6 +55,7 @@ public sealed class GameLocationTrackerCoordinator
         IBackgroundExecutionHost host,
         ILocationReportClient reportClient,
         IAccessTokenProvider accessTokenProvider,
+        ILocationConsentGate consentGate,
         TimeProvider timeProvider,
         ILogger<GameLocationTrackerCoordinator> logger)
     {
@@ -61,6 +63,7 @@ public sealed class GameLocationTrackerCoordinator
         _host = host;
         _reportClient = reportClient;
         _accessTokenProvider = accessTokenProvider;
+        _consentGate = consentGate;
         _timeProvider = timeProvider;
         _logger = logger;
     }
@@ -73,10 +76,13 @@ public sealed class GameLocationTrackerCoordinator
 
     /// <summary>
     /// Begins tracking <paramref name="gameId"/>. No-op if already tracking the same game. If already
-    /// tracking a different game, the previous loop is stopped first. Reports the first fix inline; if
-    /// that first report already says the game is over, tracking never starts. When <paramref name="remaining"/>
-    /// is a positive duration, tracking also stops itself once that much time (plus a grace) has elapsed —
-    /// a failsafe against a game-over signal that never arrives. Never throws.
+    /// tracking a different game, the previous loop is stopped first. Before the platform adapters are
+    /// touched, awaits <see cref="ILocationConsentGate.EnsureConsentAsync"/>; if the player declines, no
+    /// OS permission is requested and no tracking starts — a later call re-shows the disclosure. Reports
+    /// the first fix inline; if that first report already says the game is over, tracking never starts.
+    /// When <paramref name="remaining"/> is a positive duration, tracking also stops itself once that
+    /// much time (plus a grace) has elapsed — a failsafe against a game-over signal that never arrives.
+    /// Never throws.
     /// </summary>
     public async Task StartAsync(Guid gameId, TimeSpan? remaining = null, CancellationToken ct = default)
     {
@@ -94,6 +100,15 @@ public sealed class GameLocationTrackerCoordinator
                 ? _timeProvider.GetUtcNow() + left + DeadlineGrace
                 : null;
             _trackingGameId = gameId;
+
+            // Google Play's Prominent Disclosure & Consent policy requires an in-app disclosure before
+            // the OS location-permission prompt. Decline: request nothing, start nothing, leave the
+            // coordinator idle so a later StartAsync attempt can show the disclosure again.
+            if (!await _consentGate.EnsureConsentAsync(ct))
+            {
+                _trackingGameId = null;
+                return;
+            }
 
             await SafeAsync(() => _source.StartAsync(ct), "start the location source");
             await SafeAsync(() => _host.StartAsync(ct), "start the background-execution host");
