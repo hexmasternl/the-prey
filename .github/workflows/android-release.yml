@@ -126,6 +126,17 @@ jobs:
           ORG_GRADLE_PROJECT_versionName: ${{ needs.version.outputs.semVer }}
         run: ./gradlew bundleRelease
 
+      # Short-lived copy of the exact bundle that goes to Play, for spot-checking a
+      # build without pulling it back out of the Play Console. Uploaded before the
+      # publish step so the bundle is still retrievable when a Play upload fails.
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ionic-android-aab-${{ needs.version.outputs.semVer }}
+          path: src/ThePrey/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 3
+
       # ---- publish to Google Play -----------------------------------------
       - name: Publish to Google Play
         uses: r0adkll/upload-google-play@v1

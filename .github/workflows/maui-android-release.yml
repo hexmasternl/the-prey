@@ -136,12 +136,16 @@ jobs:
           echo "Found $path"
           echo "path=$path" >> "$GITHUB_OUTPUT"
 
+      # Short-lived copy of the exact bundle that goes to Play, for spot-checking a
+      # build without pulling it back out of the Play Console. Play is the system of
+      # record, so this only needs to outlive a quick look at a fresh run.
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: maui-android-aab
+          name: maui-android-aab-${{ steps.version.outputs.display }}
           path: ${{ steps.aab.outputs.path }}
           if-no-files-found: error
+          retention-days: 3
 
       # ---- publish to Google Play -----------------------------------------
       - name: Publish to Google Play
