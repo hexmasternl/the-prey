@@ -227,6 +227,7 @@
   <data name="Hud_Distance_Unknown" xml:space="preserve"><value>—</value></data>
   <data name="Hud_Distance_Meters" xml:space="preserve"><value>{0} m</value></data>
   <data name="Hud_Distance_Kilometers" xml:space="preserve"><value>{0} km</value></data>
+  <data name="Hud_Penalty" xml:space="preserve"><value>STRAF</value></data>
   <data name="Hud_Error_Generic" xml:space="preserve"><value>Kan het spel niet bijwerken. Opnieuw proberen…</value></data>
   <data name="Hud_Error_Unauthorized" xml:space="preserve"><value>Je sessie is verlopen. Meld je opnieuw aan.</value></data>
   <data name="Tag_DialogTitle" xml:space="preserve"><value>KIES EEN PROOI OM TE TIKKEN</value></data>
@@ -265,4 +266,24 @@
   <data name="PreyGame_Error_NotFound" xml:space="preserve"><value>Deze operatie kon niet worden gevonden.</value></data>
   <data name="PreyGame_Error_Unauthorized" xml:space="preserve"><value>Je sessie is verlopen. Log opnieuw in.</value></data>
   <data name="PreyGame_Error_Generic" xml:space="preserve"><value>Er ging iets mis. Opnieuw proberen…</value></data>
+
+  <!-- Background location consent (prominent disclosure, shown before the OS permission prompt) -->
+  <data name="LocationConsent_Title" xml:space="preserve"><value>Locatie op de achtergrond vereist</value></data>
+  <data name="LocationConsent_Body" xml:space="preserve"><value>Zolang een spel bezig is, draait The Prey een achtergrondservice die je locatie verzamelt en naar onze servers stuurt — ook wanneer de app op de achtergrond draait of gesloten is — zodat jagers en prooien in realtime gevolgd kunnen worden. Je locatie wordt alleen tijdens een actief spel verzameld en stopt zodra het spel eindigt.</value></data>
+  <data name="LocationConsent_Allow" xml:space="preserve"><value>Toestaan</value></data>
+  <data name="LocationConsent_Decline" xml:space="preserve"><value>Niet nu</value></data>
+
+  <!-- Post-game outcome screen (victory / defeat conclusion) -->
+  <data name="Outcome_Headline_Victory" xml:space="preserve"><value>OVERWINNING</value></data>
+  <data name="Outcome_Headline_Defeat" xml:space="preserve"><value>VERLOREN</value></data>
+  <data name="Outcome_Headline_Neutral" xml:space="preserve"><value>SPEL VOORBIJ</value></data>
+  <data name="Outcome_WinningSide_Hunter" xml:space="preserve"><value>DE JAGER WINT</value></data>
+  <data name="Outcome_WinningSide_Preys" xml:space="preserve"><value>DE PROOI WINT</value></data>
+  <data name="Outcome_Reason_AllCaught" xml:space="preserve"><value>Elke prooi is gepakt voordat de tijd om was.</value></data>
+  <data name="Outcome_Reason_TimeExpired" xml:space="preserve"><value>De tijd is verstreken terwijl er nog prooi op vrije voeten was.</value></data>
+  <data name="Outcome_Survivors_One" xml:space="preserve"><value>{0} PROOI ONTSNAPT</value></data>
+  <data name="Outcome_Survivors_Many" xml:space="preserve"><value>{0} PROOIEN ONTSNAPT</value></data>
+  <data name="Outcome_Neutral_Message" xml:space="preserve"><value>De operatie is beëindigd. Het eindresultaat kon niet worden opgehaald.</value></data>
+  <data name="Outcome_Resolving" xml:space="preserve"><value>DEBRIEFING…</value></data>
+  <data name="Outcome_Close" xml:space="preserve"><value>TERUG NAAR BASIS</value></data>
 </root>
