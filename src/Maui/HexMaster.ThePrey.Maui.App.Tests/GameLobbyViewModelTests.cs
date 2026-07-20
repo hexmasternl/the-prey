@@ -504,6 +504,26 @@ public class GameLobbyViewModelTests
     }
 
     [Fact]
+    public async Task LiveUpdate_ReadyStatusWithoutFlag_ShouldEnableStart()
+    {
+        // Regression: the owner's START button only enabled after a local change. Readiness is per-caller
+        // stamped as IsReadyToStart on a direct GET / command response, but the configuration-changed
+        // broadcast slice deliberately omits it — so on a live update the flag is stale (false) while the
+        // status is current ("Ready"). The lobby must derive readiness from the status.
+        var initial = Game(isOwner: true, isReadyToStart: false, hunter: Guid.NewGuid());
+        var ready = initial with { Status = "Ready", IsReadyToStart = false };
+        SetupLoad(initial);
+        var sut = CreateSut();
+
+        await sut.ActivateAsync();
+        Assert.False(sut.CanStart);
+
+        _gameState.Push(ready);
+
+        Assert.True(sut.CanStart);
+    }
+
+    [Fact]
     public async Task LiveUpdate_PartialFrameWithoutConfigOrParticipants_ShouldNotThrow_KeepSeededValues_AndStillHandOff()
     {
         // A live snapshot can be partial: the backend's JSON may omit the configuration/participants

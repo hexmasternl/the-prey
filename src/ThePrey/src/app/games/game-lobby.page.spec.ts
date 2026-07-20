@@ -139,6 +139,18 @@ describe('GameLobbyPage', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/home'], { replaceUrl: true });
   });
 
+  it('enables the start action from a live Ready status even when isReadyToStart is stale', () => {
+    // Regression: the start button only enabled after a local change. The `configuration-changed`
+    // broadcast slice omits the per-caller isReadyToStart flag, so it stays false on a live update
+    // while the status is current — readiness must be derived from the status.
+    gameState.setState(createGame({ status: 'Lobby', isReadyToStart: false }), true);
+    expect(component.canStart()).toBeFalse();
+
+    gameState.setState(createGame({ status: 'Ready', isReadyToStart: false }), true);
+
+    expect(component.canStart()).toBeTrue();
+  });
+
   it('isReady reflects the participant flag from the shared state', () => {
     gameState.setState(
       createGame({
