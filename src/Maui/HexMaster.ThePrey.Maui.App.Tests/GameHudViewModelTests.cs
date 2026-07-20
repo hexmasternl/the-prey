@@ -87,6 +87,27 @@ public class GameHudViewModelTests
         Assert.True(condition(), because);
     }
 
+    // ---- Role ----
+
+    [Fact]
+    public void Initialize_ShouldRaisePropertyChanged_ForIsHunter()
+    {
+        // Regression: the Tag button never appeared. The host page binds the HUD in its constructor and only
+        // calls Initialize in OnAppearing, so IsVisible={Binding IsHunter} latched onto the constructor's
+        // false. Without this notification the button stays hidden for the whole game.
+        var vm = new GameHudViewModel(
+            _state, _api.Object, _tokens.Object, _currentUser.Object, _gps.Object, _camera.Object,
+            _tagDialog.Object, _confirm.Object, _localization.Object, _time,
+            NullLogger<GameHudViewModel>.Instance);
+        var raised = new List<string?>();
+        vm.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
+
+        vm.Initialize(_gameId, isHunter: true);
+
+        Assert.True(vm.IsHunter);
+        Assert.Contains(nameof(GameHudViewModel.IsHunter), raised);
+    }
+
     // ---- Metrics ----
 
     [Fact]

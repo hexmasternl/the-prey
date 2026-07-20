@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Maui.App.Controls;
 using HexMaster.ThePrey.Maui.App.Services.Api;
+using HexMaster.ThePrey.Maui.App.Services.Navigation;
 using HexMaster.ThePrey.Maui.App.ViewModels;
 using Mapsui;
 using Mapsui.Extensions;
@@ -30,12 +31,12 @@ public partial class HunterGamePage : ContentPage
     private const double DefaultLongitude = 4.9041;
     private static readonly double StreetLevelResolution = 156543.03392804097 / Math.Pow(2, 15);
 
-    private const double SelfArrowScale = 0.7;
     private const double BlipScale = 0.5;
     private const double PolygonOutlineWidth = 2;
 
     private readonly HunterGameViewModel _viewModel;
     private readonly GameHudViewModel _hudViewModel;
+    private readonly IMapCameraController _camera;
     private readonly MapControl _mapControl;
 
     private readonly MemoryLayer _polygonLayer = new("Playfield") { Style = null };
@@ -46,12 +47,17 @@ public partial class HunterGamePage : ContentPage
     private bool _centeredOnce;
     private double _accumulatedHeading;
 
-    public HunterGamePage(HunterGameViewModel viewModel, GameHudView hudView, GameHudViewModel hudViewModel)
+    public HunterGamePage(
+        HunterGameViewModel viewModel,
+        GameHudView hudView,
+        GameHudViewModel hudViewModel,
+        IMapCameraController camera)
     {
         InitializeComponent();
 
         _viewModel = viewModel;
         _hudViewModel = hudViewModel;
+        _camera = camera;
         BindingContext = viewModel;
 
         _mapControl = new MapControl
@@ -75,6 +81,7 @@ public partial class HunterGamePage : ContentPage
     {
         base.OnAppearing();
         _viewModel.MapChanged += OnMapChanged;
+        _camera.FollowModeChanged += OnFollowModeChanged;
         await _viewModel.ActivateAsync();
         RedrawMap();
 
@@ -91,12 +98,22 @@ public partial class HunterGamePage : ContentPage
     {
         base.OnDisappearing();
         _viewModel.MapChanged -= OnMapChanged;
+        _camera.FollowModeChanged -= OnFollowModeChanged;
         // Deactivate the HUD (unsubscribe) before the map VM stops the shared store connection.
         _hudViewModel.Deactivate();
         _viewModel.Deactivate();
     }
 
     private void OnMapChanged(object? sender, EventArgs e) => MainThread.BeginInvokeOnMainThread(RedrawMap);
+
+    // The HUD's Center toggle flipped. Re-pin straight away rather than waiting for the next position
+    // update — those arrive a ping interval apart, so the button would otherwise feel dead for a minute.
+    private void OnFollowModeChanged(object? sender, bool following) =>
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (following && _viewModel.SelfPosition is { } fix)
+                CenterOn(fix.Latitude, fix.Longitude, resetZoom: !_centeredOnce);
+        });
 
     private void RedrawMap()
     {
@@ -145,18 +162,13 @@ public partial class HunterGamePage : ContentPage
 
         var (x, y) = SphericalMercator.FromLonLat(fix.Longitude, fix.Latitude);
         var feature = new PointFeature(x, y);
-        feature.Styles.Add(new SymbolStyle
-        {
-            SymbolType = SymbolType.Triangle,
-            SymbolScale = SelfArrowScale,
-            SymbolRotation = _accumulatedHeading,
-            Fill = new MapsuiBrush(GameMapPalette.Signal),
-            Outline = new MapsuiPen(GameMapPalette.Signal, 1)
-        });
+        feature.Styles.Add(GameMapPalette.SelfArrowStyle(_accumulatedHeading));
         _selfLayer.Features = [feature];
 
-        if (!_centeredOnce)
-            CenterOn(fix.Latitude, fix.Longitude);
+        // Following: every fix re-pins the camera. Not following: centre only the very first time, so a
+        // free-panning player is never yanked back to themselves.
+        if (_camera.IsFollowing || !_centeredOnce)
+            CenterOn(fix.Latitude, fix.Longitude, resetZoom: !_centeredOnce);
     }
 
     /// <summary>Accumulates the heading so the arrow turns the short way across the 0°/360° seam.</summary>
@@ -184,10 +196,18 @@ public partial class HunterGamePage : ContentPage
         CenterOn(lat / vertices.Count, lon / vertices.Count);
     }
 
-    private void CenterOn(double latitude, double longitude)
+    /// <summary>
+    /// Centres the camera. <paramref name="resetZoom"/> snaps to the street-level resolution as well —
+    /// right for the initial framing, wrong while following, where re-zooming on every fix would undo
+    /// whatever zoom the player chose.
+    /// </summary>
+    private void CenterOn(double latitude, double longitude, bool resetZoom = true)
     {
         var (x, y) = SphericalMercator.FromLonLat(longitude, latitude);
-        _mapControl.Map.Navigator.CenterOnAndZoomTo(new MPoint(x, y), StreetLevelResolution);
+        if (resetZoom)
+            _mapControl.Map.Navigator.CenterOnAndZoomTo(new MPoint(x, y), StreetLevelResolution);
+        else
+            _mapControl.Map.Navigator.CenterOn(new MPoint(x, y));
         _centeredOnce = true;
     }
 

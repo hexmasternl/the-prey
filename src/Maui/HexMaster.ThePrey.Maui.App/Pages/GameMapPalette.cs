@@ -1,6 +1,8 @@
 using HexMaster.ThePrey.Maui.App.ViewModels;
+using Mapsui.Styles;
 using MauiColor = Microsoft.Maui.Graphics.Color;
 using MapsuiColor = Mapsui.Styles.Color;
+using MapsuiImage = Mapsui.Styles.Image;   // disambiguates from Microsoft.Maui.Controls.Image
 
 namespace HexMaster.ThePrey.Maui.App.Pages;
 
@@ -22,6 +24,32 @@ internal static class GameMapPalette
 
     /// <summary>Signal green — the self arrow and (on the prey map) other-prey dots + playfield.</summary>
     public static MapsuiColor Signal => ToMapsui(Resolve("TpSignal", SignalFallback));
+
+    /// <summary>
+    /// A slim navigation arrow (SVG, tip pointing up at a 0° heading) for the player's own position
+    /// marker. Deliberately far narrower than Mapsui's broad built-in <see cref="SymbolType.Triangle"/>
+    /// so the compass heading it is rotated to reads unambiguously; the notched tail gives it the
+    /// classic "you are here" look. Colours are overridden at render time (see <see cref="SelfArrowStyle"/>).
+    /// </summary>
+    private const string SelfArrowSvg =
+        "svg-content://<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 34\" width=\"24\" height=\"34\">" +
+        "<path d=\"M12 1 L21 33 L12 26 L3 33 Z\" stroke-linejoin=\"round\" stroke-width=\"1\" /></svg>";
+
+    /// <summary>
+    /// The signal-green self arrow style, rotated to <paramref name="rotationDegrees"/> (compass heading).
+    /// Shared by the hunter and prey maps so both draw an identical, clearly-directional self marker.
+    /// </summary>
+    public static ImageStyle SelfArrowStyle(double rotationDegrees) => new()
+    {
+        Image = new MapsuiImage
+        {
+            Source = SelfArrowSvg,
+            SvgFillColor = Signal,
+            SvgStrokeColor = Signal,
+        },
+        SymbolScale = 1.0,
+        SymbolRotation = rotationDegrees,
+    };
 
     /// <summary>Hunter red — the hunter dot / prey dots on the hunter map + the hunter playfield.</summary>
     public static MapsuiColor Hunter => ToMapsui(Resolve("TpHunter", HunterFallback));

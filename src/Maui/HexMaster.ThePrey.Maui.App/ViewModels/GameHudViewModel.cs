@@ -82,6 +82,7 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     private bool _isExpanded;
     private bool _isFollowingLocation = true;
     private bool _hasEnded;
+    private bool _isHunter;
 
     private string _gameTimeRemainingText = string.Empty;
     private string _preysActiveText = string.Empty;
@@ -129,8 +130,17 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     /// <summary>The game whose HUD this is. Set by <see cref="Initialize"/> before activation.</summary>
     public Guid GameId { get; private set; }
 
-    /// <summary>True when the local player is the hunter — governs Tag visibility and the distance metric.</summary>
-    public bool IsHunter { get; private set; }
+    /// <summary>
+    /// True when the local player is the hunter — governs Tag visibility and the distance metric.
+    /// Must raise a change notification: the host page binds the HUD before it knows the role and only
+    /// calls <see cref="Initialize"/> in OnAppearing, so a silent setter leaves the Tag button bound to
+    /// the constructor's false forever.
+    /// </summary>
+    public bool IsHunter
+    {
+        get => _isHunter;
+        private set => SetProperty(ref _isHunter, value);
+    }
 
     /// <summary>Raised once, when the store reports the game is completed, so the host can hand off.</summary>
     public event EventHandler? GameEnded;

@@ -146,6 +146,7 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\NotificationsTokenResult.cs" Link="Linked\NotificationsTokenResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GeoDistance.cs" Link="Linked\GeoDistance.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\IMapCameraController.cs" Link="Linked\IMapCameraController.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Navigation\MapFollowModeController.cs" Link="Linked\MapFollowModeController.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Dialogs\ITagDialog.cs" Link="Linked\ITagDialog.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\GameHudViewModel.cs" Link="Linked\GameHudViewModel.cs" />
 

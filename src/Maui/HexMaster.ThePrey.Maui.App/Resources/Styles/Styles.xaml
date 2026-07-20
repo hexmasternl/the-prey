@@ -1281,35 +1281,59 @@
         <Setter Property="HorizontalOptions" Value="Fill" />
     </Style>
 
-    <!-- Right-aligned square icon button above the HUD (Center default / inactive). -->
-    <Style TargetType="Button" x:Key="HudIconButton">
-        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
-        <Setter Property="FontSize" Value="11" />
-        <Setter Property="CharacterSpacing" Value="2" />
-        <Setter Property="TextColor" Value="{StaticResource TpTextSoft}" />
+    <!-- Right-aligned square icon button above the HUD (Center default / inactive). A Border hosting a
+         vector Path rather than a Button: MAUI's Button renders text or a raster ImageSource only, so
+         drawing the glyph as a Path is what keeps every colour a Colors.xaml token (an image asset would
+         bake its own hex) and lets a state change recolour the glyph itself. -->
+    <Style TargetType="Border" x:Key="HudIconButton">
         <Setter Property="BackgroundColor" Value="{StaticResource TpHudPanel}" />
-        <Setter Property="BorderColor" Value="{StaticResource TpLine}" />
-        <Setter Property="BorderWidth" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Stroke" Value="{StaticResource TpLineBrush}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 8" />
         <Setter Property="HeightRequest" Value="48" />
-        <Setter Property="MinimumWidthRequest" Value="56" />
-        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="WidthRequest" Value="56" />
+        <Setter Property="Padding" Value="0" />
     </Style>
 
     <!-- Center toggle: dim when free-panning, signal green while following the device location. -->
-    <Style TargetType="Button" x:Key="HudCenterButton" BasedOn="{StaticResource HudIconButton}">
+    <Style TargetType="Border" x:Key="HudCenterButton" BasedOn="{StaticResource HudIconButton}">
         <Style.Triggers>
-            <DataTrigger TargetType="Button" Binding="{Binding IsFollowingLocation}" Value="True">
-                <Setter Property="TextColor" Value="{StaticResource TpSignal}" />
-                <Setter Property="BorderColor" Value="{StaticResource TpSignal}" />
+            <DataTrigger TargetType="Border" Binding="{Binding IsFollowingLocation}" Value="True">
+                <Setter Property="Stroke" Value="{StaticResource TpSignalBrush}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>
 
     <!-- Hunter-only Tag button — hunter red accent. -->
-    <Style TargetType="Button" x:Key="HudTagButton" BasedOn="{StaticResource HudIconButton}">
-        <Setter Property="TextColor" Value="{StaticResource TpHunter}" />
-        <Setter Property="BorderColor" Value="{StaticResource TpHunter}" />
+    <Style TargetType="Border" x:Key="HudTagButton" BasedOn="{StaticResource HudIconButton}">
+        <Setter Property="Stroke" Value="{StaticResource TpHunterBrush}" />
+    </Style>
+
+    <!-- Shared geometry of the HUD button glyphs; drawn on a 24x24 canvas. -->
+    <Style TargetType="Path" x:Key="HudIconGlyph">
+        <Setter Property="Aspect" Value="Uniform" />
+        <Setter Property="HeightRequest" Value="22" />
+        <Setter Property="WidthRequest" Value="22" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <!-- Center glyph: the navigation arrow, filled. Dim while free-panning, signal green while following. -->
+    <Style TargetType="Path" x:Key="HudCenterGlyph" BasedOn="{StaticResource HudIconGlyph}">
+        <Setter Property="Data" Value="M12 2 L21 21 L12 16.5 L3 21 Z" />
+        <Setter Property="Fill" Value="{StaticResource TpTextSoftBrush}" />
+        <Style.Triggers>
+            <DataTrigger TargetType="Path" Binding="{Binding IsFollowingLocation}" Value="True">
+                <Setter Property="Fill" Value="{StaticResource TpSignalBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Tag glyph: a reticle locked on the prey — four ticks around an open circle, hunter red. -->
+    <Style TargetType="Path" x:Key="HudTagGlyph" BasedOn="{StaticResource HudIconGlyph}">
+        <Setter Property="Data" Value="M12 1 L12 5 M12 19 L12 23 M1 12 L5 12 M19 12 L23 12 M12 7 A5 5 0 1 0 12 17 A5 5 0 1 0 12 7 Z" />
+        <Setter Property="Stroke" Value="{StaticResource TpHunterBrush}" />
+        <Setter Property="StrokeThickness" Value="2" />
     </Style>
 
     <!-- Transient HUD status/feedback line (info = dim, error = hunter red via trigger). -->

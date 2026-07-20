@@ -71,6 +71,7 @@
     <SolidColorBrush x:Key="TpSignalBrush" Color="{StaticResource TpSignal}"/>
     <SolidColorBrush x:Key="TpHunterBrush" Color="{StaticResource TpHunter}"/>
     <SolidColorBrush x:Key="TpCautionBrush" Color="{StaticResource TpCaution}"/>
+    <SolidColorBrush x:Key="TpTextSoftBrush" Color="{StaticResource TpTextSoft}"/>
 
     <!-- Dark, semi-transparent scrim for the in-game HUD overlay so the map shows through. -->
     <Color x:Key="TpHudPanel">#D2181B17</Color>

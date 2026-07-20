@@ -222,11 +222,11 @@ namespace HexMaster.ThePrey.Maui.App
             services.AddSingleton<ILobbyNavigator>(sp => sp.GetRequiredService<GameplayRouter>());
             services.AddSingleton<IGameplayNavigator>(sp => sp.GetRequiredService<GameplayRouter>());
 
-            // In-game HUD seams: the hunter's tag-selection modal, and a placeholder map-camera signal
-            // sink. The gameplay map change replaces NullMapCameraController with a real implementation
-            // that moves the camera when the HUD's Center toggle emits follow/free-pan.
+            // In-game HUD seams: the hunter's tag-selection modal, and the shared follow/free-pan state
+            // the HUD's Center toggle writes and the gameplay map pages read to pin the camera to the
+            // device location.
             services.AddSingleton<ITagDialog, TagDialog>();
-            services.AddSingleton<IMapCameraController, NullMapCameraController>();
+            services.AddSingleton<IMapCameraController, MapFollowModeController>();
 
             // View models.
             services.AddTransient<WelcomeViewModel>();
