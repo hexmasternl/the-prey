@@ -6,15 +6,33 @@
              x:Class="HexMaster.ThePrey.Maui.App.Controls.GameHudView"
              x:DataType="vm:GameHudViewModel">
 
-    <!-- Transparent host so the map shows through; the HUD panel and icon buttons anchor to the bottom. -->
-    <Grid RowDefinitions="Auto,Auto"
-          VerticalOptions="End"
+    <!-- Transparent host filling the whole game view: the penalty banner pins to the top, the icon buttons
+         and HUD panel to the bottom, and the empty middle row spans the map. The Grid itself is
+         InputTransparent so taps in that middle row fall through to the map (CascadeInputTransparent=False
+         keeps the banner, buttons and panel interactive). -->
+    <Grid RowDefinitions="Auto,*,Auto,Auto"
+          VerticalOptions="Fill"
           BackgroundColor="Transparent"
+          InputTransparent="True"
+          CascadeInputTransparent="False"
           Padding="0"
           RowSpacing="8">
 
+        <!-- Boundary-penalty banner — visible only while our own penalty is running. -->
+        <Border Grid.Row="0"
+                IsVisible="{Binding IsPenalised}"
+                Style="{StaticResource HudPenaltyBanner}">
+            <VerticalStackLayout Spacing="0">
+                <Label Style="{StaticResource HudPenaltyCaption}"
+                       Text="{loc:Translate Hud_Penalty}"
+                       SemanticProperties.Description="{loc:Translate Hud_Penalty}" />
+                <Label Style="{StaticResource HudPenaltyCountdown}"
+                       Text="{Binding PenaltyRemainingText}" />
+            </VerticalStackLayout>
+        </Border>
+
         <!-- Right-aligned icon buttons above the HUD: Center toggle and hunter-only Tag. -->
-        <HorizontalStackLayout Grid.Row="0" HorizontalOptions="End" Spacing="0">
+        <HorizontalStackLayout Grid.Row="2" HorizontalOptions="End" Spacing="0">
             <Button Text="{loc:Translate Hud_Center}"
                     Command="{Binding ToggleCenterCommand}"
                     Style="{StaticResource HudCenterButton}"
@@ -27,7 +45,7 @@
         </HorizontalStackLayout>
 
         <!-- The HUD overlay panel. -->
-        <Border Grid.Row="1" Style="{StaticResource HudOverlayPanel}">
+        <Border Grid.Row="3" Style="{StaticResource HudOverlayPanel}">
             <VerticalStackLayout Spacing="10">
 
                 <!-- Collapsed content: tap to expand. -->
