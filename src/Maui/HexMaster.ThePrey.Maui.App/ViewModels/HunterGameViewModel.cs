@@ -340,7 +340,7 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
         _handedOff = true;
         // The game has ended — stop background reporting and release the wake-lock/notification.
         _ = _locationTracker.StopAsync();
-        _ = _navigator.GoToOutcomeAsync();
+        _ = _navigator.GoToOutcomeAsync(_gameId, isHunter: true);
     }
 
     private void RaiseMapChanged() => MapChanged?.Invoke(this, EventArgs.Empty);
