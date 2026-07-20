@@ -103,10 +103,18 @@ export class HomePage implements OnInit, OnDestroy {
   ngOnInit(): void {
     // User sync is handled globally in AppComponent; by the time this page
     // renders the profile is already available.
-    this.checkActiveGame();
     this.startLocationWatch();
     // Resolve the real native version first, then gate the menu on the version check.
     void this.loadAppVersion().then(() => this.runVersionCheck());
+  }
+
+  /**
+   * Ionic keeps this page alive in the nav stack, so ngOnInit only ever runs once.
+   * Re-check on every entry — the active game can have started, been joined or ended
+   * while the user was on another page, and the menu button must reflect that.
+   */
+  ionViewWillEnter(): void {
+    void this.checkActiveGame();
   }
 
   /**

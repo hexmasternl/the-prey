@@ -454,6 +454,7 @@ public sealed class GameStateService : IGameStateService
             GameDurationLeft = details?.GameDurationLeft ?? previous?.GameDurationLeft ?? 0,
             NextPingDuration = details?.NextPingDuration ?? previous?.NextPingDuration ?? 0,
             CurrentPingInterval = details?.CurrentPingInterval ?? previous?.CurrentPingInterval ?? 0,
+            NextPingDurationWithPenalty = details?.NextPingDurationWithPenalty ?? previous?.NextPingDurationWithPenalty ?? 0,
             IsEndgame = details?.IsEndgame ?? previous?.IsEndgame ?? false,
             PreysLeft = details?.PreysLeft ?? CountActivePreys(participants, hunterUserId),
             HunterDistanceMeters = state?.HunterDistanceMeters ?? previous?.HunterDistanceMeters,

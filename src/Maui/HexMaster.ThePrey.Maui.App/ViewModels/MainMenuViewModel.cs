@@ -27,6 +27,7 @@ public sealed class MainMenuViewModel : ObservableObject
     private readonly IUserApiClient _userApi;
     private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly IMenuNavigator _navigator;
+    private readonly IGameplayNavigator _gameplayNavigator;
     private readonly IApplicationExit _app;
     private readonly IGpsReader _gpsReader;
     private readonly IAppVersionProvider _versionProvider;
@@ -45,6 +46,7 @@ public sealed class MainMenuViewModel : ObservableObject
         IUserApiClient userApi,
         IAccessTokenProvider accessTokenProvider,
         IMenuNavigator navigator,
+        IGameplayNavigator gameplayNavigator,
         IApplicationExit app,
         IGpsReader gpsReader,
         IAppVersionProvider versionProvider,
@@ -56,14 +58,17 @@ public sealed class MainMenuViewModel : ObservableObject
         _userApi = userApi;
         _accessTokenProvider = accessTokenProvider;
         _navigator = navigator;
+        _gameplayNavigator = gameplayNavigator;
         _app = app;
         _gpsReader = gpsReader;
         _versionProvider = versionProvider;
         _logger = logger;
 
         LogInCommand = new RelayCommand(LogInAsync, () => !IsSignedIn && !IsBusy);
+        // Resume goes straight to the player's role page, not the lobby: GET /games/active only ever
+        // returns a Started or InProgress game, so anything resumable has already left the lobby.
         ResumeGameCommand = new RelayCommand(
-            () => _navigator.GoToAsync(GameRoute), () => IsSignedIn && HasActiveGame && !IsBusy);
+            () => _gameplayNavigator.ResumeGameplayAsync(), () => IsSignedIn && HasActiveGame && !IsBusy);
         StartGameCommand = new RelayCommand(
             () => _navigator.GoToAsync(StartGameRoute), () => IsSignedIn && !HasActiveGame && !IsBusy);
         PlayfieldsCommand = new RelayCommand(

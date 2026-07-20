@@ -1202,6 +1202,37 @@
         <Setter Property="VerticalOptions" Value="End" />
     </Style>
 
+    <!-- Alarming boundary-penalty banner, pinned to the top of the game view while the local player is
+         penalised. Full-bleed hunter red with rounded bottom corners so it reads as a hazard bar dropped
+         from the top edge. Reuses the established danger token (TpHunter) rather than a new colour. -->
+    <Style TargetType="Border" x:Key="HudPenaltyBanner">
+        <Setter Property="BackgroundColor" Value="{StaticResource TpHunter}" />
+        <Setter Property="Stroke" Value="{StaticResource TpHunterBrush}" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 0,0,14,14" />
+        <Setter Property="Padding" Value="18,10" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="VerticalOptions" Value="Start" />
+    </Style>
+
+    <!-- "PENALTY" caption inside the banner — uppercase, letter-spaced, light on red. -->
+    <Style TargetType="Label" x:Key="HudPenaltyCaption">
+        <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpText}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="CharacterSpacing" Value="4" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <!-- Remaining-penalty mm:ss countdown beneath the caption. -->
+    <Style TargetType="Label" x:Key="HudPenaltyCountdown" BasedOn="{StaticResource HudPenaltyCaption}">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="CharacterSpacing" Value="1" />
+        <Setter Property="Margin" Value="0,2,0,0" />
+    </Style>
+
     <!-- Large signal-green metric value (game clock, preys, distance). -->
     <Style TargetType="Label" x:Key="HudMetricValue">
         <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
@@ -1307,6 +1338,110 @@
     <Style TargetType="Label" x:Key="TagCandidateDistance" BasedOn="{StaticResource HudLabel}">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="HorizontalOptions" Value="End" />
+    </Style>
+
+    <!-- ============================================================= -->
+    <!-- Post-game outcome screen. The page composes structure only and -->
+    <!-- picks the victory or defeat variant of each style from the     -->
+    <!-- view model's resolved result.                                  -->
+    <!-- ============================================================= -->
+
+    <!-- Full-bleed void backdrop; the outcome is terminal, so nothing shows through it. -->
+    <Style TargetType="Grid" x:Key="OutcomeContainer">
+        <Setter Property="BackgroundColor" Value="{StaticResource TpBgVoid}" />
+        <Setter Property="Padding" Value="32,64" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="VerticalOptions" Value="Fill" />
+    </Style>
+
+    <!-- Centred stack holding the badge, headline, winning side, reason and survivor count. -->
+    <Style TargetType="VerticalStackLayout" x:Key="OutcomeStack">
+        <Setter Property="Spacing" Value="18" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <!-- Halo disc behind the headline — a soft wash in the result's color. -->
+    <Style TargetType="Border" x:Key="OutcomeBadgeBase">
+        <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="WidthRequest" Value="132" />
+        <Setter Property="HeightRequest" Value="132" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 66" />
+    </Style>
+
+    <Style TargetType="Border" x:Key="OutcomeBadgeVictory" BasedOn="{StaticResource OutcomeBadgeBase}">
+        <Setter Property="Stroke" Value="{StaticResource TpVictoryBrush}" />
+        <Setter Property="Background" Value="{StaticResource TpVictoryHaloBrush}" />
+    </Style>
+
+    <Style TargetType="Border" x:Key="OutcomeBadgeDefeat" BasedOn="{StaticResource OutcomeBadgeBase}">
+        <Setter Property="Stroke" Value="{StaticResource TpDefeatBrush}" />
+        <Setter Property="Background" Value="{StaticResource TpDefeatHaloBrush}" />
+    </Style>
+
+    <!-- The glyph inside the badge (a check for a win, a cross for a loss). -->
+    <Style TargetType="Label" x:Key="OutcomeBadgeGlyphBase">
+        <Setter Property="FontFamily" Value="{StaticResource TpDisplayFont}" />
+        <Setter Property="FontSize" Value="56" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="OutcomeBadgeGlyphVictory" BasedOn="{StaticResource OutcomeBadgeGlyphBase}">
+        <Setter Property="TextColor" Value="{StaticResource TpVictory}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="OutcomeBadgeGlyphDefeat" BasedOn="{StaticResource OutcomeBadgeGlyphBase}">
+        <Setter Property="TextColor" Value="{StaticResource TpDefeat}" />
+    </Style>
+
+    <!-- VICTORY / DEFEAT / GAME OVER headline — oversized display face in the result's color. -->
+    <Style TargetType="Label" x:Key="OutcomeHeadlineBase" BasedOn="{StaticResource TacticalTitle}">
+        <Setter Property="FontSize" Value="52" />
+        <Setter Property="CharacterSpacing" Value="8" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="OutcomeHeadlineVictory" BasedOn="{StaticResource OutcomeHeadlineBase}">
+        <Setter Property="TextColor" Value="{StaticResource TpVictory}" />
+    </Style>
+
+    <Style TargetType="Label" x:Key="OutcomeHeadlineDefeat" BasedOn="{StaticResource OutcomeHeadlineBase}">
+        <Setter Property="TextColor" Value="{StaticResource TpDefeat}" />
+    </Style>
+
+    <!-- Neutral headline for the state where the final record could not be read. -->
+    <Style TargetType="Label" x:Key="OutcomeHeadlineNeutral" BasedOn="{StaticResource OutcomeHeadlineBase}">
+        <Setter Property="TextColor" Value="{StaticResource TpTextSoft}" />
+    </Style>
+
+    <!-- "THE HUNTER WINS" / "THE PREY WIN" — the winning side, regardless of the local result. -->
+    <Style TargetType="Label" x:Key="OutcomeWinningSide" BasedOn="{StaticResource StatusLabel}">
+        <Setter Property="FontFamily" Value="{StaticResource TpDisplayFont}" />
+        <Setter Property="TextColor" Value="{StaticResource TpText}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="CharacterSpacing" Value="5" />
+    </Style>
+
+    <!-- Why the game ended. -->
+    <Style TargetType="Label" x:Key="OutcomeReason" BasedOn="{StaticResource TacticalBody}">
+        <Setter Property="FontSize" Value="15" />
+    </Style>
+
+    <!-- Escapee count, shown to both sides whenever the preys took it. -->
+    <Style TargetType="Label" x:Key="OutcomeSurvivors" BasedOn="{StaticResource HudLabel}">
+        <Setter Property="TextColor" Value="{StaticResource TpCaution}" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <!-- Debriefing spinner caption while the final record is read. -->
+    <Style TargetType="Label" x:Key="OutcomeBusyCaption" BasedOn="{StaticResource HudLabel}" />
+
+    <!-- The single terminal action: back to the main menu. -->
+    <Style TargetType="Button" x:Key="OutcomeCloseButton" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="VerticalOptions" Value="End" />
     </Style>
 
 </ResourceDictionary>

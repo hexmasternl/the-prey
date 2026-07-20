@@ -41,7 +41,7 @@
                            VerticalOptions="Center" HorizontalOptions="Center" />
 
         <!-- Reserved hunter HUD region (content owned by the separate hunter-hud capability). -->
-        <ContentView x:Name="HudRegion" VerticalOptions="End" InputTransparent="False" />
+        <ContentView x:Name="HudRegion" VerticalOptions="Fill" InputTransparent="False" />
     </Grid>
 
 </ContentPage>

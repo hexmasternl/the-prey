@@ -6,6 +6,7 @@ using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
 using HexMaster.ThePrey.Maui.App.Services.Realtime;
+using HexMaster.ThePrey.Maui.App.Services.Session;
 using HexMaster.ThePrey.Maui.App.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
@@ -18,6 +19,7 @@ public class GameHudViewModelTests
     private readonly FakeGameStateService _state = new();
     private readonly Mock<IGameApiClient> _api = new();
     private readonly Mock<IAccessTokenProvider> _tokens = new();
+    private readonly Mock<ICurrentUserProvider> _currentUser = new();
     private readonly Mock<IGpsReader> _gps = new();
     private readonly Mock<IMapCameraController> _camera = new();
     private readonly Mock<ITagDialog> _tagDialog = new();
@@ -41,18 +43,23 @@ public class GameHudViewModelTests
     private GameHudViewModel CreateSut(bool isHunter)
     {
         var vm = new GameHudViewModel(
-            _state, _api.Object, _tokens.Object, _gps.Object, _camera.Object, _tagDialog.Object,
-            _confirm.Object, _localization.Object, _time, NullLogger<GameHudViewModel>.Instance);
+            _state, _api.Object, _tokens.Object, _currentUser.Object, _gps.Object, _camera.Object,
+            _tagDialog.Object, _confirm.Object, _localization.Object, _time,
+            NullLogger<GameHudViewModel>.Instance);
         vm.Initialize(_gameId, isHunter);
         return vm;
     }
+
+    private void SetupSelf(Guid selfUserId) =>
+        _currentUser.Setup(c => c.GetUserIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync(selfUserId);
 
     private void SetupToken(string? token = "token") =>
         _tokens.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync(token);
 
     private GameLiveState State(
         string status = "InProgress", int duration = 100, int nextPing = 30, int interval = 60,
-        int preysLeft = 1, int? hunterDistance = null, params GameLiveParticipant[] participants) =>
+        int nextPingWithPenalty = 0, int preysLeft = 1, int? hunterDistance = null,
+        params GameLiveParticipant[] participants) =>
         new()
         {
             GameId = _gameId,
@@ -63,12 +70,14 @@ public class GameHudViewModelTests
             GameDurationLeft = duration,
             NextPingDuration = nextPing,
             CurrentPingInterval = interval,
+            NextPingDurationWithPenalty = nextPingWithPenalty,
             PreysLeft = preysLeft,
             HunterDistanceMeters = hunterDistance,
         };
 
-    private static GameLiveParticipant P(Guid id, string state = "Active", GpsCoordinate? location = null) =>
-        new(id, state, location);
+    private static GameLiveParticipant P(
+        Guid id, string state = "Active", GpsCoordinate? location = null, DateTimeOffset? penaltyEndsAt = null) =>
+        new(id, state, location, penaltyEndsAt);
 
     private static async Task WaitFor(Func<bool> condition, string because)
     {
@@ -166,6 +175,186 @@ public class GameHudViewModelTests
         _state.Push(State(duration: 200, nextPing: 60, interval: 60));
         Assert.Equal("03:20", sut.GameTimeRemainingText);
         Assert.Equal(1.0, sut.NextPingProgress, 5);
+    }
+
+    [Fact]
+    public async Task Countdown_LoopsBackToInterval_WhenTheNextPingElapses()
+    {
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
+
+        _state.Push(State(nextPing: 2, interval: 60));
+
+        // Ticks 2 → 1 → 0 (the ping fires).
+        _time.Advance(TimeSpan.FromSeconds(2));
+        Assert.Equal(0d, sut.NextPingProgress, 5);
+
+        // The next tick starts the countdown over at the full interval instead of sticking at zero.
+        _time.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal(1.0, sut.NextPingProgress, 5);
+    }
+
+    [Fact]
+    public async Task Countdown_DoesNotSnapBack_WhenADeltaRepeatsTheServerValues()
+    {
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
+
+        _state.Push(State(duration: 100, nextPing: 30, interval: 60));
+        _time.Advance(TimeSpan.FromSeconds(5));
+        Assert.Equal(25d / 60d, sut.NextPingProgress, 5);
+        Assert.Equal("01:35", sut.GameTimeRemainingText);
+
+        // A real-time delta carries the same clock/ping values forward from the last reconcile — it must
+        // not reset the locally-ticked countdowns.
+        _state.Push(State(duration: 100, nextPing: 30, interval: 60));
+        Assert.Equal(25d / 60d, sut.NextPingProgress, 5);
+        Assert.Equal("01:35", sut.GameTimeRemainingText);
+    }
+
+    [Fact]
+    public async Task Countdown_UsesThirtySecondPenaltyBar_WhenLocalPlayerIsPenalised()
+    {
+        var self = Guid.NewGuid();
+        SetupSelf(self);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
+
+        var penaltyEnds = _time.GetUtcNow() + TimeSpan.FromMinutes(1);
+        _state.Push(State(nextPing: 10, interval: 60, nextPingWithPenalty: 20,
+            participants: new[] { P(self, penaltyEndsAt: penaltyEnds) }));
+
+        // Bar length is the fixed 30s penalty cadence (not the 60s interval), seeded from the penalty value.
+        Assert.Equal(20d / 30d, sut.NextPingProgress, 5);
+    }
+
+    [Fact]
+    public async Task Countdown_RevertsToNormalInterval_WhenThePenaltyExpiresLocally()
+    {
+        var self = Guid.NewGuid();
+        SetupSelf(self);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
+
+        var penaltyEnds = _time.GetUtcNow() + TimeSpan.FromSeconds(1);
+        _state.Push(State(nextPing: 40, interval: 60, nextPingWithPenalty: 25,
+            participants: new[] { P(self, penaltyEndsAt: penaltyEnds) }));
+        Assert.Equal(25d / 30d, sut.NextPingProgress, 5); // penalised: 30s bar
+
+        // The tick on which the clock passes the penalty end flips the regime back to the normal reporting
+        // interval (60s here) and re-seeds from the normal cadence — with no server event required.
+        _time.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal(40d / 60d, sut.NextPingProgress, 5);
+    }
+
+    // ---- Penalty banner ----
+
+    [Fact]
+    public async Task PenaltyBanner_IsShownWithCountdown_WhenLocalPlayerIsPenalised()
+    {
+        var self = Guid.NewGuid();
+        SetupSelf(self);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
+
+        var penaltyEnds = _time.GetUtcNow() + TimeSpan.FromSeconds(90);
+        _state.Push(State(participants: new[] { P(self, penaltyEndsAt: penaltyEnds) }));
+
+        Assert.True(sut.IsPenalised);
+        Assert.Equal("01:30", sut.PenaltyRemainingText);
+    }
+
+    [Fact]
+    public async Task PenaltyBanner_CountdownDecreases_AsTheClockAdvances()
+    {
+        var self = Guid.NewGuid();
+        SetupSelf(self);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
+
+        _state.Push(State(participants: new[]
+        {
+            P(self, penaltyEndsAt: _time.GetUtcNow() + TimeSpan.FromSeconds(30)),
+        }));
+        Assert.Equal("00:30", sut.PenaltyRemainingText);
+
+        _time.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal("00:29", sut.PenaltyRemainingText);
+
+        _time.Advance(TimeSpan.FromSeconds(9));
+        Assert.Equal("00:20", sut.PenaltyRemainingText);
+        Assert.True(sut.IsPenalised);
+    }
+
+    [Fact]
+    public async Task PenaltyBanner_Hides_WhenTheClockPassesPenaltyEnd_WithoutAnySnapshot()
+    {
+        var self = Guid.NewGuid();
+        SetupSelf(self);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
+
+        _state.Push(State(participants: new[]
+        {
+            P(self, penaltyEndsAt: _time.GetUtcNow() + TimeSpan.FromSeconds(2)),
+        }));
+        Assert.True(sut.IsPenalised);
+
+        // Purely clock-driven — no further store snapshot is pushed.
+        _time.Advance(TimeSpan.FromSeconds(2));
+
+        Assert.False(sut.IsPenalised);
+        Assert.Equal(string.Empty, sut.PenaltyRemainingText);
+    }
+
+    [Fact]
+    public async Task PenaltyBanner_IsHidden_WhenTheLocalPlayerHasNoPenalty()
+    {
+        var self = Guid.NewGuid();
+        SetupSelf(self);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
+
+        _state.Push(State(participants: new[] { P(self) }));
+
+        Assert.False(sut.IsPenalised);
+        Assert.Equal(string.Empty, sut.PenaltyRemainingText);
+    }
+
+    [Fact]
+    public async Task PenaltyBanner_IsHidden_WhenOnlyAnotherParticipantIsPenalised()
+    {
+        var self = Guid.NewGuid();
+        SetupSelf(self);
+        using var sut = CreateSut(isHunter: false);
+        await sut.ActivateAsync();
+
+        // Someone else's penalty must never surface on our screen.
+        _state.Push(State(participants: new[]
+        {
+            P(self),
+            P(Guid.NewGuid(), penaltyEndsAt: _time.GetUtcNow() + TimeSpan.FromMinutes(5)),
+        }));
+
+        Assert.False(sut.IsPenalised);
+        Assert.Equal(string.Empty, sut.PenaltyRemainingText);
+    }
+
+    // The banner is role-agnostic: a penalised hunter sees it exactly as a penalised prey does.
+    [Fact]
+    public async Task PenaltyBanner_IsShown_ForAPenalisedHunter()
+    {
+        SetupSelf(_hunterId);
+        using var sut = CreateSut(isHunter: true);
+        await sut.ActivateAsync();
+
+        _state.Push(State(participants: new[]
+        {
+            P(_hunterId, penaltyEndsAt: _time.GetUtcNow() + TimeSpan.FromSeconds(45)),
+        }));
+
+        Assert.True(sut.IsPenalised);
+        Assert.Equal("00:45", sut.PenaltyRemainingText);
     }
 
     [Fact]

@@ -122,7 +122,7 @@ public class PreyGameViewModelTests
         await sut.LoadAsync();
 
         Assert.Equal(GamePhase.Ended, sut.Phase);
-        _nav.Verify(n => n.GoToOutcomeAsync(), Times.Once);
+        _nav.Verify(n => n.GoToOutcomeAsync(_gameId, false), Times.Once);
     }
 
     // ---- blip projection (pure) ----
@@ -210,7 +210,7 @@ public class PreyGameViewModelTests
         _state.Push(State("Completed"));
 
         Assert.Equal(GamePhase.Ended, sut.Phase);
-        _nav.Verify(n => n.GoToOutcomeAsync(), Times.Once);
+        _nav.Verify(n => n.GoToOutcomeAsync(_gameId, false), Times.Once);
         sut.Deactivate();
     }
 
@@ -244,7 +244,7 @@ public class PreyGameViewModelTests
         Assert.True(sut.Spectating);
         Assert.NotEqual(GamePhase.Ended, sut.Phase);
         Assert.False(_state.Stopped); // the channel stays connected
-        _nav.Verify(n => n.GoToOutcomeAsync(), Times.Never);
+        _nav.Verify(n => n.GoToOutcomeAsync(It.IsAny<Guid>(), It.IsAny<bool>()), Times.Never);
         sut.Deactivate();
     }
 
@@ -260,7 +260,7 @@ public class PreyGameViewModelTests
         _state.Push(State("Completed"));
 
         Assert.Equal(GamePhase.Ended, sut.Phase);
-        _nav.Verify(n => n.GoToOutcomeAsync(), Times.Once);
+        _nav.Verify(n => n.GoToOutcomeAsync(_gameId, false), Times.Once);
         sut.Deactivate();
     }
 

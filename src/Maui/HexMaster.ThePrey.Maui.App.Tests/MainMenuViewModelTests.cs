@@ -19,6 +19,7 @@ public class MainMenuViewModelTests
     private readonly Mock<IUserApiClient> _userApi = new();
     private readonly Mock<IAccessTokenProvider> _accessToken = new();
     private readonly Mock<IMenuNavigator> _navigator = new();
+    private readonly Mock<IGameplayNavigator> _gameplayNavigator = new();
     private readonly Mock<IApplicationExit> _app = new();
     private readonly Mock<IGpsReader> _gpsReader = new();
     private readonly Mock<IAppVersionProvider> _version = new();
@@ -34,11 +35,27 @@ public class MainMenuViewModelTests
 
     private MainMenuViewModel CreateSut() => new(
         _session.Object, _login.Object, _logout.Object, _userApi.Object, _accessToken.Object,
-        _navigator.Object, _app.Object, _gpsReader.Object, _version.Object,
+        _navigator.Object, _gameplayNavigator.Object, _app.Object, _gpsReader.Object, _version.Object,
         NullLogger<MainMenuViewModel>.Instance);
 
     private void SetupSession(SessionResult result) =>
         _session.Setup(s => s.TryEstablishSessionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(result);
+
+    // Resume must hand off to the role-resolving gameplay router, never to the lobby route: an active
+    // game is always Started/InProgress (GET /games/active never returns a lobby game), so the player
+    // belongs on the hunter or prey page immediately.
+    [Fact]
+    public async Task ResumeGameCommand_ShouldRouteToGameplay_WhenExecutedWithActiveGame()
+    {
+        SetupSession(SessionResult.Active(new GameStatus { GameId = Guid.NewGuid() }));
+        var sut = CreateSut();
+        await sut.LoadStateAsync();
+
+        sut.ResumeGameCommand.Execute(null);
+
+        _gameplayNavigator.Verify(n => n.ResumeGameplayAsync(), Times.Once);
+        _navigator.Verify(n => n.GoToAsync(MainMenuViewModel.GameRoute), Times.Never);
+    }
 
     [Fact]
     public async Task LoadStateAsync_ShouldShowResumeAndEnableSignedInActions_WhenActiveGame()

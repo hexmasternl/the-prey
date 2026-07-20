@@ -7,6 +7,7 @@ using HexMaster.ThePrey.Maui.App.Services.Localization;
 using HexMaster.ThePrey.Maui.App.Services.Location;
 using HexMaster.ThePrey.Maui.App.Services.Navigation;
 using HexMaster.ThePrey.Maui.App.Services.Realtime;
+using HexMaster.ThePrey.Maui.App.Services.Session;
 using Microsoft.Extensions.Logging;
 
 namespace HexMaster.ThePrey.Maui.App.ViewModels;
@@ -27,9 +28,13 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     /// <summary>Re-read the device GPS every this many ticks, so our own movement keeps the distance fresh.</summary>
     private const int GpsRefreshTicks = 3;
 
+    /// <summary>Fixed bar length (seconds) while the local player is under a boundary penalty.</summary>
+    private const int PenaltyBarSeconds = 30;
+
     private readonly IGameStateService _stateService;
     private readonly IGameApiClient _gameApi;
     private readonly IAccessTokenProvider _accessTokenProvider;
+    private readonly ICurrentUserProvider _currentUser;
     private readonly IGpsReader _gpsReader;
     private readonly IMapCameraController _mapCamera;
     private readonly ITagDialog _tagDialog;
@@ -43,13 +48,30 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     private bool _subscribed;
     private int _ticksSinceGps;
 
-    // Seed values from the latest snapshot, ticked locally between updates.
+    // The local player, so we can tell whether the penalty regime applies to us.
+    private Guid _selfUserId;
+
+    // The game clock, ticked locally between updates.
     private int _gameDurationLeft;
+    private bool _hasSnapshot;
+
+    // Latest ping-cadence inputs from the server, retained so the countdown can be re-seeded on a genuine
+    // change (a reconcile or a penalty-regime flip) without snapping backward on every intervening delta.
+    private int _serverNextPing;
+    private int _serverNextPingWithPenalty;
+    private int _serverPingInterval;
+    private int _serverGameDurationLeft;
+    private DateTimeOffset? _penaltyEndsAt;
+    private bool _isPenalised;
+    private bool _pingSeeded;
+
+    // The locally-ticked next-ping countdown and the bar length it loops around (the effective interval,
+    // which is 30s under penalty and the server's reporting interval otherwise).
     private int _nextPingRemaining;
-    private int _currentPingInterval;
+    private int _pingBarMax = PenaltyBarSeconds;
+
     private int _preysLeft;
     private int _totalPreys;
-    private bool _hasSnapshot;
 
     // Distance inputs.
     private Guid? _hunterUserId;
@@ -66,6 +88,8 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
     private string _distanceText = string.Empty;
     private string _nextPingRemainingText = string.Empty;
     private double _nextPingProgress;
+    private bool _isPenaltyActive;
+    private string _penaltyRemainingText = string.Empty;
     private string? _statusMessage;
     private bool _statusIsError;
 
@@ -73,6 +97,7 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         IGameStateService stateService,
         IGameApiClient gameApi,
         IAccessTokenProvider accessTokenProvider,
+        ICurrentUserProvider currentUser,
         IGpsReader gpsReader,
         IMapCameraController mapCamera,
         ITagDialog tagDialog,
@@ -84,6 +109,7 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         _stateService = stateService;
         _gameApi = gameApi;
         _accessTokenProvider = accessTokenProvider;
+        _currentUser = currentUser;
         _gpsReader = gpsReader;
         _mapCamera = mapCamera;
         _tagDialog = tagDialog;
@@ -170,6 +196,26 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         private set => SetProperty(ref _nextPingProgress, value);
     }
 
+    /// <summary>
+    /// True while the local player's own boundary penalty is in effect — drives the top penalty banner.
+    /// Clock-driven, so it becomes false the moment the penalty expires without needing a server event.
+    /// </summary>
+    public bool IsPenalised
+    {
+        get => _isPenaltyActive;
+        private set => SetProperty(ref _isPenaltyActive, value);
+    }
+
+    /// <summary>
+    /// The mm:ss countdown of the local player's remaining penalty time; empty while not penalised.
+    /// Recomputed from the absolute <c>PenaltyEndsAt</c> each tick, so it never drifts.
+    /// </summary>
+    public string PenaltyRemainingText
+    {
+        get => _penaltyRemainingText;
+        private set => SetProperty(ref _penaltyRemainingText, value);
+    }
+
     /// <summary>The most recent transient user message (tag feedback or an error), or <c>null</c>.</summary>
     public string? StatusMessage
     {
@@ -210,6 +256,10 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
 
         // Emit the initial follow state so the map starts centred (Center defaults on).
         _mapCamera.SetFollowMode(IsFollowingLocation);
+
+        // Resolve our own id so the penalty regime (a fixed 30s ping cadence) is applied only when the
+        // penalty is ours. Cached for the session; a null here just leaves us on the normal cadence.
+        _selfUserId = await _currentUser.GetUserIdAsync(_lifecycleCts.Token) ?? _selfUserId;
 
         Subscribe();
         await RefreshDeviceFixAsync();
@@ -263,10 +313,19 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         _hunterUserId = state.HunterUserId;
         _participants = state.Participants;
         _hunterDistanceMeters = state.HunterDistanceMeters;
+        _penaltyEndsAt = LocalPenaltyEndsAt(state);
 
-        _gameDurationLeft = Math.Max(0, state.GameDurationLeft);
-        _nextPingRemaining = Math.Max(0, state.NextPingDuration);
-        _currentPingInterval = state.CurrentPingInterval;
+        // The game clock and ping cadence are server-authoritative but ticked locally between updates. A
+        // real-time delta carries these values frozen from the last full reconcile, so re-seeding on every
+        // snapshot would snap both countdowns backward each time a location/participant delta arrives.
+        // Re-seed the clock only when the server value actually changed (a genuine reconcile); otherwise
+        // keep the local tick running.
+        if (!_hasSnapshot || state.GameDurationLeft != _serverGameDurationLeft)
+            _gameDurationLeft = Math.Max(0, state.GameDurationLeft);
+        _serverGameDurationLeft = state.GameDurationLeft;
+
+        ReseedPingIfChanged(state);
+
         _preysLeft = state.PreysLeft;
         _totalPreys = CountPreys(state);
         _hasSnapshot = true;
@@ -276,7 +335,42 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         RecomputeDistance();
     }
 
-    /// <summary>Decrements the two local countdowns toward zero and periodically re-reads the device fix.</summary>
+    // Re-seeds the next-ping countdown from a snapshot, but only when something that governs the bar has
+    // genuinely changed — a fresh server cadence (reconcile) or a flip of our own penalty regime — so the
+    // frequent deltas that carry the same values forward don't reset the locally-ticked bar.
+    private void ReseedPingIfChanged(GameLiveState state)
+    {
+        var penalised = IsPenaltyActive();
+        var changed = !_pingSeeded
+            || penalised != _isPenalised
+            || state.NextPingDuration != _serverNextPing
+            || state.NextPingDurationWithPenalty != _serverNextPingWithPenalty
+            || state.CurrentPingInterval != _serverPingInterval;
+
+        _serverNextPing = state.NextPingDuration;
+        _serverNextPingWithPenalty = state.NextPingDurationWithPenalty;
+        _serverPingInterval = state.CurrentPingInterval;
+
+        if (changed)
+            ApplyPingSeed(penalised);
+    }
+
+    // Sets the bar length and the countdown seed for the current regime. Under penalty the bar is a fixed
+    // 30 seconds; otherwise it is the server's reporting interval (which shrinks in the endgame). The seed
+    // positions us within the current cycle, aligning the local bar with the server-side ping schedule.
+    private void ApplyPingSeed(bool penalised)
+    {
+        _isPenalised = penalised;
+        _pingBarMax = penalised
+            ? PenaltyBarSeconds
+            : (_serverPingInterval > 0 ? _serverPingInterval : PenaltyBarSeconds);
+
+        var seed = penalised ? _serverNextPingWithPenalty : _serverNextPing;
+        _nextPingRemaining = seed > 0 ? Math.Min(seed, _pingBarMax) : _pingBarMax;
+        _pingSeeded = true;
+    }
+
+    /// <summary>Decrements the two local countdowns and loops the ping bar so it restarts after each ping.</summary>
     internal void Tick()
     {
         if (!_hasSnapshot || HasEnded)
@@ -284,8 +378,24 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
 
         if (_gameDurationLeft > 0)
             _gameDurationLeft--;
-        if (_nextPingRemaining > 0)
+
+        // The penalty regime can end purely by the clock passing PenaltyEndsAt (no server event needed);
+        // when it flips, switch the bar between the 30s penalty cadence and the normal reporting interval.
+        var penalised = IsPenaltyActive();
+        if (penalised != _isPenalised)
+        {
+            ApplyPingSeed(penalised);
+        }
+        else if (_nextPingRemaining > 0)
+        {
             _nextPingRemaining--;
+        }
+        else
+        {
+            // A ping cycle elapsed with no fresh server seed — the location was just sent, so start the
+            // countdown over. The next reconcile re-aligns it to the server schedule.
+            _nextPingRemaining = _pingBarMax;
+        }
 
         UpdateCountdownDisplays();
 
@@ -294,6 +404,34 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
             _ticksSinceGps = 0;
             _ = RefreshDeviceFixAsync();
         }
+    }
+
+    // The end of our own active boundary penalty, if any, read from the local participant in the snapshot.
+    private DateTimeOffset? LocalPenaltyEndsAt(GameLiveState state)
+    {
+        foreach (var participant in state.Participants)
+        {
+            if (participant.UserId == _selfUserId)
+                return participant.PenaltyEndsAt;
+        }
+        return null;
+    }
+
+    // True while our boundary penalty is still in effect — the penalty ping cadence (a fixed 30s bar) and
+    // the penalty banner then apply. Evaluated against the clock so it self-heals when the penalty simply
+    // expires. Named distinctly from the public IsPenalised property, which it feeds.
+    private bool IsPenaltyActive() =>
+        _penaltyEndsAt is { } endsAt && endsAt > _timeProvider.GetUtcNow();
+
+    // Whole seconds left in our own penalty, rounded up so a penalty ending in 29.4s still reads 00:30
+    // rather than skipping a second on the first render. Zero when there is no active penalty.
+    private int RemainingPenaltySeconds()
+    {
+        if (_penaltyEndsAt is not { } endsAt)
+            return 0;
+
+        var remaining = endsAt - _timeProvider.GetUtcNow();
+        return remaining <= TimeSpan.Zero ? 0 : (int)Math.Ceiling(remaining.TotalSeconds);
     }
 
     private async Task RefreshDeviceFixAsync()
@@ -324,13 +462,20 @@ public sealed class GameHudViewModel : ObservableObject, IDisposable
         return count;
     }
 
+    // Called from both paths that can move the displays: every snapshot (ApplyState, after _penaltyEndsAt
+    // is re-resolved) and every local tick. Keeping the penalty banner here means it appears and hides on
+    // whichever of the two happens first, with no separate wiring.
     private void UpdateCountdownDisplays()
     {
         GameTimeRemainingText = FormatDuration(_gameDurationLeft);
         NextPingRemainingText = FormatDuration(_nextPingRemaining);
-        NextPingProgress = _currentPingInterval > 0
-            ? Math.Clamp((double)_nextPingRemaining / _currentPingInterval, 0d, 1d)
+        NextPingProgress = _pingBarMax > 0
+            ? Math.Clamp((double)_nextPingRemaining / _pingBarMax, 0d, 1d)
             : 0d;
+
+        var penalised = IsPenaltyActive();
+        IsPenalised = penalised;
+        PenaltyRemainingText = penalised ? FormatDuration(RemainingPenaltySeconds()) : string.Empty;
     }
 
     private void RecomputeDistance()
