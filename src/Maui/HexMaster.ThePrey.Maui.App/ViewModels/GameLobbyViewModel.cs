@@ -346,7 +346,12 @@ public sealed class GameLobbyViewModel : ObservableObject
         _lastSnapshot = game;
         _gameId = game.Id;
         _hunterUserId = game.HunterUserId;
-        _isReadyToStart = game.IsReadyToStart;
+        // Readiness is the "Ready" status, server-side. Prefer the status over the IsReadyToStart flag:
+        // the flag is only stamped on a direct GET / command response, while the configuration-changed
+        // delta deliberately omits it — so after another player readies up the flag is stale but the
+        // status is current. Mirrors the Ionic lobby.
+        _isReadyToStart = game.IsReadyToStart
+            || string.Equals(game.Status, "Ready", StringComparison.OrdinalIgnoreCase);
 
         PassCode = game.GameCode;
 

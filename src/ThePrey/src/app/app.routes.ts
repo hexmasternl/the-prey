@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuardFn } from '@auth0/auth0-angular';
+import { locationConsentGuard } from './core/location-consent.guard';
 
 export const routes: Routes = [
   {
@@ -7,9 +8,16 @@ export const routes: Routes = [
     loadComponent: () => import('./login/login.page').then((m) => m.LoginPage),
   },
   {
+    // Non-dismissable fallback for a declined disclosure on iOS/web (see
+    // locationConsentGuard) — intentionally unguarded, it IS the gate's own escape hatch.
+    path: 'consent-required',
+    loadComponent: () =>
+      import('./consent-required/consent-required.page').then((m) => m.ConsentRequiredPage),
+  },
+  {
     path: 'home',
     loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
-    canActivate: [authGuardFn],
+    canActivate: [authGuardFn, locationConsentGuard],
   },
   {
     path: 'play',
@@ -50,27 +58,29 @@ export const routes: Routes = [
     // No authGuardFn here: the join page is the entry point for shared deep links,
     // so it restores the session itself and redirects to /login (preserving the
     // join target) when there is none, instead of the guard's default redirect.
+    // locationConsentGuard still applies — a deep link must not bypass the disclosure.
     path: 'games/join',
     loadComponent: () =>
       import('./games/game-join.page').then((m) => m.GameJoinPage),
+    canActivate: [locationConsentGuard],
   },
   {
     path: 'games/:id/lobby',
     loadComponent: () =>
       import('./games/game-lobby.page').then((m) => m.GameLobbyPage),
-    canActivate: [authGuardFn],
+    canActivate: [authGuardFn, locationConsentGuard],
   },
   {
     path: 'games/:id/play',
     loadComponent: () =>
       import('./games/game-prey.page').then((m) => m.GamePreyPage),
-    canActivate: [authGuardFn],
+    canActivate: [authGuardFn, locationConsentGuard],
   },
   {
     path: 'games/:id/hunt',
     loadComponent: () =>
       import('./games/game-hunter.page').then((m) => m.GameHunterPage),
-    canActivate: [authGuardFn],
+    canActivate: [authGuardFn, locationConsentGuard],
   },
   {
     path: 'games/:id/outcome',

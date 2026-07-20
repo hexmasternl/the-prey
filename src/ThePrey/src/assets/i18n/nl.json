@@ -190,7 +190,8 @@
     "TITLE": "Locatie op de achtergrond vereist",
     "BODY": "Zolang een spel bezig is, draait The Prey een achtergrondservice die je locatie verzamelt en naar onze servers stuurt — ook wanneer de app op de achtergrond draait of gesloten is — zodat jagers en prooien in realtime gevolgd kunnen worden. Je locatie wordt alleen tijdens een actief spel verzameld en stopt zodra het spel eindigt.",
     "ALLOW": "Toestaan",
-    "DECLINE": "Niet nu"
+    "DECLINE": "Niet nu",
+    "ACCEPT": "Accepteren"
   },
   "GAME_PROGRESS": {
     "ROLE_HUNTER": "JAGER",

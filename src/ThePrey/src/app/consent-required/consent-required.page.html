@@ -1,0 +1,15 @@
+<ion-content class="consent-content" [fullscreen]="true">
+  <div class="consent-container">
+    <h1 class="consent-title">{{ 'LOCATION_CONSENT.TITLE' | translate }}</h1>
+    <p class="consent-body">{{ 'LOCATION_CONSENT.BODY' | translate }}</p>
+    <ion-button
+      class="accept-button"
+      expand="block"
+      fill="solid"
+      color="primary"
+      (click)="accept()"
+    >
+      {{ 'LOCATION_CONSENT.ACCEPT' | translate }}
+    </ion-button>
+  </div>
+</ion-content>

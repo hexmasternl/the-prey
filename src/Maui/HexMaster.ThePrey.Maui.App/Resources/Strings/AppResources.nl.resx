@@ -272,6 +272,7 @@
   <data name="LocationConsent_Body" xml:space="preserve"><value>Zolang een spel bezig is, draait The Prey een achtergrondservice die je locatie verzamelt en naar onze servers stuurt — ook wanneer de app op de achtergrond draait of gesloten is — zodat jagers en prooien in realtime gevolgd kunnen worden. Je locatie wordt alleen tijdens een actief spel verzameld en stopt zodra het spel eindigt.</value></data>
   <data name="LocationConsent_Allow" xml:space="preserve"><value>Toestaan</value></data>
   <data name="LocationConsent_Decline" xml:space="preserve"><value>Niet nu</value></data>
+  <data name="LocationConsent_Accept" xml:space="preserve"><value>Accepteren</value></data>
 
   <!-- Post-game outcome screen (victory / defeat conclusion) -->
   <data name="Outcome_Headline_Victory" xml:space="preserve"><value>OVERWINNING</value></data>

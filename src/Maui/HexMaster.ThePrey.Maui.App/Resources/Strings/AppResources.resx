@@ -272,6 +272,7 @@
   <data name="LocationConsent_Body" xml:space="preserve"><value>While a game is in progress, The Prey runs a background service that collects your device location and sends it to our servers — even when the app is in the background or closed — so hunters and prey can be tracked in real time. Location is collected only during an active game and stops the moment the game ends.</value></data>
   <data name="LocationConsent_Allow" xml:space="preserve"><value>Allow</value></data>
   <data name="LocationConsent_Decline" xml:space="preserve"><value>Not now</value></data>
+  <data name="LocationConsent_Accept" xml:space="preserve"><value>Accept</value></data>
 
   <!-- Post-game outcome screen (victory / defeat conclusion) -->
   <data name="Outcome_Headline_Victory" xml:space="preserve"><value>VICTORY</value></data>

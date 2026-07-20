@@ -117,8 +117,9 @@ namespace HexMaster.ThePrey.Maui.App
             // Confirm/cancel dialog seam (the delete flow's confirmation gate).
             services.AddSingleton<IConfirmationDialog, ConfirmationDialog>();
 
-            // Background-location prominent-disclosure consent gate (Google Play policy): shown before
-            // the OS location-permission prompt, reuses IConfirmationDialog for its surface.
+            // One-time, app-entry background-location consent gate (Google Play policy): awaited from
+            // WelcomeViewModel before the main menu is ever shown, reusing IConfirmationDialog for its
+            // disclosure surface.
             services.AddSingleton<ILocationConsentGate, LocationConsentGate>();
 
             // Create / area-editor navigation seam. One Shell-backed singleton carries the result

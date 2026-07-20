@@ -190,7 +190,8 @@
     "TITLE": "Background location required",
     "BODY": "While a game is in progress, The Prey runs a background service that collects your device location and sends it to our servers — even when the app is in the background or closed — so hunters and prey can be tracked in real time. Location is collected only during an active game and stops the moment the game ends.",
     "ALLOW": "Allow",
-    "DECLINE": "Not now"
+    "DECLINE": "Not now",
+    "ACCEPT": "Accept"
   },
   "GAME_PROGRESS": {
     "ROLE_HUNTER": "HUNTER",

@@ -1,20 +1,22 @@
 namespace HexMaster.ThePrey.Maui.App.Services.Location;
 
 /// <summary>
-/// Gates background location tracking behind Google Play's Prominent Disclosure &amp; Consent policy: a
-/// prominent in-app disclosure must be shown and explicitly accepted before the OS location-permission
-/// prompt for background tracking is ever triggered. Modeled on
+/// One-time, app-entry consent gate for Google Play's Prominent Disclosure &amp; Consent policy: before
+/// the player ever reaches the main menu, the app must show a prominent disclosure describing the
+/// background-location collection used while a game is in progress and require an explicit affirmative
+/// action. Once granted, consent is remembered and never re-shown across launches. Modeled on
 /// <see cref="Dialogs.IConfirmationDialog"/> so it is injectable and mockable in the plain
-/// <c>net10.0</c> test project; the MAUI-coupled implementation (Preferences + Permissions) is excluded
-/// from the test build.
+/// <c>net10.0</c> test project; the MAUI-coupled implementation (Preferences, the disclosure dialog, the
+/// iOS consent wall, and the Android/desktop app-exit) is excluded from the test build.
 /// </summary>
 public interface ILocationConsentGate
 {
     /// <summary>
-    /// Ensures the player has consented to background location collection, showing the prominent
-    /// disclosure first when needed (no prior consent, or the OS permission is no longer granted).
-    /// Returns <c>true</c> when tracking may proceed to the OS permission request; <c>false</c> when the
-    /// player declined — the caller must not request OS permission or start tracking.
+    /// Resolves once the player has consented: immediately when a prior launch already recorded
+    /// consent, otherwise after the disclosure is shown and accepted. Declining is not an option the app
+    /// can honor at this gate — on platforms that permit a programmatic quit (Android, Windows, Mac) the
+    /// app exits instead of returning; on iOS (where a programmatic quit is disallowed) a non-dismissable
+    /// consent wall blocks until the player accepts. Callers can therefore simply await this and proceed.
     /// </summary>
-    Task<bool> EnsureConsentAsync(CancellationToken ct = default);
+    Task EnsureConsentAsync(CancellationToken ct = default);
 }

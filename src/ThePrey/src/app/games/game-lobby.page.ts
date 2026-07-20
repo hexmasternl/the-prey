@@ -88,11 +88,17 @@ export class GameLobbyPage implements ViewWillEnter {
   readonly currentUserId = computed(() => this.userState.profile()?.userId ?? '');
 
   /**
-   * Whether the game may be started. The server computes this (enough players, a designated
-   * hunter, and every non-host operative readied up) and exposes it on the DTO, so the client
-   * just reflects it.
+   * Whether the game may be started. The server computes readiness (enough players, a designated
+   * hunter, and every non-host operative readied up) and reflects it in the game status: `Ready`
+   * means startable. We read the status rather than the `isReadyToStart` flag because the flag is
+   * only stamped on a direct GET / command response — the `configuration-changed` broadcast slice
+   * omits it, so it goes stale the moment another player readies up. The status, by contrast, is
+   * carried by that broadcast, so this stays live.
    */
-  readonly canStart = computed(() => this.game()?.isReadyToStart ?? false);
+  readonly canStart = computed(() => {
+    const game = this.game();
+    return game?.status === 'Ready' || (game?.isReadyToStart ?? false);
+  });
 
   readonly canShare = computed(
     () =>

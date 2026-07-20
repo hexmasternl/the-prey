@@ -1,0 +1,54 @@
+ion-content.consent-content {
+  --background: var(--tp-bg-void);
+}
+
+.consent-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.consent-title {
+  font-family: var(--tp-head);
+  font-size: 1.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ion-color-primary);
+  text-shadow: 0 0 20px var(--tp-signal-glow);
+  margin: 0;
+}
+
+.consent-body {
+  font-family: var(--tp-body);
+  color: var(--tp-text-soft);
+  max-width: 480px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.accept-button {
+  // Solid primary — the single glowing CTA on this screen; no other affordance exists.
+  --background: var(--tp-signal);
+  --background-activated: var(--tp-signal-dim);
+  --background-hover: var(--tp-signal-dim);
+  --color: #000;
+  --border-radius: 3px;
+  --box-shadow: 0 0 20px var(--tp-signal-glow);
+
+  width: 100%;
+  max-width: 320px;
+  font-family: var(--tp-head);
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+
+  &:hover,
+  &:active {
+    --box-shadow: 0 0 36px var(--tp-signal-glow);
+  }
+}

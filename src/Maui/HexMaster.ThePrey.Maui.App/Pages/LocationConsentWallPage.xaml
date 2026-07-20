@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.LocationConsentWallPage"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:Translate LocationConsent_Title}">
+
+    <!-- Full-screen, non-dismissable consent wall: shown only on iOS (Apple rejects apps that call
+         exit()) after the player has declined the disclosure. There is no decline affordance here —
+         a single Accept button is the only way forward. -->
+    <Grid Style="{StaticResource OutcomeContainer}" RowDefinitions="*,Auto">
+
+        <VerticalStackLayout Grid.Row="0" Style="{StaticResource OutcomeStack}">
+            <Label Text="{loc:Translate LocationConsent_Title}" Style="{StaticResource TacticalTitle}" />
+            <Label Text="{loc:Translate LocationConsent_Body}" Style="{StaticResource TacticalBody}" />
+        </VerticalStackLayout>
+
+        <Button Grid.Row="1"
+                Text="{loc:Translate LocationConsent_Accept}"
+                Clicked="OnAcceptClicked"
+                Style="{StaticResource PrimaryButton}" />
+    </Grid>
+</ContentPage>

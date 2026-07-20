@@ -12,7 +12,6 @@ public class GameLocationTrackerCoordinatorTests
     private readonly Mock<IBackgroundExecutionHost> _host = new() { DefaultValue = DefaultValue.Empty };
     private readonly Mock<ILocationReportClient> _report = new();
     private readonly Mock<IAccessTokenProvider> _tokens = new();
-    private readonly Mock<ILocationConsentGate> _consent = new();
     private readonly FakeTimeProvider _time = new();
     private readonly Guid _gameId = Guid.NewGuid();
     private readonly LocationSample _sample =
@@ -24,13 +23,10 @@ public class GameLocationTrackerCoordinatorTests
         _tokens.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("token");
         _report.Setup(r => r.ReportAsync(It.IsAny<Guid>(), It.IsAny<RecordLocationRequest>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(LocationReportResult.Accepted(new RecordLocationResponse(true, 10)));
-        // Consent granted by default so the existing lifecycle/cadence/resilience tests below are
-        // unaffected by the consent gate; the decline path is covered explicitly further down.
-        _consent.Setup(c => c.EnsureConsentAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
     }
 
     private GameLocationTrackerCoordinator CreateSut() => new(
-        _source.Object, _host.Object, _report.Object, _tokens.Object, _consent.Object, _time,
+        _source.Object, _host.Object, _report.Object, _tokens.Object, _time,
         NullLogger<GameLocationTrackerCoordinator>.Instance);
 
     // --- 8.1 Coordinator reports a fix each tick with a bearer token ---
@@ -157,56 +153,6 @@ public class GameLocationTrackerCoordinatorTests
 
         Assert.False(sut.IsTracking);
         _host.Verify(h => h.StopAsync(), Times.Once);
-    }
-
-    // --- Background-location consent gate: awaited before the source/host are ever touched ---
-
-    [Fact]
-    public async Task StartAsync_ShouldStartSourceAndHost_WhenConsentGranted()
-    {
-        var sut = CreateSut();
-
-        await sut.StartAsync(_gameId);
-
-        _consent.Verify(c => c.EnsureConsentAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _source.Verify(s => s.StartAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _host.Verify(h => h.StartAsync(It.IsAny<CancellationToken>()), Times.Once);
-        Assert.True(sut.IsTracking);
-
-        await sut.StopAsync();
-    }
-
-    [Fact]
-    public async Task StartAsync_ShouldNotStartSourceOrHost_WhenConsentDeclined()
-    {
-        _consent.Setup(c => c.EnsureConsentAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
-        var sut = CreateSut();
-
-        await sut.StartAsync(_gameId);
-
-        _source.Verify(s => s.StartAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _host.Verify(h => h.StartAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _report.Verify(r => r.ReportAsync(It.IsAny<Guid>(), It.IsAny<RecordLocationRequest>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-        Assert.False(sut.IsTracking);
-    }
-
-    [Fact]
-    public async Task StartAsync_ShouldReAskConsent_OnNextAttempt_AfterADecline()
-    {
-        _consent.SetupSequence(c => c.EnsureConsentAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false)
-            .ReturnsAsync(true);
-        var sut = CreateSut();
-
-        await sut.StartAsync(_gameId); // Declined — nothing starts.
-        Assert.False(sut.IsTracking);
-
-        await sut.StartAsync(_gameId); // A later attempt re-shows the disclosure and now proceeds.
-
-        _consent.Verify(c => c.EnsureConsentAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
-        Assert.True(sut.IsTracking);
-
-        await sut.StopAsync();
     }
 
     // --- 8.4 Resilience: transient failures keep tracking; token refresh attempted on 401 ---

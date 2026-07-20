@@ -209,11 +209,16 @@
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GameLocationTrackerCoordinator.cs" Link="Linked\GameLocationTrackerCoordinator.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\GameLocationTracker.cs" Link="Linked\GameLocationTracker.cs" />
 
-    <!-- Background-location consent gate: the interface (mockable seam for the coordinator test) and the
-         pure show-or-skip policy. LocationConsentGate.cs itself touches Preferences/Permissions (MAUI
-         Essentials) and is deliberately excluded, mirroring ConfirmationDialog.cs above. -->
+    <!-- Background-location consent gate: only the interface (a mockable seam for WelcomeViewModel's
+         test below). LocationConsentGate.cs itself touches Preferences, Permissions, the disclosure
+         dialog, the iOS wall page, and IApplicationExit (all MAUI-coupled) and is deliberately excluded,
+         mirroring ConfirmationDialog.cs above. -->
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\ILocationConsentGate.cs" Link="Linked\ILocationConsentGate.cs" />
-    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Location\LocationConsentPolicy.cs" Link="Linked\LocationConsentPolicy.cs" />
+
+    <!-- Welcome-screen bootstrap view model: the app-entry consent gate is awaited here before the
+         post-boot navigation. Plain .NET now that Shell navigation is behind IMenuNavigator (already
+         linked above) rather than called directly. -->
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\ViewModels\WelcomeViewModel.cs" Link="Linked\WelcomeViewModel.cs" />
   </ItemGroup>
 
 </Project>

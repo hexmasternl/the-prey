@@ -1,62 +1,62 @@
 ## ADDED Requirements
 
-### Requirement: Prominent disclosure before requesting OS location permission
+### Requirement: One-time disclosure gate at app entry
 
-Before the app triggers the operating system's location-permission prompt for background tracking, the app SHALL present a prominent in-app disclosure. The disclosure SHALL clearly state that a background service will collect the device's location and send it to the game's server, that this happens for the duration of the game (including while the app is in the background or closed), and SHALL require an explicit affirmative user action to continue. The app SHALL NOT invoke the OS location-permission prompt or start location tracking until the user has given this consent. This requirement applies to both the MAUI app and the Ionic app.
+Before the app shows its main menu (the home screen), the app SHALL present a prominent disclosure explaining that, while a game is in progress, a background service collects the device's location and sends it to the game's server for the duration of the game — including when the app is in the background or closed. The disclosure SHALL require an explicit affirmative action to accept. The app SHALL NOT proceed to the main menu until the player has accepted. This gate applies to both the MAUI app and the Ionic app, and is shown ahead of any OS location-permission prompt (which is still requested later, at game start, unchanged).
 
-#### Scenario: Disclosure precedes the OS prompt
+#### Scenario: Disclosure precedes the main menu
 
-- **WHEN** a game is about to start background location tracking and the player has not yet consented in the app
-- **THEN** the app shows the prominent disclosure explaining background location collection and its purpose before any OS location-permission prompt appears
-
-#### Scenario: Consent proceeds to the OS prompt
-
-- **WHEN** the player takes the affirmative action ("Allow" / "Continue") on the disclosure
-- **THEN** the app proceeds to request the OS location permission and, once granted, starts background tracking
+- **WHEN** the app finishes starting up and has not yet recorded the player's consent
+- **THEN** the prominent disclosure is shown before the main menu, and the app does not navigate to the main menu until the player accepts
 
 #### Scenario: Applies to both clients
 
-- **WHEN** either the MAUI app or the Ionic app is about to request background location permission
-- **THEN** the same prominent disclosure-and-consent gate is shown first in that client
+- **WHEN** either the MAUI app or the Ionic app starts and consent has not been recorded
+- **THEN** the same disclosure-and-consent gate is shown before that client's main menu
 
-### Requirement: Declining the disclosure blocks tracking gracefully
+### Requirement: Acceptance is remembered permanently
 
-If the player declines the prominent disclosure, the app SHALL NOT request the OS location permission and SHALL NOT start location tracking. The game SHALL continue without location broadcasting rather than crashing, looping the prompt, or blocking play. The player SHALL be able to reach the disclosure again on a later attempt to start tracking.
+When the player accepts the disclosure, the app SHALL persist that consent and SHALL NOT show the disclosure again on any subsequent launch. The disclosure is a one-time gate, not a per-game prompt.
 
-#### Scenario: Decline does not trigger the OS prompt
+#### Scenario: Accepting continues to the app
 
-- **WHEN** the player dismisses or declines the disclosure
-- **THEN** no OS location-permission prompt is shown and no background tracking is started
+- **WHEN** the player accepts the disclosure
+- **THEN** the app records consent and continues to the main menu
 
-#### Scenario: Game continues without location after decline
+#### Scenario: Returning player is not re-prompted
 
-- **WHEN** the player has declined the disclosure and the game is in progress
-- **THEN** the app remains functional without location broadcasting and does not repeatedly force the disclosure within the same attempt
+- **WHEN** the player has previously accepted the disclosure and launches the app again
+- **THEN** the disclosure is not shown and the app goes straight to the main menu
 
-### Requirement: Consent is remembered across games
+### Requirement: Declining blocks entry per platform
 
-Once the player has given consent, the app SHALL remember it so the prominent disclosure is not shown again on every subsequent game. The disclosure SHALL be shown again only when consent has not been recorded or when the underlying OS location permission is no longer granted (for example it was revoked in system settings).
+If the player declines the disclosure, the app SHALL NOT proceed to the main menu. On platforms where an application may terminate itself — Android and desktop — the app SHALL close. On platforms where programmatic termination is not permitted or possible — iOS and the web/PWA build — the app SHALL instead present a full-screen, non-dismissable consent wall that offers only an affirmative action to accept; the player cannot reach the app until they accept, and accepting records consent and continues to the main menu.
 
-#### Scenario: Returning player is not re-disclosed
+#### Scenario: Decline closes the app on Android and desktop
 
-- **WHEN** the player has previously consented and the OS location permission is still granted
-- **THEN** starting a new game proceeds to tracking without showing the disclosure again
+- **WHEN** the player declines the disclosure on Android or a desktop build
+- **THEN** the app closes
 
-#### Scenario: Re-disclosure after permission revoked
+#### Scenario: Decline shows a blocking wall on iOS and web
 
-- **WHEN** the player previously consented but the OS location permission has since been revoked
-- **THEN** the app shows the prominent disclosure again before re-requesting the OS permission
+- **WHEN** the player declines the disclosure on iOS or the web/PWA build
+- **THEN** a full-screen, non-dismissable consent wall is shown with only an accept action, and the main menu remains unreachable until the player accepts
+
+#### Scenario: Accepting the wall continues
+
+- **WHEN** the player accepts on the blocking consent wall
+- **THEN** the app records consent and continues to the main menu
 
 ### Requirement: Disclosure copy is localized and styled through the single source of truth
 
-The disclosure text and its affirmative/decline actions SHALL be localized (English and Dutch) and styled through each app's central styling — no hard-coded, unlocalized strings and no inline visual literals. In the MAUI app the copy SHALL come from `AppResources.resx` / `AppResources.nl.resx`; in the Ionic app from the `i18n` `en.json` / `nl.json` resources.
+The disclosure text and its actions SHALL be localized (English and Dutch) and styled through each app's central styling — no hard-coded, unlocalized strings and no inline visual literals. In the MAUI app the copy SHALL come from `AppResources.resx` / `AppResources.nl.resx`; in the Ionic app from the `i18n` `en.json` / `nl.json` resources.
 
 #### Scenario: Disclosure honours the active language
 
-- **WHEN** the app language is Dutch and the disclosure is shown
-- **THEN** the disclosure text and its action buttons are rendered in Dutch from the localized resources
+- **WHEN** the app language is Dutch and the disclosure (or the consent wall) is shown
+- **THEN** its text and actions are rendered in Dutch from the localized resources
 
 #### Scenario: No hard-coded disclosure text
 
-- **WHEN** the disclosure surface is built
+- **WHEN** the disclosure or consent wall is built
 - **THEN** all user-facing text is drawn from localized resource keys rather than literals embedded in the page or component

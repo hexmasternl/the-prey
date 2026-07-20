@@ -2,14 +2,8 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
-import { AlertController } from '@ionic/angular/standalone';
 import { TranslateService } from '@ngx-translate/core';
-import type {
-  BackgroundGeolocationPlugin,
-  CallbackError,
-  Location,
-  WatcherOptions,
-} from '@capacitor-community/background-geolocation';
+import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
 import { GamesService } from './games.service';
 
 /**
@@ -23,14 +17,6 @@ const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('Backg
 /** Preferences keys used to recover an active tracking session after an OS kill. */
 const PREF_GAME_ID = 'game.tracking.gameId';
 const PREF_END_TIME = 'game.tracking.gameEndTime';
-
-/**
- * Preferences key recording that the player has accepted the prominent background-location
- * disclosure (Google Play Prominent Disclosure & Consent policy). Persisted per install so
- * returning players are not re-prompted every game; re-checked against the live OS permission
- * at every `start()` so a revocation in system settings still re-triggers the disclosure.
- */
-const PREF_CONSENT_ACCEPTED = 'location.consent.accepted';
 
 /** Fallback reporting cadence when the backend has not (yet) supplied one. */
 const DEFAULT_INTERVAL_SECONDS = 30;
@@ -58,12 +44,9 @@ export type GpsErrorKind = 'denied' | 'unavailable';
  * Single source of truth for background location broadcasting during an active game.
  *
  * Lifecycle:
- *  - `start(gameId, gameEndTime)` — on native, first gates behind the prominent background-
- *    location disclosure/consent (Google Play policy; see `ensureLocationConsent`); once
- *    consent is in place it activates the native foreground service (Android) or iOS
- *    background location, persists the game context to Preferences for OS-kill recovery,
- *    and begins a self-scheduling post loop. A decline short-circuits: no OS prompt, no
- *    tracking, game stays playable.
+ *  - `start(gameId, gameEndTime)` activates the native foreground service (Android) or
+ *    iOS background location, persists the game context to Preferences for OS-kill
+ *    recovery, and begins a self-scheduling post loop.
  *  - `stop()` deactivates the plugin, clears Preferences, and flips `isTracking` to false.
  *
  * Authentication reuses the in-app Auth0 session: every `POST /games/{id}/locations` is
@@ -78,7 +61,6 @@ export type GpsErrorKind = 'denied' | 'unavailable';
 export class GameLocationService {
   private readonly games = inject(GamesService);
   private readonly translate = inject(TranslateService);
-  private readonly alertCtrl = inject(AlertController);
 
   private readonly isNative = Capacitor.isNativePlatform();
 
@@ -136,16 +118,6 @@ export class GameLocationService {
       return; // game window already closed
     }
 
-    // Google Play's Prominent Disclosure & Consent policy requires an in-app explanation
-    // before the OS background-location prompt. Gate the native path only — the web
-    // fallback (`Geolocation.watchPosition`) never triggers a background permission.
-    if (this.isNative && !(await this.ensureLocationConsent())) {
-      // Player declined — leave the game playable without tracking (gpsError/
-      // reportingDegraded already cover the no-location UI). A later start() attempt
-      // (e.g. next game, or re-entering this page) re-evaluates and can re-disclose.
-      return;
-    }
-
     this.currentGameId = gameId;
     this.gameEndTime = gameEndTime;
     this.lastIntervalSeconds = DEFAULT_INTERVAL_SECONDS;
@@ -162,7 +134,7 @@ export class GameLocationService {
     if (this.isNative) {
       const backgroundTitle = this.translate.instant('GAME_TRACKING.NOTIFICATION_TITLE');
       const backgroundMessage = this.translate.instant('GAME_TRACKING.NOTIFICATION_BODY');
-      this.nativeWatcherId = await this.addNativeWatcher(
+      this.nativeWatcherId = await BackgroundGeolocation.addWatcher(
         { backgroundTitle, backgroundMessage, requestPermissions: true, stale: false, distanceFilter: 0 },
         (position, error) => {
           if (error) {
@@ -217,7 +189,7 @@ export class GameLocationService {
     }
     if (this.nativeWatcherId !== null) {
       try {
-        await this.removeNativeWatcher(this.nativeWatcherId);
+        await BackgroundGeolocation.removeWatcher({ id: this.nativeWatcherId });
       } catch {
         // watcher already gone — ignore
       }
@@ -240,99 +212,6 @@ export class GameLocationService {
 
     await Preferences.remove({ key: PREF_GAME_ID });
     await Preferences.remove({ key: PREF_END_TIME });
-  }
-
-  /**
-   * Google Play's Prominent Disclosure & Consent policy requires a purpose-explaining,
-   * in-app disclosure — with an explicit affirmative action — *before* the OS background-
-   * location prompt fires. This gate sits directly ahead of `addWatcher`'s own
-   * `requestPermissions: true` call.
-   *
-   * Consent is remembered (`PREF_CONSENT_ACCEPTED`) so returning players are not re-shown
-   * the disclosure every game, but it is re-checked against the *live* OS permission on
-   * every call: a stored "accepted" flag does not survive the player revoking location
-   * access in system settings, so revocation re-triggers a genuine new disclosure.
-   *
-   * Resolves `true` once consent is in place (previously stored, or freshly given).
-   * Resolves `false` when the player declines — callers must not proceed to `addWatcher`.
-   */
-  private async ensureLocationConsent(): Promise<boolean> {
-    const [consented, osGranted] = await Promise.all([this.hasStoredConsent(), this.hasOsLocationPermission()]);
-    if (consented && osGranted) {
-      return true;
-    }
-
-    const accepted = await this.showConsentDisclosure();
-    if (accepted) {
-      await Preferences.set({ key: PREF_CONSENT_ACCEPTED, value: 'true' });
-    }
-    return accepted;
-  }
-
-  /** Whether the player has previously accepted the background-location disclosure. */
-  private async hasStoredConsent(): Promise<boolean> {
-    const { value } = await Preferences.get({ key: PREF_CONSENT_ACCEPTED });
-    return value === 'true';
-  }
-
-  /**
-   * Whether the OS currently grants location access, per `@capacitor/geolocation`.
-   * `checkPermissions()` throws when system location services are disabled entirely —
-   * treated as not-granted so the disclosure (and, after it, the OS prompt) is shown again.
-   */
-  private async hasOsLocationPermission(): Promise<boolean> {
-    try {
-      const status = await Geolocation.checkPermissions();
-      return status.location === 'granted' || status.coarseLocation === 'granted';
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Present the prominent disclosure and resolve once the player has responded.
-   * Styled through the shared `tp-overlay` overlay class (`global.scss`); all copy comes
-   * from the `LOCATION_CONSENT` i18n namespace — no hard-coded/unlocalized strings.
-   */
-  private async showConsentDisclosure(): Promise<boolean> {
-    const [header, message, allowText, declineText] = await Promise.all([
-      this.translate.get('LOCATION_CONSENT.TITLE').toPromise(),
-      this.translate.get('LOCATION_CONSENT.BODY').toPromise(),
-      this.translate.get('LOCATION_CONSENT.ALLOW').toPromise(),
-      this.translate.get('LOCATION_CONSENT.DECLINE').toPromise(),
-    ]);
-
-    return new Promise<boolean>((resolve) => {
-      void this.alertCtrl
-        .create({
-          header,
-          message,
-          cssClass: 'tp-overlay',
-          backdropDismiss: false,
-          buttons: [
-            { text: declineText, role: 'cancel', handler: () => resolve(false) },
-            { text: allowText, handler: () => resolve(true) },
-          ],
-        })
-        .then((alert) => alert.present());
-    });
-  }
-
-  /**
-   * Thin seam around the registered `BackgroundGeolocation` plugin proxy so tests can
-   * substitute it directly (the plugin is a `Proxy` whose methods are re-created on every
-   * property access, which defeats `spyOn` on the plugin object itself).
-   */
-  private addNativeWatcher(
-    options: WatcherOptions,
-    callback: (position?: Location, error?: CallbackError) => void,
-  ): Promise<string> {
-    return BackgroundGeolocation.addWatcher(options, callback);
-  }
-
-  /** See {@link addNativeWatcher} — same testability seam, for teardown. */
-  private removeNativeWatcher(id: string): Promise<void> {
-    return BackgroundGeolocation.removeWatcher({ id });
   }
 
   /** Map a web Geolocation error to our coarse error kind (code 1 = PERMISSION_DENIED). */
