@@ -19,7 +19,10 @@ public sealed record GameStatusDetails(
     // The next-ping countdown seed and its full interval — the compact HUD's ping bar reads these off the
     // same /status payload the map already fetches. Trailing + defaulted so existing constructions still bind.
     int NextPingDuration = 0,
-    int CurrentPingInterval = 0);
+    int CurrentPingInterval = 0,
+    // Seconds until the next sweep tick for a penalised participant, clamped to [0, 30]; 0 when not
+    // penalised. Seeds the HUD's fixed-30-second penalty countdown bar.
+    int NextPingDurationWithPenalty = 0);
 
 /// <summary>
 /// One participant as the gameplay map plots it: the <see cref="UserId"/> (matched against the caller
