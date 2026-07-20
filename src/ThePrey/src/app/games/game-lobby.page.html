@@ -230,7 +230,14 @@
         (click)="isOwner() && designateHunter(player.userId)"
       >
         <div class="operative-info">
-          <div class="operative-name">{{ player.displayName }}</div>
+          <div class="operative-name-row">
+            <span class="operative-name">{{ player.displayName }}</span>
+            @if (isCurrentUser(player.userId)) {
+            <span class="badge badge--you"
+              >{{ 'GAME_LOBBY.YOU' | translate }}</span
+            >
+            }
+          </div>
           <div class="operative-meta">
             @if (player.userId === g.hunterUserId) {
             <span class="badge badge--hunter"
@@ -244,26 +251,18 @@
             <span class="badge badge--owner"
               >{{ 'GAME_LOBBY.ROLE_OWNER' | translate }}</span
             >
-            } @if (isCurrentUser(player.userId)) {
-            <span class="badge badge--you"
-              >{{ 'GAME_LOBBY.YOU' | translate }}</span
-            >
+            } @else {
+            <!-- The host never readies up — readiness is only meaningful for joined operatives. -->
+            <span class="badge badge--ready" [class.is-lit]="player.isReady">
+              <span class="badge__dot" aria-hidden="true"></span>
+              {{ 'GAME_LOBBY.READY' | translate }}
+            </span>
             }
           </div>
         </div>
 
+        @if (isOwner() && !isCurrentUser(player.userId)) {
         <div class="operative-end">
-          <span
-            class="ready-status"
-            [class.ready-status--ready]="player.isReady"
-          >
-            @if (player.isReady) {
-            {{ 'GAME_LOBBY.READY' | translate }}
-            } @else {
-            {{ 'GAME_LOBBY.WAIT' | translate }}
-            }
-          </span>
-          @if (isOwner() && !isCurrentUser(player.userId)) {
           <ion-button
             fill="clear"
             class="remove-btn"
@@ -272,8 +271,8 @@
           >
             <ion-icon slot="icon-only" name="person-remove"></ion-icon>
           </ion-button>
-          }
         </div>
+        }
       </div>
       }
     </div>

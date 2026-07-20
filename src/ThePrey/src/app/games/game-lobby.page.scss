@@ -119,6 +119,8 @@ ion-header ion-toolbar {
   .tac-bg__scanline-v { animation: none; }
   .ready-btn,
   .start-btn { animation: none; box-shadow: 0 0 12px var(--tp-signal-glow); }
+  .badge--ready.is-lit .badge__dot { animation: none; }
+  .operative-row { transition: none; }
 }
 
 // ── Loading ──────────────────────────────────────────────────
@@ -285,39 +287,74 @@ ion-header ion-toolbar {
 }
 
 // ── Operatives block ─────────────────────────────────────────
+// Each operative is its own rounded card, so the list reads as a stack of
+// dossiers rather than one undivided slab.
 .operatives-block {
   position: relative;
-  background: color-mix(in srgb, var(--tp-bg-surface) 85%, transparent);
-  border: 1px solid color-mix(in srgb, var(--tp-line) 80%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .operative-row {
+  // Role palette — green for prey (default), red for hunter. Set once here so
+  // every accent below (stripe, border, wash, glow) follows the role.
+  --role: var(--tp-signal);
+  --role-rgb: var(--tp-signal-rgb);
+
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 11px 10px 11px 14px;
-  // Role accent bar on the left edge — green for prey (default), red for hunter.
-  border-left: 3px solid var(--tp-signal);
+  padding: 12px 10px 12px 18px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--role-rgb), 0.28);
+  background:
+    linear-gradient(
+      to right,
+      rgba(var(--role-rgb), 0.08) 0%,
+      transparent 60%
+    ),
+    color-mix(in srgb, var(--tp-bg-surface) 88%, transparent);
+  transition: border-color 0.15s ease, transform 0.1s ease;
 
-  & + .operative-row {
-    border-top: 1px solid color-mix(in srgb, var(--tp-line) 55%, transparent);
+  // Role accent stripe hugging the card's rounded left edge.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    background: var(--role);
+    box-shadow: 0 0 12px rgba(var(--role-rgb), 0.5);
   }
 
   &--hunter {
-    border-left-color: var(--tp-hunter);
+    --role: var(--tp-hunter);
+    --role-rgb: var(--tp-hunter-rgb);
   }
 
   &--clickable {
     cursor: pointer;
 
     &:active {
-      background: rgba(var(--tp-signal-rgb), 0.05);
+      transform: scale(0.985);
+      border-color: rgba(var(--role-rgb), 0.6);
     }
   }
 }
 
 .operative-info {
   flex: 1;
+  min-width: 0;
+}
+
+.operative-name-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -334,36 +371,77 @@ ion-header ion-toolbar {
 
 .operative-meta {
   display: flex;
+  align-items: center;
   gap: 6px;
-  margin-top: 5px;
+  margin-top: 6px;
   flex-wrap: wrap;
 }
 
 .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
   font-family: var(--tp-body);
   font-size: 9px;
+  line-height: 1;
   letter-spacing: 2px;
   text-transform: uppercase;
-  padding: 2px 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
 
   &--hunter {
     color: var(--tp-hunter);
-    border: 1px solid rgba(var(--tp-hunter-rgb), 0.4);
+    border: 1px solid rgba(var(--tp-hunter-rgb), 0.45);
+    background: rgba(var(--tp-hunter-rgb), 0.1);
   }
 
   &--prey {
     color: var(--tp-prey);
-    border: 1px solid rgba(var(--tp-signal-rgb), 0.4);
+    border: 1px solid rgba(var(--tp-signal-rgb), 0.45);
+    background: rgba(var(--tp-signal-rgb), 0.1);
   }
 
   &--owner {
     color: var(--tp-caution);
-    border: 1px solid rgba(var(--tp-caution-rgb), 0.4);
+    border: 1px solid rgba(var(--tp-caution-rgb), 0.45);
+    background: rgba(var(--tp-caution-rgb), 0.1);
   }
 
   &--you {
     color: var(--tp-signal-dim);
-    border: 1px solid rgba(var(--tp-signal-rgb), 0.3);
+    border: 1px solid rgba(var(--tp-signal-rgb), 0.35);
+    background: transparent;
+  }
+
+  // Readiness lamp — unlit (ghost) until the operative stands by, then it
+  // lights up signal-green with a glow.
+  &--ready {
+    color: var(--tp-text-ghost);
+    border: 1px solid color-mix(in srgb, var(--tp-line) 90%, transparent);
+    background: transparent;
+
+    .badge__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--tp-text-ghost);
+      flex-shrink: 0;
+    }
+
+    &.is-lit {
+      color: var(--tp-signal);
+      border-color: rgba(var(--tp-signal-rgb), 0.55);
+      background: rgba(var(--tp-signal-rgb), 0.12);
+      text-shadow: 0 0 10px var(--tp-signal-glow);
+      box-shadow: 0 0 12px rgba(var(--tp-signal-rgb), 0.18);
+
+      .badge__dot {
+        background: var(--tp-signal);
+        box-shadow: 0 0 8px var(--tp-signal);
+        animation: ready-pulse 2s ease-in-out infinite;
+      }
+    }
   }
 }
 
@@ -372,21 +450,6 @@ ion-header ion-toolbar {
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
-}
-
-// Ready indicator — ghost "WAIT" by default, bright signal-green "READY"
-.ready-status {
-  font-family: var(--tp-body);
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--tp-text-ghost);
-  padding-right: 2px;
-
-  &--ready {
-    color: var(--tp-signal);
-    text-shadow: 0 0 10px var(--tp-signal-glow);
-  }
 }
 
 .remove-btn {
@@ -445,6 +508,11 @@ ion-header ion-toolbar {
   5%   { opacity: 0.7; }
   95%  { opacity: 0.5; }
   100% { left: 100vw;  opacity: 0; }
+}
+
+@keyframes ready-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
 }
 
 @keyframes deploy-pulse {

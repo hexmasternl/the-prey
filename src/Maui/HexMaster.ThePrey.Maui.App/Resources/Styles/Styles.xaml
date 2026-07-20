@@ -655,7 +655,7 @@
         <Setter Property="BackgroundColor" Value="{StaticResource TpBgSurface}" />
         <Setter Property="Stroke" Value="{StaticResource TpLineBrush}" />
         <Setter Property="StrokeThickness" Value="1.5" />
-        <Setter Property="StrokeShape" Value="Rectangle" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 8" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="WidthRequest" Value="56" />
         <Setter Property="HeightRequest" Value="64" />
