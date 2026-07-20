@@ -7,15 +7,22 @@ namespace HexMaster.ThePrey.Maui.App.ViewModels;
 /// designated hunter is), and their ready state. The boolean pairs drive the localized role/ready
 /// labels' visibility in XAML without a converter.
 /// </summary>
-public sealed record LobbyParticipant(Guid UserId, string DisplayName, bool IsHunter, bool IsReady, bool IsOwner)
+public sealed record LobbyParticipant(
+    Guid UserId,
+    string DisplayName,
+    bool IsHunter,
+    bool IsReady,
+    bool IsOwner,
+    bool IsSelf = false)
 {
-    public LobbyParticipant(GameParticipantDetails participant, Guid? hunterUserId, Guid ownerUserId)
+    public LobbyParticipant(GameParticipantDetails participant, Guid? hunterUserId, Guid ownerUserId, Guid? selfUserId = null)
         : this(
             participant.UserId,
             participant.DisplayName,
             participant.UserId == hunterUserId,
             participant.IsReady,
-            participant.UserId == ownerUserId)
+            participant.UserId == ownerUserId,
+            selfUserId is Guid self && participant.UserId == self)
     {
     }
 
@@ -30,4 +37,10 @@ public sealed record LobbyParticipant(Guid UserId, string DisplayName, bool IsHu
 
     /// <summary>Whether to show the "NOT READY" badge — suppressed for the owner (see <see cref="ShowReady"/>).</summary>
     public bool ShowNotReady => !IsOwner && !IsReady;
+
+    /// <summary>
+    /// Whether the row carries a readiness lamp at all. The game creator never readies up, so their row
+    /// shows no lamp; everyone else gets one that is lit or unlit per <see cref="IsReady"/>.
+    /// </summary>
+    public bool ShowReadyIndicator => !IsOwner;
 }

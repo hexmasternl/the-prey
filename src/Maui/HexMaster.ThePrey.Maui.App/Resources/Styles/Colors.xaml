@@ -101,6 +101,21 @@
     <Color x:Key="TpDefeat">#ff2f1f</Color>
     <Color x:Key="TpDefeatHalo">#26FF2F1F</Color>
 
+    <!-- Lobby participant cards and badge chips. Each role axis needs two alpha grades of its token:
+         an "Edge" for the 1px chip/card stroke and a "Wash" for the low-alpha fill behind it. The lit
+         ready lamp uses the stronger signal wash so it reads as switched-on next to an unlit chip. -->
+    <Color x:Key="TpSignalEdge">#7364FF00</Color>
+    <Color x:Key="TpSignalWash">#1A64FF00</Color>
+    <Color x:Key="TpSignalWashLit">#2E64FF00</Color>
+    <Color x:Key="TpHunterEdge">#73FF2F1F</Color>
+    <Color x:Key="TpHunterWash">#1AFF2F1F</Color>
+    <Color x:Key="TpCautionEdge">#73FFB300</Color>
+    <Color x:Key="TpCautionWash">#1AFFB300</Color>
+
+    <SolidColorBrush x:Key="TpSignalEdgeBrush" Color="{StaticResource TpSignalEdge}"/>
+    <SolidColorBrush x:Key="TpHunterEdgeBrush" Color="{StaticResource TpHunterEdge}"/>
+    <SolidColorBrush x:Key="TpCautionEdgeBrush" Color="{StaticResource TpCautionEdge}"/>
+
     <SolidColorBrush x:Key="TpVictoryBrush" Color="{StaticResource TpVictory}"/>
     <SolidColorBrush x:Key="TpVictoryHaloBrush" Color="{StaticResource TpVictoryHalo}"/>
     <SolidColorBrush x:Key="TpDefeatBrush" Color="{StaticResource TpDefeat}"/>

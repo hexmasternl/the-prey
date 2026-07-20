@@ -555,7 +555,89 @@
         </Setter>
     </Style>
 
-    <!-- Small uppercase role/ready badges on a participant row — base + colored variants. -->
+    <!-- Each operative is a rounded card carrying a role-tinted frame, so the list reads as a stack of
+         dossiers rather than undivided rows. Hunter rows swap the whole frame onto the hunter axis. -->
+    <Style TargetType="Border" x:Key="LobbyParticipantCard">
+        <Setter Property="BackgroundColor" Value="{StaticResource TpBgSurface}" />
+        <Setter Property="Stroke" Value="{StaticResource TpSignalEdgeBrush}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+        <Setter Property="Padding" Value="12,12,14,12" />
+        <Style.Triggers>
+            <DataTrigger TargetType="Border" Binding="{Binding IsHunter}" Value="True">
+                <Setter Property="Stroke" Value="{StaticResource TpHunterEdgeBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Role accent stripe down the card's left edge — green for prey, red for hunter. Rounded on its
+         own rather than relying on the card clipping it, so it renders identically on every platform. -->
+    <Style TargetType="BoxView" x:Key="LobbyRoleStripe">
+        <Setter Property="Color" Value="{StaticResource TpSignal}" />
+        <Setter Property="WidthRequest" Value="4" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="VerticalOptions" Value="Fill" />
+        <Style.Triggers>
+            <DataTrigger TargetType="BoxView" Binding="{Binding IsHunter}" Value="True">
+                <Setter Property="Color" Value="{StaticResource TpHunter}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Badge chips: a pill frame (Border) wrapping a small uppercase label. The frame carries the
+         role's edge + wash; the label carries the role's text color. -->
+    <Style TargetType="Border" x:Key="LobbyBadgeFrame">
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 9" />
+        <Setter Property="Padding" Value="8,3" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <Style TargetType="Border" x:Key="LobbyBadgeHunterFrame" BasedOn="{StaticResource LobbyBadgeFrame}">
+        <Setter Property="Stroke" Value="{StaticResource TpHunterEdgeBrush}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource TpHunterWash}" />
+    </Style>
+    <Style TargetType="Border" x:Key="LobbyBadgePreyFrame" BasedOn="{StaticResource LobbyBadgeFrame}">
+        <Setter Property="Stroke" Value="{StaticResource TpSignalEdgeBrush}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource TpSignalWash}" />
+    </Style>
+    <Style TargetType="Border" x:Key="LobbyBadgeOwnerFrame" BasedOn="{StaticResource LobbyBadgeFrame}">
+        <Setter Property="Stroke" Value="{StaticResource TpCautionEdgeBrush}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource TpCautionWash}" />
+    </Style>
+    <!-- "YOU" is an identity marker, not a role — outline only, no fill, so it stays quieter. -->
+    <Style TargetType="Border" x:Key="LobbyBadgeYouFrame" BasedOn="{StaticResource LobbyBadgeFrame}">
+        <Setter Property="Stroke" Value="{StaticResource TpSignalEdgeBrush}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <!-- Readiness lamp: unlit (ghost outline) until the operative stands by, then it lights up on the
+         signal axis. One chip with two states rather than two chips, so the row never reflows. -->
+    <Style TargetType="Border" x:Key="LobbyBadgeReadyFrame" BasedOn="{StaticResource LobbyBadgeFrame}">
+        <Setter Property="Stroke" Value="{StaticResource TpLineBrush}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Style.Triggers>
+            <DataTrigger TargetType="Border" Binding="{Binding IsReady}" Value="True">
+                <Setter Property="Stroke" Value="{StaticResource TpSignalEdgeBrush}" />
+                <Setter Property="BackgroundColor" Value="{StaticResource TpSignalWashLit}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="BoxView" x:Key="LobbyReadyLamp">
+        <Setter Property="Color" Value="{StaticResource TpTextGhost}" />
+        <Setter Property="WidthRequest" Value="6" />
+        <Setter Property="HeightRequest" Value="6" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Style.Triggers>
+            <DataTrigger TargetType="BoxView" Binding="{Binding IsReady}" Value="True">
+                <Setter Property="Color" Value="{StaticResource TpSignal}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Small uppercase badge text — base + per-role colored variants. -->
     <Style TargetType="Label" x:Key="LobbyBadge">
         <Setter Property="FontFamily" Value="{StaticResource TpBodyFont}" />
         <Setter Property="FontSize" Value="10" />
@@ -567,13 +649,21 @@
         <Setter Property="TextColor" Value="{StaticResource TpHunter}" />
     </Style>
     <Style TargetType="Label" x:Key="LobbyRolePrey" BasedOn="{StaticResource LobbyBadge}">
-        <Setter Property="TextColor" Value="{StaticResource TpTextSoft}" />
-    </Style>
-    <Style TargetType="Label" x:Key="LobbyReadyBadge" BasedOn="{StaticResource LobbyBadge}">
         <Setter Property="TextColor" Value="{StaticResource TpSignal}" />
     </Style>
-    <Style TargetType="Label" x:Key="LobbyNotReadyBadge" BasedOn="{StaticResource LobbyBadge}">
+    <Style TargetType="Label" x:Key="LobbyRoleOwner" BasedOn="{StaticResource LobbyBadge}">
         <Setter Property="TextColor" Value="{StaticResource TpCaution}" />
+    </Style>
+    <Style TargetType="Label" x:Key="LobbyBadgeYou" BasedOn="{StaticResource LobbyBadge}">
+        <Setter Property="TextColor" Value="{StaticResource TpSignalDim}" />
+    </Style>
+    <Style TargetType="Label" x:Key="LobbyReadyBadge" BasedOn="{StaticResource LobbyBadge}">
+        <Setter Property="TextColor" Value="{StaticResource TpTextGhost}" />
+        <Style.Triggers>
+            <DataTrigger TargetType="Label" Binding="{Binding IsReady}" Value="True">
+                <Setter Property="TextColor" Value="{StaticResource TpSignal}" />
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
 
     <!-- ============================================================= -->

@@ -415,7 +415,7 @@ public sealed class GameLobbyViewModel : ObservableObject
         Participants.Clear();
         // Same partial-frame guard as SeedSelectors: a stream snapshot may omit the participant list.
         foreach (var participant in game.Participants ?? [])
-            Participants.Add(new LobbyParticipant(participant, game.HunterUserId, game.OwnerUserId));
+            Participants.Add(new LobbyParticipant(participant, game.HunterUserId, game.OwnerUserId, _selfUserId));
     }
 
     // Owner selector edits persist immediately; seeding and non-owner changes never trigger a save.

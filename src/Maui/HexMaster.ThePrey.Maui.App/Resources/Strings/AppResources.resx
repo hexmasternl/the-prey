@@ -205,6 +205,8 @@
   <data name="Lobby_Participants_Title" xml:space="preserve"><value>OPERATIVES</value></data>
   <data name="Lobby_Role_Hunter" xml:space="preserve"><value>HUNTER</value></data>
   <data name="Lobby_Role_Prey" xml:space="preserve"><value>PREY</value></data>
+  <data name="Lobby_Role_Owner" xml:space="preserve"><value>HOST</value></data>
+  <data name="Lobby_You" xml:space="preserve"><value>YOU</value></data>
   <data name="Lobby_Ready" xml:space="preserve"><value>READY</value></data>
   <data name="Lobby_NotReady" xml:space="preserve"><value>NOT READY</value></data>
   <data name="Lobby_SetReady" xml:space="preserve"><value>SET READY</value></data>

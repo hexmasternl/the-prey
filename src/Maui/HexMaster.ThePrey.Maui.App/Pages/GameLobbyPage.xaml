@@ -77,37 +77,61 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="vm:LobbyParticipant">
                                 <!-- Tapping designates the hunter; inert for non-owners (guarded in the VM). -->
-                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Padding="4,10">
-                                    <Grid.GestureRecognizers>
+                                <Border Style="{StaticResource LobbyParticipantCard}">
+                                    <Border.GestureRecognizers>
                                         <TapGestureRecognizer
                                             Command="{Binding BindingContext.DesignateHunterCommand, Source={x:Reference LobbyRoot}}"
                                             CommandParameter="{Binding .}" />
-                                    </Grid.GestureRecognizers>
+                                    </Border.GestureRecognizers>
 
-                                    <Label Grid.Column="0"
-                                           Text="{Binding DisplayName}"
-                                           Style="{StaticResource LocationItemName}" />
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                        <BoxView Grid.Column="0" Style="{StaticResource LobbyRoleStripe}" />
 
-                                    <!-- Role badge (Hunter / Prey) -->
-                                    <Grid Grid.Column="1">
-                                        <Label Text="{loc:Translate Lobby_Role_Hunter}"
-                                               Style="{StaticResource LobbyRoleHunter}"
-                                               IsVisible="{Binding IsHunter}" />
-                                        <Label Text="{loc:Translate Lobby_Role_Prey}"
-                                               Style="{StaticResource LobbyRolePrey}"
-                                               IsVisible="{Binding IsPrey}" />
+                                        <VerticalStackLayout Grid.Column="1" Spacing="8">
+
+                                            <!-- Call sign, with the self marker alongside it. -->
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Label Text="{Binding DisplayName}"
+                                                       Style="{StaticResource LocationItemName}" />
+                                                <Border Style="{StaticResource LobbyBadgeYouFrame}"
+                                                        IsVisible="{Binding IsSelf}">
+                                                    <Label Text="{loc:Translate Lobby_You}"
+                                                           Style="{StaticResource LobbyBadgeYou}" />
+                                                </Border>
+                                            </HorizontalStackLayout>
+
+                                            <!-- Role, host marker, and the readiness lamp. -->
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Border Style="{StaticResource LobbyBadgeHunterFrame}"
+                                                        IsVisible="{Binding IsHunter}">
+                                                    <Label Text="{loc:Translate Lobby_Role_Hunter}"
+                                                           Style="{StaticResource LobbyRoleHunter}" />
+                                                </Border>
+                                                <Border Style="{StaticResource LobbyBadgePreyFrame}"
+                                                        IsVisible="{Binding IsPrey}">
+                                                    <Label Text="{loc:Translate Lobby_Role_Prey}"
+                                                           Style="{StaticResource LobbyRolePrey}" />
+                                                </Border>
+                                                <Border Style="{StaticResource LobbyBadgeOwnerFrame}"
+                                                        IsVisible="{Binding IsOwner}">
+                                                    <Label Text="{loc:Translate Lobby_Role_Owner}"
+                                                           Style="{StaticResource LobbyRoleOwner}" />
+                                                </Border>
+
+                                                <!-- Lit / unlit per IsReady; absent for the creator, who never readies up. -->
+                                                <Border Style="{StaticResource LobbyBadgeReadyFrame}"
+                                                        IsVisible="{Binding ShowReadyIndicator}">
+                                                    <HorizontalStackLayout Spacing="6">
+                                                        <BoxView Style="{StaticResource LobbyReadyLamp}" />
+                                                        <Label Text="{loc:Translate Lobby_Ready}"
+                                                               Style="{StaticResource LobbyReadyBadge}" />
+                                                    </HorizontalStackLayout>
+                                                </Border>
+                                            </HorizontalStackLayout>
+
+                                        </VerticalStackLayout>
                                     </Grid>
-
-                                    <!-- Ready badge (Ready / Not ready) — hidden for the game creator, who never readies up. -->
-                                    <Grid Grid.Column="2">
-                                        <Label Text="{loc:Translate Lobby_Ready}"
-                                               Style="{StaticResource LobbyReadyBadge}"
-                                               IsVisible="{Binding ShowReady}" />
-                                        <Label Text="{loc:Translate Lobby_NotReady}"
-                                               Style="{StaticResource LobbyNotReadyBadge}"
-                                               IsVisible="{Binding ShowNotReady}" />
-                                    </Grid>
-                                </Grid>
+                                </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
