@@ -38,6 +38,7 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
     private Guid? _hunterUserId;
     private string _status = "Ready";
     private DateTimeOffset? _hunterMayMoveAt;
+    private int _gameDurationLeftSeconds;
     private bool _handedOff;
     private bool _readersStarted;
 
@@ -213,6 +214,7 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
         _hunterUserId = state.HunterUserId;
         _status = state.Status;
         _hunterMayMoveAt = state.HunterMayMoveAt;
+        _gameDurationLeftSeconds = state.GameDurationLeft;
         PlayfieldPolygon = state.PlayfieldCoordinates;
 
         var blips = new List<MapBlip>(state.Participants.Count);
@@ -325,7 +327,10 @@ public sealed class HunterGameViewModel : ObservableObject, IDisposable
         if (_trackingStarted || _gameId == Guid.Empty)
             return;
         _trackingStarted = true;
-        _ = _locationTracker.StartAsync(_gameId);
+        // Hand the tracker the game's remaining duration so it stops itself at game end even if this page
+        // is gone and the server's game-over signal never reaches the background loop.
+        var remaining = _gameDurationLeftSeconds > 0 ? TimeSpan.FromSeconds(_gameDurationLeftSeconds) : (TimeSpan?)null;
+        _ = _locationTracker.StartAsync(_gameId, remaining);
     }
 
     private void HandOffOnce()

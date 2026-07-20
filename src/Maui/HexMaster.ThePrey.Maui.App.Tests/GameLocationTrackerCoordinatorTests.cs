@@ -205,4 +205,51 @@ public class GameLocationTrackerCoordinatorTests
         Assert.Equal(GameLocationTrackerCoordinator.TickKind.Transient, kind);
         _report.Verify(r => r.ReportAsync(It.IsAny<Guid>(), It.IsAny<RecordLocationRequest>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    // --- 8.5 Failsafe deadline: tracking stops once the game's known duration (plus grace) elapses ---
+
+    [Fact]
+    public async Task StartAsync_ShouldStopTracking_WhenRemainingDurationElapses()
+    {
+        var sut = CreateSut();
+
+        // Deadline = now + 5s remaining + 30s grace = 35s; each cadence step (10s) advances toward it.
+        await sut.StartAsync(_gameId, TimeSpan.FromSeconds(5));
+        Assert.True(sut.IsTracking);
+
+        await AdvanceUntilAsync(() => !sut.IsTracking, TimeSpan.FromSeconds(10));
+
+        Assert.False(sut.IsTracking);
+        _host.Verify(h => h.StopAsync(), Times.Once);
+        _source.Verify(s => s.StopAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartAsync_ShouldKeepTracking_WhenNoRemainingGiven()
+    {
+        var sut = CreateSut();
+
+        await sut.StartAsync(_gameId); // No deadline — only a server game-over or explicit stop ends it.
+
+        // Drive many cadence steps well past any plausible game length; without a deadline it must not stop.
+        for (var i = 0; i < 200; i++)
+        {
+            _time.Advance(TimeSpan.FromSeconds(10));
+            await Task.Delay(5);
+        }
+
+        Assert.True(sut.IsTracking);
+        await sut.StopAsync();
+    }
+
+    // Advances the fake clock a cadence at a time, yielding between steps so the loop task (spawned via
+    // Task.Run) actually registers and fires its next Task.Delay before we check the condition.
+    private async Task AdvanceUntilAsync(Func<bool> condition, TimeSpan step, int maxAttempts = 200)
+    {
+        for (var i = 0; i < maxAttempts && !condition(); i++)
+        {
+            _time.Advance(step);
+            await Task.Delay(5);
+        }
+    }
 }

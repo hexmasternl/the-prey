@@ -12,7 +12,8 @@ public sealed class GameLocationTracker : IGameLocationTracker
 
     public GameLocationTracker(GameLocationTrackerCoordinator coordinator) => _coordinator = coordinator;
 
-    public Task StartAsync(Guid gameId, CancellationToken ct = default) => _coordinator.StartAsync(gameId, ct);
+    public Task StartAsync(Guid gameId, TimeSpan? remaining = null, CancellationToken ct = default) =>
+        _coordinator.StartAsync(gameId, remaining, ct);
 
     public Task StopAsync() => _coordinator.StopAsync();
 }

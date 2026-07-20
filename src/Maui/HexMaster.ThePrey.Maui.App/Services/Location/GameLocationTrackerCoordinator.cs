@@ -17,11 +17,21 @@ namespace HexMaster.ThePrey.Maui.App.Services.Location;
 /// <para>Start reports the first fix inline (so a just-started game is located immediately) and then
 /// launches a background loop for subsequent ticks; the loop is driven by <see cref="TimeProvider"/> so
 /// it is deterministic under test.</para>
+///
+/// <para>Start may be given the game's remaining duration; the coordinator turns that into a wall-clock
+/// deadline and stops itself once it passes (plus a small <see cref="DeadlineGrace"/>). This is a
+/// client-side failsafe so background reporting always ends at game-over even when the server's game-over
+/// signal never reaches us — e.g. the app is backgrounded and the live channel is disconnected. The
+/// server's game-over signal and an explicit stop remain the primary, immediate stop paths.</para>
 /// </summary>
 public sealed class GameLocationTrackerCoordinator
 {
     internal static readonly TimeSpan DefaultInterval = TimeSpan.FromSeconds(10);
     internal static readonly TimeSpan MinInterval = TimeSpan.FromSeconds(5);
+
+    // Tracking runs slightly past the nominal game end so the server's game-over signal stays the primary
+    // stop path and a legitimately-still-resolving final stage is never cut off a hair early.
+    internal static readonly TimeSpan DeadlineGrace = TimeSpan.FromSeconds(30);
 
     private readonly IContinuousLocationSource _source;
     private readonly IBackgroundExecutionHost _host;
@@ -35,6 +45,7 @@ public sealed class GameLocationTrackerCoordinator
 
     private Guid? _trackingGameId;
     private TimeSpan _currentInterval = DefaultInterval;
+    private DateTimeOffset? _deadline;
     private CancellationTokenSource? _loopCts;
     private Task? _loopTask;
 
@@ -63,9 +74,11 @@ public sealed class GameLocationTrackerCoordinator
     /// <summary>
     /// Begins tracking <paramref name="gameId"/>. No-op if already tracking the same game. If already
     /// tracking a different game, the previous loop is stopped first. Reports the first fix inline; if
-    /// that first report already says the game is over, tracking never starts. Never throws.
+    /// that first report already says the game is over, tracking never starts. When <paramref name="remaining"/>
+    /// is a positive duration, tracking also stops itself once that much time (plus a grace) has elapsed —
+    /// a failsafe against a game-over signal that never arrives. Never throws.
     /// </summary>
-    public async Task StartAsync(Guid gameId, CancellationToken ct = default)
+    public async Task StartAsync(Guid gameId, TimeSpan? remaining = null, CancellationToken ct = default)
     {
         await _gate.WaitAsync(ct);
         try
@@ -77,6 +90,9 @@ public sealed class GameLocationTrackerCoordinator
                 await StopTrackingLoopAsync(); // Switching games — retire the previous loop.
 
             _currentInterval = DefaultInterval;
+            _deadline = remaining is { } left && left > TimeSpan.Zero
+                ? _timeProvider.GetUtcNow() + left + DeadlineGrace
+                : null;
             _trackingGameId = gameId;
 
             await SafeAsync(() => _source.StartAsync(ct), "start the location source");
@@ -152,6 +168,16 @@ public sealed class GameLocationTrackerCoordinator
             {
                 // The first fix was already reported by StartAsync; wait one cadence before the next.
                 await Task.Delay(_currentInterval, _timeProvider, ct);
+
+                if (DeadlineReached())
+                {
+                    // The game's known duration has elapsed and no game-over signal arrived — stop the
+                    // failsafe way. Tear the adapters down here; an external StopAsync stays a safe no-op.
+                    _logger.LogInformation("Location tracking reached the game-duration deadline; stopping.");
+                    await TearDownAsync();
+                    ClearTrackingIfCurrent(gameId);
+                    return;
+                }
 
                 var kind = await ExecuteTickAsync(gameId, ct);
                 if (kind == TickKind.GameOver)
@@ -235,6 +261,9 @@ public sealed class GameLocationTrackerCoordinator
         var interval = TimeSpan.FromSeconds(seconds);
         return interval < MinInterval ? MinInterval : interval;
     }
+
+    // True once the game's known duration (plus grace) has elapsed. No deadline set → never true.
+    private bool DeadlineReached() => _deadline is { } dl && _timeProvider.GetUtcNow() >= dl;
 
     private void ClearTrackingIfCurrent(Guid gameId)
     {
