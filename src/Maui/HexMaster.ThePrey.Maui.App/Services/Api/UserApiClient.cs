@@ -130,13 +130,22 @@ public sealed class UserApiClient : IUserApiClient
     /// <summary>Wire model for the backend <c>UserDto</c> (camelCase JSON).</summary>
     private sealed record UserPayload
     {
+        // The caller's internal user id. Must be carried through to UserSettings: it is the app's only
+        // source for "who am I", and every id comparison depends on it — the gameplay hand-off's
+        // hunter-vs-prey branch (GameplayRouter), the lobby's ownership derivation off a shared
+        // broadcast, and the outcome page's role. Dropping it silently routes every hunter to the
+        // prey page, because ICurrentUserProvider then resolves no id at all.
+        [JsonPropertyName("userId")]
+        public Guid UserId { get; init; }
+
         [JsonPropertyName("displayName")]
         public string? DisplayName { get; init; }
 
         [JsonPropertyName("preferredLanguage")]
         public string? PreferredLanguage { get; init; }
 
-        public UserSettings ToSettings() => new(DisplayName ?? string.Empty, PreferredLanguage ?? string.Empty);
+        public UserSettings ToSettings() =>
+            new(DisplayName ?? string.Empty, PreferredLanguage ?? string.Empty, UserId);
     }
 
     /// <summary>Wire model for the backend <c>UpdateUserRequest</c> (camelCase JSON).</summary>

@@ -35,6 +35,20 @@ public class UserApiClientTests
     }
 
     [Fact]
+    public async Task GetCurrentUserAsync_ShouldBindUserId()
+    {
+        // Regression: the payload dropped userId, so ICurrentUserProvider resolved no id and the gameplay
+        // hand-off silently sent every hunter to the prey page. This id is the app's only "who am I".
+        var userId = Guid.NewGuid();
+        var json = $$"""{"userId":"{{userId}}","displayName":"Ghost","callsign":"Reaper","emailAddress":"a@b.c","preferredLanguage":"en"}""";
+        var sut = CreateSut(StubHttpMessageHandler.Returns(HttpStatusCode.OK, json));
+
+        var result = await sut.GetCurrentUserAsync("access");
+
+        Assert.Equal(userId, result.Settings!.UserId);
+    }
+
+    [Fact]
     public async Task GetCurrentUserAsync_ShouldSendBearerToken()
     {
         var handler = StubHttpMessageHandler.Returns(HttpStatusCode.OK, UserJson());
