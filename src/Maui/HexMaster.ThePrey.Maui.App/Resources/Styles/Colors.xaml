@@ -90,4 +90,18 @@
          JoinLaserSweep gradient. -->
     <Color x:Key="TpSignalBeam">#CC64FF00</Color>
     <Color x:Key="TpSignalBeamEdge">#0064FF00</Color>
+
+    <!-- Post-game outcome treatment. Victory reads as the signal-green success axis, defeat as the
+         hunter-red failure axis — the same two poles the rest of the game uses, named semantically so
+         the outcome page never reaches for a role color directly. The Halo variants are the low-alpha
+         wash behind the headline badge. -->
+    <Color x:Key="TpVictory">#64ff00</Color>
+    <Color x:Key="TpVictoryHalo">#2664FF00</Color>
+    <Color x:Key="TpDefeat">#ff2f1f</Color>
+    <Color x:Key="TpDefeatHalo">#26FF2F1F</Color>
+
+    <SolidColorBrush x:Key="TpVictoryBrush" Color="{StaticResource TpVictory}"/>
+    <SolidColorBrush x:Key="TpVictoryHaloBrush" Color="{StaticResource TpVictoryHalo}"/>
+    <SolidColorBrush x:Key="TpDefeatBrush" Color="{StaticResource TpDefeat}"/>
+    <SolidColorBrush x:Key="TpDefeatHaloBrush" Color="{StaticResource TpDefeatHalo}"/>
 </ResourceDictionary>
