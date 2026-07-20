@@ -122,7 +122,7 @@ public class HunterGameViewModelTests
         await sut.LoadAsync();
 
         Assert.Equal(GamePhase.Ended, sut.Phase);
-        _nav.Verify(n => n.GoToOutcomeAsync(), Times.Once);
+        _nav.Verify(n => n.GoToOutcomeAsync(_gameId, true), Times.Once);
     }
 
     // ---- head-start countdown ----
@@ -246,7 +246,7 @@ public class HunterGameViewModelTests
         _state.Push(State("Completed"));
 
         Assert.Equal(GamePhase.Ended, sut.Phase);
-        _nav.Verify(n => n.GoToOutcomeAsync(), Times.Once);
+        _nav.Verify(n => n.GoToOutcomeAsync(_gameId, true), Times.Once);
         sut.Deactivate();
     }
 
