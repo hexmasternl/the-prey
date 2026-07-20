@@ -220,6 +220,33 @@ public class GameLobbyViewModelTests
     }
 
     [Fact]
+    public async Task Activate_ShouldMarkOnlyTheSignedInUsersRowAsSelf()
+    {
+        // The "YOU" marker keys off the signed-in user id, which is resolved on activation — so exactly
+        // one row carries it, and a row's ready lamp is present for everyone except the creator.
+        var ownerId = Guid.NewGuid();
+        var selfId = Guid.NewGuid();
+        _currentUser.Setup(u => u.GetUserIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync(selfId);
+        var game = new GameDetails(
+            Guid.NewGuid(), "1234", "Lobby",
+            new GameConfigurationDetails(30, 5, 10, 120, 60),
+            [Participant(ownerId, "Owner"), Participant(selfId, "Me")],
+            HunterUserId: null, OwnerUserId: ownerId, IsOwnerPlayer: false, IsReadyToStart: false);
+        SetupLoad(game);
+        var sut = CreateSut();
+
+        await sut.ActivateAsync();
+
+        var me = sut.Participants.Single(p => p.UserId == selfId);
+        Assert.True(me.IsSelf);
+        Assert.True(me.ShowReadyIndicator);
+
+        var owner = sut.Participants.Single(p => p.UserId == ownerId);
+        Assert.False(owner.IsSelf);
+        Assert.False(owner.ShowReadyIndicator);
+    }
+
+    [Fact]
     public async Task DesignateHunter_ShouldBeInertForNonOwner()
     {
         var participant = new LobbyParticipant(Guid.NewGuid(), "Bob", false, false, false);
