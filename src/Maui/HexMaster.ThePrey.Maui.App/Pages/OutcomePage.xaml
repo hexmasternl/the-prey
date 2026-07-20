@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:HexMaster.ThePrey.Maui.App.Services.Localization"
+             x:Class="HexMaster.ThePrey.Maui.App.Pages.OutcomePage"
+             Shell.NavBarIsVisible="False"
+             Title="{loc:Translate Outcome_Headline_Neutral}">
+
+    <Grid Style="{StaticResource OutcomeContainer}" RowDefinitions="*,Auto">
+
+        <!-- Debriefing state: reading the finished game's record. -->
+        <VerticalStackLayout Grid.Row="0"
+                             Style="{StaticResource OutcomeStack}"
+                             IsVisible="{Binding IsBusy}">
+            <ActivityIndicator IsRunning="{Binding IsBusy}" />
+            <Label Text="{loc:Translate Outcome_Resolving}" Style="{StaticResource OutcomeBusyCaption}" />
+        </VerticalStackLayout>
+
+        <!-- Resolved / neutral result. -->
+        <VerticalStackLayout Grid.Row="0"
+                             Style="{StaticResource OutcomeStack}"
+                             IsVisible="{Binding HasResult}">
+
+            <!-- Victory badge. x:Name is the target of the code-behind pulse. -->
+            <Border x:Name="VictoryBadge"
+                    Style="{StaticResource OutcomeBadgeVictory}"
+                    IsVisible="{Binding ShowsVictory}">
+                <Label Text="&#x2713;" Style="{StaticResource OutcomeBadgeGlyphVictory}" />
+            </Border>
+
+            <!-- Defeat badge. -->
+            <Border Style="{StaticResource OutcomeBadgeDefeat}"
+                    IsVisible="{Binding LocalPlayerLost}">
+                <Label Text="&#x2715;" Style="{StaticResource OutcomeBadgeGlyphDefeat}" />
+            </Border>
+
+            <!-- One headline per treatment; the view model's result picks exactly one. -->
+            <Label Text="{Binding HeadlineText}"
+                   Style="{StaticResource OutcomeHeadlineVictory}"
+                   IsVisible="{Binding ShowsVictory}" />
+            <Label Text="{Binding HeadlineText}"
+                   Style="{StaticResource OutcomeHeadlineDefeat}"
+                   IsVisible="{Binding LocalPlayerLost}" />
+            <Label Text="{Binding HeadlineText}"
+                   Style="{StaticResource OutcomeHeadlineNeutral}"
+                   IsVisible="{Binding ShowsNeutral}" />
+
+            <Label Text="{Binding WinningSideText}"
+                   Style="{StaticResource OutcomeWinningSide}"
+                   IsVisible="{Binding IsResolved}" />
+
+            <Label Text="{Binding ReasonText}" Style="{StaticResource OutcomeReason}" />
+
+            <Label Text="{Binding SurvivorsText}"
+                   Style="{StaticResource OutcomeSurvivors}"
+                   IsVisible="{Binding HasSurvivors}" />
+        </VerticalStackLayout>
+
+        <!-- The single terminal action. Always available, including in the neutral state. -->
+        <Button Grid.Row="1"
+                Text="{loc:Translate Outcome_Close}"
+                Command="{Binding CloseCommand}"
+                Style="{StaticResource OutcomeCloseButton}" />
+    </Grid>
+</ContentPage>
