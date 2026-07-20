@@ -22,13 +22,11 @@ public sealed class GameplayRouter : ILobbyNavigator, IGameplayNavigator
     /// <summary>Shell route for the prey game play page.</summary>
     public const string PreyGameRoute = "gameplay-prey";
 
-    /// <summary>Shell route for the post-game outcome page (placeholder until the outcome change lands).</summary>
-    public const string OutcomeRoute = "game-outcome";
-
     private readonly IGameApiClient _gameApi;
     private readonly IAccessTokenProvider _accessTokenProvider;
     private readonly ICurrentUserProvider _currentUser;
     private readonly IMenuNavigator _navigator;
+    private readonly IOutcomeNavigator _outcomeNavigator;
     private readonly ILogger<GameplayRouter> _logger;
 
     public GameplayRouter(
@@ -36,23 +34,45 @@ public sealed class GameplayRouter : ILobbyNavigator, IGameplayNavigator
         IAccessTokenProvider accessTokenProvider,
         ICurrentUserProvider currentUser,
         IMenuNavigator navigator,
+        IOutcomeNavigator outcomeNavigator,
         ILogger<GameplayRouter> logger)
     {
         _gameApi = gameApi;
         _accessTokenProvider = accessTokenProvider;
         _currentUser = currentUser;
         _navigator = navigator;
+        _outcomeNavigator = outcomeNavigator;
         _logger = logger;
     }
 
-    public Task GoToGameplayAsync() => RouteToRoleAsync(CancellationToken.None);
+    public Task GoToGameplayAsync() => RouteToRoleAsync(replaceCurrentPage: true, CancellationToken.None);
 
-    public Task GoToOutcomeAsync() => _navigator.GoToAsync(OutcomeRoute);
+    public Task ResumeGameplayAsync() => RouteToRoleAsync(replaceCurrentPage: false, CancellationToken.None);
 
-    private async Task RouteToRoleAsync(CancellationToken ct)
+    /// <summary>
+    /// Fulfils the gameplay pages' game-ended hand-off by delegating to the outcome navigator, which owns
+    /// the outcome route, its query parameters, and the once-per-game guard.
+    /// </summary>
+    public Task GoToOutcomeAsync(Guid gameId, bool isHunter) =>
+        _outcomeNavigator.GoToOutcomeAsync(gameId, isHunter);
+
+    /// <summary>
+    /// Resolves the role route and navigates to it. <paramref name="replaceCurrentPage"/> selects the
+    /// hand-off's stack semantics: the lobby is replaced (it must not survive underneath), while the
+    /// main menu is pushed over (it is the Shell root, so <c>ReplaceAsync</c>'s leading <c>..</c> has
+    /// nothing to pop, and the player should be able to back out to the menu).
+    /// </summary>
+    private async Task RouteToRoleAsync(bool replaceCurrentPage, CancellationToken ct)
     {
         var route = await ResolveRoleRouteAsync(ct);
-        await _navigator.GoToAsync(route);
+        if (replaceCurrentPage)
+        {
+            await _navigator.ReplaceAsync(route);
+        }
+        else
+        {
+            await _navigator.GoToAsync(route);
+        }
     }
 
     /// <summary>Resolves the hunter route when the caller is this game's hunter; otherwise the prey route.</summary>
