@@ -34,10 +34,17 @@ public sealed class JoinGameCommandHandler : ICommandHandler<JoinGameCommand, Jo
             if (!string.Equals(command.JoinCode, game.GameCode, StringComparison.Ordinal))
                 throw new InvalidJoinCodeException();
 
+            var wasReadyToStart = game.IsReadyToStart;
+
             game.JoinLobby(GameParticipant.Create(command.UserId, command.DisplayName, command.ProfilePictureUrl));
 
             await _games.UpdateAsync(game, ct);
             await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantJoined, game.ToParticipantDto(command.UserId), ct);
+
+            if (wasReadyToStart != game.IsReadyToStart)
+            {
+                await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
+            }
 
             return new JoinGameResult(game.ToDto(command.UserId));
         }

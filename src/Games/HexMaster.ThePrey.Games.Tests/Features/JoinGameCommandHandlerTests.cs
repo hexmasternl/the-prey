@@ -1,7 +1,9 @@
+using HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Features.JoinGame;
 using HexMaster.ThePrey.Games.Notifications;
 using HexMaster.ThePrey.Games.Tests.Factories;
+using HexMaster.ThePrey.IntegrationEvents;
 using Moq;
 
 namespace HexMaster.ThePrey.Games.Tests.Features;
@@ -94,5 +96,38 @@ public sealed class JoinGameCommandHandlerTests
 
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
         _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPublishConfigurationChanged_WhenNewUnreadyJoinerFlipsReadyToLobby()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(2, out var ids);
+        game.DesignateHunter(ids[0]);
+        Assert.Equal(GameStatus.Ready, game.Status);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), game.GameCode, "Carol", null), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(GameStatus.Lobby, game.Status);
+        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantJoined,
+            It.IsAny<ParticipantDto>(), It.IsAny<CancellationToken>()), Times.Once);
+        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged,
+            It.IsAny<GameConfigurationChangedDto>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotPublishConfigurationChanged_WhenJoiningAPlainLobbyGame()
+    {
+        var game = GameFaker.LobbyGame();
+        Assert.Equal(GameStatus.Lobby, game.Status);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(new JoinGameCommand(game.Id, Guid.NewGuid(), game.GameCode, "Alice", null), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(GameStatus.Lobby, game.Status);
+        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged,
+            It.IsAny<GameConfigurationChangedDto>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

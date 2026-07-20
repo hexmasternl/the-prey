@@ -7,3 +7,4 @@
 - [Commands must be public sealed record](feedback_command_visibility.md) — Commands/results must be public to satisfy ICommandHandler<TCommand,TResult> interface constraints
 - [TagParticipant proximity guard](feedback_tag_proximity_guard.md) — TagParticipant requires RecordLocation for both hunter and target; use GameFaker.RecordColocated in test setup
 - [Internal method test access](feedback_test_internals_visibility.md) — GameMappings internal methods not accessible from test project; test via public query handlers instead
+- [Lobby readiness broadcast gap](project_lobby_readiness_broadcast.md) — lobby-mutating handlers must broadcast ConfigurationChanged when Game.IsReadyToStart flips; owner is excluded from GameFaker's _participants

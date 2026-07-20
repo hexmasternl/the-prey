@@ -86,6 +86,61 @@ public sealed class LeaveGameCommandHandlerTests
         _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Handle_ShouldPublishConfigurationChanged_WhenRemovingDesignatedHunterFlipsReadyToLobby()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(2, out var ids);
+        game.DesignateHunter(ids[0]);
+        Assert.Equal(GameStatus.Ready, game.Status);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(new LeaveGameCommand(game.Id, ids[0]), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(GameStatus.Lobby, game.Status);
+        _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantRemoved,
+            It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
+        _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged,
+            It.IsAny<GameConfigurationChangedDto>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPublishConfigurationChanged_WhenRemovingUnreadyBlockerFlipsLobbyToReady()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids, markReady: false);
+        game.DesignateHunter(ids[0]);
+        game.SetReady(ids[0]);
+        game.SetReady(ids[1]);
+        // ids[2] intentionally left not ready -> blocks readiness.
+        Assert.Equal(GameStatus.Lobby, game.Status);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(new LeaveGameCommand(game.Id, ids[2]), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(GameStatus.Ready, game.Status);
+        _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantRemoved,
+            It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
+        _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged,
+            It.IsAny<GameConfigurationChangedDto>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotPublishConfigurationChanged_WhenRemainingRosterStillMeetsPreconditions()
+    {
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.DesignateHunter(ids[0]);
+        Assert.Equal(GameStatus.Ready, game.Status);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(new LeaveGameCommand(game.Id, ids[2]), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(GameStatus.Ready, game.Status);
+        _lobbyEventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged,
+            It.IsAny<GameConfigurationChangedDto>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     // ---------- Lobby: owner leaves (cancels game) ----------
 
     [Fact]

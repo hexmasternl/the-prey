@@ -33,10 +33,17 @@ public sealed class SetReadyCommandHandler : ICommandHandler<SetReadyCommand, Se
             if (!game.IsVisibleTo(command.UserId))
                 throw new InvalidOperationException("This player is not in the lobby.");
 
+            var wasReadyToStart = game.IsReadyToStart;
+
             game.SetReady(command.UserId);
 
             await _games.UpdateAsync(game, ct);
             await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged, game.ToParticipantDto(command.UserId), ct);
+
+            if (wasReadyToStart != game.IsReadyToStart)
+            {
+                await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
+            }
 
             return new SetReadyResult(game.ToDto(command.UserId));
         }

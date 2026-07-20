@@ -88,9 +88,16 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
             if (!game.IsParticipant(userId))
                 throw new ArgumentException("This user is not in the lobby.", nameof(userId));
 
+            var wasReadyToStart = game.IsReadyToStart;
+
             game.RemoveLobbyPlayer(userId);
             await _games.UpdateAsync(game, ct);
             await _lobbyEventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantRemoved, new { userId }, ct);
+
+            if (wasReadyToStart != game.IsReadyToStart)
+            {
+                await _lobbyEventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
+            }
         }
     }
 

@@ -33,10 +33,17 @@ public sealed class RemoveLobbyPlayerCommandHandler : ICommandHandler<RemoveLobb
             if (game.OwnerUserId != command.OwnerUserId)
                 throw new InvalidOperationException("Only the game owner can remove players.");
 
+            var wasReadyToStart = game.IsReadyToStart;
+
             game.RemoveLobbyPlayer(command.TargetUserId);
 
             await _games.UpdateAsync(game, ct);
             await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantRemoved, new { userId = command.TargetUserId }, ct);
+
+            if (wasReadyToStart != game.IsReadyToStart)
+            {
+                await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
+            }
 
             return new RemoveLobbyPlayerResult(game.ToDto(command.OwnerUserId));
         }
