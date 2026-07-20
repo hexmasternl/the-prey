@@ -1,3 +1,4 @@
 - [Game Lobby Page](project-game-lobby.md) — Web PubSub lobby, owner/player branching, route at games/:id/lobby
-- [Real-time Transport](project-realtime-transport.md) — SSE replaced with Azure Web PubSub; WebPubSubStream + GameStreamService, event envelope shape, negotiate endpoint
+- [Real-time Transport](project-realtime-transport.md) — native WebSocket to Web PubSub (no SDK); versioned envelope protocol per docs/api/realtime.md
 - [Game Location Service](project-game-location.md) — native Android foreground service for prey GPS broadcasting, Capacitor plugin + Angular service fallback
+- [Game State Service](project-game-state-service.md) — single source-of-truth GameStateService (2026-07-17); lobby/prey/hunter read from it, no per-page polling/sockets
