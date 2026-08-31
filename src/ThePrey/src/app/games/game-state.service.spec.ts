@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { GameStateService } from './game-state.service';
-import { GameDto, GamesService, GameStatusDto } from './games.service';
+import { FullGameStateDto, GameDto, GamesService, GameStatusDto } from './games.service';
 import { GameStreamService, RealtimeEnvelope } from './game-stream.service';
 import { UserStateService } from '../users/user-state.service';
 
@@ -86,6 +86,25 @@ function createGame(overrides: Partial<GameDto> = {}): GameDto {
   };
 }
 
+/**
+ * A `GET /games/{id}/gamestate` response — the one authoritative snapshot read. `status` and
+ * `roleState` are null outside InProgress, exactly as the server sends them.
+ */
+function createFullState(
+  game: GameDto = createGame(),
+  extras: Partial<Omit<FullGameStateDto, 'game'>> = {},
+): FullGameStateDto {
+  return {
+    game,
+    playfieldName: 'Test Playfield',
+    playfieldCoordinates: [],
+    status: null,
+    roleState: null,
+    serverTime: '2026-06-11T00:00:00Z',
+    ...extras,
+  };
+}
+
 describe('GameStateService', () => {
   let service: GameStateService;
   let stream: FakeGameStreamService;
@@ -93,12 +112,14 @@ describe('GameStateService', () => {
 
   beforeEach(() => {
     stream = new FakeGameStreamService();
+    // One authoritative read — the service must never reach for the older per-slice endpoints.
     gamesService = jasmine.createSpyObj<GamesService>('GamesService', [
+      'getFullGameState',
       'getGame',
       'getGameStatus',
       'getGameState',
     ]);
-    gamesService.getGame.and.resolveTo(createGame());
+    gamesService.getFullGameState.and.resolveTo(createFullState());
 
     TestBed.configureTestingModule({
       providers: [
@@ -116,25 +137,31 @@ describe('GameStateService', () => {
     service.stop();
   });
 
-  it('loads a full snapshot on start without status/state while not InProgress', async () => {
+  it('loads the whole snapshot from the single gamestate read on start', async () => {
     await service.start('game-1');
 
-    expect(gamesService.getGame).toHaveBeenCalledWith('game-1');
-    expect(gamesService.getGameStatus).not.toHaveBeenCalled();
+    expect(gamesService.getFullGameState).toHaveBeenCalledWith('game-1');
+    expect(gamesService.getFullGameState).toHaveBeenCalledTimes(1);
     expect(service.state()?.game.id).toBe('game-1');
     expect(service.state()?.status).toBeNull();
     expect(stream.connectCalls).toEqual(['game-1']);
   });
 
-  it('also loads status and role state while InProgress', async () => {
-    gamesService.getGame.and.resolveTo(createGame({ status: 'InProgress' }));
-    gamesService.getGameStatus.and.resolveTo({ gameDurationLeft: 100 } as GameStatusDto);
-    gamesService.getGameState.and.resolveTo({ hunterDistanceMeters: 42, preyLocations: [] });
+  it('never falls back to the superseded per-slice reads', async () => {
+    gamesService.getFullGameState.and.resolveTo(
+      createFullState(createGame({ status: 'InProgress' }), {
+        status: { gameDurationLeft: 100 } as GameStatusDto,
+        roleState: { hunterDistanceMeters: 42, preyLocations: [] },
+      }),
+    );
 
     await service.start('game-1');
 
-    expect(gamesService.getGameStatus).toHaveBeenCalledWith('game-1');
-    expect(gamesService.getGameState).toHaveBeenCalledWith('game-1');
+    // Everything came from the one call — three round-trips became one.
+    expect(gamesService.getFullGameState).toHaveBeenCalledTimes(1);
+    expect(gamesService.getGame).not.toHaveBeenCalled();
+    expect(gamesService.getGameStatus).not.toHaveBeenCalled();
+    expect(gamesService.getGameState).not.toHaveBeenCalled();
     expect(service.state()?.status?.gameDurationLeft).toBe(100);
     expect(service.state()?.roleState?.hunterDistanceMeters).toBe(42);
   });
@@ -235,13 +262,13 @@ describe('GameStateService', () => {
 
   it('resyncs (re-fetches) instead of applying a message with an unsupported version', async () => {
     await service.start('game-1');
-    gamesService.getGame.calls.reset();
+    gamesService.getFullGameState.calls.reset();
 
     stream.emit(envelope('participant-removed', 1, { userId: 'p2' }, /* v */ 2));
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(gamesService.getGame).toHaveBeenCalled();
+    expect(gamesService.getFullGameState).toHaveBeenCalled();
     // The out-of-version delta itself must not have been applied.
     expect(service.state()!.game.participants.map(p => p.userId)).toEqual(['p1', 'p2']);
   });
@@ -249,26 +276,26 @@ describe('GameStateService', () => {
   it('resyncs instead of applying an out-of-order (gapped) message', async () => {
     await service.start('game-1');
     stream.emit(envelope('participant-removed', 1, { userId: 'never-applied' }));
-    gamesService.getGame.calls.reset();
+    gamesService.getFullGameState.calls.reset();
 
     // seq should be 2 next; 5 is a gap.
     stream.emit(envelope('participant-removed', 5, { userId: 'p2' }));
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(gamesService.getGame).toHaveBeenCalled();
+    expect(gamesService.getFullGameState).toHaveBeenCalled();
     expect(service.state()!.game.participants.map(p => p.userId)).toEqual(['p1', 'p2']);
   });
 
   it('resyncs on a resync-requested control message', async () => {
     await service.start('game-1');
-    gamesService.getGame.calls.reset();
+    gamesService.getFullGameState.calls.reset();
 
     stream.emit(envelope('resync-requested', 1, { reason: 'server-hint' }));
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(gamesService.getGame).toHaveBeenCalled();
+    expect(gamesService.getFullGameState).toHaveBeenCalled();
   });
 
   it('notifies every subscriber and isolates one that throws', async () => {
@@ -299,7 +326,7 @@ describe('GameStateService', () => {
   });
 
   it('reports unavailable and disconnects on a terminal 403', async () => {
-    gamesService.getGame.and.rejectWith(new HttpErrorResponse({ status: 403 }));
+    gamesService.getFullGameState.and.rejectWith(new HttpErrorResponse({ status: 403 }));
 
     await service.start('game-1');
 
@@ -316,7 +343,7 @@ describe('GameStateService', () => {
   });
 
   it('keeps ownership sticky across a configuration-changed that omits isOwnerPlayer', async () => {
-    gamesService.getGame.and.resolveTo(createGame({ ownerUserId: 'user-1', isOwnerPlayer: true }));
+    gamesService.getFullGameState.and.resolveTo(createFullState(createGame({ ownerUserId: 'user-1', isOwnerPlayer: true })));
     await service.start('game-1');
     expect(service.state()!.isOwner).toBeTrue();
 
@@ -341,10 +368,10 @@ describe('GameStateService', () => {
   });
 
   it('excludes the caller and filters by role in visibleParticipants', async () => {
-    gamesService.getGame.and.resolveTo(createGame({ hunterUserId: 'p1', preys: ['p2', 'p3'] }));
+    gamesService.getFullGameState.and.resolveTo(createFullState(createGame({ hunterUserId: 'p1', preys: ['p2', 'p3'] })));
     const game = createGame({ hunterUserId: 'p1', preys: ['p2', 'p3'] });
     game.participants.push({ userId: 'p3', displayName: 'Charlie', profilePictureUrl: null, isReady: false, state: 'Active', lastKnownLocation: null, hasActivePenalty: false });
-    gamesService.getGame.and.resolveTo(game);
+    gamesService.getFullGameState.and.resolveTo(createFullState(game));
     await service.start('game-1');
 
     // A prey (p2) sees only the hunter.

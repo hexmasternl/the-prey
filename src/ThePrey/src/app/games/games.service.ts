@@ -126,6 +126,26 @@ export interface GameStateDto {
   preyLocations: GpsCoordinateDto[];
 }
 
+/**
+ * The complete server-side state of one game for the calling user — the single authoritative read,
+ * returned by `GET /games/{id}/gamestate`. Replaces composing `GET /games/{id}` +
+ * `/status` + `/state` client-side, and unlike `/status` it is served in *every* game status:
+ * `status` and `roleState` are simply null outside `InProgress`.
+ */
+export interface FullGameStateDto {
+  /** The full game record from this caller's perspective. Always present. */
+  game: GameDto;
+  /** The playfield this game is played in. Always present (empty when it can no longer be resolved). */
+  playfieldName: string;
+  playfieldCoordinates: GpsCoordinateDto[];
+  /** Rich in-progress status (remaining time, ping cadence, endgame, preys left). Null unless InProgress. */
+  status: GameStatusDto | null;
+  /** Role-specific view (prey locations for a hunter, hunter distance for a prey). Null unless InProgress. */
+  roleState: GameStateDto | null;
+  /** The server's clock when this snapshot was built — the reference for any local countdown. */
+  serverTime: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class GamesService {
   private readonly http = inject(HttpClient);
@@ -151,6 +171,24 @@ export class GamesService {
 
   getGame(id: string): Promise<GameDto> {
     return firstValueFrom(this.http.get<GameDto>(`${this.apiBase}/${id}`));
+  }
+
+  /**
+   * The authoritative one-call read of everything about a game for the current user. This is the only
+   * snapshot call the app should make — see {@link FullGameStateDto}. Rejects with a 403 when the user
+   * is not a member of the game and a 404 when it does not exist; both are terminal.
+   */
+  getFullGameState(id: string): Promise<FullGameStateDto> {
+    return firstValueFrom(this.http.get<FullGameStateDto>(`${this.apiBase}/${id}/gamestate`));
+  }
+
+  /**
+   * Leave a game that has not started yet. The server removes the caller from the lobby (or cancels the
+   * game when the caller is its owner) and broadcasts the change to everyone else. Rejects with a 409
+   * once the game is under way — a started game can no longer be left.
+   */
+  leaveGame(gameId: string): Promise<void> {
+    return firstValueFrom(this.http.post<void>(`${this.apiBase}/${gameId}/leave`, {}));
   }
 
   joinGame(
@@ -179,12 +217,6 @@ export class GamesService {
   removePlayer(gameId: string, userId: string): Promise<GameDto> {
     return firstValueFrom(
       this.http.delete<GameDto>(`${this.apiBase}/${gameId}/lobby/${userId}`)
-    );
-  }
-
-  updateSettings(gameId: string, config: GameConfigurationDto): Promise<GameDto> {
-    return firstValueFrom(
-      this.http.put<GameDto>(`${this.apiBase}/${gameId}/settings`, config)
     );
   }
 

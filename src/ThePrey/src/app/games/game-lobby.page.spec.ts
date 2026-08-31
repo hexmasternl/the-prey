@@ -1,4 +1,5 @@
 import { signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { ToastController } from '@ionic/angular/standalone';
@@ -59,11 +60,13 @@ describe('GameLobbyPage', () => {
           provide: GamesService,
           useValue: jasmine.createSpyObj<GamesService>('GamesService', [
             'getGame',
+            'getFullGameState',
             'updateConfig',
             'setHunter',
             'removePlayer',
             'startGame',
             'setReady',
+            'leaveGame',
           ]),
         },
         { provide: GameStateService, useValue: gameState },
@@ -149,6 +152,31 @@ describe('GameLobbyPage', () => {
     gameState.setState(createGame({ status: 'Ready', isReadyToStart: false }), true);
 
     expect(component.canStart()).toBeTrue();
+  });
+
+  // Server-in-the-lead: backing out of the lobby is a state change, so it must reach the server
+  // before the client tears down and navigates. Otherwise the server keeps the player in the lobby.
+  it('tells the server the player is leaving before navigating home', async () => {
+    const games = TestBed.inject(GamesService) as jasmine.SpyObj<GamesService>;
+    games.leaveGame.and.resolveTo();
+    gameState.setState(createGame(), false);
+
+    await component.back();
+
+    expect(games.leaveGame).toHaveBeenCalledWith('game-1');
+    expect(gameState.stop).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/home']);
+  });
+
+  it('still navigates home when the leave request fails', async () => {
+    const games = TestBed.inject(GamesService) as jasmine.SpyObj<GamesService>;
+    games.leaveGame.and.rejectWith(new HttpErrorResponse({ status: 500 }));
+    gameState.setState(createGame(), false);
+
+    await component.back();
+
+    // Trapping the player in the lobby because a request failed would be worse than leaving.
+    expect(router.navigate).toHaveBeenCalledWith(['/home']);
   });
 
   it('isReady reflects the participant flag from the shared state', () => {

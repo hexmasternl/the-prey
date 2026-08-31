@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonButton,
@@ -300,8 +301,27 @@ export class GameLobbyPage implements ViewWillEnter {
     }
   }
 
-  back(): void {
+  /**
+   * Backing out of the lobby means leaving the game, so it goes through the server first: without the
+   * `POST /games/{id}/leave` the server would keep counting this player as a lobby member (blocking
+   * readiness, holding a slot) while they walked away. Only once the server has accepted do we tear down
+   * local state and navigate.
+   *
+   * The leave is best-effort for navigation purposes: if it fails we still leave the screen — trapping
+   * the player in a lobby because a request failed would be worse — but we surface the error so they know
+   * the server may still have them listed. A 409 (game already started) is not an error worth reporting:
+   * the state effect is about to route them into their role view anyway.
+   */
+  async back(): Promise<void> {
     this.navigatingAway = true;
+    const gameId = this.gameId();
+    try {
+      await this.gamesService.leaveGame(gameId);
+    } catch (err) {
+      if (!(err instanceof HttpErrorResponse && err.status === 409)) {
+        await this.showError('GAME_LOBBY.LEAVE_ERROR');
+      }
+    }
     this.gameState.stop();
     this.router.navigate(['/home']);
   }

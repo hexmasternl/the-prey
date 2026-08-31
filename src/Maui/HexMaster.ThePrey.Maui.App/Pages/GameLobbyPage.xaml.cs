@@ -34,4 +34,27 @@ public partial class GameLobbyPage : ContentPage, IQueryAttributable
         base.OnDisappearing();
         _viewModel.Deactivate();
     }
+
+    /// <summary>
+    /// Backing out of the lobby means leaving the game, so it goes through the server before the screen
+    /// closes — otherwise the server keeps this player in the lobby while they walk away. The default pop
+    /// is suppressed so the withdraw can complete first; we then navigate ourselves.
+    /// </summary>
+    protected override bool OnBackButtonPressed()
+    {
+        _ = LeaveAndNavigateAsync();
+        return true;
+    }
+
+    private async Task LeaveAndNavigateAsync()
+    {
+        // false means the game has already started: there is nothing to withdraw from and the lobby is
+        // about to hand off to the gameplay screen, so leaving here would fight that navigation.
+        if (!await _viewModel.LeaveAsync())
+            return;
+
+        // Shell navigation must happen on the UI thread; dispatch explicitly rather than relying on the
+        // continuation resuming there.
+        Dispatcher.Dispatch(() => _ = Shell.Current.GoToAsync(".."));
+    }
 }

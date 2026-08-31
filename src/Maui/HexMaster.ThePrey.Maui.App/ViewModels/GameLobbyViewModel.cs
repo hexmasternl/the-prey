@@ -290,18 +290,20 @@ public sealed class GameLobbyViewModel : ObservableObject
                 return;
             }
 
-            var game = await _gameApi.GetGameAsync(id, token);
-            switch (game.Outcome)
+            // The one authoritative snapshot read — the same endpoint the shared game-state store uses,
+            // so the lobby and the live store can never disagree about what the server said.
+            var snapshot = await _gameApi.GetFullGameStateAsync(id, token);
+            switch (snapshot.Outcome)
             {
-                case GetGameOutcome.Success when game.Game is not null:
+                case FullGameStateOutcome.Success when snapshot.State is not null:
                     // A load may resume a game that already left the lobby (started while we were away).
-                    ApplySnapshot(game.Game, allowHandOff: true);
+                    ApplySnapshot(snapshot.State.Game, allowHandOff: true);
                     break;
-                case GetGameOutcome.Unauthorized:
+                case FullGameStateOutcome.Unauthorized:
                     _accessTokenProvider.Invalidate();
                     SetLoadError();
                     break;
-                default: // NotFound / Error / (null game)
+                default: // Forbidden / NotFound / Error / (null state)
                     SetLoadError();
                     break;
             }
@@ -563,6 +565,64 @@ public sealed class GameLobbyViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Withdraws this player from the lobby, server first. Backing out of the lobby is a state change like
+    /// any other, so it has to reach the server: without it the server keeps counting this player as a
+    /// lobby member — holding a slot and blocking the readiness that lets the game start — while they walk
+    /// away. When the caller is the game's owner the server cancels the game instead of orphaning it, and
+    /// broadcasts that to everyone else.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> when the lobby may be left: the server accepted, or it reports the caller is not in this
+    /// lobby anyway, or the attempt failed transiently (leaving the player stuck on a screen because a
+    /// request failed would be worse than navigating with the server possibly still listing them).
+    /// <c>false</c> only when the game has already started — there is nothing to withdraw from and the
+    /// lobby is about to hand off to the gameplay screen, so it must not navigate away instead.
+    /// </returns>
+    internal async Task<bool> LeaveAsync()
+    {
+        // Nothing was ever joined (the lobby never finished loading) — just let the screen close.
+        if (_gameId is not Guid id)
+            return true;
+
+        var token = await _accessTokenProvider.GetAccessTokenAsync();
+        if (token is null)
+        {
+            _logger.LogWarning("Cannot leave game {GameId}: no access token available.", id);
+            return true;
+        }
+
+        try
+        {
+            var result = await _gameApi.LeaveGameAsync(id, token);
+            switch (result.Outcome)
+            {
+                case LeaveGameOutcome.Success:
+                case LeaveGameOutcome.NotFound: // not in this lobby anyway — the desired end state already holds
+                    return true;
+
+                case LeaveGameOutcome.Conflict:
+                    // The game is already under way; a started game cannot be left. Stay put and let the
+                    // hand-off to gameplay happen.
+                    _logger.LogInformation("Leave refused for game {GameId}: it has already started.", id);
+                    return false;
+
+                case LeaveGameOutcome.Unauthorized:
+                    _accessTokenProvider.Invalidate();
+                    return true;
+
+                default:
+                    _logger.LogWarning("Leave for game {GameId} returned {Outcome}; leaving the lobby anyway.", id, result.Outcome);
+                    return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to leave game {GameId}; leaving the lobby anyway.", id);
+            return true;
         }
     }
 

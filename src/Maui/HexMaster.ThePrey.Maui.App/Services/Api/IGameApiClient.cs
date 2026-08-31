@@ -48,6 +48,21 @@ public interface IGameApiClient
     Task<GetGameResult> GetGameAsync(Guid gameId, string accessToken, CancellationToken ct = default);
 
     /// <summary>
+    /// Reads the complete server-side state of a game for the calling user via
+    /// <c>GET /games/{id}/gamestate</c> — the app's single snapshot read (see
+    /// <see cref="FullGameState"/>). Maps <c>403</c> → <see cref="FullGameStateOutcome.Forbidden"/>
+    /// (not a member), <c>404</c> → not found, <c>401</c> → unauthenticated.
+    /// </summary>
+    Task<FullGameStateResult> GetFullGameStateAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>
+    /// Leaves a game that has not started yet via <c>POST /games/{id}/leave</c>. Maps <c>409</c> →
+    /// <see cref="LeaveGameOutcome.Conflict"/> (the game is already under way and cannot be left),
+    /// <c>404</c> → not found / not in the lobby, <c>401</c> → unauthenticated.
+    /// </summary>
+    Task<LeaveGameResult> LeaveGameAsync(Guid gameId, string accessToken, CancellationToken ct = default);
+
+    /// <summary>
     /// Persists the owner's game settings via <c>PUT /games/{id}/config</c>. The two ping intervals in
     /// <paramref name="settings"/> are given in minutes and sent as seconds (× 60); the three durations
     /// are sent as their minute values.

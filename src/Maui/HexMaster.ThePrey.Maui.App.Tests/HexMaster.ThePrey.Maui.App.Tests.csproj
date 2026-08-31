@@ -119,6 +119,8 @@
          implementations (ShareService, ShellLobbyNavigator) are deliberately excluded. -->
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GameDetails.cs" Link="Linked\GameDetails.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\GetGameResult.cs" Link="Linked\GetGameResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\FullGameStateResult.cs" Link="Linked\FullGameStateResult.cs" />
+    <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\LeaveGameResult.cs" Link="Linked\LeaveGameResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\UpdateGameSettingsResult.cs" Link="Linked\UpdateGameSettingsResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\DesignateHunterResult.cs" Link="Linked\DesignateHunterResult.cs" />
     <Compile Include="..\HexMaster.ThePrey.Maui.App\Services\Api\SetReadyResult.cs" Link="Linked\SetReadyResult.cs" />

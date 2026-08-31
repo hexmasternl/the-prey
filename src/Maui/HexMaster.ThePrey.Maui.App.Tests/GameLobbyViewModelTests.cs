@@ -60,13 +60,20 @@ public class GameLobbyViewModelTests
             IsOwnerPlayer: isOwner,
             IsReadyToStart: isReadyToStart);
 
+    /// <summary>
+    /// Wraps a game record in a `GET /games/{id}/gamestate` snapshot. The lobby only reads the game
+    /// slice; `status`/`roleState` are null exactly as the server sends them for a lobby-phase game.
+    /// </summary>
+    private static FullGameState FullState(GameDetails game) =>
+        new(game, "Test Playfield", [], null, null, new DateTimeOffset(2026, 8, 31, 12, 0, 0, TimeSpan.Zero));
+
     private void SetupLoad(GameDetails game)
     {
         var status = new GameStatus { GameId = game.Id };
         _gameApi.Setup(g => g.GetActiveGameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(ActiveGameResult.Active(status));
-        _gameApi.Setup(g => g.GetGameAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetGameResult.Success(game));
+        _gameApi.Setup(g => g.GetFullGameStateAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(FullGameStateResult.Success(FullState(game)));
     }
 
     // ---- Load ----
@@ -94,8 +101,8 @@ public class GameLobbyViewModelTests
         // A just-created game is opened by id: the lobby must load it directly and must NOT fall back to
         // GET /games/active (which only returns started games and would 404 for a fresh lobby).
         var game = Game(code: "5555");
-        _gameApi.Setup(g => g.GetGameAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetGameResult.Success(game));
+        _gameApi.Setup(g => g.GetFullGameStateAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(FullGameStateResult.Success(FullState(game)));
         var sut = CreateSut();
         sut.SetTargetGame(game.Id);
 
@@ -105,7 +112,7 @@ public class GameLobbyViewModelTests
         Assert.False(sut.HasError);
         Assert.Equal("5555", sut.PassCode);
         _gameApi.Verify(g => g.GetActiveGameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-        _gameApi.Verify(g => g.GetGameAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _gameApi.Verify(g => g.GetFullGameStateAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -138,8 +145,8 @@ public class GameLobbyViewModelTests
         var id = Guid.NewGuid();
         _gameApi.Setup(g => g.GetActiveGameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(ActiveGameResult.Active(new GameStatus { GameId = id }));
-        _gameApi.Setup(g => g.GetGameAsync(id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetGameResult.NotFound);
+        _gameApi.Setup(g => g.GetFullGameStateAsync(id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(FullGameStateResult.NotFound);
         var sut = CreateSut();
 
         await sut.LoadAsync();
@@ -153,8 +160,8 @@ public class GameLobbyViewModelTests
         var id = Guid.NewGuid();
         _gameApi.Setup(g => g.GetActiveGameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(ActiveGameResult.Active(new GameStatus { GameId = id }));
-        _gameApi.Setup(g => g.GetGameAsync(id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetGameResult.Unauthorized);
+        _gameApi.Setup(g => g.GetFullGameStateAsync(id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(FullGameStateResult.Unauthorized);
         var sut = CreateSut();
 
         await sut.LoadAsync();
@@ -653,4 +660,66 @@ public class GameLobbyViewModelTests
         Assert.Contains($"https://theprey.nl/join/{gameId}", sharedText);
     }
 
+    // ---- Leave (server-in-the-lead withdraw) ----
+    // Backing out of the lobby is a state change, so it must reach the server: otherwise the server keeps
+    // counting this player as a lobby member, holding a slot and blocking readiness.
+
+    [Fact]
+    public async Task LeaveAsync_ShouldCallTheServer_AndAllowTheLobbyToClose()
+    {
+        var game = Game();
+        SetupLoad(game);
+        _gameApi.Setup(g => g.LeaveGameAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(LeaveGameResult.Success);
+        var sut = CreateSut();
+        await sut.LoadAsync();
+
+        var canExit = await sut.LeaveAsync();
+
+        Assert.True(canExit);
+        _gameApi.Verify(g => g.LeaveGameAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    // 409 = the game already started. There is nothing to withdraw from, and the lobby is about to hand
+    // off to gameplay — navigating home instead would fight that.
+    [Fact]
+    public async Task LeaveAsync_ShouldKeepTheLobby_WhenTheGameHasAlreadyStarted()
+    {
+        var game = Game();
+        SetupLoad(game);
+        _gameApi.Setup(g => g.LeaveGameAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(LeaveGameResult.Conflict);
+        var sut = CreateSut();
+        await sut.LoadAsync();
+
+        Assert.False(await sut.LeaveAsync());
+    }
+
+    [Theory]
+    [InlineData(LeaveGameOutcome.NotFound)]
+    [InlineData(LeaveGameOutcome.Error)]
+    [InlineData(LeaveGameOutcome.Unauthorized)]
+    public async Task LeaveAsync_ShouldStillAllowTheLobbyToClose_WhenTheWithdrawDoesNotSucceed(LeaveGameOutcome outcome)
+    {
+        var game = Game();
+        SetupLoad(game);
+        _gameApi.Setup(g => g.LeaveGameAsync(game.Id, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LeaveGameResult(outcome));
+        var sut = CreateSut();
+        await sut.LoadAsync();
+
+        // Trapping the player on the lobby screen because a request failed would be worse than leaving.
+        Assert.True(await sut.LeaveAsync());
+    }
+
+    [Fact]
+    public async Task LeaveAsync_ShouldNotCallTheServer_WhenNoGameWasEverLoaded()
+    {
+        var sut = CreateSut();
+
+        Assert.True(await sut.LeaveAsync());
+        _gameApi.Verify(
+            g => g.LeaveGameAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
 }

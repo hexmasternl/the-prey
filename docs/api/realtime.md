@@ -195,8 +195,13 @@ Both clients (Ionic `src/ThePrey`, MAUI `src/Maui/HexMaster.ThePrey.Maui.App`) h
 Game State Service that owns the full, authoritative game state. The lobby, prey page, hunter
 page, and HUD all read from it and never poll the server or keep their own copy. Its contract:
 
-1. **Snapshot on start** — `GET /games/{id}`; while InProgress also `GET /games/{id}/status`
-   (and role-specific `GET /games/{id}/state`).
+1. **Snapshot on start** — exactly one call: `GET /games/{id}/gamestate`. It returns the game
+   record, the playfield, and (while InProgress) the rich status and the caller's role state in a
+   single response, all built from one server-side load — so the slices can never straddle a sweep
+   tick and disagree with each other. It is served in every game status, so the same call backs the
+   lobby, gameplay, and outcome screens. Never compose `GET /games/{id}` + `/status` + `/state`
+   client-side; those per-slice reads remain only for single-purpose lookups (e.g. the join screen,
+   which reads a game the caller is not yet a member of and so cannot use `/gamestate`).
 2. **One connection** — owns exactly one Web PubSub socket for the active game.
 3. **Apply deltas** — verify `v`, check `seq` continuity, overlay the matching slice
    (participant / configuration / locations / prey / ended) onto an **immutable** state that is
@@ -208,6 +213,22 @@ page, and HUD all read from it and never poll the server or keep their own copy.
    starve others).
 6. **Fail safe** — transient token/fetch failures retry with bounded backoff; a terminal `403`
    stops and reports "unavailable" rather than surfacing stale state.
+
+### The server is in the lead
+
+The socket is an optimization, never an authority. Every state change originates from an HTTP command
+the client sends, the server mutates and persists it, and the resulting broadcast is what tells the
+*other* clients. So:
+
+- A snapshot **replaces** local state wholesale — it never merges onto locally applied deltas. What
+  the server last said wins.
+- A client's own action is reflected from the **command's HTTP response**, not from waiting for the
+  broadcast that action produces.
+- The periodic resync (every 3 minutes) is what guarantees the client cannot drift indefinitely from
+  the server, no matter what the socket did or did not deliver.
+- Leaving is a state change like any other: it goes through `POST /games/{id}/leave` before the
+  client tears down local state. A client that just navigates away leaves the server still counting
+  that player as a lobby member.
 
 ### Per-recipient facts are derived locally
 

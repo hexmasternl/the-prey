@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { App } from '@capacitor/app';
 import type { PluginListenerHandle } from '@capacitor/core';
 import {
+  FullGameStateDto,
   GameConfigurationDto,
   GameDto,
   GameStateDto,
@@ -227,8 +228,7 @@ export class GameStateService {
     let attempt = 0;
     while (!this.stopped && generation === this.generation) {
       try {
-        const { game, status, roleState } = await this.fetchOnce(this.gameId!);
-        this.adoptSnapshot(game, status, roleState);
+        this.adoptSnapshot(await this.fetchOnce(this.gameId!));
         return;
       } catch (err) {
         if (this.isTerminal(err)) {
@@ -254,24 +254,21 @@ export class GameStateService {
   async refreshNow(): Promise<void> {
     if (this.stopped || !this.gameId) return;
     try {
-      const { game, status, roleState } = await this.fetchOnce(this.gameId);
-      this.adoptSnapshot(game, status, roleState);
+      this.adoptSnapshot(await this.fetchOnce(this.gameId));
     } catch (err) {
       if (this.isTerminal(err)) this.markUnavailable();
     }
   }
 
-  private async fetchOnce(
-    gameId: string,
-  ): Promise<{ game: GameDto; status: GameStatusDto | null; roleState: GameStateDto | null }> {
-    const game = await this.gamesService.getGame(gameId);
-    let status: GameStatusDto | null = null;
-    let roleState: GameStateDto | null = null;
-    if (game.status === 'InProgress') {
-      status = await this.gamesService.getGameStatus(gameId).catch(() => null);
-      roleState = await this.gamesService.getGameState(gameId).catch(() => null);
-    }
-    return { game, status, roleState };
+  /**
+   * The single authoritative snapshot read. One request to `GET /games/{id}/gamestate` returns the game
+   * record, the playfield, the in-progress status, and this user's role state — all built from one
+   * server-side load, so the slices cannot disagree with each other the way three separate reads could
+   * when a sweep tick landed between them. Errors propagate to the caller, which decides whether they
+   * are terminal (403/404/410) or worth retrying.
+   */
+  private async fetchOnce(gameId: string): Promise<FullGameStateDto> {
+    return this.gamesService.getFullGameState(gameId);
   }
 
   /**
@@ -291,7 +288,14 @@ export class GameStateService {
     });
   }
 
-  private adoptSnapshot(game: GameDto, status: GameStatusDto | null, roleState: GameStateDto | null): void {
+  /**
+   * Replaces the held state wholesale with a server snapshot. The server is the authority: whatever it
+   * says overrides every locally applied delta, so a snapshot never merges — the only thing carried over
+   * is `lastLocationsUpdateAt` (a client-side "how fresh is this blip" marker the server has no notion of)
+   * and the sticky `isOwner` derivation.
+   */
+  private adoptSnapshot(snapshot: FullGameStateDto): void {
+    const { game, status, roleState } = snapshot;
     const next: GameLiveState = {
       game,
       status,

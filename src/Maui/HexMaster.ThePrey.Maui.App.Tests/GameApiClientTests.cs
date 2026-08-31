@@ -564,4 +564,165 @@ public class GameApiClientTests
 
         Assert.Equal(GetGameStatusOutcome.Error, result.Outcome);
     }
+
+    // ---- GetFullGameStateAsync (the one composite snapshot read) ----
+
+    /// <summary>A `GET /games/{id}/gamestate` body. `status`/`roleState` are null outside InProgress.</summary>
+    private static string FullGameStateJson(Guid gameId, string status = "InProgress", bool live = true)
+    {
+        var liveSlices = live
+            ? """
+              "status": {
+                "gameId": "00000000-0000-0000-0000-000000000000",
+                "playfieldName": "Harbour",
+                "playfieldCoordinates": [ { "latitude": 51.0, "longitude": 4.0 } ],
+                "hunterUserId": null,
+                "participants": [],
+                "gameDurationLeft": 900,
+                "nextPingDuration": 20,
+                "nextPingDurationWithPenalty": 0,
+                "currentPingInterval": 30,
+                "isEndgame": false,
+                "preysLeft": 2,
+                "hunterMayMoveAt": null
+              },
+              "roleState": { "hunterDistanceMeters": 42, "preyLocations": [] },
+              """
+            : """
+              "status": null,
+              "roleState": null,
+              """;
+
+        return $$"""
+        {
+          "game": {{GameJson(gameId, status: status)}},
+          "playfieldName": "Harbour",
+          "playfieldCoordinates": [
+            { "latitude": 51.0, "longitude": 4.0 },
+            { "latitude": 51.1, "longitude": 4.1 },
+            { "latitude": 51.2, "longitude": 4.0 }
+          ],
+          {{liveSlices}}
+          "serverTime": "2026-08-31T12:00:00+00:00"
+        }
+        """;
+    }
+
+    [Fact]
+    public async Task GetFullGameStateAsync_ShouldProjectEverySlice_WhenGameIsInProgress()
+    {
+        var gameId = Guid.NewGuid();
+        var handler = StubHttpMessageHandler.Returns(HttpStatusCode.OK, FullGameStateJson(gameId));
+        var sut = CreateSut(handler);
+
+        var result = await sut.GetFullGameStateAsync(gameId, "access");
+
+        Assert.Equal(FullGameStateOutcome.Success, result.Outcome);
+        var state = result.State!;
+        Assert.Equal(gameId, state.Game.Id);
+        Assert.Equal("Harbour", state.PlayfieldName);
+        Assert.Equal(3, state.PlayfieldCoordinates.Count);
+        Assert.Equal(900, state.Status!.GameDurationLeft);
+        Assert.Equal(30, state.Status.CurrentPingInterval);
+        Assert.Equal(42, state.RoleState!.HunterDistanceMeters);
+        Assert.Equal(new DateTimeOffset(2026, 8, 31, 12, 0, 0, TimeSpan.Zero), state.ServerTime);
+        // One request replaced three.
+        Assert.Equal($"/games/{gameId}/gamestate", handler.LastRequest?.RequestUri?.AbsolutePath);
+    }
+
+    // The difference from GET /games/{id}/status, which 409s outside InProgress: this read still serves
+    // the game, so the lobby and outcome screens use the same endpoint.
+    [Fact]
+    public async Task GetFullGameStateAsync_ShouldReturnGameWithNullLiveSlices_WhenGameIsNotInProgress()
+    {
+        var gameId = Guid.NewGuid();
+        var sut = CreateSut(StubHttpMessageHandler.Returns(
+            HttpStatusCode.OK, FullGameStateJson(gameId, status: "Lobby", live: false)));
+
+        var result = await sut.GetFullGameStateAsync(gameId, "access");
+
+        Assert.Equal(FullGameStateOutcome.Success, result.Outcome);
+        Assert.Equal("Lobby", result.State!.Game.Status);
+        Assert.Equal("Harbour", result.State.PlayfieldName);
+        Assert.Null(result.State.Status);
+        Assert.Null(result.State.RoleState);
+    }
+
+    [Fact]
+    public async Task GetFullGameStateAsync_ShouldSendBearerToken()
+    {
+        var handler = StubHttpMessageHandler.Returns(HttpStatusCode.NotFound);
+        var sut = CreateSut(handler);
+
+        await sut.GetFullGameStateAsync(Guid.NewGuid(), "my-token");
+
+        Assert.Equal("Bearer", handler.LastRequest?.Headers.Authorization?.Scheme);
+        Assert.Equal("my-token", handler.LastRequest?.Headers.Authorization?.Parameter);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden, FullGameStateOutcome.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound, FullGameStateOutcome.NotFound)]
+    [InlineData(HttpStatusCode.Unauthorized, FullGameStateOutcome.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError, FullGameStateOutcome.Error)]
+    public async Task GetFullGameStateAsync_ShouldMapStatus(HttpStatusCode status, FullGameStateOutcome expected)
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(status));
+
+        var result = await sut.GetFullGameStateAsync(Guid.NewGuid(), "access");
+
+        Assert.Equal(expected, result.Outcome);
+    }
+
+    [Fact]
+    public async Task GetFullGameStateAsync_ShouldReturnError_WhenRequestThrows()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Throws(new HttpRequestException("boom")));
+
+        var result = await sut.GetFullGameStateAsync(Guid.NewGuid(), "access");
+
+        Assert.Equal(FullGameStateOutcome.Error, result.Outcome);
+    }
+
+    // ---- LeaveGameAsync ----
+
+    [Fact]
+    public async Task LeaveGameAsync_ShouldPostToLeave_AndSucceedOn204()
+    {
+        var gameId = Guid.NewGuid();
+        var handler = StubHttpMessageHandler.Returns(HttpStatusCode.NoContent);
+        var sut = CreateSut(handler);
+
+        var result = await sut.LeaveGameAsync(gameId, "my-token");
+
+        Assert.Equal(LeaveGameOutcome.Success, result.Outcome);
+        Assert.Equal(HttpMethod.Post, handler.LastRequest?.Method);
+        Assert.Equal($"/games/{gameId}/leave", handler.LastRequest?.RequestUri?.AbsolutePath);
+        Assert.Equal("my-token", handler.LastRequest?.Headers.Authorization?.Parameter);
+    }
+
+    // 409 is the server refusing because the game is under way — an expected answer, not a fault.
+    [Theory]
+    [InlineData(HttpStatusCode.Conflict, LeaveGameOutcome.Conflict)]
+    [InlineData(HttpStatusCode.NotFound, LeaveGameOutcome.NotFound)]
+    [InlineData(HttpStatusCode.Unauthorized, LeaveGameOutcome.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError, LeaveGameOutcome.Error)]
+    public async Task LeaveGameAsync_ShouldMapStatus(HttpStatusCode status, LeaveGameOutcome expected)
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Returns(status));
+
+        var result = await sut.LeaveGameAsync(Guid.NewGuid(), "access");
+
+        Assert.Equal(expected, result.Outcome);
+    }
+
+    [Fact]
+    public async Task LeaveGameAsync_ShouldReturnError_WhenRequestThrows()
+    {
+        var sut = CreateSut(StubHttpMessageHandler.Throws(new HttpRequestException("boom")));
+
+        var result = await sut.LeaveGameAsync(Guid.NewGuid(), "access");
+
+        Assert.Equal(LeaveGameOutcome.Error, result.Outcome);
+    }
 }

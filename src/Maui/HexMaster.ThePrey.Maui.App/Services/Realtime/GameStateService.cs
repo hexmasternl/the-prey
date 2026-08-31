@@ -150,9 +150,18 @@ public sealed class GameStateService : IGameStateService
         }
     }
 
-    // Rebuilds the whole composite from the authoritative reads: the game record always, plus the rich
-    // in-progress status and role-specific state while the game is actually running. Anything the reads
-    // omit (locations between fixes, an active penalty) is carried over from the previous snapshot.
+    /// <summary>
+    /// Rebuilds the whole composite from the server's authoritative snapshot. One call to
+    /// <c>GET /games/{id}/gamestate</c> returns the game record, the playfield, the rich in-progress
+    /// status, and this user's role state — all built from a single server-side load, so the slices
+    /// cannot disagree with each other the way three separate reads could when a sweep tick landed
+    /// between them. Anything the snapshot does not carry (a blip's local freshness marker) is carried
+    /// over from the previous state by <see cref="BuildState"/>.
+    /// <para>
+    /// On any failure the last known state is kept rather than cleared — a transient read must not blank
+    /// the map. The next tick, reconnect, or heartbeat retries.
+    /// </para>
+    /// </summary>
     private async Task ReconcileAsync(CancellationToken ct = default)
     {
         var token = await _accessTokenProvider.GetAccessTokenAsync(ct);
@@ -162,34 +171,22 @@ public sealed class GameStateService : IGameStateService
             return;
         }
 
-        var gameResult = await _gameApi.GetGameAsync(_gameId, token!, ct);
-        if (gameResult.Outcome != GetGameOutcome.Success || gameResult.Game is null)
+        var result = await _gameApi.GetFullGameStateAsync(_gameId, token!, ct);
+        if (result.Outcome != FullGameStateOutcome.Success || result.State is null)
         {
-            if (gameResult.Outcome == GetGameOutcome.Unauthorized)
+            if (result.Outcome == FullGameStateOutcome.Unauthorized)
                 _accessTokenProvider.Invalidate();
-            _logger.LogWarning("Game-state reconcile for {GameId} returned {Outcome}; keeping last state.", _gameId, gameResult.Outcome);
+            _logger.LogWarning("Game-state reconcile for {GameId} returned {Outcome}; keeping last state.", _gameId, result.Outcome);
             return;
         }
 
-        var game = gameResult.Game;
-        GameStatusDetails? details = null;
-        GameStateSnapshot? state = null;
-
-        if (IsInProgress(game.Status))
-        {
-            var statusResult = await _gameApi.GetGameStatusDetailsAsync(_gameId, token!, ct);
-            if (statusResult.Outcome == GetGameStatusOutcome.Success)
-                details = statusResult.Details;
-
-            var stateResult = await _gameApi.GetGameStateAsync(_gameId, token!, ct);
-            if (stateResult.Outcome == GameStateOutcome.Success)
-                state = stateResult.State;
-        }
+        var snapshot = result.State;
+        var game = snapshot.Game;
 
         GameLiveState built;
         lock (_stateGate)
         {
-            built = BuildState(game, details, state, _current);
+            built = BuildState(game, snapshot.Status, snapshot.RoleState, _current);
             _current = built;
             _currentGame = game;
             // A full snapshot is now authoritative; the next delta's seq becomes the new baseline rather

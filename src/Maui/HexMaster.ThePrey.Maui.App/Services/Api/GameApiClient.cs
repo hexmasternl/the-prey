@@ -517,6 +517,89 @@ public sealed class GameApiClient : IGameApiClient
         }
     }
 
+    public async Task<FullGameStateResult> GetFullGameStateAsync(Guid gameId, string accessToken, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}/gamestate");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(request, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Full game-state request failed to complete.");
+            return FullGameStateResult.Error;
+        }
+
+        using (response)
+        {
+            switch (response.StatusCode)
+            {
+                case HttpStatusCode.OK:
+                    try
+                    {
+                        var state = await response.Content.ReadFromJsonAsync<FullGameState>(cancellationToken: ct);
+                        return state?.Game is null ? FullGameStateResult.Error : FullGameStateResult.Success(state);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize full game-state payload.");
+                        return FullGameStateResult.Error;
+                    }
+
+                case HttpStatusCode.Forbidden:
+                    return FullGameStateResult.Forbidden;
+
+                case HttpStatusCode.NotFound:
+                    return FullGameStateResult.NotFound;
+
+                case HttpStatusCode.Unauthorized:
+                    return FullGameStateResult.Unauthorized;
+
+                default:
+                    _logger.LogWarning("Full game-state endpoint returned unexpected status {Status}.", response.StatusCode);
+                    return FullGameStateResult.Error;
+            }
+        }
+    }
+
+    public async Task<LeaveGameResult> LeaveGameAsync(Guid gameId, string accessToken, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"games/{gameId}/leave");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await _http.SendAsync(request, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "Leave-game request failed to complete.");
+            return LeaveGameResult.Error;
+        }
+
+        using (response)
+        {
+            return response.StatusCode switch
+            {
+                HttpStatusCode.NoContent or HttpStatusCode.OK => LeaveGameResult.Success,
+                HttpStatusCode.Conflict => LeaveGameResult.Conflict,
+                HttpStatusCode.NotFound => LeaveGameResult.NotFound,
+                HttpStatusCode.Unauthorized => LeaveGameResult.Unauthorized,
+                _ => LogAndFail(response.StatusCode),
+            };
+        }
+
+        LeaveGameResult LogAndFail(HttpStatusCode status)
+        {
+            _logger.LogWarning("Leave-game endpoint returned unexpected status {Status}.", status);
+            return LeaveGameResult.Error;
+        }
+    }
+
     public async Task<GetGameStatusResult> GetGameStatusDetailsAsync(Guid gameId, string accessToken, CancellationToken ct = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"games/{gameId}/status");

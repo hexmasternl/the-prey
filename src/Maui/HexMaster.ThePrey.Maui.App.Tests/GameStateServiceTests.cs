@@ -45,18 +45,19 @@ public class GameStateServiceTests
         return new GameRealtimeEnvelope(type, doc.RootElement.Clone(), version, seq);
     }
 
-    // Sets up a full successful reconcile: token + game record, plus (optionally) the in-progress status
-    // details and role-specific state. Unmocked status/state reads default to "not available" so an
-    // InProgress reconcile that only cares about the game record still completes without a null Task.
+    /// <summary>Fixed <c>ServerTime</c> for the composite snapshot; nothing under test reads it.</summary>
+    private static readonly DateTimeOffset SnapshotServerTime = new(2026, 6, 3, 12, 0, 0, TimeSpan.Zero);
+
+    // Sets up a full successful reconcile: the token plus the ONE composite snapshot read
+    // (GET /games/{id}/gamestate), carrying the game record and — optionally — the in-progress status
+    // details and role-specific state. Passing null for either mirrors what the server sends outside
+    // InProgress: the slice is simply absent.
     private void SetupReconcile(GameDetails game, GameStatusDetails? details = null, GameStateSnapshot? state = null)
     {
         _tokenProvider.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("access");
-        _gameApi.Setup(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetGameResult.Success(game));
-        _gameApi.Setup(a => a.GetGameStatusDetailsAsync(game.Id, "access", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(details is null ? GetGameStatusResult.Forbidden : GetGameStatusResult.Success(details));
-        _gameApi.Setup(a => a.GetGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(state is null ? GameStateResult.NotFound : GameStateResult.Success(state));
+        _gameApi.Setup(a => a.GetFullGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(FullGameStateResult.Success(new FullGameState(
+                game, "Test Playfield", [], details, state, SnapshotServerTime)));
     }
 
     // Seeds state through the normal REST reconcile path (there are no more wire full-snapshot events —
@@ -108,14 +109,33 @@ public class GameStateServiceTests
     {
         var gameId = Guid.NewGuid();
         _tokenProvider.Setup(t => t.GetAccessTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync("access");
-        _gameApi.Setup(a => a.GetGameAsync(gameId, "access", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetGameResult.Error);
+        _gameApi.Setup(a => a.GetFullGameStateAsync(gameId, "access", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(FullGameStateResult.Error);
 
         var sut = CreateSut();
         sut.Start(gameId);
         _connection.RaiseConnected();
 
         Assert.Null(sut.CurrentState);
+    }
+
+    // The store is server-in-the-lead: every reconcile is ONE authoritative read. If this ever regresses
+    // to composing the three per-slice endpoints, the slices can straddle a sweep tick and disagree.
+    [Fact]
+    public void Reconcile_ShouldUseOnlyTheCompositeRead_NeverThePerSliceEndpoints()
+    {
+        var game = Seed(status: "InProgress");
+        SetupReconcile(game);
+
+        var sut = CreateSut();
+        sut.Start(game.Id);
+        _connection.RaiseConnected();
+
+        Assert.Equal(game.Id, sut.CurrentState!.GameId);
+        _gameApi.Verify(a => a.GetFullGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.Once);
+        _gameApi.Verify(a => a.GetGameAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _gameApi.Verify(a => a.GetGameStatusDetailsAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _gameApi.Verify(a => a.GetGameStateAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -169,7 +189,7 @@ public class GameStateServiceTests
         _time.Advance(TimeSpan.FromMinutes(3));
 
         Assert.Equal("Completed", sut.CurrentState!.Status);
-        _gameApi.Verify(a => a.GetGameAsync(gameId, "access", It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        _gameApi.Verify(a => a.GetFullGameStateAsync(gameId, "access", It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     // ---- StartAsync (resolve active game) ----
@@ -339,7 +359,7 @@ public class GameStateServiceTests
         Assert.Equal(participant.UserId, sut.CurrentState.Participants[0].UserId);
         Assert.Single(sut.CurrentGame.Participants);
         // Once for the seeding reconcile, and no more.
-        _gameApi.Verify(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.Once);
+        _gameApi.Verify(a => a.GetFullGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -347,8 +367,8 @@ public class GameStateServiceTests
     {
         var game = Seed(null, "Started");
         var sut = StartedWith(game);
-        _gameApi.Setup(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GetGameResult.Error);
+        _gameApi.Setup(a => a.GetFullGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(FullGameStateResult.Error);
 
         _connection.RaiseEnvelope(Envelope(GameRealtimeEventTypes.ConfigurationChanged,
             new ConfigurationChangedPayload(
@@ -413,7 +433,7 @@ public class GameStateServiceTests
         Assert.Equal("InProgress", sut.CurrentState!.Status);
         Assert.Equal(mayMoveAt, sut.CurrentState.HunterMayMoveAt);
         Assert.Equal(1800, sut.CurrentState.GameDurationLeft);
-        _gameApi.Verify(a => a.GetGameStatusDetailsAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        _gameApi.Verify(a => a.GetFullGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     // ---- locations-updated (batched) ----
@@ -557,7 +577,7 @@ public class GameStateServiceTests
             new ResyncRequestedPayload("server-hint"), seq: 99));
 
         Assert.Equal("Completed", sut.CurrentState!.Status);
-        _gameApi.Verify(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeast(2));
+        _gameApi.Verify(a => a.GetFullGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeast(2));
     }
 
     // ---- protocol version ----
@@ -576,7 +596,7 @@ public class GameStateServiceTests
 
         // The delta itself (status → InProgress) was never applied; the resync's own status is what shows.
         Assert.Equal("Ready", sut.CurrentState!.Status);
-        _gameApi.Verify(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeast(2));
+        _gameApi.Verify(a => a.GetFullGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeast(2));
     }
 
     // ---- sequence gap detection ----
@@ -614,7 +634,7 @@ public class GameStateServiceTests
         // The seq-3 delta was not applied — the resync's status is what shows, and the tag from seq 1 is
         // overwritten by the fresh snapshot (which still reports the original "Active" participant state).
         Assert.Equal("Completed", sut.CurrentState!.Status);
-        _gameApi.Verify(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeast(2));
+        _gameApi.Verify(a => a.GetFullGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeast(2));
     }
 
     [Fact]
@@ -633,7 +653,7 @@ public class GameStateServiceTests
             new PreyUpdatedPayload(target.UserId, "tagged", "Active", null, null), seq: 5));
 
         Assert.Equal("Completed", sut.CurrentState!.Status);
-        _gameApi.Verify(a => a.GetGameAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeast(2));
+        _gameApi.Verify(a => a.GetFullGameStateAsync(game.Id, "access", It.IsAny<CancellationToken>()), Times.AtLeast(2));
     }
 
     [Fact]
