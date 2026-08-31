@@ -260,6 +260,70 @@ public sealed class GameSweepProcessorTests
         _games.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    // ── End condition: the last prey was caught ────────────────────────────
+    // The sweep is the authority on both end conditions. TagPlayer short-circuits the tag-the-last-prey
+    // case, but every other route to zero survivors (a timeout into Out, a forfeit) only reaches the
+    // sweep — so these cover the paths no command handler completes.
+
+    [Fact]
+    public async Task ProcessAsync_ShouldCompleteGameAndEmitGameEnded_WhenLastPreyIsCaught()
+    {
+        // 1 hunter + 2 preys, both taken out of play well before the 60-minute duration elapses.
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3);
+        game.Forfeit(preyIds[0]);
+        game.Forfeit(preyIds[1]);
+        SetupGame(game);
+
+        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+
+        Assert.True(result.Completed);
+        Assert.Equal(GameStatus.Completed, game.Status);
+        Assert.Equal(GameOutcome.HuntersWin, game.Outcome);
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => e.Name == RealtimeProtocol.MessageTypes.GameEnded),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _metrics.Verify(m => m.RecordGameCompleted(nameof(GameOutcome.HuntersWin)), Times.Once);
+        _games.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldCompleteGame_WhenTheLastPreyTimesOutInTheSameTick()
+    {
+        // The single prey reports once, then goes silent. At Start+8min the sweep's own timeout pass
+        // moves them to Out (7-minute threshold); that must end the game on this same tick rather than
+        // leaving a hunter-only game running until its scheduled end.
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 2);
+        game.RecordLocation(preyIds[0], GpsCoordinate.Create(0, 0), Start);
+        SetupGame(game);
+
+        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(8), CancellationToken.None);
+
+        Assert.Equal(PlayerState.Out, game.Participants.Single(p => p.UserId == preyIds[0]).State);
+        Assert.True(result.Completed);
+        Assert.Equal(GameStatus.Completed, game.Status);
+        Assert.Equal(GameOutcome.HuntersWin, game.Outcome);
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => e.Name == RealtimeProtocol.MessageTypes.GameEnded),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldNotCompleteGame_WhenAtLeastOnePreyStillSurvives()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3);
+        game.Forfeit(preyIds[0]); // one of two preys out — the other is still in play
+        SetupGame(game);
+
+        var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(1), CancellationToken.None);
+
+        Assert.False(result.Completed);
+        Assert.Equal(GameStatus.InProgress, game.Status);
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => e.Name == RealtimeProtocol.MessageTypes.GameEnded),
+            It.IsAny<CancellationToken>()), Times.Never);
+        _metrics.Verify(m => m.RecordGameCompleted(It.IsAny<string>()), Times.Never);
+    }
+
     // ── Hunter head-start penalty ──────────────────────────────────────────
 
     [Fact]

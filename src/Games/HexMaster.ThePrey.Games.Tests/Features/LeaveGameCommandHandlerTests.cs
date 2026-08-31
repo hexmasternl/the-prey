@@ -160,57 +160,89 @@ public sealed class LeaveGameCommandHandlerTests
             It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    // ---------- InProgress: non-participant ----------
+    // ---------- Once under way, leaving is rejected outright ----------
+    // A game that has started ends only on its own terms (last prey caught, or duration elapsed), so
+    // no participant — prey, hunter, or owner — can leave it or take it down by leaving.
 
     [Fact]
-    public async Task Handle_ShouldThrow_WhenUserIsNotAParticipant_InProgress()
-    {
-        var game = GameFaker.StartedGame(out _, out _, Now);
-        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
-
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _handler.Handle(new LeaveGameCommand(game.Id, Guid.NewGuid()), CancellationToken.None));
-
-        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    // ---------- InProgress: prey forfeits ----------
-
-    [Fact]
-    public async Task Handle_ShouldForfeitPrey_WhenPreyLeavesInProgressGame()
+    public async Task Handle_ShouldRejectPrey_WhenGameIsInProgress()
     {
         var game = GameFaker.StartedGame(out _, out var preyIds, Now);
-        var preyId = preyIds[0];
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
-        var result = await _handler.Handle(new LeaveGameCommand(game.Id, preyId), CancellationToken.None);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new LeaveGameCommand(game.Id, preyIds[0]), CancellationToken.None));
 
-        Assert.NotNull(result);
+        // Nothing persisted, nothing broadcast, and the prey is still in play.
         Assert.Equal(GameStatus.InProgress, game.Status);
-        var prey = game.Participants.Single(p => p.UserId == preyId);
-        Assert.Equal(PlayerState.Out, prey.State);
-        _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
-        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged,
-            It.Is<ParticipantDto>(d => d.UserId == preyId && d.State == "Out"),
-            It.IsAny<CancellationToken>()), Times.Once);
+        var prey = game.Participants.Single(p => p.UserId == preyIds[0]);
+        Assert.True(prey.State is PlayerState.Active or PlayerState.Passive, "the prey must still be in play");
+        VerifyNothingHappened();
     }
 
-    // ---------- InProgress: hunter leaves (ends game) ----------
-
     [Fact]
-    public async Task Handle_ShouldEndGame_WhenHunterLeavesInProgressGame()
+    public async Task Handle_ShouldRejectHunter_WhenGameIsInProgress()
     {
         var game = GameFaker.StartedGame(out var hunterId, out _, Now);
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
-        var result = await _handler.Handle(new LeaveGameCommand(game.Id, hunterId), CancellationToken.None);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new LeaveGameCommand(game.Id, hunterId), CancellationToken.None));
 
-        Assert.NotNull(result);
-        Assert.Equal(GameStatus.Completed, game.Status);
-        _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
-        _eventBus.Verify(b => b.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded,
-            It.IsAny<GameEndedNotificationDto>(), It.IsAny<CancellationToken>()), Times.Once);
-        // Lobby bus must NOT be called for in-progress games.
+        Assert.Equal(GameStatus.InProgress, game.Status);
+        VerifyNothingHappened();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldRejectOwner_WhenGameIsInProgress()
+    {
+        var game = GameFaker.StartedGame(out _, out _, Now);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new LeaveGameCommand(game.Id, game.OwnerUserId), CancellationToken.None));
+
+        Assert.Equal(GameStatus.InProgress, game.Status);
+        VerifyNothingHappened();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldRejectNonParticipant_WhenGameIsInProgress()
+    {
+        var game = GameFaker.StartedGame(out _, out _, Now);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new LeaveGameCommand(game.Id, Guid.NewGuid()), CancellationToken.None));
+
+        VerifyNothingHappened();
+    }
+
+    // Started is the transient armed state between the owner pressing start and the sweep promoting the
+    // game to InProgress. Leaving must be refused there too, otherwise the answer would depend on which
+    // side of a sweep tick the request landed on.
+    [Fact]
+    public async Task Handle_ShouldReject_WhenGameIsStartedButNotYetPromoted()
+    {
+        var game = GameFaker.ArmedGame(out var hunterId, out var preyIds);
+        Assert.Equal(GameStatus.Started, game.Status);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new LeaveGameCommand(game.Id, preyIds[0]), CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _handler.Handle(new LeaveGameCommand(game.Id, hunterId), CancellationToken.None));
+
+        Assert.Equal(GameStatus.Started, game.Status);
+        VerifyNothingHappened();
+    }
+
+    /// <summary>Asserts a rejected leave was a complete no-op: no write, no broadcast on either bus.</summary>
+    private void VerifyNothingHappened()
+    {
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Game>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(),
+            It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
         _lobbyEventBus.Verify(b => b.PublishAsync(It.IsAny<Guid>(), It.IsAny<string>(),
             It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
     }

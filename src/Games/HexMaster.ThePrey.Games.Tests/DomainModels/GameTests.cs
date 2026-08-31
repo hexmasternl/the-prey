@@ -222,16 +222,17 @@ public sealed class GameTests
         Assert.Null(game.HunterUserId);
     }
 
+    // Started means the owner has already committed the game to play (the sweep promotes it to
+    // InProgress on its next tick), so it can no longer be cancelled.
     [Fact]
-    public void EndByOwner_ShouldCancel_WhenStarted()
+    public void CancelByOwner_ShouldThrow_WhenStarted()
     {
         var game = GameFaker.ArmedGame(out _, out _);
         Assert.Equal(GameStatus.Started, game.Status);
 
-        game.EndByOwner(Start);
+        Assert.Throws<InvalidOperationException>(() => game.CancelByOwner(Start));
 
-        Assert.Equal(GameStatus.Completed, game.Status);
-        Assert.Equal(GameOutcome.Cancelled, game.Outcome);
+        Assert.Equal(GameStatus.Started, game.Status);
     }
 
     [Fact]
@@ -311,35 +312,49 @@ public sealed class GameTests
         Assert.Equal(GameStatus.Completed, game.Status);
     }
 
-    // EndByOwner
+    // CancelByOwner
 
     [Fact]
-    public void EndByOwner_ShouldTransitionLobbyToCompleted()
+    public void CancelByOwner_ShouldTransitionLobbyToCompleted()
     {
         var game = GameFaker.LobbyGameWithPlayers(2, out _);
 
-        game.EndByOwner(Start);
+        game.CancelByOwner(Start);
 
         Assert.Equal(GameStatus.Completed, game.Status);
     }
 
     [Fact]
-    public void EndByOwner_ShouldTransitionInProgressToCompleted()
+    public void CancelByOwner_ShouldCancel_WhenGameIsReady()
+    {
+        // Ready is still pre-start, so the owner may still abandon the lobby.
+        var game = GameFaker.LobbyGameWithPlayers(3, out var ids);
+        game.DesignateHunter(ids[0]);
+        Assert.Equal(GameStatus.Ready, game.Status);
+
+        game.CancelByOwner(Start);
+
+        Assert.Equal(GameStatus.Completed, game.Status);
+        Assert.Equal(GameOutcome.Cancelled, game.Outcome);
+    }
+
+    [Fact]
+    public void CancelByOwner_ShouldThrow_WhenInProgress()
     {
         var game = GameFaker.StartedGame(out _, out _, Start);
 
-        game.EndByOwner(Start.AddMinutes(10));
+        Assert.Throws<InvalidOperationException>(() => game.CancelByOwner(Start.AddMinutes(10)));
 
-        Assert.Equal(GameStatus.Completed, game.Status);
+        Assert.Equal(GameStatus.InProgress, game.Status);
     }
 
     [Fact]
-    public void EndByOwner_ShouldThrow_WhenAlreadyCompleted()
+    public void CancelByOwner_ShouldThrow_WhenAlreadyCompleted()
     {
         var game = GameFaker.StartedGame(out _, out _, Start);
         game.Complete(Start.AddMinutes(60));
 
-        Assert.Throws<InvalidOperationException>(() => game.EndByOwner(Start.AddMinutes(60)));
+        Assert.Throws<InvalidOperationException>(() => game.CancelByOwner(Start.AddMinutes(60)));
     }
 
     // Forfeit
@@ -515,5 +530,73 @@ public sealed class GameTests
 
         // After this sweep NextScheduledBroadcastOn should be > finalStageTime and use 10s increments.
         Assert.True(game.NextScheduledBroadcastOn > finalStageTime);
+    }
+
+    // ── End conditions ─────────────────────────────────────────────────────
+    // A game ends on its own terms only: the last prey is caught, or the duration elapses.
+
+    [Fact]
+    public void AllPreysCaught_ShouldBeFalse_WhenAPreyIsStillInPlay()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3);
+
+        game.Forfeit(preyIds[0]);
+
+        Assert.False(game.AllPreysCaught);
+        Assert.Equal(1, game.SurvivingPreyCount);
+    }
+
+    [Fact]
+    public void AllPreysCaught_ShouldBeTrue_WhenNoPreyRemainsInPlay()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3);
+
+        game.Forfeit(preyIds[0]);
+        game.Forfeit(preyIds[1]);
+
+        Assert.True(game.AllPreysCaught);
+        Assert.Equal(0, game.SurvivingPreyCount);
+    }
+
+    [Fact]
+    public void HasReachedAnEndCondition_ShouldBeFalse_WhileTheGameIsStillRunningWithSurvivors()
+    {
+        var game = GameFaker.StartedGame(out _, out _, Start, playerCount: 3); // 60-minute game
+
+        Assert.False(game.HasReachedAnEndCondition(Start.AddMinutes(30)));
+    }
+
+    [Fact]
+    public void HasReachedAnEndCondition_ShouldBeTrue_WhenTheScheduledDurationHasElapsed()
+    {
+        var game = GameFaker.StartedGame(out _, out _, Start, playerCount: 3); // 60-minute game
+
+        Assert.False(game.HasReachedAnEndCondition(Start.AddMinutes(59)));
+        Assert.True(game.HasReachedAnEndCondition(Start.AddMinutes(60)));
+    }
+
+    [Fact]
+    public void HasReachedAnEndCondition_ShouldBeTrue_WhenTheLastPreyIsCaughtLongBeforeTheDurationElapses()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3);
+
+        game.Forfeit(preyIds[0]);
+        game.Forfeit(preyIds[1]);
+
+        Assert.True(game.HasReachedAnEndCondition(Start.AddMinutes(1)));
+    }
+
+    [Fact]
+    public void HasReachedAnEndCondition_ShouldBeFalse_WhenTheGameIsNotInProgress()
+    {
+        // A lobby game has no start time, so neither end condition can apply to it.
+        var lobby = GameFaker.LobbyGameWithPlayers(3, out _);
+        Assert.False(lobby.HasReachedAnEndCondition(Start.AddYears(1)));
+
+        // An already-completed game must never report an end condition again — that would let the
+        // sweep try to Complete() it a second time.
+        var completed = GameFaker.StartedGame(out _, out _, Start, playerCount: 3);
+        completed.Complete(Start.AddMinutes(60));
+        Assert.False(completed.HasReachedAnEndCondition(Start.AddMinutes(61)));
     }
 }

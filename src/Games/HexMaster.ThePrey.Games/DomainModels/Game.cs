@@ -588,6 +588,25 @@ public sealed class Game
     public int SurvivingPreyCount =>
         _participants.Count(p => p.UserId != HunterUserId && p.State is not (PlayerState.Tagged or PlayerState.Out));
 
+    /// <summary>
+    /// True when this game has at least one prey and none of them are still in play — the hunter has
+    /// caught (or outlasted) every one of them. Deliberately guards on "has preys" so a hunter-only
+    /// roster never reads as a hunter victory.
+    /// </summary>
+    public bool AllPreysCaught =>
+        _participants.Any(p => p.UserId != HunterUserId) && SurvivingPreyCount == 0;
+
+    /// <summary>
+    /// True when an in-progress game has met either of its two end conditions: the last prey has been
+    /// caught (<see cref="AllPreysCaught"/>), or the scheduled duration has elapsed
+    /// (<see cref="ScheduledEndAt"/>). A game ends on its own terms only — no participant can force it —
+    /// so the sweep is the component that acts on this, with <c>TagPlayer</c> short-circuiting the
+    /// tag-the-last-prey case so the hunter gets immediate feedback.
+    /// </summary>
+    public bool HasReachedAnEndCondition(DateTimeOffset now) =>
+        Status == GameStatus.InProgress &&
+        (AllPreysCaught || (ScheduledEndAt is { } end && now >= end));
+
     /// <summary>Transitions an in-progress game to Completed and records the outcome.</summary>
     public void Complete(DateTimeOffset at)
     {
@@ -598,18 +617,23 @@ public sealed class Game
     }
 
     /// <summary>
-    /// Ends the game on behalf of its owner. Allowed from Lobby, Ready, or Started (cancel) and InProgress
-    /// (force-complete). Throws when the game is already Completed.
+    /// Cancels a game that has not started yet, on behalf of its owner — used when the owner abandons
+    /// their own lobby, which would otherwise leave everyone else stranded in an ownerless one. The
+    /// outcome is <see cref="GameOutcome.Cancelled"/>, deliberately distinct from the two ways a running
+    /// game ends.
+    /// <para>
+    /// Allowed only from <see cref="GameStatus.Lobby"/> or <see cref="GameStatus.Ready"/>. A game that is
+    /// under way cannot be force-completed by anyone: it ends solely on its own terms — see
+    /// <see cref="HasReachedAnEndCondition"/>.
+    /// </para>
     /// </summary>
-    public void EndByOwner(DateTimeOffset now)
+    public void CancelByOwner(DateTimeOffset now)
     {
-        if (Status == GameStatus.Completed)
-            throw new InvalidOperationException("The game has already been completed.");
+        if (Status is not (GameStatus.Lobby or GameStatus.Ready))
+            throw new InvalidOperationException(
+                $"Only a game that has not started yet can be cancelled; this game is {Status}.");
 
-        var outcome = Status is GameStatus.Lobby or GameStatus.Ready or GameStatus.Started
-            ? GameOutcome.Cancelled
-            : ComputeOutcome();
-        ApplyCompletion(now, outcome);
+        ApplyCompletion(now, GameOutcome.Cancelled);
     }
 
     private void ApplyCompletion(DateTimeOffset at, GameOutcome outcome)

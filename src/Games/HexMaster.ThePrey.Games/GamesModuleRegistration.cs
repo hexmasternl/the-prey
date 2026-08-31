@@ -6,9 +6,9 @@ using HexMaster.ThePrey.IntegrationEvents;
 using HexMaster.ThePrey.Games.Features.TagPlayer;
 using HexMaster.ThePrey.Games.Features.CheckAppVersion;
 using HexMaster.ThePrey.Games.Features.CreateGame;
-using HexMaster.ThePrey.Games.Features.EndGame;
 using HexMaster.ThePrey.Games.Features.ExportGames;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
+using HexMaster.ThePrey.Games.Features.GetFullGameState;
 using HexMaster.ThePrey.Games.Features.GetGame;
 using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.GetGameStatus;
@@ -42,6 +42,7 @@ public static class GamesModuleRegistration
         services.AddScoped<ICommandHandler<SetReadyCommand, SetReadyResult?>, SetReadyCommandHandler>();
         services.AddScoped<IQueryHandler<GetGameQuery, GameDto?>, GetGameQueryHandler>();
         services.AddScoped<IQueryHandler<GetGameStateQuery, GameStateDto?>, GetGameStateQueryHandler>();
+        services.AddScoped<IQueryHandler<GetFullGameStateQuery, FullGameStateDto?>, GetFullGameStateQueryHandler>();
         services.AddScoped<IQueryHandler<ListGamesQuery, IReadOnlyList<GameSummaryDto>>, ListGamesQueryHandler>();
         services.AddScoped<IQueryHandler<GetActiveGameQuery, GameStatusDto?>, GetActiveGameQueryHandler>();
         services.AddScoped<IQueryHandler<GetGameStatusQuery, GameStatusDto?>, GetGameStatusQueryHandler>();
@@ -50,7 +51,6 @@ public static class GamesModuleRegistration
         services.AddScoped<IQueryHandler<CheckAppVersionQuery, AppVersionCheckResult>, CheckAppVersionQueryHandler>();
 
         services.AddScoped<ICommandHandler<TagPlayerCommand, TagPlayerResult?>, TagPlayerCommandHandler>();
-        services.AddScoped<ICommandHandler<EndGameCommand, EndGameResult?>, EndGameCommandHandler>();
         services.AddScoped<ICommandHandler<LeaveGameCommand, LeaveGameResult?>, LeaveGameCommandHandler>();
 
         services.AddSingleton<IGameMetrics, GameMetrics>();

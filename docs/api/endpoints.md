@@ -46,13 +46,60 @@ All endpoints require a valid Bearer token unless noted otherwise.
 | Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/games` | Create a new game on a playfield |
+| `GET` | `/games/{id}/gamestate` | **Preferred read.** The complete state of the game for the calling user in one response (see below) |
 | `GET` | `/games/{id}` | Get game state and player list |
 | `POST` | `/games/join` | Join a game using a game code |
 | `POST` | `/games/{id}/roles` | Assign roles (creator only) |
 | `POST` | `/games/{id}/start` | Start the game (creator only) |
-| `POST` | `/games/{id}/end` | Force-end the game (creator only) |
-| `POST` | `/games/{id}/leave` | Leave/forfeit the game |
+| `POST` | `/games/{id}/leave` | Leave a game that has not started yet — `409` once it is under way |
 | `GET` | `/games/{id}/notifications/token` | Get a short-lived, group-scoped Web PubSub client access URL (see [realtime.md](./realtime.md)) |
+
+### How a game ends
+
+A game ends **only on its own terms**. There is no endpoint that force-ends a running game (the former
+`POST /games/{id}/end` was removed), and no participant can bring one down by leaving. Exactly two end
+conditions exist, both evaluated by the server-side sweep on every tick:
+
+1. **The last prey was caught** — every prey is `Tagged` or `Out` (tagged by the hunter, timed out after
+   7 minutes of GPS silence, or forfeited). Outcome: `HuntersWin`. `POST .../tag` also completes the game
+   inline when the tag takes the last prey, purely so the hunter gets immediate feedback; the sweep
+   reaches the same result and covers every other route to zero survivors.
+2. **The scheduled duration elapsed** — `startedAt + gameDuration` has passed. Outcome: `PreysWin` if any
+   prey survived.
+
+The one exception is a game that never started: if the **owner leaves their own lobby**, the game is
+cancelled (outcome `Cancelled`) rather than left ownerless.
+
+### `POST /games/{id}/leave`
+
+Leaving is a lobby-only action. Allowed while the game is `Lobby` or `Ready`; a non-owner is removed from
+the lobby (which may drop the game back from `Ready` to `Lobby`), and the owner leaving cancels the game.
+Returns `409 Conflict` when the game is `Started`, `InProgress`, or `Completed` — once play begins, a
+player is committed to the game. `404` when the game does not exist or the caller is not in its lobby.
+
+### `GET /games/{id}/gamestate`
+
+The one-call composite snapshot: everything a client needs to render the lobby, the gameplay map, or the
+outcome screen. It replaces composing `GET /games/{id}` + `GET /games/{id}/status` +
+`GET /games/{id}/state` client-side, and — unlike `/status`, which returns `409` for a game that is not
+in progress — it is served in **every** game status.
+
+```json
+{
+  "game": { "...": "the full GameDto for this caller: config, participants with their last known locations and states, hunter, timing, outcome, isOwnerPlayer, isReadyToStart" },
+  "playfieldName": "Vondelpark",
+  "playfieldCoordinates": [ { "latitude": 52.3702, "longitude": 4.8952 } ],
+  "status": { "...": "rich in-progress status: gameDurationLeft, ping cadence, isEndgame, preysLeft, hunterMayMoveAt — null unless InProgress" },
+  "roleState": { "...": "role-specific view: preyLocations for a hunter, hunterDistanceMeters for a prey — null unless InProgress and the caller plays in the game" },
+  "serverTime": "2026-08-31T12:00:00+00:00"
+}
+```
+
+`serverTime` is the server clock at the moment the snapshot was built; clients tick their countdowns
+locally between snapshots and should correct against it rather than trusting the device clock. `403` when
+the caller is not a member of the game.
+
+All three superseded reads remain available and unchanged, so existing clients keep working.
 
 > Real-time events are delivered over **Azure Web PubSub** (native WebSocket, one group per
 > game). The client calls

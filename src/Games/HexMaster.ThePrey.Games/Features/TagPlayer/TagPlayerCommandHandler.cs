@@ -41,8 +41,10 @@ public sealed class TagPlayerCommandHandler : ICommandHandler<TagPlayerCommand, 
             game.TagParticipant(command.CallerId, command.TargetParticipantId, now);
 
             // Tagging the last surviving prey leaves no one in play — the hunters have won, so end
-            // the game now rather than waiting for the scheduled-end sweep.
-            var gameEnded = game.SurvivingPreyCount == 0;
+            // the game now rather than making the hunter wait for the next sweep tick. The sweep
+            // evaluates the same condition and would reach the same result; this is purely for
+            // immediate feedback.
+            var gameEnded = game.AllPreysCaught;
             if (gameEnded)
                 game.Complete(now);
 

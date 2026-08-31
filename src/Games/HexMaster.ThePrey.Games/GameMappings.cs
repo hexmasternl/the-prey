@@ -6,6 +6,9 @@ namespace HexMaster.ThePrey.Games;
 
 internal static class GameMappings
 {
+    /// <summary>Shared empty coordinate list for role-state slices that carry no locations.</summary>
+    private static readonly IReadOnlyList<GpsCoordinateDto> NoLocations = [];
+
     internal static GameStatusDto ToStatusDto(this Game game, PlayfieldInfo? playfieldInfo, Guid userId, DateTimeOffset now)
     {
         var scheduledEndAt = game.ScheduledEndAt;
@@ -136,6 +139,43 @@ internal static class GameMappings
             game.CompletedAt,
             currentUserId is { } uid && game.OwnerUserId == uid,
             game.IsReadyToStart);
+    }
+
+    /// <summary>
+    /// Maps the role-specific slice of an in-progress game for <paramref name="userId"/>: a hunter gets
+    /// every prey's last broadcast location, a prey gets its distance to the hunter. Returns
+    /// <c>null</c> when the game is not in progress, or when the caller is neither the hunter nor a
+    /// prey of this game. Shared by <c>GET /games/{id}/state</c> and the composite
+    /// <c>GET /games/{id}/gamestate</c> so both report identical role state.
+    /// </summary>
+    internal static GameStateDto? ToRoleStateDto(this Game game, Guid userId)
+    {
+        if (game.Status != GameStatus.InProgress)
+            return null;
+
+        var hunter = game.HunterUserId is { } hunterId
+            ? game.Participants.FirstOrDefault(p => p.UserId == hunterId)
+            : null;
+
+        if (hunter?.UserId == userId)
+        {
+            var preyLocations = game.Participants
+                .Where(p => p.UserId != game.HunterUserId && p.Location is not null)
+                .Select(p => new GpsCoordinateDto(p.Location!.Latitude, p.Location.Longitude))
+                .ToList();
+
+            return new GameStateDto(null, preyLocations);
+        }
+
+        var prey = game.Participants.FirstOrDefault(p => p.UserId == userId && p.UserId != game.HunterUserId);
+        if (prey is null)
+            return null;
+
+        var hunterDistance = hunter?.Location is { } hunterLocation && prey.Location is { } preyLocation
+            ? (int?)Math.Round(preyLocation.DistanceInMetersTo(hunterLocation))
+            : null;
+
+        return new GameStateDto(hunterDistance, NoLocations);
     }
 
     internal static GameEndedNotificationDto ToGameEndedNotificationDto(this Game game) =>

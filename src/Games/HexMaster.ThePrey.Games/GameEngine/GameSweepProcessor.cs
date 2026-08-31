@@ -115,16 +115,27 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
                 new PreyUpdatedDto(hsPenaltyHunterId, RealtimeProtocol.PreyEvents.Penalized, null, hsPenalty.EndsAt, HeadStartPenaltyReason)));
         }
 
-        // 4. Completion when the scheduled end time has passed.
+        // 4. Completion. A game ends on its own terms only — nobody can force it — so this is the
+        //    authoritative end-condition check, evaluated AFTER the timeout transitions in step 1 so a
+        //    prey timing out into Out is counted this same tick. Two conditions:
+        //      a) the last prey was caught (tagged, timed out, or forfeited), or
+        //      b) the scheduled duration elapsed.
+        //    TagPlayer completes case (a) inline for immediate hunter feedback; this pass is what
+        //    catches every other route to it (and is the safety net if that inline path is ever missed).
         var completed = false;
-        if (game.ScheduledEndAt is { } end && now >= end)
+        if (game.HasReachedAnEndCondition(now))
         {
+            var reason = game.AllPreysCaught ? "all-preys-caught" : "duration-elapsed";
             game.Complete(now);
             changed = true;
             completed = true;
             _metrics.RecordGameCompleted(game.Outcome.ToString());
             events.Add(new GameNotificationIntegrationEvent(game.Id, RealtimeProtocol.MessageTypes.GameEnded,
                 game.ToGameEndedNotificationDto()));
+            activity?.SetTag("game.tick.completion_reason", reason);
+            _logger.LogInformation(
+                "Game {GameId} completed by the sweep ({Reason}); outcome {Outcome}",
+                game.Id, reason, game.Outcome);
         }
 
         // 5. Persist once, then notify (so clients never see state we failed to save).

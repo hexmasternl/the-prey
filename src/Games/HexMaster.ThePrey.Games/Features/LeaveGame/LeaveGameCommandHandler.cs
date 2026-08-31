@@ -8,6 +8,13 @@ using HexMaster.ThePrey.IntegrationEvents;
 
 namespace HexMaster.ThePrey.Games.Features.LeaveGame;
 
+/// <summary>
+/// Lets a player leave a game that has not started yet. Leaving is a lobby-only action: once the game
+/// is under way (<see cref="GameStatus.Started"/> or <see cref="GameStatus.InProgress"/>) a player is
+/// committed to it, and the game ends only on its own terms — the last prey being caught or the
+/// duration elapsing, both detected by the sweep. Attempting to leave a started, in-progress, or
+/// completed game is rejected with <see cref="InvalidOperationException"/> (surfaced as 409).
+/// </summary>
 public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, LeaveGameResult?>
 {
     private readonly IGameRepository _games;
@@ -40,29 +47,21 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
             if (game is null)
                 return null;
 
-            switch (game.Status)
+            activity?.SetTag("game.status", game.Status.ToString());
+
+            // The lobby is open in both Lobby and Ready; a non-owner leaving may drop readiness and
+            // revert Ready back to Lobby (handled by the aggregate's recompute inside RemoveLobbyPlayer).
+            if (game.Status is not (GameStatus.Lobby or GameStatus.Ready))
             {
-                // The lobby is open in both Lobby and Ready; a non-owner leaving may drop readiness and
-                // revert Ready back to Lobby (handled by the aggregate's recompute inside RemoveLobbyPlayer).
-                case GameStatus.Lobby:
-                case GameStatus.Ready:
-                    await HandleLobbyLeave(game, command.UserId, ct);
-                    break;
-
-                case GameStatus.Started:
-                    await HandleStartedLeave(game, command.UserId, ct);
-                    break;
-
-                case GameStatus.InProgress:
-                    await HandleInProgressLeave(game, command.UserId, ct);
-                    break;
-
-                case GameStatus.Completed:
-                    throw new InvalidOperationException("Cannot leave a game that has already been completed.");
-
-                default:
-                    throw new InvalidOperationException($"Unhandled game status: {game.Status}.");
+                activity?.SetTag("game.leave.rejected", true);
+                throw new InvalidOperationException(
+                    $"A player can only leave a game that has not started yet; this game is {game.Status}.");
             }
+
+            if (game.OwnerUserId == command.UserId)
+                await CancelAsOwnerAsync(game, ct);
+            else
+                await RemoveFromLobbyAsync(game, command.UserId, ct);
 
             return new LeaveGameResult();
         }
@@ -74,72 +73,32 @@ public sealed class LeaveGameCommandHandler : ICommandHandler<LeaveGameCommand, 
         }
     }
 
-    private async Task HandleLobbyLeave(Game game, Guid userId, CancellationToken ct)
+    /// <summary>
+    /// The owner abandoning their own lobby cancels the game — it never started, so there is nothing to
+    /// hand over and leaving an ownerless lobby behind would strand everyone else in it. The outcome is
+    /// <c>Cancelled</c>, which is distinct from the two ways a running game ends.
+    /// </summary>
+    private async Task CancelAsOwnerAsync(Game game, CancellationToken ct)
     {
-        if (game.OwnerUserId == userId)
-        {
-            // Owner leaving the lobby cancels (ends) the game.
-            game.EndByOwner(_timeProvider.GetUtcNow());
-            await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded, game.ToGameEndedNotificationDto(), ct);
-        }
-        else
-        {
-            if (!game.IsParticipant(userId))
-                throw new ArgumentException("This user is not in the lobby.", nameof(userId));
-
-            var wasReadyToStart = game.IsReadyToStart;
-
-            game.RemoveLobbyPlayer(userId);
-            await _games.UpdateAsync(game, ct);
-            await _lobbyEventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantRemoved, new { userId }, ct);
-
-            if (wasReadyToStart != game.IsReadyToStart)
-            {
-                await _lobbyEventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
-            }
-        }
+        game.CancelByOwner(_timeProvider.GetUtcNow());
+        await _games.UpdateAsync(game, ct);
+        await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded, game.ToGameEndedNotificationDto(), ct);
     }
 
-    // A game the owner started but the sweep has not yet promoted (transient, ~one tick). The owner or the
-    // fixed hunter leaving cancels it; a prey leaving cannot mutate the armed roster and is rejected — the
-    // sweep will promote to InProgress within a tick, where a forfeit is the correct path.
-    private async Task HandleStartedLeave(Game game, Guid userId, CancellationToken ct)
-    {
-        if (!game.IsParticipant(userId) && game.OwnerUserId != userId)
-            throw new ArgumentException("This user is not in the game.", nameof(userId));
-
-        if (game.OwnerUserId == userId || game.HunterUserId == userId)
-        {
-            game.EndByOwner(_timeProvider.GetUtcNow());
-            await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded, game.ToGameEndedNotificationDto(), ct);
-        }
-        else
-        {
-            throw new InvalidOperationException("Cannot leave a game that is starting.");
-        }
-    }
-
-    private async Task HandleInProgressLeave(Game game, Guid userId, CancellationToken ct)
+    private async Task RemoveFromLobbyAsync(Game game, Guid userId, CancellationToken ct)
     {
         if (!game.IsParticipant(userId))
-            throw new UnauthorizedAccessException("This user is not a participant of the game.");
+            throw new ArgumentException("This user is not in the lobby.", nameof(userId));
 
-        if (game.HunterUserId == userId)
+        var wasReadyToStart = game.IsReadyToStart;
+
+        game.RemoveLobbyPlayer(userId);
+        await _games.UpdateAsync(game, ct);
+        await _lobbyEventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantRemoved, new { userId }, ct);
+
+        if (wasReadyToStart != game.IsReadyToStart)
         {
-            // Hunter leaving an in-progress game ends it.
-            game.EndByOwner(_timeProvider.GetUtcNow());
-            await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.GameEnded, game.ToGameEndedNotificationDto(), ct);
-        }
-        else
-        {
-            // Prey forfeits.
-            game.Forfeit(userId);
-            await _games.UpdateAsync(game, ct);
-            await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged,
-                game.ToParticipantDto(userId), ct);
+            await _lobbyEventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
         }
     }
 }

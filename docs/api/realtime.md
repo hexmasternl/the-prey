@@ -172,6 +172,11 @@ The game ended. Emitted **exactly once** per game.
 ```json
 { "outcome": "PreyEscaped", "survivorCount": 2, "completedAt": "…" }
 ```
+A game ends only on its own terms — nothing can force it. The server-side sweep emits this when the
+**last prey is caught** (every prey `Tagged` or `Out`) or the **scheduled duration elapses**;
+`POST .../tag` emits it inline when a tag takes the last prey, so the hunter does not wait for the next
+tick. The one non-gameplay case is an owner abandoning a lobby that never started, which cancels the
+game (outcome `Cancelled`). See [endpoints.md](./endpoints.md#how-a-game-ends).
 
 ### Control messages
 

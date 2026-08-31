@@ -113,39 +113,38 @@ public sealed class GameOutcomeTests
         Assert.Throws<InvalidOperationException>(() => game.Complete(Now));
     }
 
-    // ── EndByOwner ─────────────────────────────────────────────────────────
+    // ── CancelByOwner ──────────────────────────────────────────────────────
 
     [Fact]
-    public void EndByOwner_ShouldSetOutcomeCancelled_WhenGameIsInLobby()
+    public void CancelByOwner_ShouldSetOutcomeCancelled_WhenGameIsInLobby()
     {
         var game = GameFaker.LobbyGameWithPlayers(2, out _);
 
-        game.EndByOwner(Now);
+        game.CancelByOwner(Now);
 
         Assert.Equal(GameOutcome.Cancelled, game.Outcome);
         Assert.Equal(GameStatus.Completed, game.Status);
         Assert.Equal(Now, game.CompletedAt);
     }
 
+    // A running game ends solely on its own terms — the owner cannot force-complete it.
     [Fact]
-    public void EndByOwner_ShouldComputeOutcome_WhenGameIsInProgress()
+    public void CancelByOwner_ShouldThrow_WhenGameIsInProgress()
     {
         var game = GameFaker.StartedGame(out _, out _, Now, playerCount: 3);
 
-        game.EndByOwner(Now.AddMinutes(30));
+        Assert.Throws<InvalidOperationException>(() => game.CancelByOwner(Now.AddMinutes(30)));
 
-        Assert.Equal(GameStatus.Completed, game.Status);
-        // Preys are still alive (Active) → PreysWin
-        Assert.Equal(GameOutcome.PreysWin, game.Outcome);
+        Assert.Equal(GameStatus.InProgress, game.Status);
     }
 
     [Fact]
-    public void EndByOwner_ShouldThrow_WhenGameIsAlreadyCompleted()
+    public void CancelByOwner_ShouldThrow_WhenGameIsAlreadyCompleted()
     {
-        var game = GameFaker.StartedGame(out _, out _, Now);
-        game.EndByOwner(Now.AddMinutes(30));
+        var game = GameFaker.LobbyGameWithPlayers(2, out _);
+        game.CancelByOwner(Now);
 
-        Assert.Throws<InvalidOperationException>(() => game.EndByOwner(Now.AddMinutes(31)));
+        Assert.Throws<InvalidOperationException>(() => game.CancelByOwner(Now.AddMinutes(1)));
     }
 
     // ── Rehydrate ──────────────────────────────────────────────────────────

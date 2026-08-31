@@ -7,8 +7,8 @@ using HexMaster.ThePrey.Games.DomainModels;
 using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Games.Features.CheckAppVersion;
 using HexMaster.ThePrey.Games.Features.CreateGame;
-using HexMaster.ThePrey.Games.Features.EndGame;
 using HexMaster.ThePrey.Games.Features.GetActiveGame;
+using HexMaster.ThePrey.Games.Features.GetFullGameState;
 using HexMaster.ThePrey.Games.Features.GetGame;
 using HexMaster.ThePrey.Games.Features.GetGameState;
 using HexMaster.ThePrey.Games.Features.GetGameStatus;
@@ -96,6 +96,15 @@ public static class GameEndpoints
             .Produces<GameStateDto>()
             .Produces(StatusCodes.Status404NotFound);
 
+        // One-call composite snapshot: everything a client needs for this game, in any status.
+        // Supersedes composing GET /{id} + GET /{id}/status + GET /{id}/state client-side.
+        group.MapGet("/{id:guid}/gamestate", GetFullGameState)
+            .WithName("GetFullGameState")
+            .Produces<FullGameStateDto>()
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapGet("/{id:guid}/notifications/token", GetNotificationsToken)
             .WithName("GetGameNotificationsToken")
             .Produces<GameNotificationConnectionDto>(StatusCodes.Status200OK)
@@ -148,14 +157,6 @@ public static class GameEndpoints
 
         group.MapPost("/{id:guid}/participants/{participantId:guid}/tag", TagPlayer)
             .WithName("TagPlayer")
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status403Forbidden)
-            .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status409Conflict)
-            .Produces(StatusCodes.Status401Unauthorized);
-
-        group.MapPost("/{id:guid}/end", EndGame)
-            .WithName("EndGame")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
@@ -376,6 +377,35 @@ public static class GameEndpoints
 
         var state = await handler.Handle(new GetGameStateQuery(id, user.UserId), ct);
         return state is not null ? Results.Ok(state) : Results.NotFound();
+    }
+
+    /// <summary>
+    /// Returns the complete state of the game for the calling user in a single response — the game
+    /// record, the playfield, and (while the game is in progress) the rich status and the caller's
+    /// role-specific view. Works in every game status, so a client needs only this one call to render
+    /// the lobby, gameplay, or outcome; 403 when the caller is not a member of the game.
+    /// </summary>
+    private static async Task<IResult> GetFullGameState(
+        Guid id,
+        ClaimsPrincipal principal,
+        IUserResolver userResolver,
+        IQueryHandler<GetFullGameStateQuery, FullGameStateDto?> handler,
+        CancellationToken ct)
+    {
+        var subjectId = principal.FindFirstValue("sub");
+        if (subjectId is null) return Results.Unauthorized();
+        var user = await userResolver.ResolveUser(subjectId, ct);
+        if (user is null) return Results.Unauthorized();
+
+        try
+        {
+            var state = await handler.Handle(new GetFullGameStateQuery(id, user.UserId), ct);
+            return state is not null ? Results.Ok(state) : Results.NotFound();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
+        }
     }
 
     /// <summary>
@@ -650,33 +680,10 @@ public static class GameEndpoints
         }
     }
 
-    private static async Task<IResult> EndGame(
-        Guid id,
-        ClaimsPrincipal principal,
-        IUserResolver userResolver,
-        ICommandHandler<EndGameCommand, EndGameResult?> handler,
-        CancellationToken ct)
-    {
-        var subjectId = principal.FindFirstValue("sub");
-        if (subjectId is null) return Results.Unauthorized();
-        var user = await userResolver.ResolveUser(subjectId, ct);
-        if (user is null) return Results.Unauthorized();
-
-        try
-        {
-            var result = await handler.Handle(new EndGameCommand(id, user.UserId), ct);
-            return result is null ? Results.NotFound() : Results.NoContent();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Results.Forbid();
-        }
-        catch (InvalidOperationException)
-        {
-            return Results.Conflict();
-        }
-    }
-
+    /// <summary>
+    /// Leaves a game that has not started yet. Returns 409 when the game is already under way or
+    /// completed — a running game ends only on its own terms (last prey caught, or duration elapsed).
+    /// </summary>
     private static async Task<IResult> LeaveGame(
         Guid id,
         ClaimsPrincipal principal,
