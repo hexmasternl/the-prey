@@ -430,7 +430,7 @@ FodyWeavers.xsd
 *.msp
 
 # Compiled Bicep ARM artifacts
-infra/**/*.json
+server/infrastructure/**/*.json
 
 # Subagent-local memory/scratch (not part of the project)
 **/.claude/agent-memory/
