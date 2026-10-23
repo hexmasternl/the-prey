@@ -3,10 +3,10 @@
 ## ADDED Requirements
 
 ### Requirement: Independent Games CI/CD pipeline
-The system SHALL provide a GitHub Actions workflow `.github/workflows/games.yml` that builds, tests, versions, containerizes, and deploys the Games service independently of the Users and PlayFields services. The workflow SHALL trigger on pushes to `main` affecting the Games module, shared code (`src/Core/**`, `src/Shared/**`, ServiceDefaults), or `infra/games/**`, and on manual dispatch.
+The system SHALL provide a GitHub Actions workflow `.github/workflows/games.yml` that builds, tests, versions, containerizes, and deploys the Games service independently of the Users and PlayFields services. The workflow SHALL trigger on pushes to `main` affecting the Games module, shared code (`server/src/Core/**`, `server/src/Shared/**`, ServiceDefaults), or `server/infrastructure/games/**`, and on manual dispatch.
 
 #### Scenario: Games-only change deploys only Games
-- **WHEN** a commit touching only `src/Games/**` is pushed to `main`
+- **WHEN** a commit touching only `server/src/Games/**` is pushed to `main`
 - **THEN** the Games workflow runs and the Users and PlayFields workflows do not run
 
 #### Scenario: Tests gate the deployment
@@ -24,11 +24,11 @@ The Games workflow SHALL compute a semantic version with GitVersion (repo-root `
 The system SHALL provide a multi-stage Dockerfile for `HexMaster.ThePrey.Games.Api` using .NET 10 SDK/ASP.NET base images, built with the repository root as build context, exposing port 8080 and running as a non-root user.
 
 #### Scenario: Image builds from repo root
-- **WHEN** `docker build -f src/Games/HexMaster.ThePrey.Games.Api/Dockerfile .` is executed at the repository root
-- **THEN** the image builds successfully, resolving project references to `src/Core` and ServiceDefaults
+- **WHEN** `docker build -f server/src/Games/HexMaster.ThePrey.Games.Api/Dockerfile .` is executed at the repository root
+- **THEN** the image builds successfully, resolving project references to `server/src/Core` and ServiceDefaults
 
 ### Requirement: Games infrastructure template
-The system SHALL provide a subscription-scope Bicep template at `infra/games/main.bicep` that provisions the resource group `rg-theprey-games-prod` containing: a PostgreSQL Flexible Server (Burstable `Standard_B1ms`, no HA) with a `games` database, the Games API as a Container App, and a Container Apps Job for game-engine processing. All resources SHALL use the latest stable API versions.
+The system SHALL provide a subscription-scope Bicep template at `server/infrastructure/games/main.bicep` that provisions the resource group `rg-theprey-games-prod` containing: a PostgreSQL Flexible Server (Burstable `Standard_B1ms`, no HA) with a `games` database, the Games API as a Container App, and a Container Apps Job for game-engine processing. All resources SHALL use the latest stable API versions.
 
 #### Scenario: Games deployment provisions database and apps
 - **WHEN** the Games template is deployed with a valid image tag and landing-zone references

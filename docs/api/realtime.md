@@ -13,8 +13,8 @@ requests (REST commands); the server pushes every resulting change to the group.
 sends game data over the socket — the only frame it sends is the Web PubSub `joinGroup` control
 frame. This document is the authoritative rendering of the `realtime-game-protocol` and
 `client-game-state-service` specs; the wire constants live in
-`src/Shared/HexMaster.ThePrey.IntegrationEvents/RealtimeProtocol.cs` and are mirrored by both
-clients.
+`server/src/Shared/HexMaster.ThePrey.IntegrationEvents/RealtimeProtocol.cs` and are mirrored by the
+Android client (`app/src`).
 
 ---
 
@@ -191,7 +191,7 @@ produced). The client fetches a full snapshot instead of applying an incremental
 
 ## The client Game State Service (single source of truth)
 
-Both clients (Ionic `src/ThePrey`, MAUI `src/Maui/HexMaster.ThePrey.Maui.App`) hold **one**
+A client holds **one**
 Game State Service that owns the full, authoritative game state. The lobby, prey page, hunter
 page, and HUD all read from it and never poll the server or keep their own copy. Its contract:
 

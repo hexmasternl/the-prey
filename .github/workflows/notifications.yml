@@ -4,13 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/Notifications/**'
-      - 'src/Core/**'
-      - 'src/Shared/**'
-      - 'src/Users/HexMaster.ThePrey.Users.Integration/**'
-      - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
-      - 'infra/notifications/**'
-      - 'infra/modules/**'
+      - 'server/src/Notifications/**'
+      - 'server/src/Core/**'
+      - 'server/src/Shared/**'
+      - 'server/src/Users/HexMaster.ThePrey.Users.Integration/**'
+      - 'server/src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
+      - 'server/infrastructure/notifications/**'
+      - 'server/infrastructure/modules/**'
       - '.github/workflows/notifications.yml'
   workflow_dispatch:
     inputs:
@@ -21,13 +21,13 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'src/Notifications/**'
-      - 'src/Core/**'
-      - 'src/Shared/**'
-      - 'src/Users/HexMaster.ThePrey.Users.Integration/**'
-      - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
-      - 'infra/notifications/**'
-      - 'infra/modules/**'
+      - 'server/src/Notifications/**'
+      - 'server/src/Core/**'
+      - 'server/src/Shared/**'
+      - 'server/src/Users/HexMaster.ThePrey.Users.Integration/**'
+      - 'server/src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
+      - 'server/infrastructure/notifications/**'
+      - 'server/infrastructure/modules/**'
       - '.github/workflows/notifications.yml'
 
 permissions:
@@ -55,7 +55,7 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Run Notifications tests
-        run: dotnet test src/Notifications/HexMaster.ThePrey.Notifications.Tests/HexMaster.ThePrey.Notifications.Tests.csproj --configuration Release
+        run: dotnet test server/src/Notifications/HexMaster.ThePrey.Notifications.Tests/HexMaster.ThePrey.Notifications.Tests.csproj --configuration Release
 
   publish:
     name: Publish Container
@@ -93,7 +93,7 @@ jobs:
 
       - name: Publish container
         run: |
-          dotnet publish src/Notifications/HexMaster.ThePrey.Notifications.Api/HexMaster.ThePrey.Notifications.Api.csproj \
+          dotnet publish server/src/Notifications/HexMaster.ThePrey.Notifications.Api/HexMaster.ThePrey.Notifications.Api.csproj \
             --configuration Release \
             --os linux \
             --arch x64 \
@@ -120,15 +120,15 @@ jobs:
           subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
 
       - name: Bicep build (lint)
-        run: az bicep build --file infra/notifications/main.bicep
+        run: az bicep build --file server/infrastructure/notifications/main.bicep
 
       - name: Deploy Notifications
         run: |
           az deployment sub create \
             --name theprey-notifications-prod \
             --location westeurope \
-            --template-file infra/notifications/main.bicep \
-            --parameters infra/notifications/prod.bicepparam \
+            --template-file server/infrastructure/notifications/main.bicep \
+            --parameters server/infrastructure/notifications/prod.bicepparam \
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
               registryServer="${{ secrets.ACR_HOSTNAME }}"

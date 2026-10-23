@@ -35,7 +35,7 @@ The Prey backend currently has no automated deployment path — there are no Git
 
 ## Impact
 
-- **New directories**: `infra/` (Bicep templates: landing zone + per-service), `.github/workflows/` (one workflow per service + landing zone), `GitVersion.yml` per service or repo-level configuration.
+- **New directories**: `server/infrastructure/` (Bicep templates: landing zone + per-service), `.github/workflows/` (one workflow per service + landing zone), `GitVersion.yml` per service or repo-level configuration.
 - **New files**: Dockerfiles for `HexMaster.ThePrey.Games.Api`, `HexMaster.ThePrey.Users.Api`, `HexMaster.ThePrey.PlayFields.Api`, and the Games Container Apps Job.
 - **GitHub repository secrets** (assumed to exist): `ACR_HOSTNAME`, `ACR_USERNAME`, `ACR_PASSWORD`, `AZURE_PROD_SUBSCRIPTION`, `AZURE_PROD_CLIENTID`, `AZURE_PROD_TENANTID`.
 - **Azure**: new resource groups/resources for the landing zone and each service; federated credential app registration must have permission to deploy them.

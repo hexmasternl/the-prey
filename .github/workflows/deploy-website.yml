@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'website/**'
-      - 'infra/website/**'
+      - 'website/infrastructure/**'
       - '.github/workflows/deploy-website.yml'
   workflow_dispatch:
 
@@ -37,14 +37,14 @@ jobs:
           az deployment sub create \
             --name theprey-website-prod \
             --location westeurope \
-            --template-file infra/website/main.bicep \
+            --template-file website/infrastructure/main.bicep \
             --query properties.outputs -o json > outputs.json
           echo "name=$(jq -r '.staticSiteName.value' outputs.json)" >> "$GITHUB_OUTPUT"
           echo "rg=$(jq -r '.resourceGroupName.value' outputs.json)" >> "$GITHUB_OUTPUT"
 
       - name: Read Hugo version
         id: hugo-version
-        run: echo "version=$(cat website/.hugo-version)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(cat website/src/.hugo-version)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
@@ -53,7 +53,7 @@ jobs:
           extended: false
 
       - name: Build
-        working-directory: website
+        working-directory: website/src
         run: hugo --minify
 
       - name: Get Static Web App deployment token
@@ -71,7 +71,7 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ steps.token.outputs.token }}
           action: upload
-          app_location: website/public
+          app_location: website/src/public
           output_location: ''
           skip_app_build: true
           skip_api_build: true

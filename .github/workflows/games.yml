@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/Games/**'
-      - 'src/Core/**'
-      - 'src/Shared/**'
-      - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
-      - 'infra/games/**'
-      - 'infra/modules/**'
+      - 'server/src/Games/**'
+      - 'server/src/Core/**'
+      - 'server/src/Shared/**'
+      - 'server/src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
+      - 'server/infrastructure/games/**'
+      - 'server/infrastructure/modules/**'
       - '.github/workflows/games.yml'
   workflow_dispatch:
     inputs:
@@ -20,12 +20,12 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'src/Games/**'
-      - 'src/Core/**'
-      - 'src/Shared/**'
-      - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
-      - 'infra/games/**'
-      - 'infra/modules/**'
+      - 'server/src/Games/**'
+      - 'server/src/Core/**'
+      - 'server/src/Shared/**'
+      - 'server/src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
+      - 'server/infrastructure/games/**'
+      - 'server/infrastructure/modules/**'
       - '.github/workflows/games.yml'
 
 permissions:
@@ -53,7 +53,7 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Run Games tests
-        run: dotnet test src/Games/HexMaster.ThePrey.Games.Tests/HexMaster.ThePrey.Games.Tests.csproj --configuration Release
+        run: dotnet test server/src/Games/HexMaster.ThePrey.Games.Tests/HexMaster.ThePrey.Games.Tests.csproj --configuration Release
 
   publish:
     name: Publish Container
@@ -91,7 +91,7 @@ jobs:
 
       - name: Publish API container
         run: |
-          dotnet publish src/Games/HexMaster.ThePrey.Games.Api/HexMaster.ThePrey.Games.Api.csproj \
+          dotnet publish server/src/Games/HexMaster.ThePrey.Games.Api/HexMaster.ThePrey.Games.Api.csproj \
             --configuration Release \
             --os linux \
             --arch x64 \
@@ -118,15 +118,15 @@ jobs:
           subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
 
       - name: Bicep build (lint)
-        run: az bicep build --file infra/games/main.bicep
+        run: az bicep build --file server/infrastructure/games/main.bicep
 
       - name: Deploy Games
         run: |
           az deployment sub create \
             --name theprey-games-prod \
             --location westeurope \
-            --template-file infra/games/main.bicep \
-            --parameters infra/games/prod.bicepparam \
+            --template-file server/infrastructure/games/main.bicep \
+            --parameters server/infrastructure/games/prod.bicepparam \
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
               registryServer="${{ secrets.ACR_HOSTNAME }}" \

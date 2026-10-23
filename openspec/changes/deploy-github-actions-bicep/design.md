@@ -2,7 +2,7 @@
 
 ## Context
 
-The repository is a modular monolith with three independently hostable API modules (`Games`, `Users`, `PlayFields`), each with its own `*.Api` Minimal API project. There is currently **no** `.github/workflows/` directory, no `infra/` directory, and no Dockerfiles. The target platform is Azure Container Apps. An Azure Container Registry already exists outside this change (`ACR_HOSTNAME` / `ACR_USERNAME` / `ACR_PASSWORD` secrets), and an Entra app registration with federated credentials exists for OIDC deployment (`AZURE_PROD_CLIENTID` / `AZURE_PROD_TENANTID` / `AZURE_PROD_SUBSCRIPTION` secrets).
+The repository is a modular monolith with three independently hostable API modules (`Games`, `Users`, `PlayFields`), each with its own `*.Api` Minimal API project. There is currently **no** `.github/workflows/` directory, no `server/infrastructure/` directory, and no Dockerfiles. The target platform is Azure Container Apps. An Azure Container Registry already exists outside this change (`ACR_HOSTNAME` / `ACR_USERNAME` / `ACR_PASSWORD` secrets), and an Entra app registration with federated credentials exists for OIDC deployment (`AZURE_PROD_CLIENTID` / `AZURE_PROD_TENANTID` / `AZURE_PROD_SUBSCRIPTION` secrets).
 
 ## Goals / Non-Goals
 
@@ -26,7 +26,7 @@ The repository is a modular monolith with three independently hostable API modul
 ### 1. Repository layout
 
 ```
-infra/
+server/infrastructure/
 ├── landing-zone/
 │   ├── main.bicep                 # subscription-scope: RG + landing zone resources
 │   └── modules/                   # log-analytics, app-insights, aca-env, key-vault,
@@ -41,12 +41,12 @@ infra/
 ├── users.yml
 └── playfields.yml
 GitVersion.yml                     # single repo-root configuration
-src/Games/HexMaster.ThePrey.Games.Api/Dockerfile
-src/Users/HexMaster.ThePrey.Users.Api/Dockerfile
-src/PlayFields/HexMaster.ThePrey.PlayFields.Api/Dockerfile
+server/src/Games/HexMaster.ThePrey.Games.Api/Dockerfile
+server/src/Users/HexMaster.ThePrey.Users.Api/Dockerfile
+server/src/PlayFields/HexMaster.ThePrey.PlayFields.Api/Dockerfile
 ```
 
-*Why:* mirrors the per-domain module structure of the codebase; a shared `infra/modules/` folder avoids duplicating the container-app and storage patterns across the three services.
+*Why:* mirrors the per-domain module structure of the codebase; a shared `server/infrastructure/modules/` folder avoids duplicating the container-app and storage patterns across the three services.
 
 ### 2. Subscription-scope deployments, one resource group per concern
 
@@ -70,18 +70,18 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/Games/**'
-      - 'src/Core/**'
-      - 'src/Shared/**'
-      - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
-      - 'infra/games/**'
-      - 'infra/modules/**'
+      - 'server/src/Games/**'
+      - 'server/src/Core/**'
+      - 'server/src/Shared/**'
+      - 'server/src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
+      - 'server/infrastructure/games/**'
+      - 'server/infrastructure/modules/**'
       - '.github/workflows/games.yml'
   workflow_dispatch:
   pull_request:           # build + test + bicep what-if only, no deploy
 ```
 
-Shared-code paths (`Core`, `Shared`, `ServiceDefaults`) trigger all three service pipelines because every API depends on them. The landing-zone workflow triggers only on `infra/landing-zone/**` and its own workflow file.
+Shared-code paths (`Core`, `Shared`, `ServiceDefaults`) trigger all three service pipelines because every API depends on them. The landing-zone workflow triggers only on `server/infrastructure/landing-zone/**` and its own workflow file.
 
 *Why:* GitHub-native, zero extra tooling. *Alternative considered:* a single monolithic workflow with change detection (`dorny/paths-filter`) — rejected; separate workflows give independent run history, concurrency control, and re-run granularity.
 
@@ -102,7 +102,7 @@ Jobs `docker` and `deploy` run only on `push` to `main` / manual dispatch. A `co
 
 ### 6. Container images
 
-Multi-stage Dockerfiles (`mcr.microsoft.com/dotnet/sdk:10.0` → `mcr.microsoft.com/dotnet/aspnet:10.0`), built with the **repo root as build context** so module projects can reference `src/Core`, `src/Shared`, and `ServiceDefaults`. Non-root user, port 8080.
+Multi-stage Dockerfiles (`mcr.microsoft.com/dotnet/sdk:10.0` → `mcr.microsoft.com/dotnet/aspnet:10.0`), built with the **repo root as build context** so module projects can reference `server/src/Core`, `server/src/Shared`, and `ServiceDefaults`. Non-root user, port 8080.
 
 ### 7. Container Apps sizing — least resources
 

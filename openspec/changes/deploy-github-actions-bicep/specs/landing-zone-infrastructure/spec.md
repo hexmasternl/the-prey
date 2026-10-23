@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Landing zone Bicep template
-The system SHALL provide a subscription-scope Bicep template at `infra/landing-zone/main.bicep` that provisions the shared application landing zone: a resource group, a Log Analytics workspace, an Application Insights component, an Azure Container Apps environment, an Azure Key Vault, an Azure App Configuration store, and a storage account with queue services enabled.
+The system SHALL provide a subscription-scope Bicep template at `server/infrastructure/landing-zone/main.bicep` that provisions the shared application landing zone: a resource group, a Log Analytics workspace, an Application Insights component, an Azure Container Apps environment, an Azure Key Vault, an Azure App Configuration store, and a storage account with queue services enabled.
 
 #### Scenario: Landing zone deploys all shared resources
 - **WHEN** the landing zone template is deployed at subscription scope
@@ -25,7 +25,7 @@ The landing zone template SHALL expose outputs (or well-known resource names) fo
 - **THEN** the references resolve successfully and the service deployment can read the Container Apps environment ID and the Application Insights connection string
 
 ### Requirement: Landing zone deployment workflow
-The system SHALL provide a GitHub Actions workflow `.github/workflows/landing-zone.yml` that deploys the landing zone using OIDC federated-credential login with the `AZURE_PROD_CLIENTID`, `AZURE_PROD_TENANTID`, and `AZURE_PROD_SUBSCRIPTION` secrets. The workflow SHALL trigger on pushes to `main` affecting `infra/landing-zone/**` and on manual dispatch, and SHALL validate Bicep (build + what-if) on pull requests without deploying.
+The system SHALL provide a GitHub Actions workflow `.github/workflows/landing-zone.yml` that deploys the landing zone using OIDC federated-credential login with the `AZURE_PROD_CLIENTID`, `AZURE_PROD_TENANTID`, and `AZURE_PROD_SUBSCRIPTION` secrets. The workflow SHALL trigger on pushes to `main` affecting `server/infrastructure/landing-zone/**` and on manual dispatch, and SHALL validate Bicep (build + what-if) on pull requests without deploying.
 
 #### Scenario: OIDC login without stored credentials
 - **WHEN** the workflow runs its deploy job

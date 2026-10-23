@@ -22,14 +22,14 @@ Once a game is created and players join the lobby, the game owner may need to ca
 
 ## Impact
 
-- `src/Games/HexMaster.ThePrey.Games/DomainModels/GameStatus.cs` — new `Deleted` value
-- `src/Games/HexMaster.ThePrey.Games/DomainModels/Game.cs` — new `Delete()` method
-- `src/Games/HexMaster.ThePrey.Games/Features/DeleteGame/` — new command + handler
-- `src/Games/HexMaster.ThePrey.Games/Notifications/` — new `game-deleted` integration event published to the existing event bus (no new channel/stream infrastructure)
-- `src/Games/HexMaster.ThePrey.Games.Api/Endpoints/GameEndpoints.cs` — one new endpoint: `DELETE /games/{id}`
-- `src/Games/HexMaster.ThePrey.Games/GamesModuleRegistration.cs` — register new handler
-- `src/Games/HexMaster.ThePrey.Games.Tests/` — new test classes for DeleteGame handler and domain Delete() method
-- `src/Games/HexMaster.ThePrey.Games.Data.Postgres/` — no schema migration needed (status is stored as an int)
+- `server/src/Games/HexMaster.ThePrey.Games/DomainModels/GameStatus.cs` — new `Deleted` value
+- `server/src/Games/HexMaster.ThePrey.Games/DomainModels/Game.cs` — new `Delete()` method
+- `server/src/Games/HexMaster.ThePrey.Games/Features/DeleteGame/` — new command + handler
+- `server/src/Games/HexMaster.ThePrey.Games/Notifications/` — new `game-deleted` integration event published to the existing event bus (no new channel/stream infrastructure)
+- `server/src/Games/HexMaster.ThePrey.Games.Api/Endpoints/GameEndpoints.cs` — one new endpoint: `DELETE /games/{id}`
+- `server/src/Games/HexMaster.ThePrey.Games/GamesModuleRegistration.cs` — register new handler
+- `server/src/Games/HexMaster.ThePrey.Games.Tests/` — new test classes for DeleteGame handler and domain Delete() method
+- `server/src/Games/HexMaster.ThePrey.Games.Data.Postgres/` — no schema migration needed (status is stored as an int)
 - `src/ThePrey/src/app/games/game-lobby.page.ts` + `.html` + `.scss` — new Ionic lobby page
 - `src/ThePrey/src/app/app.routes.ts` — new `/games/:id/lobby` route
 - `src/ThePrey/src/assets/i18n/en.json` + `nl.json` — new translation keys for lobby page and game-deleted alert

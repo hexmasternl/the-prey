@@ -14,12 +14,12 @@ The Prey backend is deployed to Azure Container Apps using independent GitHub Ac
 └── playfields.yml     # PlayFields API + Table Storage
 ```
 
-Each service workflow is independently triggered via path filters — a change to `src/Games/**` only runs `games.yml`, not the other workflows. Shared code paths (`src/Core/**`, `src/Shared/**`, `src/Aspire/ThePrey.Aspire.ServiceDefaults/**`) trigger all three service workflows.
+Each service workflow is independently triggered via path filters — a change to `server/src/Games/**` only runs `games.yml`, not the other workflows. Shared code paths (`server/src/Core/**`, `server/src/Shared/**`, `server/src/Aspire/ThePrey.Aspire.ServiceDefaults/**`) trigger all three service workflows.
 
 ## Infra Layout
 
 ```
-infra/
+server/infrastructure/
 ├── landing-zone/
 │   ├── main.bicep             # Subscription-scope: rg-theprey-landing-prod
 │   └── modules/               # log-analytics, app-insights, aca-env, key-vault, app-config, storage-queues

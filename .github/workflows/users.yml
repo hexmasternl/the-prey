@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/Users/**'
-      - 'src/Core/**'
-      - 'src/Shared/**'
-      - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
-      - 'infra/users/**'
-      - 'infra/modules/**'
+      - 'server/src/Users/**'
+      - 'server/src/Core/**'
+      - 'server/src/Shared/**'
+      - 'server/src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
+      - 'server/infrastructure/users/**'
+      - 'server/infrastructure/modules/**'
       - '.github/workflows/users.yml'
   workflow_dispatch:
     inputs:
@@ -20,12 +20,12 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'src/Users/**'
-      - 'src/Core/**'
-      - 'src/Shared/**'
-      - 'src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
-      - 'infra/users/**'
-      - 'infra/modules/**'
+      - 'server/src/Users/**'
+      - 'server/src/Core/**'
+      - 'server/src/Shared/**'
+      - 'server/src/Aspire/ThePrey.Aspire.ServiceDefaults/**'
+      - 'server/infrastructure/users/**'
+      - 'server/infrastructure/modules/**'
       - '.github/workflows/users.yml'
 
 permissions:
@@ -53,7 +53,7 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Run Users tests
-        run: dotnet test src/Users/HexMaster.ThePrey.Users.Tests/HexMaster.ThePrey.Users.Tests.csproj --configuration Release
+        run: dotnet test server/src/Users/HexMaster.ThePrey.Users.Tests/HexMaster.ThePrey.Users.Tests.csproj --configuration Release
 
   publish:
     name: Publish Container
@@ -91,7 +91,7 @@ jobs:
 
       - name: Publish container
         run: |
-          dotnet publish src/Users/HexMaster.ThePrey.Users.Api/HexMaster.ThePrey.Users.Api.csproj \
+          dotnet publish server/src/Users/HexMaster.ThePrey.Users.Api/HexMaster.ThePrey.Users.Api.csproj \
             --configuration Release \
             --os linux \
             --arch x64 \
@@ -118,15 +118,15 @@ jobs:
           subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
 
       - name: Bicep build (lint)
-        run: az bicep build --file infra/users/main.bicep
+        run: az bicep build --file server/infrastructure/users/main.bicep
 
       - name: Deploy Users
         run: |
           az deployment sub create \
             --name theprey-users-prod \
             --location westeurope \
-            --template-file infra/users/main.bicep \
-            --parameters infra/users/prod.bicepparam \
+            --template-file server/infrastructure/users/main.bicep \
+            --parameters server/infrastructure/users/prod.bicepparam \
             --parameters \
               imageTag="${{ needs.publish.outputs.imageTag }}" \
               registryServer="${{ secrets.ACR_HOSTNAME }}"

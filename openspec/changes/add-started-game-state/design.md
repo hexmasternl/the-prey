@@ -1,6 +1,6 @@
 ## Context
 
-The game lifecycle is a server-authoritative state machine on the `Game` aggregate (`src/Games/HexMaster.ThePrey.Games/DomainModels/GameStatus.cs`). Today it is:
+The game lifecycle is a server-authoritative state machine on the `Game` aggregate (`server/src/Games/HexMaster.ThePrey.Games/DomainModels/GameStatus.cs`). Today it is:
 
 ```
 Lobby → Ready → InProgress → Completed

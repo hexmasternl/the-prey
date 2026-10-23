@@ -1,6 +1,6 @@
 # The Prey — Game Documentation
 
-> A real-world GPS-based hide-and-seek game for mobile devices.
+> A real-world GPS-based hide-and-seek game for Android.
 
 ## Overview
 
@@ -22,6 +22,17 @@
 
 | Layer | Technology |
 |---|---|
-| Client | TBD — a client app consumes the REST + real-time APIs |
-| Backend | ASP.NET Core (C#) |
-| Real-time | SignalR / Push Notifications (APNs / FCM) |
+| Client | Native Android app (Kotlin) — `app/src` |
+| Backend | ASP.NET Core (C#) — `server/src` |
+| Real-time | Azure Web PubSub / Push Notifications (FCM) |
+| Website | Hugo — `website/src` |
+
+## Repository Layout
+
+| Folder | Contents |
+|---|---|
+| `app/src` | Native Android client app (Kotlin) |
+| `server/src` | Backend: modular-monolith ASP.NET Core API, orchestrated with .NET Aspire |
+| `server/infrastructure` | Bicep for the Azure landing zone and the backend APIs |
+| `website/src` | Promotional website (Hugo, theprey.nl) |
+| `website/infrastructure` | Bicep for the website's Static Web App |

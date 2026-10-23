@@ -4,15 +4,15 @@ on:
   push:
     branches: [main]
     paths:
-      - 'infra/landing-zone/**'
-      - 'infra/modules/**'
+      - 'server/infrastructure/landing-zone/**'
+      - 'server/infrastructure/modules/**'
       - '.github/workflows/landing-zone.yml'
   workflow_dispatch:
   pull_request:
     branches: [main]
     paths:
-      - 'infra/landing-zone/**'
-      - 'infra/modules/**'
+      - 'server/infrastructure/landing-zone/**'
+      - 'server/infrastructure/modules/**'
       - '.github/workflows/landing-zone.yml'
 
 permissions:
@@ -38,14 +38,14 @@ jobs:
           subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
 
       - name: Bicep build
-        run: az bicep build --file infra/landing-zone/main.bicep
+        run: az bicep build --file server/infrastructure/landing-zone/main.bicep
 
       - name: What-if
         run: |
           az deployment sub what-if \
             --name theprey-lz-validate \
             --location westeurope \
-            --template-file infra/landing-zone/main.bicep
+            --template-file server/infrastructure/landing-zone/main.bicep
 
   deploy:
     name: Deploy
@@ -67,4 +67,4 @@ jobs:
           az deployment sub create \
             --name theprey-lz-prod \
             --location westeurope \
-            --template-file infra/landing-zone/main.bicep
+            --template-file server/infrastructure/landing-zone/main.bicep

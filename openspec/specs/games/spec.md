@@ -295,7 +295,7 @@ The Games module SHALL register the route `GET /games/{id}/status` mapped to a `
 
 ### Requirement: Expose real-time notifications token endpoint
 
-The Games module SHALL register the route `GET /games/{id}/notifications/token` mapped to the handler that issues a short-lived, group-scoped Azure Web PubSub client access URL for the game (group name equal to the game id). The route SHALL be inside the authenticated endpoint group (`.RequireAuthorization()`) and SHALL verify the caller is a participant of the game. Full real-time transport behavior is specified in the `maui-game-state-service` capability spec.
+The Games module SHALL register the route `GET /games/{id}/notifications/token` mapped to the handler that issues a short-lived, group-scoped Azure Web PubSub client access URL for the game (group name equal to the game id). The route SHALL be inside the authenticated endpoint group (`.RequireAuthorization()`) and SHALL verify the caller is a participant of the game. Full real-time transport behavior is specified in `docs/api/realtime.md`.
 
 #### Scenario: Route registered and reachable
 

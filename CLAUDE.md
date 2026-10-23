@@ -2,23 +2,30 @@
 
 ## Project Overview
 
-**The Prey** is a location-based multiplayer game. Players create and edit playfields (GPS polygon areas); game sessions happen inside those playfields. This repository contains the backend only: a modular-monolith ASP.NET Core 10 API hosted on Azure, orchestrated with .NET Aspire. A client app (to be built separately) consumes the REST and real-time APIs.
+**The Prey** is a location-based multiplayer game. Players create and edit playfields (GPS polygon areas); game sessions happen inside those playfields. This repository contains the backend (a modular-monolith ASP.NET Core 10 API hosted on Azure, orchestrated with .NET Aspire) the promotional website, and the client app: a native Android app written in Kotlin that consumes the REST and real-time APIs.
 
 ## Repository Layout
 
 ```
-src/
-├── Aspire/
-│   ├── ThePrey.Aspire.AppHost/          # Aspire orchestration entry point
-│   └── ThePrey.Aspire.ServiceDefaults/  # Shared OpenTelemetry + health check wiring
-├── Core/
-│   └── HexMaster.ThePrey.Core/          # ICommandHandler / IQueryHandler interfaces
-├── PlayFields/                          # PlayFields domain module (see module layout below)
-├── Games/                               # Games domain module
-├── Users/                               # Users domain module
-└── Shared/
-    ├── ThePrey.Core/
-    └── ThePrey.Core.Tests/
+app/
+└── src/                                 # Native Android client app (Kotlin)
+server/
+├── infrastructure/                      # Bicep: landing-zone, shared modules, per-module APIs
+└── src/
+    ├── Aspire/
+    │   ├── ThePrey.Aspire.AppHost/          # Aspire orchestration entry point
+    │   └── ThePrey.Aspire.ServiceDefaults/  # Shared OpenTelemetry + health check wiring
+    ├── Core/
+    │   └── HexMaster.ThePrey.Core/          # ICommandHandler / IQueryHandler interfaces
+    ├── PlayFields/                          # PlayFields domain module (see module layout below)
+    ├── Games/                               # Games domain module
+    ├── Users/                               # Users domain module
+    └── Shared/
+        ├── ThePrey.Core/
+        └── ThePrey.Core.Tests/
+website/
+├── infrastructure/                      # Bicep: Static Web App
+└── src/                                 # Hugo site (theprey.nl)
 ```
 
 ### Per-Domain Module Layout
@@ -107,7 +114,7 @@ catch (Exception ex)
 - Test naming: `Method_ShouldExpected_WhenCondition`.
 - Test factories live in `Tests/Factories/` (e.g., `PlayFieldFaker.cs`).
 - Target ≥80% coverage for the domain and handler code.
-- Run tests: `dotnet test src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/`
+- Run tests: `dotnet test server/src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/`
 
 ---
 
@@ -115,20 +122,20 @@ catch (Exception ex)
 
 ```powershell
 # Build a server module (PlayFields example)
-dotnet build src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/HexMaster.ThePrey.PlayFields.Tests.csproj
+dotnet build server/src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/HexMaster.ThePrey.PlayFields.Tests.csproj
 
 # Run server unit tests
-dotnet test src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/
+dotnet test server/src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/
 
 # Build the full backend solution
-dotnet build src/the-prey.slnx
+dotnet build server/src/the-prey.slnx
 ```
 
 ---
 
 ## Key Architectural Decisions
 
-- **Backend only** — this repository contains no client/front-end code.
+- **Native Android client** — the only client is the Kotlin Android app in `app/src`. There is no web, iOS, or cross-platform client; earlier Ionic and .NET MAUI attempts were removed.
 - **No MediatR** — uses custom `ICommandHandler` / `IQueryHandler` from `HexMaster.ThePrey.Core`.
 - **No controller-based APIs** — all endpoints use ASP.NET Core Minimal APIs.
 - **Repository interfaces** belong in the module project (not Abstractions); only cross-module service ports go in Abstractions.

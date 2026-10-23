@@ -4,10 +4,10 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Client Devices                        │
+│              Android Devices (Kotlin app, app/src)           │
 │                                                             │
 │   ┌───────────────────┐       ┌───────────────────┐        │
-│   │ Client App (Prey) │       │ Client App        │        │
+│   │ Android App (Prey)│       │ Android App       │        │
 │   │  - GPS broadcast  │       │ (Hunter)          │        │
 │   │  - Background svc │       │  - Map + pins     │        │
 │   └────────┬──────────┘       └─────────┬─────────┘        │
@@ -36,6 +36,8 @@
 ## Component Responsibilities
 
 ### Client App
+A native Android app written in Kotlin, located in `app/src`. It is the only client.
+
 - Authenticates the player.
 - Collects GPS coordinates and sends them to the server.
 - Renders the map with playfield boundary and prey location pins.

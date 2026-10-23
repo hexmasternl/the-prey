@@ -1,0 +1,12 @@
+{
+  "extraKnownMarketplaces": {
+    "hexmaster": {
+      "source": {
+        "source": "github",
+        "repo": "hexmasternl/hexmaster-coding-standards"
+      },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": { "hexmaster-standards@hexmaster": true }
+}
