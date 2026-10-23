@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">The Prey</string>
+    <!-- Brand lockup words; "PREY" is drawn in Signal green. -->
+    <string name="brand_word_the" translatable="false">The</string>
+    <string name="brand_word_prey" translatable="false">Prey</string>
+
+    <!-- Landing page -->
+    <string name="landing_tagline">Stay hidden. Hunt smart.</string>
+    <string name="landing_intro">Sign in to join the hunt.</string>
+    <string name="landing_sign_in">Sign in</string>
+    <string name="landing_signing_in">Signing in</string>
+    <string name="landing_mark_description">The Prey logo</string>
+    <string name="landing_session_expired">Your session ended. Sign in again.</string>
+    <string name="error_sign_in_network">No connection. Check your network and try again.</string>
+    <string name="error_sign_in_no_email">Your account has no email address. Sign in with an account that has one.</string>
+    <string name="error_sign_in_generic">Sign-in failed. Try again.</string>
+
+    <!-- Main menu -->
+    <string name="main_menu_no_signal">No signal</string>
+    <string name="main_menu_field_manual">Operational field manual v%1$s</string>
+    <!-- Slogan: the second word of each line is drawn in Signal green. -->
+    <string name="main_menu_slogan_line1_a">Stay</string>
+    <string name="main_menu_slogan_line1_b">hidden.</string>
+    <string name="main_menu_slogan_line2_a">Hunt</string>
+    <string name="main_menu_slogan_line2_b">smart.</string>
+    <string name="main_menu_description">A GPS-based, real-world hide-and-seek game. Enter the playfield. Don\'t get caught.</string>
+    <string name="main_menu_play_now">Play now</string>
+    <string name="main_menu_playfields">Playfields</string>
+    <string name="main_menu_settings">Settings</string>
+    <string name="main_menu_sign_out">Sign out</string>
+    <string name="main_menu_quit">Quit</string>
+    <!-- Position readout: latitude, N/S, longitude, E/W. GPS notation, never translated. -->
+    <string name="main_menu_position" translatable="false">%1$s° %2$s // %3$s° %4$s</string>
+    <!-- Position readout before a fix; %1$s is main_menu_no_signal. -->
+    <string name="main_menu_position_unknown" translatable="false">-- ° N // -- ° E // %1$s</string>
+
+    <!-- Destinations that are not built yet -->
+    <string name="placeholder_not_operational">Not operational yet. Check back after the next update.</string>
+    <string name="navigate_back">Back</string>
+</resources>

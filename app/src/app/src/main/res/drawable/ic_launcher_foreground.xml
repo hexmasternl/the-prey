@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder crosshair; replace with the real logo via Android Studio's Image Asset tool. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:strokeColor="@color/signal"
+        android:strokeWidth="3"
+        android:pathData="M34,54a20,20 0,1 0,40 0a20,20 0,1 0,-40 0" />
+    <path
+        android:strokeColor="@color/signal"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M54,27V40M54,68V81M27,54H40M68,54H81" />
+    <path
+        android:fillColor="@color/signal"
+        android:pathData="M51,54a3,3 0,1 0,6 0a3,3 0,1 0,-6 0" />
+</vector>

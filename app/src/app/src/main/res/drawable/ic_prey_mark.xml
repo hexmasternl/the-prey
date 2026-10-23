@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Prey mark (fox in the crosshairs), from designs/logo/the-prey-mark.svg. Never recolour it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="384"
+    android:viewportHeight="384">
+    <group
+        android:translateX="-64"
+        android:translateY="-64">
+        <path
+            android:pathData="M419,296.6A168,168 0,0 1,296.6 419M215.4,419A168,168 0,0 1,93 296.6M93,215.4A168,168 0,0 1,215.4 93M296.6,93A168,168 0,0 1,419 215.4"
+            android:strokeWidth="18"
+            android:strokeColor="@color/signal"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M256,74v40M256,398v40M74,256h40M398,256h40"
+            android:strokeWidth="18"
+            android:strokeColor="@color/signal"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="@color/hunter"
+            android:pathData="M168,150L216,196H296L344,150L356,248L256,354L156,248Z" />
+        <path
+            android:fillAlpha="0.2"
+            android:fillColor="@color/bg_void"
+            android:pathData="M256,196H296L344,150L356,248L256,354Z" />
+        <path
+            android:fillAlpha="0.4"
+            android:fillColor="@color/bg_void"
+            android:pathData="M182,176L208,198L186,218Z M330,176L304,198L326,218Z" />
+        <path
+            android:fillColor="@color/bg_void"
+            android:pathData="M198,240L238,258L208,264Z M314,240L274,258L304,264Z" />
+        <path
+            android:fillColor="@color/bg_void"
+            android:pathData="M242,324H270L256,342Z" />
+        <path
+            android:fillColor="@color/signal"
+            android:pathData="M248,256a8,8 0,1 0,16 0a8,8 0,1 0,-16 0" />
+    </group>
+</vector>

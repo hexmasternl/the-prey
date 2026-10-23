@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only for the window, splash screen, launcher icon and logo mark; Compose UI uses ui/theme/Color.kt. -->
+    <color name="bg_void">#0C0E0C</color>
+    <color name="bg_base">#181B17</color>
+    <color name="signal">#64FF00</color>
+    <color name="hunter">#FF2F1F</color>
+</resources>

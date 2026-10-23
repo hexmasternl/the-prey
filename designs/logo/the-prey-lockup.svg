@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 384" width="1240" height="384">
+  <title>The Prey — horizontal lockup</title>
+  <style>@font-face{font-family:'Special Elite';src:url('../SpecialElite-Regular.ttf') format('truetype')}@font-face{font-family:'PT Mono';src:url('../PTMono-Regular.ttf') format('truetype')}</style>
+  <svg x="0" y="0" width="384" height="384" viewBox="64 64 384 384">
+    <g fill="none" stroke="#64FF00" stroke-width="18" stroke-linecap="round">
+      <path d="M419 296.6A168 168 0 0 1 296.6 419M215.4 419A168 168 0 0 1 93 296.6M93 215.4A168 168 0 0 1 215.4 93M296.6 93A168 168 0 0 1 419 215.4"/>
+    <path d="M256 74v40M256 398v40M74 256h40M398 256h40"/>
+    </g>
+    <path d="M168 150L216 196H296L344 150L356 248L256 354L156 248Z" fill="#FF2F1F"/>
+  <path d="M256 196H296L344 150L356 248L256 354Z" fill="#0C0E0C" opacity=".2"/>
+  <path d="M182 176L208 198L186 218Z M330 176L304 198L326 218Z" fill="#0C0E0C" opacity=".4"/>
+  <path d="M198 240L238 258L208 264Z M314 240L274 258L304 264Z" fill="#0C0E0C"/>
+  <path d="M242 324H270L256 342Z" fill="#0C0E0C"/>
+  <circle cx="256" cy="256" r="8" fill="#64FF00"/>
+  </svg>
+  <text x="432" y="236" font-family="'Special Elite', 'Courier New', monospace" font-size="150" letter-spacing="6" fill="#DCF6D2">THE <tspan fill="#64FF00">PREY</tspan></text>
+  <text x="438" y="300" font-family="'PT Mono', 'Courier New', monospace" font-size="26" letter-spacing="11" fill="#8C9A83">STAY HIDDEN · HUNT SMART</text>
+</svg>

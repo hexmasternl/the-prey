@@ -129,7 +129,23 @@ dotnet test server/src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/
 
 # Build the full backend solution
 dotnet build server/src/the-prey.slnx
+
+# Android app — run from app/src (the Gradle root; open this folder in Android Studio)
+./gradlew assembleDebug
+./gradlew lintDebug testDebugUnitTest
 ```
+
+---
+
+## Android App (`app/src`)
+
+- **Stack:** Kotlin + Jetpack Compose (Material 3), single-activity, Gradle Kotlin DSL with a version catalog (`gradle/libs.versions.toml`). AGP 9 with its built-in Kotlin support, so the `kotlin-android` plugin is not applied.
+- **Application id:** `nl.hexmaster.theprey`. This is the id of the previously published app, so releases update the existing Play Store listing. Do not change it.
+- **Versioning:** `versionCode`/`versionName` come from Gradle properties (`ORG_GRADLE_PROJECT_versionCode` / `_versionName` in CI). Play rejects any upload whose `versionCode` is not higher than the last published one.
+- **Release signing:** configured only when `app/src/key.properties` exists (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`). Never commit it or a keystore.
+- **Theme:** `ui/theme/` holds the design-system tokens (`Color.kt`), fonts (`Type.kt`: Special Elite for headings/numbers, PT Mono for body/labels) and `ThePreyTheme`. Screens read colors through `MaterialTheme.colorScheme` or `ThePreyTheme.colors`, never hard-coded values. See the `the-prey-design-system` skill.
+- **Strings:** all user-facing text lives in `res/values/strings.xml` with Dutch in `res/values-nl/strings.xml`. Every text change in the app **and** the website must land in both English and Dutch — follow the `the-prey-multilingual` skill.
+- **Realtime:** follow the `the-prey-realtime-communication` skill and `docs/api/realtime.md`: state changes go over HTTP only, and live updates arrive on one Web PubSub socket owned by a single game-state service.
 
 ---
 
