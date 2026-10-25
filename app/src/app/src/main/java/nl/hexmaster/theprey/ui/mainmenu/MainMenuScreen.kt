@@ -417,3 +417,31 @@ private fun MainMenuBackgroundLocationMissingPreview() {
 private fun MainMenuCheckFailedPreview() {
     MainMenuPreview(previewState.copy(playAction = playAction(LocationAccess.Granted, ActiveGameCheck.Failed)))
 }
+
+@Preview(widthDp = 800, heightDp = 360)
+@Composable
+private fun MainMenuLandscapePreview() {
+    MainMenuPreview(
+        previewState.copy(
+            position = GeoPosition(52.36761, 4.90412),
+            playAction = playAction(LocationAccess.Granted, ActiveGameCheck.None),
+        ),
+    )
+}
+
+@Preview(widthDp = 800, heightDp = 360)
+@Composable
+private fun MainMenuLandscapeBlockedPreview() {
+    MainMenuPreview(previewState.copy(playAction = playAction(LocationAccess.ForegroundOnly, ActiveGameCheck.None)))
+}
+
+@Preview(widthDp = 800, heightDp = 360, locale = "nl")
+@Composable
+private fun MainMenuLandscapeDutchPreview() {
+    MainMenuPreview(
+        previewState.copy(
+            position = GeoPosition(52.36761, 4.90412),
+            playAction = playAction(LocationAccess.Granted, ActiveGameCheck.None),
+        ),
+    )
+}
