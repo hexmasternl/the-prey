@@ -21,7 +21,7 @@ Run Hugo from `website/src` (`hugo --gc --minify`, and `hugo server` to view). E
 
 - [x] 4.1 Update `content/{en,nl}/_index.md`: Android framing, phases 5 / ~15 / 10 min of a 30-minute default game, role taglines; verify the home page against the "Phases use the app defaults" scenario in both languages
 - [x] 4.2 Rewrite `content/{en,nl}/rules/_index.md` from the fact sheet (settings table, pings, tagging within 50 m, penalties, silent players, win conditions, result dialog); verify each Rules scenario in the spec, including that "honour" / "eer" no longer appears anywhere in `content/` (grep)
-- [ ] 4.3 Rewrite `content/{en,nl}/roles/prey.md`, `hunter.md`, `game-creator.md` and the roles index (HUD explanations, tag sheet, creator steps, leaving cancels) with `prey-hud`, `hunter-hud`, `tag-sheet` and `lobby` screenshots; verify against the Player roles scenarios
+- [x] 4.3 Rewrite `content/{en,nl}/roles/prey.md`, `hunter.md`, `game-creator.md` and the roles index (HUD explanations, tag sheet, creator steps, leaving cancels) with `prey-hud`, `hunter-hud`, `tag-sheet` and `lobby` screenshots; verify against the Player roles scenarios
 
 ## 5. Playfield, How-To and FAQ
 

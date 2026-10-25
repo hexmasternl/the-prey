@@ -1,34 +1,45 @@
 ---
 title: "Spelmaker"
-description: "De rol van Spelmaker in The Prey: bepaal het speelveld, deel de toegangscode, wijs Jager- en Prooirollen toe en start het spel."
-keywords: ["Spelmaker", "spel hosten", "toegangscode", "rollen toewijzen", "spel opzetten", "The Prey"]
+description: "De rol van Spelmaker in The Prey: tik op Nu spelen, kies een speelveld en de spelinstellingen, deel de uitnodiging, kies de Jager en start het spel."
+keywords: ["Spelmaker", "spel hosten", "spelers uitnodigen", "jager kiezen", "spel opzetten", "The Prey"]
 ---
 
 ## Jouw Verantwoordelijkheid
 
-De Spelmaker stelt het spel in voordat het begint. Je beheert het speelveld, de lobby en roltoewijzingen. Zodra het spel begint, speel je als Jager of Prooi, en de Spelmakerrol eindigt bij de lancering.
+De Spelmaker zet het spel op in de app. Jij kiest het speelveld en de instellingen, nodigt de spelers uit en kiest de Jager. Zodra het spel start, speel je mee zoals iedereen, als Jager of als Prooi.
 
 ---
 
-## Vier Stappen Voor het Spel
+## Een Spel Opzetten
 
-**1. Definieer het Speelveld**
-Teken de grenspolygoon in de app. Het speelveld is het GPS-gebied waarbinnen het spel gespeeld wordt. Houd het strak genoeg om spannend te zijn, groot genoeg om echt te verstappen.
+{{< screenshot name="lobby" alt="De lobby met de spelcode, de knop Delen, de spelinstellingen en de spelerslijst met de labels Jager en Klaar" caption="De lobby" >}}
 
-**2. Deel de Spelcode**
-De app genereert een unieke deelnamecode voor je sessie. Deel die met alle deelnemers voor het spel. Spelers gebruiken hem om de lobby te betreden.
+**1. Tik op Nu spelen**
+Tik in het hoofdmenu op **Nu spelen**. Dat werkt alleen als locatie altijd is toegestaan en je nog niet in een spel zit.
 
-**3. Kies de Jager**
-Tik in de lobby op één speler om die de Jager te maken. Iedereen anders is automatisch Prooi, want er is altijd maar één Jager. Je hebt minimaal één Prooi nodig, dus een spel heeft minimaal twee spelers in totaal.
+**2. Kies een speelveld**
+Tik op **Kies een speelveld** en kies er een van jezelf op het tabblad **Privé**, of zoek op het tabblad **Openbaar**.
 
-**4. Start het Spel**
-Wanneer alle spelers klaar zijn, lanceer je het spel. De voorsprong begint onmiddellijk. Prooi verspreidt zich. De Jager wacht.
+**3. Stel het spel in**
+Speelduur, Vertraging jager, Eindfase, Locatie-ping en Ping in eindfase. De standaardwaarden geven een spel van 30 minuten. Zie de [Regels]({{< relref "/rules" >}}) voor alle opties. Tik op **Spel aanmaken**.
+
+**4. Nodig de spelers uit**
+De lobby toont de **Spelcode**. Tik op **Delen** om de uitnodigingslink te versturen. Spelers tikken op de link om mee te doen. Je kunt de spelinstellingen hier nog aanpassen.
+
+**5. Kies de Jager**
+Tik op een speler en dan op **Maak Jager**. Alle anderen zijn Prooi. Je kunt jezelf ook Jager maken.
+
+**6. Wacht tot iedereen klaar is**
+Elke speler tikt op **Ik ben klaar**. Hun label verandert van **Wacht** naar **Klaar**.
+
+**7. Start het spel**
+Tik op **Spel starten**. De voorsprong begint meteen.
 
 ---
 
-## Roltoewijzingsregels
+## Lobbyregels
 
-- Elk spel heeft precies één Jager en minimaal één Prooi.
-- Iedereen die niet de Jager is, speelt als Prooi.
-- De Spelmaker kan zichzelf de Jager maken of als Prooi blijven.
-- Zodra het spel begint, is de Jagerkeuze vergrendeld.
+- Een spel heeft minstens 2 en hoogstens 16 spelers.
+- Er is precies één Jager. Alle anderen zijn Prooi.
+- Zodra het spel start, ligt de keuze van de Jager vast.
+- Verlaat je als Spelmaker de lobby, dan wordt het spel voor iedereen geannuleerd. Andere spelers kunnen weggaan en met de uitnodiging opnieuw meedoen.

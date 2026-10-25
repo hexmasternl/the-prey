@@ -1,41 +1,44 @@
 ---
 title: "Prey"
-description: "Playing as Prey in The Prey: use the head start to scatter and hide, keep moving during the hunt, manage background GPS, and survive until the timer ends."
-keywords: ["Prey", "hide", "survive", "background GPS", "head start", "evade hunters", "The Prey prey"]
+description: "Playing as Prey in The Prey: use the head start to scatter, read your HUD, watch the hunter proximity, keep location on, and survive until the timer ends."
+keywords: ["Prey", "hide", "survive", "hunter proximity", "head start", "evade the hunter", "The Prey prey"]
 ---
 
 ## Your Goal
 
-You are the Prey. Survive until the game timer hits zero. If at least one Prey is still untagged when time runs out, all Prey win.
+You are Prey. Stay out of the Hunter's reach until the game timer hits zero. If at least one Prey is still in play when time runs out, the Prey win.
 
 ---
 
 ## The Head Start
 
-When the game starts, you have a head start (5 minutes by default, though the Game Creator can change it). **The Hunter is held in place during this window and cannot chase or tag you, but your position is already on their map, so keep moving.**
+When the game starts the screen tells you: **Run. Get away from the hunter before the hunt begins.** The head start lasts 5 minutes by default (the Game Creator can pick 3, 5 or 10). The Hunter has to stay put and cannot tag you, **but your position already pings to the Hunter's map, so keep moving.**
 
-Use this time to scatter and find cover. Move away from the playfield entrance. Do not stand still.
-
-The app counts down the head start. When it ends, the Hunter is released and the chase is on.
+When the countdown ends, the Hunter is released and the chase is on.
 
 ---
 
-## During the Hunt
+## Your HUD
 
-Once the head start ends, your GPS coordinates are sent to the Hunter's map at regular intervals. You appear as a pin. Keep moving, because staying in one place makes you easy to find.
+{{< screenshot name="prey-hud" alt="The Prey HUD: the Prey and Safe pills at the top, time left, hunter distance and the next-broadcast countdown at the bottom" caption="The Prey HUD" >}}
 
-The app must remain active in the background. Location sharing depends on your device's background GPS service. If the service stops, the Hunter loses your signal, but you also lose awareness of the Hunter's.
+- **Role pill** (top left): green **Prey**. During a penalty it turns red and flashes **Penalty**.
+- **Proximity pill** (top right): how close the nearest Hunter is. **Safe** at 250 m or more, **Close** from 100 to 250 m, **Warning** under 100 m, and **Unknown** while there is no Hunter location yet.
+- **Time left**: how long the game still runs.
+- **Hunter distance**: the distance to the nearest Hunter's last known location, in the colour of the proximity pill.
+- **Next broadcast**: a countdown to the moment your position is next sent to the Hunter. Move before it hits zero.
+- Tap the bar at the bottom to collapse or expand the panel.
+
+Your map shows the Hunter and the other Prey at their last known locations.
 
 ---
 
 ## Getting Tagged
 
-A Hunter who reaches your physical location tags you in the app. The tag takes effect immediately. You do not confirm it, and there is no way to refuse it. Once tagged, you are eliminated and enter spectator mode.
-
-Tagging is honour-based: a Hunter should only tag a Prey they have genuinely reached. The game depends on honesty.
+The Hunter can only tag you when you are within **50 meters** of them. The server checks the distance. The tag takes effect straight away and you do not have to confirm it. A tagged Prey stays in the game as a spectator and watches the rest of the hunt.
 
 ---
 
-## Background Service Requirement
+## Keep Location On
 
-The Prey app requires a background location service to broadcast your position while the screen is off. Grant the app **"Always Allow"** location permissions before the game starts. If location access is restricted, you may stop transmitting without warning, which affects fair play.
+Tracking runs as a foreground service with a notification, also when the screen is off. Set location for The Prey to **"Allow all the time"** before the game. If your location stops reaching the server, you become passive after 5 minutes and are **out** after 7. Out counts as caught.
