@@ -9,10 +9,10 @@ Prerequisite: `app-playfield-edit-area-allow-delete` is implemented (the delete 
 
 ## 2. Tour component
 
-- [ ] 2.1 Add pure `ui/components/tour/TourState.kt` (step index, `next`, `back`, `isFirst`, `isLast`, outcome `Completed` / `Skipped`) and `TourPlacement.kt` (spotlight rect with padding, card above / below / centred within the safe area); verify with `TourStateTest` and `TourPlacementTest` (bounds clamping, card flips above a bottom target, centred for a null target)
-- [ ] 2.2 Add `TourTargets` + `LocalTourTargets` + `Modifier.tourTarget(key)` (bounds in root, removed on dispose, no-op without a provider); verify with a unit test of the registry and that existing previews still render
+- [x] 2.1 Add pure `ui/components/tour/TourState.kt` (step index, `next`, `back`, `isFirst`, `isLast`, outcome `Completed` / `Skipped`) and `TourPlacement.kt` (spotlight rect with padding, card above / below / centred within the safe area); verify with `TourStateTest` and `TourPlacementTest` (bounds clamping, card flips above a bottom target, centred for a null target)
+- [x] 2.2 Add `TourTargets` + `LocalTourTargets` + `Modifier.tourTarget(key)` (bounds in root, removed on dispose, no-op without a provider); verify with a unit test of the registry and that existing previews still render
 - [ ] 2.3 Add `TourOverlay(steps, targets, onFinish)` per design §1, §6, §8: Offscreen-composited scrim with cut-out and Signal outline, card with counter, Skip / Back / Next|Done, all touches consumed, `BackHandler` that skips, step index in `rememberSaveable`, `paneTitle` + polite live region, no spotlight animation under reduced motion; verify with `@Preview`s (first, middle, last, centred; en and nl)
-- [ ] 2.4 Add `rememberHint(store, hint, ready)` (`HintGate.kt`) that shows only when ready and not seen and hides immediately on `finish()` while marking seen in the background; verify with `HintGateTest` using a fake store: not shown before ready, not shown when seen, `finish()` hides even when the write fails
+- [x] 2.4 Add `rememberHint(store, hint, ready)` (`HintGate.kt`) that shows only when ready and not seen and hides immediately on `finish()` while marking seen in the background; verify with `HintGateTest` using a fake store: not shown before ready, not shown when seen, `finish()` hides even when the write fails
 - [ ] 2.5 Add the shared tour strings (`tour_skip`, `tour_back`, `tour_next`, `tour_done`, `tour_counter`, `tour_a11y_pane`) in `values/strings.xml` and `values-nl/strings.xml` per the `the-prey-multilingual` skill; verify both files contain every key
 
 ## 3. Playfield area tour
