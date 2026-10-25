@@ -1,5 +1,6 @@
 ---
 title: "Create a Game"
+weight: 3
 description: "Step-by-step: create a game in The Prey. Pick a playfield, share the join code, choose the Hunter, and start the head start."
 keywords: ["create a game", "start a game", "join code", "assign roles", "playfield", "The Prey how-to"]
 ---

@@ -1,5 +1,6 @@
 ---
 title: "Je Rol Begrijpen Tijdens het Spel"
+weight: 5
 description: "Begrijp je rol tijdens het spel in The Prey: waar de Jager en Prooien op moeten letten zodra de voorsprong voorbij is en de klok loopt."
 keywords: ["je rol begrijpen", "tips voor Jager", "tips voor Prooi", "strategie tijdens het spel", "The Prey handleiding"]
 ---

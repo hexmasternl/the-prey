@@ -1,5 +1,6 @@
 ---
 title: "Deelnemen aan een Spel"
+weight: 2
 description: "Hoe je deelneemt aan een spel in The Prey: voer de toegangscode in, kom in de lobby en krijg je rol toegewezen door de Spelmaker."
 keywords: ["deelnemen aan een spel", "toegangscode", "lobby", "rol krijgen", "The Prey handleiding"]
 ---

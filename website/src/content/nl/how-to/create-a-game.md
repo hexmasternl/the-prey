@@ -1,5 +1,6 @@
 ---
 title: "Een Spel Aanmaken"
+weight: 3
 description: "Stap voor stap: een spel aanmaken in The Prey. Kies een speelveld, deel de toegangscode, kies de Jager en start de voorsprong."
 keywords: ["spel aanmaken", "spel starten", "toegangscode", "rollen toewijzen", "speelveld", "The Prey handleiding"]
 ---

@@ -1,7 +1,7 @@
 ---
 title: "How-To Guides"
-description: "Step-by-step how-to guides for The Prey: create a game, join a game, draw a playfield, understand your role, and recover a lost GPS signal."
-keywords: ["The Prey guides", "how to play", "tutorials", "create game", "join game", "draw playfield", "GPS help"]
+description: "Step-by-step how-to guides for The Prey: get started, join a game, create a game, draw a playfield, understand your HUD, and get your location back."
+keywords: ["The Prey guides", "how to play", "get started", "create game", "join game", "draw playfield", "location help"]
 ---
 
 Select a guide below to get started.

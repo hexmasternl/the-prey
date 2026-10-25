@@ -1,5 +1,6 @@
 ---
 title: "Understand Your Role Mid-Game"
+weight: 5
 description: "Understand your role mid-game in The Prey: what the Hunter and Prey should focus on once the head start ends and the clock is running."
 keywords: ["understand your role", "Hunter tips", "Prey tips", "in-game strategy", "The Prey how-to"]
 ---
