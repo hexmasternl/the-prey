@@ -2,9 +2,9 @@
 
 ## 1. View model: delete the selected point
 
-- [ ] 1.1 Add `canDeleteSelected` (editable and a valid `selectedIndex`) to `PlayFieldAreaUiState` and verify with new `PlayFieldAreaViewModelTest` cases: false with no selection, true after `onPointTapped`, false again after `onMapTapped` deselects, false when read-only
-- [ ] 1.2 Add `deleteSelected()` to `PlayFieldAreaViewModel` (removes the selected point through `set`, keeps the order of the rest, clears the selection; no-op when `!canDeleteSelected`) and verify with tests: deleting the middle of 5 points keeps the other 4 in order, deleting from 3 points makes `canSave` false, deleting the only point makes `canErase` false, no-op without selection and when read-only, and a new view model built from the same `SavedStateHandle` has the point removed and no selection
-- [ ] 1.3 Run `./gradlew testDebugUnitTest` from `app/src` and verify the area view model tests pass
+- [x] 1.1 Add `canDeleteSelected` (editable and a valid `selectedIndex`) to `PlayFieldAreaUiState` and verify with new `PlayFieldAreaViewModelTest` cases: false with no selection, true after `onPointTapped`, false again after `onMapTapped` deselects, false when read-only
+- [x] 1.2 Add `deleteSelected()` to `PlayFieldAreaViewModel` (removes the selected point through `set`, keeps the order of the rest, clears the selection; no-op when `!canDeleteSelected`) and verify with tests: deleting the middle of 5 points keeps the other 4 in order, deleting from 3 points makes `canSave` false, deleting the only point makes `canErase` false, no-op without selection and when read-only, and a new view model built from the same `SavedStateHandle` has the point removed and no selection
+- [x] 1.3 Run `./gradlew testDebugUnitTest` from `app/src` and verify the area view model tests pass
 
 ## 2. Delete FAB on the area screen
 

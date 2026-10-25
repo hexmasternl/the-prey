@@ -187,4 +187,89 @@ class PlayFieldAreaViewModelTest {
 
         assertTrue(restored.uiState.value.points.isEmpty())
     }
+
+    // ---- Delete the selected point ----
+
+    private val e = GeoPosition(52.355, 4.87)
+
+    @Test
+    fun canDeleteSelected_ShouldFollowTheSelection_WhenPointsAreTappedAndDeselected() {
+        val vm = viewModel(initial = listOf(a, b, c))
+        assertFalse("nothing selected", vm.uiState.value.canDeleteSelected)
+
+        vm.onPointTapped(1)
+        assertTrue(vm.uiState.value.canDeleteSelected)
+
+        vm.onMapTapped(d)
+        assertFalse("deselected", vm.uiState.value.canDeleteSelected)
+    }
+
+    @Test
+    fun canDeleteSelected_ShouldBeFalse_WhenReadOnly() {
+        val vm = viewModel(initial = listOf(a, b, c), editable = false)
+
+        vm.onPointTapped(1)
+
+        assertFalse(vm.uiState.value.canDeleteSelected)
+    }
+
+    @Test
+    fun deleteSelected_ShouldRemoveOnlyThatPointAndKeepTheOrder_WhenTheMiddleOfFiveIsSelected() {
+        val vm = viewModel(initial = listOf(a, b, c, d, e))
+        vm.onPointTapped(2)
+
+        vm.deleteSelected()
+
+        assertEquals(listOf(a, b, d, e), vm.uiState.value.points)
+        assertNull(vm.uiState.value.selectedIndex)
+        assertFalse(vm.uiState.value.canDeleteSelected)
+    }
+
+    @Test
+    fun deleteSelected_ShouldDisableSave_WhenFewerThanThreePointsRemain() {
+        val vm = viewModel(initial = listOf(a, b, c))
+        vm.onPointTapped(0)
+
+        vm.deleteSelected()
+
+        assertEquals(listOf(b, c), vm.uiState.value.points)
+        assertFalse(vm.uiState.value.canSave)
+    }
+
+    @Test
+    fun deleteSelected_ShouldDisableErase_WhenTheOnlyPointIsDeleted() {
+        val vm = viewModel(initial = listOf(a))
+        vm.onPointTapped(0)
+
+        vm.deleteSelected()
+
+        assertTrue(vm.uiState.value.points.isEmpty())
+        assertFalse(vm.uiState.value.canErase)
+    }
+
+    @Test
+    fun deleteSelected_ShouldDoNothing_WhenNothingIsSelectedOrReadOnly() {
+        val editable = viewModel(initial = listOf(a, b, c))
+        editable.deleteSelected()
+        assertEquals(listOf(a, b, c), editable.uiState.value.points)
+
+        val readOnly = viewModel(initial = listOf(a, b, c), editable = false)
+        readOnly.onPointTapped(1)
+        readOnly.deleteSelected()
+        assertEquals(listOf(a, b, c), readOnly.uiState.value.points)
+    }
+
+    @Test
+    fun deleteSelected_ShouldSurviveProcessDeath_WhenRestoredFromTheSameHandle() {
+        val handle = SavedStateHandle()
+        viewModel(initial = listOf(a, b, c, d), handle = handle).apply {
+            onPointTapped(1)
+            deleteSelected()
+        }
+
+        val restored = viewModel(initial = listOf(a, b, c, d), handle = handle).uiState.value
+
+        assertEquals(listOf(a, c, d), restored.points)
+        assertNull(restored.selectedIndex)
+    }
 }

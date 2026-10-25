@@ -21,6 +21,9 @@ data class PlayFieldAreaUiState(
 ) {
     val canSave: Boolean get() = editable && points.size >= MIN_AREA_POINTS
     val canErase: Boolean get() = editable && points.isNotEmpty()
+
+    /** A point is selected that the delete button can remove. */
+    val canDeleteSelected: Boolean get() = editable && selectedIndex != null && selectedIndex in points.indices
 }
 
 /**
@@ -69,6 +72,14 @@ class PlayFieldAreaViewModel(
         val index = state.selectedIndex ?: return
         if (!state.editable || index !in state.points.indices) return
         set(state.copy(points = state.points.toMutableList().also { it[index] = position }))
+    }
+
+    /** Removes the selected point; the rest keep their order and nothing is selected afterwards. */
+    fun deleteSelected() {
+        val state = _uiState.value
+        if (!state.canDeleteSelected) return
+        val index = state.selectedIndex ?: return
+        set(state.copy(points = state.points.filterIndexed { i, _ -> i != index }, selectedIndex = null))
     }
 
     fun eraseAll() {
