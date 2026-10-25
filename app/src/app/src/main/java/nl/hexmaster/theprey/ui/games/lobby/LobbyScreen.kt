@@ -75,9 +75,11 @@ import nl.hexmaster.theprey.ui.playfields.RowSeparator
 import nl.hexmaster.theprey.ui.theme.ThePreyTheme
 
 /**
- * The game lobby: code and share, the settings (editable for the owner), the players with their
- * role, state and "you" tags, and Set ready or Start game. Back asks before leaving. [onStarted]
- * opens the game when the server reports it started; [onExit] returns to the main menu.
+ * The game lobby, built so the players show without scrolling: a compact code header with a share
+ * icon, the players with their counts and role, state and "you" tags, then a settings summary card
+ * that opens a bottom sheet (editable for the owner), and Set ready or Start game pinned at the
+ * bottom. Back asks before leaving. [onStarted] opens the game when the server reports it started;
+ * [onExit] returns to the main menu.
  */
 @Composable
 fun LobbyScreen(
@@ -140,7 +142,6 @@ private val LobbyCommand.errorRes: Int
         LobbyCommand.Leave -> R.string.lobby_error_leave
     }
 
-/** Opens the Android share sheet with the localized invitation ending in [code]. */
 /** Opens the share sheet with the invitation: its text, the public join link and the code last. */
 private fun Context.shareInvite(gameId: String, code: String) {
     val send = Intent(Intent.ACTION_SEND).apply {
