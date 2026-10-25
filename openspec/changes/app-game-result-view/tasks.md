@@ -28,5 +28,5 @@
 
 ## 6. Integration and specs
 
-- [ ] 6.1 Update the in-flight `app-game-active-view` spec (`specs/game-active-view/spec.md`, "Screen closes when the game ends") so a decided outcome opens the result dialog and only endings without a decided result go straight to the menu; verify `openspec validate app-game-active-view` and `openspec validate app-game-result-view` pass.
-- [ ] 6.2 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and confirm it is green. Then play a short game on a device or emulator (hunter + one prey). Let the timer run out on one game and tag the prey in another, and confirm that each side sees the correct version, that a rotation keeps it, and that the button and Back both return to the menu without the "game has ended" snackbar.
+- [x] 6.1 Update the in-flight `app-game-active-view` spec (`specs/game-active-view/spec.md`, "Screen closes when the game ends") so a decided outcome opens the result dialog and only endings without a decided result go straight to the menu; verify `openspec validate app-game-active-view` and `openspec validate app-game-result-view` pass.
+- [ ] 6.2 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and confirm it is green. Then play a short game on a device or emulator (hunter + one prey). Let the timer run out on one game and tag the prey in another, and confirm that each side sees the correct version, that a rotation keeps it, and that the button and Back both return to the menu without the "game has ended" snackbar. _(lint and unit tests green; device check pending)_

@@ -174,11 +174,16 @@ Pressing back on the active game screen SHALL return the player to the main menu
 
 ### Requirement: Screen closes when the game ends
 
-When the game state source reports that the game has ended, was cancelled, or that the player was removed from it, the app SHALL leave the active game screen and return to the main menu with a message that says why.
+When the game state source reports that the game has ended, was cancelled, or that the player was removed from it, the app SHALL leave the active game screen and return to the main menu with a message that says why. A game that ends with a decided outcome (`HuntersWin` or `PreysWin`) for a participant SHALL instead show the game result dialog (`game-result-view`), which returns to the main menu when dismissed. Only endings without a decided result go straight to the main menu.
 
-#### Scenario: Game ends while playing
+#### Scenario: Game ends with a decided outcome
 
-- **WHEN** a `game-ended` message arrives while the active game screen is open
+- **WHEN** a `game-ended` message with outcome `PreysWin` arrives while a participant has the active game screen open
+- **THEN** the game result dialog is shown over the screen
+
+#### Scenario: Game ends without a decided outcome
+
+- **WHEN** a `game-ended` message with outcome `Undecided` arrives while the active game screen is open
 - **THEN** the app returns to the main menu and shows that the game has ended
 
 #### Scenario: Player is removed
