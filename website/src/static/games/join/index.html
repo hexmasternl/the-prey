@@ -5,58 +5,128 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
   <title>Join game · The Prey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=PT+Mono&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme: dark; }
+    :root {
+      color-scheme: dark;
+      --tp-void: #0C0E0C;
+      --tp-base: #181B17;
+      --tp-surface: #23271F;
+      --tp-signal: #64FF00;
+      --tp-signal-dim: #3F9E00;
+      --tp-text: #DCF6D2;
+      --tp-text-soft: #8C9A83;
+      --border-subtle: rgba(57, 64, 47, .55);
+      --font-display: 'Special Elite', 'Courier New', monospace;
+      --font-body: 'PT Mono', 'Courier New', monospace;
+    }
     body {
       margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: #0e0f13; color: #f5f5f5; text-align: center; padding: 24px;
+      font-family: var(--font-body); font-size: 15px; line-height: 1.6;
+      background: var(--tp-base); color: var(--tp-text); padding: 16px; box-sizing: border-box;
     }
-    .card { max-width: 360px; }
-    h1 { font-size: 1.4rem; margin: 0 0 .5rem; }
-    p { color: #b8bcc6; line-height: 1.5; margin: 0 0 1.5rem; }
+    .card {
+      max-width: 420px; width: 100%; background: var(--tp-surface); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 24px; text-align: center;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 1px 2px rgba(0, 0, 0, .4);
+    }
+    .eyebrow {
+      font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tp-signal-dim); margin: 0 0 8px;
+    }
+    h1 { font-family: var(--font-display); font-weight: normal; font-size: 32px; line-height: 1.1; margin: 0 0 12px; }
+    p { color: var(--tp-text-soft); margin: 0 0 24px; }
+    .hint { font-size: 13px; line-height: 1.5; margin: 16px 0 0; }
     a.btn {
-      display: inline-block; background: #e23b3b; color: #fff; text-decoration: none;
-      padding: 14px 22px; border-radius: 10px; font-weight: 600; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: center; min-height: 48px; box-sizing: border-box;
+      border-radius: 8px; text-decoration: none; text-transform: uppercase;
+      font-family: var(--font-body); font-size: 14px; letter-spacing: 1.2px; margin-bottom: 12px;
     }
-    a.store { display: block; color: #8aa0ff; text-decoration: none; font-size: .9rem; }
+    a.primary { background: var(--tp-signal); color: var(--tp-void); }
+    a.primary:hover, a.primary:focus {
+      box-shadow: 0 0 0 1px rgba(100, 255, 0, .35), 0 0 24px rgba(100, 255, 0, .25); outline: none;
+    }
+    a.secondary { border: 1px solid var(--tp-signal-dim); color: var(--tp-signal); }
+    a.secondary:hover, a.secondary:focus { background: rgba(100, 255, 0, .10); outline: none; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Open in The Prey</h1>
-    <p>Tap the button below to join the game in the app. If you don't have it yet, you'll be taken to the store.</p>
-    <a id="open" class="btn" href="#">Open in app</a>
-    <a id="store" class="store" href="https://play.google.com/store/apps/details?id=nl.hexmaster.theprey">Get The Prey on Google Play</a>
-  </div>
+  <main class="card">
+    <p class="eyebrow" data-i18n="eyebrow">Game invitation</p>
+    <h1 data-i18n="title">Join the hunt</h1>
+    <p id="body" data-i18n="bodyAndroid">You are invited to a game of The Prey. Open it in the app to join the lobby.</p>
+    <a id="open" class="btn primary" href="#" hidden data-i18n="open">Open in app</a>
+    <a id="store" class="btn secondary" href="https://play.google.com/store/apps/details?id=nl.hexmaster.theprey" data-i18n="store">Get it on Google Play</a>
+    <p class="hint" data-i18n="hint">New to The Prey? Install the app, then tap the invitation link again.</p>
+  </main>
 
   <script>
     (function () {
       var PACKAGE = 'nl.hexmaster.theprey';
       var STORE = 'https://play.google.com/store/apps/details?id=' + PACKAGE;
 
-      var m = location.pathname.match(/\/games\/join\/([^/?#]+)/);
-      var gameId = m ? m[1] : null;
+      var TEXTS = {
+        en: {
+          pageTitle: 'Join game · The Prey',
+          eyebrow: 'Game invitation',
+          title: 'Join the hunt',
+          bodyAndroid: 'You are invited to a game of The Prey. Open it in the app to join the lobby.',
+          bodyOther: 'The Prey is an Android app. Open this invitation on your Android phone, or get the app on Google Play.',
+          bodyInvalid: 'This invitation link is not complete. Ask your host to share it again.',
+          open: 'Open in app',
+          store: 'Get it on Google Play',
+          hint: 'New to The Prey? Install the app, then tap the invitation link again.'
+        },
+        nl: {
+          pageTitle: 'Doe mee · The Prey',
+          eyebrow: 'Uitnodiging',
+          title: 'Doe mee aan de jacht',
+          bodyAndroid: 'Je bent uitgenodigd voor een spel The Prey. Open het in de app om naar de lobby te gaan.',
+          bodyOther: 'The Prey is een Android-app. Open deze uitnodiging op je Android-telefoon, of download de app via Google Play.',
+          bodyInvalid: 'Deze uitnodigingslink is niet compleet. Vraag de host om hem opnieuw te delen.',
+          open: 'Open in de app',
+          store: 'Download via Google Play',
+          hint: 'Nieuw bij The Prey? Installeer de app en tik daarna nog een keer op de uitnodigingslink.'
+        }
+      };
 
-      // Android intent:// — opens the app if installed, else the Play Store.
-      // Works from in-app browsers (e.g. WhatsApp's Custom Tab) where verified
-      // App Links never fire.
-      function intentUrl(id) {
-        return 'intent://theprey.nl/games/join/' + encodeURIComponent(id) +
-          '#Intent;scheme=https;package=' + PACKAGE +
-          ';S.browser_fallback_url=' + encodeURIComponent(STORE) + ';end';
-      }
+      var languages = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'];
+      var lang = /^nl\b/i.test(languages[0] || '') ? 'nl' : 'en';
+      var t = TEXTS[lang];
+      document.documentElement.lang = lang;
+      document.title = t.pageTitle;
+      var nodes = document.querySelectorAll('[data-i18n]');
+      for (var i = 0; i < nodes.length; i++) nodes[i].textContent = t[nodes[i].getAttribute('data-i18n')];
 
+      // Same rules as the app's parseJoinLink: /games/join/{guid}/{4 digits}, optional trailing slash.
+      var m = location.pathname.match(
+        /^\/games\/join\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/(\d{4})\/?$/i
+      );
       var isAndroid = /Android/i.test(navigator.userAgent);
-      var target = (gameId && isAndroid) ? intentUrl(gameId) : STORE;
+      var body = document.getElementById('body');
 
-      document.getElementById('open').href = target;
-
-      // Auto-attempt on Android. Most in-app browsers honour this on first load;
-      // the visible button covers cases where the auto-launch is blocked.
-      if (gameId && isAndroid) {
-        setTimeout(function () { location.href = target; }, 250);
+      if (!m) {
+        body.textContent = t.bodyInvalid;
+        return;
       }
+      if (!isAndroid) {
+        body.textContent = t.bodyOther;
+        return;
+      }
+
+      // Android intent://: opens the app when installed, else the Play Store. Works from in-app
+      // browsers (e.g. WhatsApp's Custom Tab) where verified App Links never fire.
+      var target = 'intent://theprey.nl/games/join/' + m[1].toLowerCase() + '/' + m[2] +
+        '#Intent;scheme=https;package=' + PACKAGE +
+        ';S.browser_fallback_url=' + encodeURIComponent(STORE) + ';end';
+      var open = document.getElementById('open');
+      open.href = target;
+      open.hidden = false;
+
+      // Auto-attempt; the visible button covers browsers that block it.
+      setTimeout(function () { location.href = target; }, 250);
     })();
   </script>
 </body>

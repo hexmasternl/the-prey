@@ -9,19 +9,8 @@
       "allowedRoles": ["anonymous"]
     },
     {
-      "route": "/.well-known/apple-app-site-association",
-      "headers": {
-        "content-type": "application/json"
-      },
-      "allowedRoles": ["anonymous"]
-    },
-    {
       "route": "/games/join/*",
       "rewrite": "/games/join/index.html"
-    },
-    {
-      "route": "/join/*",
-      "rewrite": "/join/index.html"
     }
   ],
   "mimeTypes": {
