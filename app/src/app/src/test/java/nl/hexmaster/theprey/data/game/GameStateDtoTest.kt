@@ -137,4 +137,64 @@ class GameStateDtoTest {
         assertEquals(ParticipantDto("owner", PlayerStates.ACTIVE, displayName = "Fox"), state.game.participants.single())
         assertEquals("Vondelpark", state.playfieldName)
     }
+
+    private fun inProgress(status: String, roleState: String) = """
+        {"game":{"id":"g","status":"InProgress","ownerUserId":"o","hunterUserId":"h",
+          "configuration":{"gameDuration":60,"hunterDelayTime":5,"finalStageDuration":10,
+            "defaultLocationInterval":180,"finalLocationInterval":60},
+          "participants":[
+            {"userId":"h","displayName":"Hunter","isReady":true,"state":"Active",
+             "lastKnownLocation":{"latitude":52.1,"longitude":5.1},"hasActivePenalty":false},
+            {"userId":"p","displayName":"Prey","isReady":true,"state":"Active",
+             "lastKnownLocation":null,"hasActivePenalty":true}]},
+         "playfieldName":"Vondelpark",
+         "playfieldCoordinates":[{"latitude":52.0,"longitude":5.0},{"latitude":52.0,"longitude":5.2},{"latitude":52.2,"longitude":5.1}],
+         "status":$status,"roleState":$roleState,"serverTime":"2026-08-31T11:40:00+00:00"}
+    """.trimIndent()
+
+    @Test
+    fun fullGameStateDto_ShouldReadStatusAndPreyRoleState_WhenPreySnapshotIsInProgress() {
+        val state = json.decodeFromString(
+            FullGameStateDto.serializer(),
+            inProgress(
+                """{"gameId":"g","playfieldName":"Vondelpark","playfieldCoordinates":[],"hunterUserId":"h","participants":[],
+                   "gameDurationLeft":754,"nextPingDuration":18,"nextPingDurationWithPenalty":0,"currentPingInterval":30,
+                   "isEndgame":false,"preysLeft":4,"hunterMayMoveAt":"2026-08-31T11:43:20+00:00"}""",
+                """{"hunterDistanceMeters":120,"preyLocations":[]}""",
+            ),
+        )
+
+        assertEquals(3, state.playfieldCoordinates.size)
+        assertEquals(GameStatusDto(754, 18, 30, false, 4, "2026-08-31T11:43:20+00:00"), state.status)
+        assertEquals(120, state.roleState?.hunterDistanceMeters)
+        assertTrue(state.game.participants[1].hasActivePenalty)
+        assertEquals(GpsCoordinateDto(52.1, 5.1), state.game.participants[0].lastKnownLocation)
+    }
+
+    @Test
+    fun fullGameStateDto_ShouldReadPreyLocations_WhenHunterSnapshotIsInProgress() {
+        val state = json.decodeFromString(
+            FullGameStateDto.serializer(),
+            inProgress(
+                """{"gameDurationLeft":600,"nextPingDuration":5,"currentPingInterval":180,"preysLeft":1,"hunterMayMoveAt":null}""",
+                """{"hunterDistanceMeters":null,"preyLocations":[{"latitude":52.15,"longitude":5.12}]}""",
+            ),
+        )
+
+        assertNull(state.roleState?.hunterDistanceMeters)
+        assertEquals(listOf(GpsCoordinateDto(52.15, 5.12)), state.roleState?.preyLocations)
+        assertNull(state.status?.hunterMayMoveAt)
+    }
+
+    @Test
+    fun fullGameStateDto_ShouldHaveNoSlices_WhenGameIsStartedAndStatusIsNull() {
+        val state = json.decodeFromString(
+            FullGameStateDto.serializer(),
+            inProgress("null", "null").replace("\"InProgress\"", "\"Started\""),
+        )
+
+        assertEquals(GameStatuses.STARTED, state.game.status)
+        assertNull(state.status)
+        assertNull(state.roleState)
+    }
 }

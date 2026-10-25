@@ -14,6 +14,37 @@ data class FullGameStateDto(
     /** The server clock when the snapshot was built (ISO-8601 with offset). */
     val serverTime: String,
     val playfieldName: String = "",
+    /** The playfield boundary polygon; empty when the playfield can no longer be resolved. */
+    val playfieldCoordinates: List<GpsCoordinateDto> = emptyList(),
+    /** The rich in-progress status; null unless the game is `InProgress`. */
+    val status: GameStatusDto? = null,
+    /** The caller's role-specific view; null unless `InProgress` and the caller plays in the game. */
+    val roleState: RoleStateDto? = null,
+)
+
+/**
+ * The part of the server's `GameStatusDto` (the in-progress slice of `/gamestate`) the app uses.
+ * Durations are whole seconds as of the snapshot's `serverTime`; clients count down locally.
+ */
+@Serializable
+data class GameStatusDto(
+    val gameDurationLeft: Int = 0,
+    /** Seconds until this participant's next scheduled location broadcast. */
+    val nextPingDuration: Int = 0,
+    /** The full interval between this participant's broadcasts, in seconds; 0 for non-participants. */
+    val currentPingInterval: Int = 0,
+    val isEndgame: Boolean = false,
+    val preysLeft: Int = 0,
+    /** When the hunter may start moving (ISO-8601); null when unknown. */
+    val hunterMayMoveAt: String? = null,
+)
+
+/** The server's `GameStateDto`: a prey gets its distance to the hunter, a hunter the preys' locations. */
+@Serializable
+data class RoleStateDto(
+    /** Null while the hunter has no known location (and always for a hunter). */
+    val hunterDistanceMeters: Int? = null,
+    val preyLocations: List<GpsCoordinateDto> = emptyList(),
 )
 
 /**
