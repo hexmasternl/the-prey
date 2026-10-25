@@ -35,7 +35,7 @@
 ## 4. Screen, navigation and strings
 
 - [x] 4.1 Add all `game_create_*` strings, the `game_create_minutes` plurals and `lobby_title` to `values/strings.xml` and `values-nl/strings.xml`, following the `the-prey-multilingual` skill. Verify that `./gradlew lintDebug` reports no missing translations.
-- [x] 4.2 Build `CreateGameScreen`:
+- [ ] 4.2 Build `CreateGameScreen`: _(code and previews done; preview render check in Android Studio pending)_
   - top bar with back, the playfield card, five labelled `SingleChoiceSegmentedButtonRow`s with disabled options from `isEnabled`;
   - bottom bar with the inline error + Retry and a `PrimaryButton` with `busy`;
   - colours via `MaterialTheme.colorScheme` per the `the-prey-design-system` skill.

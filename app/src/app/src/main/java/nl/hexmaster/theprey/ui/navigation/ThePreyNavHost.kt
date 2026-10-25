@@ -1,6 +1,7 @@
 package nl.hexmaster.theprey.ui.navigation
 
 import androidx.compose.foundation.layout.Box
+import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,9 +31,13 @@ import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.location.LocationConsentStore
 import nl.hexmaster.theprey.data.location.LocationSource
 import nl.hexmaster.theprey.data.playfield.PlayFieldRepository
+import nl.hexmaster.theprey.data.sensors.HeadingSource
 import nl.hexmaster.theprey.data.user.ProfileStore
 import nl.hexmaster.theprey.tracking.TrackingStarter
 import nl.hexmaster.theprey.ui.consent.LocationConsentHost
+import nl.hexmaster.theprey.ui.game.GameExit
+import nl.hexmaster.theprey.ui.game.GameScreen
+import nl.hexmaster.theprey.ui.game.GameViewModel
 import nl.hexmaster.theprey.ui.games.create.CreateGameScreen
 import nl.hexmaster.theprey.ui.games.create.CreateGameViewModel
 import nl.hexmaster.theprey.ui.games.lobby.LobbyExit
@@ -128,6 +133,7 @@ fun ThePreyNavHost(
     playFieldRepository: PlayFieldRepository,
     profileStore: ProfileStore,
     gameSessions: GameSessions,
+    headingSource: HeadingSource,
     profileSettings: ProfileSettings,
     appLanguage: AppLanguage,
     modifier: Modifier = Modifier,
@@ -212,9 +218,27 @@ fun ThePreyNavHost(
                         },
                     )
                 }
-                // Placeholder until the game screen exists; it will read Routes.GAME_ID from the entry.
-                composable(Routes.GAME, arguments = listOf(navArgument(Routes.GAME_ID) { type = NavType.StringType })) {
-                    PlaceholderScreen(R.string.main_menu_resume_game, onBack = { navController.popBackStack() })
+                // A new entry per visit: every entry downloads a fresh snapshot and shows the safety warning.
+                composable(Routes.GAME, arguments = listOf(navArgument(Routes.GAME_ID) { type = NavType.StringType })) { entry ->
+                    val gameId = entry.arguments?.getString(Routes.GAME_ID).orEmpty()
+                    GameScreen(
+                        viewModel = viewModel {
+                            GameViewModel(gameId, gameSessions, profileStore, locationSource, headingSource, SystemClock::elapsedRealtime)
+                        },
+                        // Back leaves the screen, not the game: Resume game on the menu reopens it.
+                        onExit = { reason ->
+                            if (navController.currentBackStackEntry == entry) {
+                                navController.returnToMainMenu(
+                                    when (reason) {
+                                        null -> null
+                                        GameExit.Ended -> MainMenuMessage.GameEnded
+                                        GameExit.Cancelled -> MainMenuMessage.GameCancelled
+                                        GameExit.Unavailable -> MainMenuMessage.GameUnavailable
+                                    },
+                                )
+                            }
+                        },
+                    )
                 }
                 // Scoped to this entry: leaving to the menu discards it, so the next open starts on Private.
                 composable(Routes.PLAYFIELDS) {

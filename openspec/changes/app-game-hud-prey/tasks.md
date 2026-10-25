@@ -29,7 +29,7 @@
 ## 5. Game route wiring
 
 - [ ] 5.1 Add a `PreyHudInput` flow source for the game route that loads one `GET /games/{id}/gamestate` snapshot through `GameRepository` and combines it with `LocationSource` fixes (no polling; design Decision 7); verify a unit test with a fake repository and location source emits the expected `PreyHudState`.
-- [ ] 5.2 In `ThePreyNavHost`, show `PreyHud` on `Routes.GAME` when the game is `InProgress` and the signed-in user is a non-hunter participant; keep the placeholder otherwise; verify unit tests for the prey, hunter and non-`InProgress` cases of the visibility check.
+- [ ] 5.2 In `ThePreyNavHost`, show `PreyHud` on `Routes.GAME` when the game is `InProgress` and the signed-in user is a non-hunter participant; keep the placeholder otherwise; verify unit tests for the prey, hunter and non-`InProgress` cases of the visibility check. _(Note from `app-game-active-view`: the game route now renders `GameScreen`; this task becomes "fill the `GameScreen` prey HUD slot" (`preyHud` lambda in `ThePreyNavHost`) instead of mounting the HUD on the route.)_
 - [ ] 5.3 Document the HUD's data sources (snapshot fields and realtime messages it reads) in `docs/api/realtime.md` under the Game State Service section; verify the doc names the same fields as `GameStateDto.kt`.
 
 ## 6. Integration check

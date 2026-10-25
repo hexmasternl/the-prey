@@ -9,7 +9,7 @@
 
 ## 2. Selectable rows
 
-- [x] 2.1 Add `selected: Boolean = false` to `PlayFieldRow` (12 % `primary` tint + 3 dp leading `primary` bar, theme tokens only, checked against the `the-prey-design-system` skill) and a "Selected" preview; verify the previews render and the list screen rows look unchanged
+- [ ] 2.1 Add `selected: Boolean = false` to `PlayFieldRow` (12 % `primary` tint + 3 dp leading `primary` bar, theme tokens only, checked against the `the-prey-design-system` skill) and a "Selected" preview; verify the previews render and the list screen rows look unchanged _(code and previews done; preview render check in Android Studio pending)_
 
 ## 3. Selection state and result contract
 
@@ -19,7 +19,7 @@
 ## 4. Selection screen and navigation
 
 - [x] 4.1 Add the strings `playfield_select_title`, `playfield_select_empty`, `playfield_select_confirm`, `playfield_select_selected`, `playfield_select_none` to `values/strings.xml` and `values-nl/strings.xml` per the `the-prey-multilingual` skill; verify `./gradlew lintDebug` reports no missing translations
-- [x] 4.2 Implement `PlayFieldSelectScreen(viewModel, onCancel, onSelect)`: top bar (back = cancel), shared tab row, Private tab via `OwnPlayFieldsState` with `playfield_select_empty`, Public tab via `PlayFieldSearchField` + `PublicSearchState`, rows with `selected` and `Modifier.selectable(role = Role.RadioButton)`, no swipe/delete/FAB/open, bottom bar with selected name, Cancel (`SecondaryButton`) and Select (`PrimaryButton`, enabled only with a selection) above the navigation bar and keyboard; add previews (nothing selected, Private selected, Public results selected, empty, error, Dutch) and verify they render
+- [ ] 4.2 Implement `PlayFieldSelectScreen(viewModel, onCancel, onSelect)`: top bar (back = cancel), shared tab row, Private tab via `OwnPlayFieldsState` with `playfield_select_empty`, Public tab via `PlayFieldSearchField` + `PublicSearchState`, rows with `selected` and `Modifier.selectable(role = Role.RadioButton)`, no swipe/delete/FAB/open, bottom bar with selected name, Cancel (`SecondaryButton`) and Select (`PrimaryButton`, enabled only with a selection) above the navigation bar and keyboard; add previews (nothing selected, Private selected, Public results selected, empty, error, Dutch) and verify they render _(code and previews done; preview render check in Android Studio pending)_
 - [x] 4.3 Add `Routes.PLAYFIELD_SELECT` to the `signed_in` graph in `ThePreyNavHost.kt`: per-entry view model, Cancel/Back pop without a result, Select delivers `PlayFieldSelectResult` to `previousBackStackEntry` then pops; document in the route's KDoc how a caller consumes the result; verify `./gradlew assembleDebug` builds
 
 ## 5. Verification

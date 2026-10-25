@@ -155,8 +155,8 @@ The client merges these game-level fields onto its state and **preserves its par
 
 #### `locations-updated`
 One or more participants' last known locations, **batched** — one message per sweep tick, not one
-per coordinate. Broadcast to the whole group; each client renders only what its role may see (the
-hunter renders prey; a prey renders only the hunter).
+per coordinate. Broadcast to the whole group; each client renders what its role may see: the hunter
+renders the preys, and a prey renders the hunter and the other preys (eliminated preys greyed out).
 ```json
 { "locations": [
   { "userId": "…", "role": "Prey", "latitude": 51.9, "longitude": 4.4, "state": "Active" }
@@ -218,6 +218,9 @@ page, and HUD all read from it and never poll the server or keep their own copy.
    starve others).
 6. **Fail safe** — transient token/fetch failures retry with bounded backoff; a terminal `403`
    stops and reports "unavailable" rather than surfacing stale state.
+7. **Fresh on entry** — `refresh()` forces a snapshot download even on a live session and returns
+   once it is applied. The Android game screen calls it every time it is entered (after the lobby
+   hand-off and on Resume game), so it never starts from a warm but seconds-old state.
 
 ### In-game location tracking hook (Android)
 

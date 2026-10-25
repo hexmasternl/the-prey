@@ -36,7 +36,7 @@
 
 ## 7. Game route wiring
 
-- [ ] 7.1 In `ThePreyNavHost`, show `HunterHud` on `Routes.GAME` when `hudRoleFor` returns `Hunter`, next to the prey branch; keep the placeholder for `None`; verify `hudRoleFor` tests cover the routing and the app builds with `./gradlew assembleDebug`.
+- [ ] 7.1 In `ThePreyNavHost`, show `HunterHud` on `Routes.GAME` when `hudRoleFor` returns `Hunter`, next to the prey branch; keep the placeholder for `None`; verify `hudRoleFor` tests cover the routing and the app builds with `./gradlew assembleDebug`. _(Note from `app-game-active-view`: the game route now renders `GameScreen`; this task becomes "fill the `GameScreen` hunter HUD slot" (`hunterHud` lambda in `ThePreyNavHost`) instead of mounting the HUD on the route.)_
 - [ ] 7.2 Document the hunter HUD's data sources and the post-tag refresh in `docs/api/realtime.md` under the Game State Service section; verify the doc names the same fields as `GameStateDto.kt`.
 
 ## 8. Integration check
