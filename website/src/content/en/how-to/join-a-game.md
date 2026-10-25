@@ -1,18 +1,17 @@
 ---
 title: "Join a Game"
 weight: 2
-description: "How to join a game in The Prey: enter the join code, land in the lobby, and get assigned your role by the Game Creator."
-keywords: ["join a game", "join code", "lobby", "get a role", "The Prey how-to"]
+description: "How to join a game in The Prey: tap the invitation link the Game Creator shared, sign in if needed, land in the lobby and tap Set ready."
+keywords: ["join a game", "invitation link", "lobby", "set ready", "The Prey how-to"]
 ---
 
-1. Get the join code from the Game Creator. It is displayed in their app on the game lobby screen.
-2. Open The Prey app on your device.
-3. Tap **Join Game** on the home screen.
-4. Enter the join code and tap **Join**.
-5. You land in the lobby. Wait for the Game Creator to assign your role.
-6. Grant location permissions when prompted. Select **Always Allow**.
-7. Once the Game Creator launches the game, your role screen appears. The head start begins immediately.
+1. Make sure you are [set up]({{< relref "/how-to/get-started" >}}): app installed and location allowed all the time.
+2. Ask the Game Creator for the invitation. They send it from the lobby with **Share**.
+3. Tap the invitation link on your phone. It opens The Prey.
+4. Not signed in yet? Sign in first. The app keeps the invitation and continues after you sign in.
+5. The app joins the game and opens the lobby. You see the game settings and the other players.
+6. Wait for the Game Creator to choose the Hunter. Your tag shows **Hunter** or **Prey**.
+7. Tap **Set ready**.
+8. When the Game Creator starts the game, confirm the safety warning. The head start begins straight away.
 
-{{< screenshot src="/images/screens/main-menu.png" alt="The Prey main menu" caption="The main menu" >}}
-
-{{< screenshot src="/images/screens/player-settings.png" alt="The settings screen showing the call sign and language options" caption="Set your call sign and language in Settings" >}}
+The link does not work? The app tells you why: the invitation is no longer valid, the game has already started, the lobby is full (16 players), or you are still in another game. Ask the Game Creator for a new link, or leave your other game first.

@@ -1,19 +1,22 @@
 ---
 title: "Create a Game"
 weight: 3
-description: "Step-by-step: create a game in The Prey. Pick a playfield, share the join code, choose the Hunter, and start the head start."
-keywords: ["create a game", "start a game", "join code", "assign roles", "playfield", "The Prey how-to"]
+description: "Step-by-step: create a game in The Prey. Tap Play now, choose a playfield and the settings, share the invitation, choose the Hunter, and start when everyone is ready."
+keywords: ["create a game", "start a game", "invite players", "choose the hunter", "playfield", "The Prey how-to"]
 ---
 
-1. Open The Prey app and tap **Create Game**.
-2. Select a saved playfield or draw a new one. The playfield defines the game boundary.
-3. The app generates a join code. Share it with all participants before proceeding.
-4. Wait for players to join. They appear in the lobby list as they connect.
-5. Tap one player to make them the **Hunter**. Everyone else is automatically **Prey**. There is only ever one Hunter.
-6. Make yourself the Hunter, or leave yourself as Prey, if you are playing.
-7. Confirm all players are ready.
-8. Tap **Start Game**. The head start begins. Prey scatter. The Hunter waits.
+1. On the main menu, tap **Play now**. If it is grey, follow the message under it: the app needs precise location set to "Allow all the time".
+2. Tap **Choose a playfield**. Pick one of your own on the **Private** tab, or search the **Public** tab, and tap **Select**. No playfield yet? [Draw one first]({{< relref "/how-to/draw-a-playfield" >}}).
+3. Set the game: **Game duration**, **Hunter delay**, **Final stage**, **Location ping** and **Ping in final stage**. The defaults make a 30-minute game with a 5-minute head start.
+4. Tap **Create game**. The lobby opens with the **Game code**.
+5. Tap **Share** and send the invitation link to the other players. They tap it to join.
+6. Wait for players to join. They appear under **Players**.
+7. Tap one player, then **Make hunter**. Everyone else is Prey. You can pick yourself.
+8. Tap **Set ready** yourself and wait until every player shows **Ready**.
+9. Tap **Start game**. Everyone confirms the safety warning, the head start begins, the Prey scatter and the Hunter waits.
 
-{{< screenshot src="/images/screens/create-new-operation.png" alt="The new-game screen showing the configurable game parameters" caption="Configuring a new game" >}}
+Leaving the lobby as Game Creator cancels the game for everyone.
 
-{{< screenshot src="/images/screens/game-lobby.png" alt="The lobby screen showing the join code and the list of players" caption="The lobby and join code" >}}
+{{< screenshot name="create-game" alt="The New game screen with the playfield and the five game settings" caption="Setting up a new game" >}}
+
+{{< screenshot name="lobby" alt="The lobby with the game code, the Share button and the player list" caption="The lobby and game code" >}}

@@ -1,18 +1,17 @@
 ---
 title: "Deelnemen aan een Spel"
 weight: 2
-description: "Hoe je deelneemt aan een spel in The Prey: voer de toegangscode in, kom in de lobby en krijg je rol toegewezen door de Spelmaker."
-keywords: ["deelnemen aan een spel", "toegangscode", "lobby", "rol krijgen", "The Prey handleiding"]
+description: "Meedoen met een spel in The Prey: tik op de uitnodigingslink die de Spelmaker deelde, log zo nodig in, kom in de lobby en tik op Ik ben klaar."
+keywords: ["meedoen met een spel", "uitnodigingslink", "lobby", "ik ben klaar", "The Prey handleiding"]
 ---
 
-1. Haal de deelnamecode op bij de Spelmaker. Die staat in hun app op het lobby-scherm.
-2. Open The Prey-app op je apparaat.
-3. Tik op **Deelnemen aan Spel** op het startscherm.
-4. Voer de deelnamecode in en tik op **Deelnemen**.
-5. Je belandt in de lobby. Wacht tot de Spelmaker je rol toewijst.
-6. Geef locatierechten wanneer daarom gevraagd wordt. Selecteer **Altijd Toestaan**.
-7. Zodra de Spelmaker het spel lanceert, verschijnt je rolscherm. De voorsprong begint onmiddellijk.
+1. Zorg dat je [klaar bent om te spelen]({{< relref "/how-to/get-started" >}}): app geïnstalleerd en locatie altijd toegestaan.
+2. Vraag de Spelmaker om de uitnodiging. Die verstuurt hij vanuit de lobby met **Delen**.
+3. Tik op je telefoon op de uitnodigingslink. The Prey opent.
+4. Nog niet ingelogd? Log eerst in. De app onthoudt de uitnodiging en gaat na het inloggen verder.
+5. De app doet mee met het spel en opent de lobby. Je ziet de spelinstellingen en de andere spelers.
+6. Wacht tot de Spelmaker de Jager kiest. Je label toont **Jager** of **Prooi**.
+7. Tik op **Ik ben klaar**.
+8. Als de Spelmaker het spel start, bevestig je de veiligheidswaarschuwing. De voorsprong begint meteen.
 
-{{< screenshot src="/images/screens/main-menu.png" alt="Het hoofdmenu van The Prey" caption="Het hoofdmenu" >}}
-
-{{< screenshot src="/images/screens/player-settings.png" alt="Het instellingenscherm met de roepnaam- en taalopties" caption="Stel je roepnaam en taal in bij Instellingen" >}}
+Werkt de link niet? De app vertelt waarom: de uitnodiging is niet meer geldig, het spel is al begonnen, de lobby is vol (16 spelers), of je zit nog in een ander spel. Vraag de Spelmaker om een nieuwe link, of verlaat eerst je andere spel.

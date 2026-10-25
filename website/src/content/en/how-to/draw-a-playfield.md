@@ -1,18 +1,21 @@
 ---
 title: "Draw a Playfield"
 weight: 4
-description: "How to draw a playfield in The Prey: tap the map to place boundary vertices, shape the GPS polygon, and save the arena before you play."
-keywords: ["draw a playfield", "GPS boundary", "polygon", "map vertices", "game area", "The Prey how-to"]
+description: "How to draw a playfield in The Prey: create it on the Private tab, name it, tap the map to place the points of the area, adjust them, and save."
+keywords: ["draw a playfield", "game area", "area editor", "map points", "create playfield", "The Prey how-to"]
 ---
 
-1. Open The Prey app and navigate to **Playfields**.
-2. Tap **New Playfield**. The map opens centered on your current GPS position.
-3. Tap the map to place your first vertex. A pin appears.
-4. Continue tapping to place each corner of your boundary polygon. Place at least three vertices.
-5. Use **pinch** to zoom in and out for precision. Use **drag** on any vertex to reposition it.
-6. To remove a vertex, tap it to select it, then tap the trash button. To add another vertex, tap the map again.
-7. When the shape looks correct, tap **Confirm Polygon**.
-8. Enter a name for the playfield and tap **Save**.
-9. The playfield is now available to select when creating a new game.
+1. On the main menu, tap **Playfields**.
+2. On the **Private** tab, tap **+**. The **New playfield** screen opens.
+3. Type a **Name**.
+4. Tap **Playfield Area**. The map opens full screen, centred on your position when location is allowed. The first time, a short tour explains the editor.
+5. Tap the map to place the first point of the outline. Keep tapping to add the other corners. Points are joined in the order you place them.
+6. Pinch to zoom and drag the map to pan for precision.
+7. To move a point, tap it to select it (it gets a red border) and drag it. Tap empty map to deselect.
+8. To remove a point, select it and tap the trash button. **Erase All** removes every point.
+9. With at least 3 points, tap **Save**. The area goes back to the playfield. **Cancel** leaves without changes.
+10. Tap **Save** on the playfield. It now appears on your Private tab and can be chosen when you create a game.
 
-{{< screenshot src="/images/screens/playfield-set-area.png" alt="The playfield editor with a boundary polygon drawn on the map" caption="Drawing a playfield boundary" >}}
+Want other players to use it too? Switch on **Public** before saving. The name has to look like `NL, Amsterdam, Vondelpark`. See [Playfield]({{< relref "/playfield" >}}).
+
+{{< screenshot name="area-editor" alt="The area editor with a green outline, one selected point with a red border, and the Cancel, Erase All and Save buttons" caption="Drawing the playfield area" >}}

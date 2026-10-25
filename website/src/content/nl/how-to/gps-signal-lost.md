@@ -1,15 +1,16 @@
 ---
 title: "GPS-signaal Verloren"
 weight: 6
-description: "Wat te doen als je GPS-signaal wegvalt in The Prey: herstel locatie op de achtergrond, ga naar open lucht en zend je positie weer uit."
-keywords: ["GPS-signaal verloren", "locatie wordt niet bijgewerkt", "locatie op achtergrond", "GPS-problemen", "The Prey hulp"]
+description: "Wat je doet als je locatie stopt in The Prey: controleer de locatietoestemming, batterijbesparing en de melding van de spelvolging, en hervat de volging voordat je eruit ligt."
+keywords: ["GPS-signaal kwijt", "locatie werkt niet", "Altijd toestaan", "melding spelvolging", "GPS-problemen", "The Prey hulp"]
 ---
 
-1. Controleer de statusbalk van je apparaat. Een GPS-pictogram met een streep door of geen pictogram betekent dat locatieservices uit of beperkt zijn.
-2. Open **Instellingen → Locatie** op je apparaat en bevestig dat locatie systeembreed is ingeschakeld.
-3. Open **Instellingen → Apps → The Prey → Rechten → Locatie** en bevestig dat dit is ingesteld op **Altijd Toestaan**.
-4. Als de app op de achtergrond draait, breng hem naar de voorgrond. Sommige apparaten onderbreken achtergrond-GPS wanneer de batterijbesparing actief is.
-5. Schakel de **Batterijbesparing** uit tijdens het spelen. Dit beperkt achtergrondactiviteit van apps en kan GPS-uitzendingen onderbreken.
-6. Als het signaal nog steeds weg is, sluit de app geforceerd en open hem opnieuw. De GPS-service herstart bij het opstarten.
-7. Informeer de Spelmaker als je signaal langere tijd weg was. Beslissingen over of die periode meetelt zijn naar goeddunken van de Spelmaker.
-8. Op Android: als de achtergrondservicemelding uit je meldingenbalk verdwijnt, is de voorgrondservice gestopt. Heropen de app om hem opnieuw te starten.
+1. Wees snel. Bereikt er 5 minuten lang geen locatie van je telefoon de server, dan word je passief, en na 7 minuten lig je eruit. Voor een prooi telt eruit liggen als gevangen.
+2. Kijk in het meldingenpaneel. Tijdens een spel toont The Prey de melding **Spel bezig**. Staat er **Locatie niet beschikbaar**, dan kan de server je niet zien.
+3. Open op je telefoon **Instellingen → Locatie** en controleer of locatie aan staat.
+4. Open **Instellingen → Apps → The Prey → Rechten → Locatie**. Kies **Altijd toestaan** en zet **Precieze locatie gebruiken** aan.
+5. Zet **Batterijbesparing** uit tijdens het spel. Die kan locatie-updates op de achtergrond stoppen.
+6. Open The Prey. Het hoofdmenu toont **Spel hervatten** zolang je spel loopt. Tik erop om terug te gaan naar het spelscherm.
+7. Je telefoon opnieuw opgestart? Tik op de melding **Je spel loopt nog** om de volging te hervatten. Tot die tijd ziet de server je als stil.
+8. Ga de open ruimte in. Hoge gebouwen, tunnels en dichte bomen verzwakken het GPS-signaal.
+9. **Instellingen → Locatie** in de app toont je huidige toegang: daar moet **Altijd** staan.
