@@ -30,6 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -37,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -222,6 +224,42 @@ private fun LobbyContent(
                     SettingsSummaryCard(state.lobby, onClick = { settingsOpen = true })
                 }
             }
+        }
+    }
+    // Reads the latest lobby on every recomposition, so live updates and PUT responses show in
+    // the open sheet. It leaves with the screen when the game starts or the player exits.
+    if (settingsOpen && lobby != null) {
+        ModalBottomSheet(
+            onDismissRequest = { settingsOpen = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            SettingsSheetContent(lobby, onSettingChange)
+        }
+    }
+}
+
+/** The settings sheet: the editable form for the owner (no Save, each change applies at once), the values for others. */
+@Composable
+private fun SettingsSheetContent(lobby: LobbyUiState, onSettingChange: (GameSetting, Int) -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .navigationBarsPadding()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.lobby_settings_sheet_title),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(16.dp))
+        if (lobby.isOwner) {
+            GameSettingsForm(settings = lobby.settings, onChange = onSettingChange, enabled = lobby.canEdit)
+        } else {
+            GameSettingsSummary(settings = lobby.settings)
         }
     }
 }
@@ -548,3 +586,20 @@ private fun PlayerReadyPreview() = ContentPreview(LobbyScreenState.Content(previ
 @Preview(name = "Error")
 @Composable
 private fun ErrorPreview() = ContentPreview(LobbyScreenState.Error)
+
+@Composable
+private fun SheetPreview(lobby: LobbyUiState) {
+    ThePreyTheme {
+        Box(Modifier.background(MaterialTheme.colorScheme.surface)) {
+            SettingsSheetContent(lobby, onSettingChange = { _, _ -> })
+        }
+    }
+}
+
+@Preview(name = "Settings sheet (owner)")
+@Composable
+private fun OwnerSheetPreview() = SheetPreview(previewLobby(isOwner = true))
+
+@Preview(name = "Settings sheet (player, Dutch)", locale = "nl")
+@Composable
+private fun PlayerSheetPreview() = SheetPreview(previewLobby(isOwner = false))
