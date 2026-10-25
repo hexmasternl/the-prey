@@ -27,6 +27,7 @@ import nl.hexmaster.theprey.auth.SessionController
 import nl.hexmaster.theprey.auth.SessionState
 import nl.hexmaster.theprey.data.game.GameRepository
 import nl.hexmaster.theprey.data.game.GameSessions
+import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.location.LocationConsentStore
 import nl.hexmaster.theprey.data.location.LocationSource
@@ -152,6 +153,7 @@ fun ThePreyNavHost(
     profileSettings: ProfileSettings,
     appLanguage: AppLanguage,
     pendingInviteStore: PendingInviteStore,
+    hintsStore: HintsStore,
     modifier: Modifier = Modifier,
     trackingStarter: TrackingStarter? = null,
     trackingRequest: TrackingRequest? = null,
@@ -318,6 +320,8 @@ fun ThePreyNavHost(
                         navController = navController,
                         repository = playFieldRepository,
                         locationSource = locationSource,
+                        // Only a new playfield's area gets the first-time tour.
+                        hints = hintsStore,
                     )
                 }
                 // Opened by a pending invitation; every exit leaves this entry.
@@ -426,6 +430,7 @@ private fun NavGraphBuilder.playFieldAreaDestination(
     navController: NavController,
     repository: PlayFieldRepository,
     locationSource: LocationSource,
+    hints: HintsStore? = null,
 ) {
     composable(route) { entry ->
         val graphEntry = remember(entry) { navController.getBackStackEntry(graphRoute) }
@@ -437,6 +442,7 @@ private fun NavGraphBuilder.playFieldAreaDestination(
             },
             locationSource = locationSource,
             onClose = { if (navController.currentBackStackEntry == entry) navController.popBackStack() },
+            hints = hints,
         )
     }
 }

@@ -92,6 +92,7 @@ class MainActivity : AppCompatActivity() {
                             profileSettings = session,
                             appLanguage = container.appLanguage,
                             pendingInviteStore = container.pendingInviteStore,
+                            hintsStore = container.hintsStore,
                             trackingStarter = container.trackingStarter,
                             trackingRequest = trackingRequest,
                         )

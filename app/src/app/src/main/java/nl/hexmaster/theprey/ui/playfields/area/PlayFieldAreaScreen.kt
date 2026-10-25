@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,10 +52,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withTimeoutOrNull
 import nl.hexmaster.theprey.R
+import nl.hexmaster.theprey.data.hints.Hint
+import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.data.location.LocationAccess
 import nl.hexmaster.theprey.data.location.LocationSource
 import nl.hexmaster.theprey.data.location.readLocationAccess
+import nl.hexmaster.theprey.ui.components.tour.LocalTourTargets
+import nl.hexmaster.theprey.ui.components.tour.TourOverlay
+import nl.hexmaster.theprey.ui.components.tour.TourTargets
+import nl.hexmaster.theprey.ui.components.tour.rememberHint
+import nl.hexmaster.theprey.ui.components.tour.tourTarget
 import nl.hexmaster.theprey.ui.theme.BodyFontFamily
 import nl.hexmaster.theprey.ui.theme.ThePreyTheme
 
@@ -72,7 +80,7 @@ private val BarButtonHeight = 48.dp
  * button for the selected point floating above them; read-only:
  * Close only. Cancel, Close, the back chip and system Back all leave without changing the details.
  * Location permission is never asked for here: the device position is only used when it is
- * already granted.
+ * already granted. With [hints] (a new playfield only) the area tour runs once over the screen.
  */
 @Composable
 fun PlayFieldAreaScreen(
@@ -80,59 +88,70 @@ fun PlayFieldAreaScreen(
     locationSource: LocationSource,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    hints: HintsStore? = null,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val density = LocalDensity.current
     var chromeHeight by remember { mutableStateOf(0.dp) }
+    val tourTargets = remember { TourTargets() }
+    val tour = rememberHint(hints, Hint.PlayFieldArea, ready = uiState.editable)
 
     BackHandler(onBack = onClose)
 
-    Box(modifier.fillMaxSize().background(ThePreyTheme.colors.void)) {
-        PlayFieldMap(
-            points = uiState.points,
-            selectedIndex = uiState.selectedIndex,
-            editable = uiState.editable,
-            onMapTapped = viewModel::onMapTapped,
-            onPointTapped = viewModel::onPointTapped,
-            onDragSelected = viewModel::onDragSelected,
-            locateDevice = {
-                if (readLocationAccess(context) == LocationAccess.Missing) {
-                    null
-                } else {
-                    withTimeoutOrNull(LOCATE_TIMEOUT_MS) { locationSource.positions().firstOrNull() }
-                }
-            },
-            contentPadding = PaddingValues(bottom = chromeHeight),
-            modifier = Modifier.fillMaxSize(),
-        )
-
-        BackChip(onClick = onClose, modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(12.dp))
-
-        Column(
-            Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .onSizeChanged { chromeHeight = with(density) { it.height.toDp() } },
-        ) {
-            MapAttribution(Modifier.align(Alignment.End).padding(end = 8.dp, bottom = 4.dp))
-            AreaActionBar(
+    CompositionLocalProvider(LocalTourTargets provides tourTargets) {
+        Box(modifier.fillMaxSize().background(ThePreyTheme.colors.void)) {
+            PlayFieldMap(
+                points = uiState.points,
+                selectedIndex = uiState.selectedIndex,
                 editable = uiState.editable,
-                canErase = uiState.canErase,
-                canSave = uiState.canSave,
-                onCancel = onClose,
-                onEraseAll = viewModel::eraseAll,
-                onSave = { if (viewModel.save()) onClose() },
+                onMapTapped = viewModel::onMapTapped,
+                onPointTapped = viewModel::onPointTapped,
+                onDragSelected = viewModel::onDragSelected,
+                locateDevice = {
+                    if (readLocationAccess(context) == LocationAccess.Missing) {
+                        null
+                    } else {
+                        withTimeoutOrNull(LOCATE_TIMEOUT_MS) { locationSource.positions().firstOrNull() }
+                    }
+                },
+                contentPadding = PaddingValues(bottom = chromeHeight),
+                modifier = Modifier.fillMaxSize(),
             )
-        }
+    
+            BackChip(onClick = onClose, modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(12.dp))
+    
+            Column(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .onSizeChanged { chromeHeight = with(density) { it.height.toDp() } },
+            ) {
+                MapAttribution(Modifier.align(Alignment.End).padding(end = 8.dp, bottom = 4.dp))
+                AreaActionBar(
+                    editable = uiState.editable,
+                    canErase = uiState.canErase,
+                    canSave = uiState.canSave,
+                    onCancel = onClose,
+                    onEraseAll = viewModel::eraseAll,
+                    onSave = { if (viewModel.save()) onClose() },
+                )
+            }
+    
+            // Outside the measured column, so the map's bottom padding and the attribution stay as they are.
+            if (uiState.editable) {
+                DeletePointFab(
+                    enabled = uiState.canDeleteSelected,
+                    onClick = viewModel::deleteSelected,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 16.dp, bottom = chromeHeight + 16.dp)
+                        .tourTarget(AreaTourTargets.DELETE_POINT),
+                )
+            }
 
-        // Outside the measured column, so the map's bottom padding and the attribution stay as they are.
-        if (uiState.editable) {
-            DeletePointFab(
-                enabled = uiState.canDeleteSelected,
-                onClick = viewModel::deleteSelected,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = chromeHeight + 16.dp),
-            )
+            // Composed last: it covers the screen, swallows taps and takes Back while open.
+            if (tour.show) TourOverlay(steps = AreaTourSteps, onFinish = { tour.finish() })
         }
     }
 }
@@ -218,14 +237,14 @@ fun AreaActionBar(
                     stringResource(R.string.playfield_area_erase_all),
                     onEraseAll,
                     BarButtonKind.Danger,
-                    Modifier.weight(1f),
+                    Modifier.weight(1f).tourTarget(AreaTourTargets.ERASE_ALL),
                     enabled = canErase,
                 )
                 BarButton(
                     stringResource(R.string.playfield_area_save),
                     onSave,
                     BarButtonKind.Confirm,
-                    Modifier.weight(1f),
+                    Modifier.weight(1f).tourTarget(AreaTourTargets.SAVE),
                     enabled = canSave,
                 )
             } else {
@@ -358,3 +377,25 @@ private fun EnabledFabDutchPreview() = FabPreview(enabled = true)
 @Preview(name = "Delete FAB, disabled (Dutch)", locale = "nl")
 @Composable
 private fun DisabledFabDutchPreview() = FabPreview(enabled = false)
+
+/** The area tour's delete step over the chrome (rememberSaveable starts at the first step shown). */
+@Preview(name = "Area tour, delete step", heightDp = 640)
+@Composable
+private fun AreaTourPreview() {
+    val targets = remember { TourTargets() }
+    ThePreyTheme {
+        CompositionLocalProvider(LocalTourTargets provides targets) {
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                Column(Modifier.align(Alignment.BottomCenter)) {
+                    DeletePointFab(
+                        enabled = false,
+                        onClick = {},
+                        modifier = Modifier.align(Alignment.End).padding(16.dp).tourTarget(AreaTourTargets.DELETE_POINT),
+                    )
+                    AreaActionBar(editable = true, canErase = false, canSave = false, onCancel = {}, onEraseAll = {}, onSave = {})
+                }
+                TourOverlay(steps = AreaTourSteps.drop(3), onFinish = {}, reducedMotion = true)
+            }
+        }
+    }
+}

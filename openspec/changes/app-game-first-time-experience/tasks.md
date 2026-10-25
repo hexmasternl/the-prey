@@ -17,9 +17,9 @@ Prerequisite: `app-playfield-edit-area-allow-delete` is implemented (the delete 
 
 ## 3. Playfield area tour
 
-- [ ] 3.1 Add `ui/playfields/area/AreaTour.kt` with the six steps (play area centred, add points, select and move, delete point → delete FAB, Erase All, Save incl. edit-later and Cancel) and their en/nl strings; verify with a unit test asserting step order and target keys
-- [ ] 3.2 Tag the delete FAB, Erase All and Save with `tourTarget`, provide `TourTargets` in `PlayFieldAreaScreen`, add a nullable `hints: HintsStore?` parameter and show `TourOverlay` via `rememberHint(hints, Hint.PlayFieldArea, ready = true)`; verify with a preview of the overlay over the area chrome
-- [ ] 3.3 In `ThePreyNavHost`, pass `hintsStore` only to the `PLAYFIELD_NEW_AREA` destination (null for `PLAYFIELD_AREA`); verify `./gradlew assembleDebug lintDebug` passes
+- [x] 3.1 Add `ui/playfields/area/AreaTour.kt` with the six steps (play area centred, add points, select and move, delete point → delete FAB, Erase All, Save incl. edit-later and Cancel) and their en/nl strings; verify with a unit test asserting step order and target keys
+- [ ] 3.2 Tag the delete FAB, Erase All and Save with `tourTarget`, provide `TourTargets` in `PlayFieldAreaScreen`, add a nullable `hints: HintsStore?` parameter and show `TourOverlay` via `rememberHint(hints, Hint.PlayFieldArea, ready = true)`; verify with a preview of the overlay over the area chrome _(code and preview done, assembleDebug green; preview render check pending)_
+- [x] 3.3 In `ThePreyNavHost`, pass `hintsStore` only to the `PLAYFIELD_NEW_AREA` destination (null for `PLAYFIELD_AREA`); verify `./gradlew assembleDebug lintDebug` passes
 
 ## 4. Prey and hunter HUD tours
 

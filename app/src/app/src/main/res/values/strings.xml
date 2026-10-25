@@ -352,4 +352,18 @@
     <string name="tour_done">Done</string>
     <string name="tour_counter">%1$d / %2$d</string>
     <string name="tour_a11y_pane">Tour, step %1$d of %2$d: %3$s</string>
+
+    <!-- First-time tour: playfield area editor -->
+    <string name="tour_area_intro_title">Your play area</string>
+    <string name="tour_area_intro_body">The game is played inside this outline. Draw it around the streets and parks you want to use.</string>
+    <string name="tour_area_add_title">Add points</string>
+    <string name="tour_area_add_body">Tap the map to add a point. Points are joined in the order you place them. The area needs at least 3.</string>
+    <string name="tour_area_select_title">Select and move</string>
+    <string name="tour_area_select_body">Tap a point to select it. It gets a red border. Drag it to move it. Tap empty map to deselect.</string>
+    <string name="tour_area_delete_title">Delete a point</string>
+    <string name="tour_area_delete_body">This button removes the selected point. It works once a point is selected. The rest of the outline stays.</string>
+    <string name="tour_area_erase_title">Erase all</string>
+    <string name="tour_area_erase_body">Erase All removes every point so you can start over.</string>
+    <string name="tour_area_save_title">Save</string>
+    <string name="tour_area_save_body">Save returns the area to the playfield details. The playfield is stored when you save it there. You can change the area later by opening it again from the details. Cancel leaves without changing the area.</string>
 </resources>

@@ -326,4 +326,18 @@
     <string name="tour_done">Klaar</string>
     <string name="tour_counter">%1$d / %2$d</string>
     <string name="tour_a11y_pane">Rondleiding, stap %1$d van %2$d: %3$s</string>
+
+    <!-- Eerste-keer-rondleiding: speelveldgebied -->
+    <string name="tour_area_intro_title">Je speelgebied</string>
+    <string name="tour_area_intro_body">Het spel wordt binnen deze omtrek gespeeld. Teken hem rond de straten en parken die je wilt gebruiken.</string>
+    <string name="tour_area_add_title">Punten toevoegen</string>
+    <string name="tour_area_add_body">Tik op de kaart om een punt toe te voegen. Punten worden verbonden in de volgorde waarin je ze plaatst. Het gebied heeft er minstens 3 nodig.</string>
+    <string name="tour_area_select_title">Selecteren en verplaatsen</string>
+    <string name="tour_area_select_body">Tik op een punt om het te selecteren. Het krijgt een rode rand. Sleep het om het te verplaatsen. Tik op een lege plek op de kaart om de selectie op te heffen.</string>
+    <string name="tour_area_delete_title">Punt verwijderen</string>
+    <string name="tour_area_delete_body">Deze knop verwijdert het geselecteerde punt. Hij werkt zodra er een punt is geselecteerd. De rest van de omtrek blijft staan.</string>
+    <string name="tour_area_erase_title">Alles wissen</string>
+    <string name="tour_area_erase_body">Alles wissen verwijdert alle punten, zodat je opnieuw kunt beginnen.</string>
+    <string name="tour_area_save_title">Opslaan</string>
+    <string name="tour_area_save_body">Opslaan zet het gebied terug in de speelveldgegevens. Het speelveld wordt bewaard zodra je het daar opslaat. Je kunt het gebied later wijzigen door het opnieuw te openen vanuit de gegevens. Annuleren gaat terug zonder het gebied te wijzigen.</string>
 </resources>
