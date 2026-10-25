@@ -256,6 +256,17 @@
     <string name="game_ended">The game has ended.</string>
     <string name="game_unavailable">This game is no longer available.</string>
 
+    <!-- Joining a game from an invitation link -->
+    <string name="join_progress">Joining game</string>
+    <string name="join_error">Could not reach the server. Check your connection and retry.</string>
+    <string name="join_retry">Retry</string>
+    <string name="join_cancel">Cancel</string>
+    <string name="join_invite_invalid">This invitation is no longer valid. Ask your host for a new link.</string>
+    <string name="join_game_already_started">This game has already started.</string>
+    <string name="join_lobby_full">This lobby is full.</string>
+    <string name="join_already_in_game">You are already in a game. Leave it first to join another.</string>
+    <string name="join_location_needed">Location is needed to join a game.</string>
+
     <!-- Active game -->
     <string name="game_warning_title">Watch your surroundings</string>
     <string name="game_warning_body">Keep your eyes up while you play. Take care when you cross a road and look out for cars, cyclists and other traffic. The game is never more important than your safety.</string>

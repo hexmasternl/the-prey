@@ -232,6 +232,17 @@
     <string name="game_ended">Het spel is afgelopen.</string>
     <string name="game_unavailable">Dit spel is niet meer beschikbaar.</string>
 
+    <!-- Meedoen aan een spel via een uitnodigingslink -->
+    <string name="join_progress">Meedoen aan spel</string>
+    <string name="join_error">Kan de server niet bereiken. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="join_retry">Opnieuw</string>
+    <string name="join_cancel">Annuleren</string>
+    <string name="join_invite_invalid">Deze uitnodiging is niet meer geldig. Vraag de host om een nieuwe link.</string>
+    <string name="join_game_already_started">Dit spel is al begonnen.</string>
+    <string name="join_lobby_full">Deze lobby is vol.</string>
+    <string name="join_already_in_game">Je zit al in een spel. Verlaat dat eerst om aan een ander mee te doen.</string>
+    <string name="join_location_needed">Je locatie is nodig om aan een spel mee te doen.</string>
+
     <!-- Active game -->
     <string name="game_warning_title">Let op je omgeving</string>
     <string name="game_warning_body">Kijk om je heen terwijl je speelt. Wees voorzichtig als je een weg oversteekt en let op auto\'s, fietsers en ander verkeer. Het spel is nooit belangrijker dan je veiligheid.</string>

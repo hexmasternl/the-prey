@@ -18,12 +18,17 @@ import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.flow.filterNotNull
 import nl.hexmaster.theprey.R
 
-/** Why the player came back to the main menu from a game, shown once as a snackbar there. */
+/** Why the player came back to the main menu from a game or an invitation, shown once as a snackbar there. */
 enum class MainMenuMessage(@StringRes val textRes: Int) {
     GameCancelled(R.string.lobby_cancelled),
     RemovedFromGame(R.string.lobby_removed),
     GameEnded(R.string.game_ended),
     GameUnavailable(R.string.game_unavailable),
+    InviteInvalid(R.string.join_invite_invalid),
+    GameAlreadyStarted(R.string.join_game_already_started),
+    LobbyFull(R.string.join_lobby_full),
+    AlreadyInGame(R.string.join_already_in_game),
+    LocationNeededToJoin(R.string.join_location_needed),
     ;
 
     companion object {
