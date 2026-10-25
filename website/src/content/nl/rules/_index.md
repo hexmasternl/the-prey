@@ -1,48 +1,80 @@
 ---
 title: "Regels"
-description: "De volledige spelregels van The Prey: tijdsfases, de instelbare voorsprong, GPS-updates, taggen en eliminatie, en hoe de Jager en Prooien winnen."
-keywords: ["The Prey regels", "spelregels", "voorsprong", "GPS-tracking", "taggen", "eliminatie", "winvoorwaarden", "verstoppertje regels"]
+description: "De volledige spelregels van The Prey: spelinstellingen en standaardwaarden, voorsprong, locatie-pings, taggen binnen 50 meter, straffen, stil vallen, en hoe de Jager en de Prooi winnen."
+keywords: ["The Prey regels", "spelregels", "voorsprong", "locatie-ping", "taggen", "straf", "winvoorwaarden", "verstoppertje regels"]
 ---
 
 ## Spelconcept
 
-The Prey is een GPS-gebaseerd verstoppertje gespeeld in een bepaald buitengebied dat een **speelveld** heet. Eén of meer spelers zijn **Prooi**, die zich verstoppen en ontwijken. Precies één speler is de **Jager**, die traceert en tagt.
+The Prey is een GPS-verstoppertje dat buiten wordt gespeeld, binnen een gebied dat een **speelveld** heet. Een spel heeft 2 tot 16 spelers. Precies één speler is de **Jager**, die volgt en tagt. Alle anderen zijn **Prooi**: zij verstoppen zich en blijven bewegen.
 
-Het spel heeft een tijdslimiet. De Jager wint door alle Prooi te taggen voor de tijd om is. Prooi wint als er ten minste één overlevende is wanneer de klok nul bereikt.
+Het spel heeft een tijdslimiet. De Jager wint door alle Prooi te vangen voordat de tijd om is. De Prooi wint als er nog minstens één prooi in het spel is wanneer de klok nul bereikt.
 
 ---
 
-## Tijdsfasen
+## Spelinstellingen
 
-Elke duur wordt door de Spelmaker ingesteld bij het aanmaken van het spel; de waarden hieronder zijn de standaardwaarden in de app. Een spel doorloopt drie fasen:
+De Spelmaker kiest deze instellingen bij het aanmaken van het spel en kan ze in de lobby nog aanpassen. De standaardwaarden staan vetgedrukt.
+
+| Instelling | Opties | Wat het doet |
+|---|---|---|
+| Speelduur | **30**, 60, 90 min | Hoe lang de jacht duurt. |
+| Vertraging jager | 3, **5**, 10 min | De voorsprong: de tijd die de Prooi krijgt voordat de Jager mag bewegen. |
+| Eindfase | 3, 5, **10** min | De laatste minuten van het spel, met snellere pings. |
+| Locatie-ping | 2, **3**, 5 min | Hoe vaak de posities van de Prooi met de Jager worden gedeeld. |
+| Ping in eindfase | **1**, 2, 3 min | De ping tijdens de eindfase. Nooit langer dan de locatie-ping. |
+
+Met de standaardwaarden doorloopt een spel drie fasen:
 
 | Fase | Standaardduur | Wat er gebeurt |
 |---|---|---|
-| Voorsprong | 5 minuten | Prooi verspreidt zich en verstopt zich. De Jager wordt op zijn plek gehouden: nog niet bewegen, nog niet taggen. |
-| Actieve Jacht | ~20 minuten | De jacht begint. GPS-pingen van Prooi worden aan de Jager doorgegeven. |
-| Eindfase | Laatste 5 minuten | Positie-updates versnellen om het net te sluiten. |
-| Totaal | 30 minuten | Spel eindigt. Resultaten worden weergegeven. |
+| Voorsprong | 5 minuten | De Prooi verspreidt zich en verstopt zich. De Jager blijft op zijn plek en kan niet taggen. |
+| Actieve Jacht | ~15 minuten | De Jager wordt losgelaten. Posities van de Prooi gaan elke 3 minuten naar de Jager. |
+| Eindfase | Laatste 10 minuten | Elke minuut een ping om het net te sluiten. |
+| Totaal | 30 minuten | Het spel eindigt en iedereen ziet de uitslag. |
 
 ---
 
-## GPS-updateschema
+## Locatie-pings
 
-Prooilocaties worden als GPS-pins op de kaart van de Jager uitgezonden. Updates komen op het positie-rapportage-interval dat de Spelmaker voor het spel koos: standaard 3 minuten, en een korter interval (standaard 1 minuut) tijdens de eindfase. Locaties worden uitgezonden vanaf het moment dat het spel start, ook tijdens de Voorsprong; de Jager kan alleen niet bewegen of taggen totdat de voorsprong eindigt.
+Tijdens een spel stuurt je telefoon elke paar seconden je positie naar de server, ook als de app dicht is of het scherm uit staat. Dat betekent niet dat iedereen je live ziet:
 
----
+- De **Jager** ziet elke prooi op de positie van zijn laatste ping. Pings volgen de instelling locatie-ping, en in de eindfase de snellere ping in eindfase. Ze beginnen zodra het spel start, dus de Jager ziet je al tijdens de voorsprong.
+- De **Prooi** ziet de Jager en de andere prooien op de kaart, en hoe dichtbij de dichtstbijzijnde Jager is.
 
-## Eliminatie
-
-Een Prooi wordt geëlimineerd wanneer een Jager de Prooi fysiek bereikt en in de app tagt. De tag wordt direct van kracht. Alleen de Jager bevestigt de tag, de Prooi niet. Eenmaal getagd wordt de geëlimineerde Prooi van de kaart verwijderd.
-
-Geëlimineerde Prooi kunnen de rest van het spel als toeschouwer volgen.
+Zie elke markering als een laatst bekende locatie. De speler is waarschijnlijk al verder.
 
 ---
 
-## Wincondities
+## Taggen
 
-**De Jager wint** als alle Prooi wordt getagd voordat de timer afloopt.
+De Jager kan taggen zodra de voorsprong voorbij is. Een tik op **Taggen** opent een lijst met de prooien binnen **50 meter** van de Jager. De server controleert de afstand, dus niemand die verder weg is staat in de lijst. De Jager kiest één prooi en bevestigt. Is die prooi net buiten bereik geglipt, dan weigert de server de tag en ververst de lijst.
 
-**Prooi wint** als er ten minste één Prooi overleeft tot de timer nul bereikt.
+Een getagde prooi doet niet meer mee aan de jacht en kijkt de rest van het spel mee als toeschouwer.
 
-Er is geen gelijkspel. Als de laatste Prooi wordt getagd op hetzelfde moment dat de timer nul bereikt, wordt het resultaat bepaald door welk moment het eerst in de app wordt geregistreerd.
+---
+
+## Straffen
+
+| Straf | Wanneer | Duur |
+|---|---|---|
+| Jager bewoog tijdens de voorsprong | De Jager beweegt meer dan 25 meter van zijn startpositie voordat de voorsprong voorbij is. | 10 minuten |
+| Speelveld verlaten | Een speler is buiten het speelveld, in een spel waarin straffen voor de grens aan staan. | 5 minuten |
+
+Zolang een straf loopt, wordt de positie van de speler elke 10 seconden gedeeld in plaats van met de normale ping, dus een prooi met straf kan zich nergens verstoppen. Beide HUD's laten het zien: bij de Prooi knippert het rollabel **Straf**, en de Jager ziet hoeveel prooien straf hebben.
+
+---
+
+## Stil Vallen
+
+Het spel moet van je horen. Bereikt er 5 minuten lang geen locatie van je telefoon de server, dan word je passief. Na 7 minuten lig je **eruit**. Voor een prooi telt eruit liggen hetzelfde als gevangen worden. Laat locatie aan staan op "Altijd toestaan" en laat de melding van de spelvolging met rust.
+
+---
+
+## Winvoorwaarden
+
+**De Jager wint** als alle Prooi gevangen is (getagd of eruit) voordat de speltimer afloopt.
+
+**De Prooi wint** als er nog minstens één prooi in het spel is wanneer de timer nul bereikt.
+
+Niemand kan een spel vroegtijdig beëindigen. Als het afloopt, ziet elke speler de uitslag voor zijn eigen rol: gewonnen of verloren.
