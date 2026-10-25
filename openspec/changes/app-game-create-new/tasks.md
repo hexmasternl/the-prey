@@ -34,15 +34,15 @@
 
 ## 4. Screen, navigation and strings
 
-- [ ] 4.1 Add all `game_create_*` strings, the `game_create_minutes` plurals and `lobby_title` to `values/strings.xml` and `values-nl/strings.xml`, following the `the-prey-multilingual` skill. Verify that `./gradlew lintDebug` reports no missing translations.
-- [ ] 4.2 Build `CreateGameScreen`:
+- [x] 4.1 Add all `game_create_*` strings, the `game_create_minutes` plurals and `lobby_title` to `values/strings.xml` and `values-nl/strings.xml`, following the `the-prey-multilingual` skill. Verify that `./gradlew lintDebug` reports no missing translations.
+- [x] 4.2 Build `CreateGameScreen`:
   - top bar with back, the playfield card, five labelled `SingleChoiceSegmentedButtonRow`s with disabled options from `isEnabled`;
   - bottom bar with the inline error + Retry and a `PrimaryButton` with `busy`;
   - colours via `MaterialTheme.colorScheme` per the `the-prey-design-system` skill.
 
   Verify that Compose previews render for the empty, filled, submitting and failed states, in both light and dark themes.
-- [ ] 4.3 Wire picker behaviour in the screen: consume `PlayFieldSelectResult` from the entry's `SavedStateHandle`; auto-open the picker once when no playfield is set; call `onBack()` when resumed after a cancelled first pick; collect `events` into `onCreated`. Verify this through the view-model flag tests from 3.2 and the manual checks in 5.1.
-- [ ] 4.4 In `ThePreyNavHost.kt`, replace `Routes.PLAY` with `Routes.GAME_CREATE`. Point `onPlayNow` at it and add `Routes.LOBBY` (`lobby/{gameId}`) as a placeholder. On create, navigate to the lobby with `popUpTo(GAME_CREATE) { inclusive = true }`. Verify that `./gradlew assembleDebug` succeeds and no reference to `Routes.PLAY` remains.
+- [x] 4.3 Wire picker behaviour in the screen: consume `PlayFieldSelectResult` from the entry's `SavedStateHandle`; auto-open the picker once when no playfield is set; call `onBack()` when resumed after a cancelled first pick; collect `events` into `onCreated`. Verify this through the view-model flag tests from 3.2 and the manual checks in 5.1.
+- [x] 4.4 In `ThePreyNavHost.kt`, replace `Routes.PLAY` with `Routes.GAME_CREATE`. Point `onPlayNow` at it and add `Routes.LOBBY` (`lobby/{gameId}`) as a placeholder. On create, navigate to the lobby with `popUpTo(GAME_CREATE) { inclusive = true }`. Verify that `./gradlew assembleDebug` succeeds and no reference to `Routes.PLAY` remains.
 
 ## 5. Integration check
 

@@ -166,4 +166,28 @@
     <string name="playfield_select_confirm">Kiezen</string>
     <string name="playfield_select_selected">Gekozen: %1$s</string>
     <string name="playfield_select_none">Geen speelveld gekozen</string>
+
+    <!-- Create game -->
+    <string name="game_create_title">Nieuw spel</string>
+    <string name="game_create_playfield">Speelveld</string>
+    <string name="game_create_playfield_choose">Kies een speelveld</string>
+    <string name="game_create_playfield_change">Ander speelveld kiezen</string>
+    <string name="game_create_duration">Speelduur</string>
+    <string name="game_create_duration_help">Hoe lang de jacht duurt.</string>
+    <string name="game_create_hunter_delay">Vertraging jager</string>
+    <string name="game_create_hunter_delay_help">Tijd die de prooien krijgen voordat de Jager mag bewegen.</string>
+    <string name="game_create_final_stage">Eindfase</string>
+    <string name="game_create_final_stage_help">De laatste minuten, met snellere locatie-pings.</string>
+    <string name="game_create_ping_interval">Locatie-ping</string>
+    <string name="game_create_ping_interval_help">Hoe vaak de posities van de prooien met de Jager worden gedeeld.</string>
+    <string name="game_create_final_ping_interval">Ping in eindfase</string>
+    <string name="game_create_final_ping_interval_help">Nooit langer dan de locatie-ping.</string>
+    <plurals name="game_create_minutes">
+        <item quantity="one">%d min</item>
+        <item quantity="other">%d min</item>
+    </plurals>
+    <string name="game_create_submit">Spel aanmaken</string>
+    <string name="game_create_submitting">Aanmaken</string>
+    <string name="game_create_failed">Het spel kon niet worden aangemaakt. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="lobby_title">Lobby</string>
 </resources>

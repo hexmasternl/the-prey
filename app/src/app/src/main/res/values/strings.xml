@@ -190,4 +190,28 @@
     <string name="playfield_select_confirm">Select</string>
     <string name="playfield_select_selected">Selected: %1$s</string>
     <string name="playfield_select_none">No playfield selected</string>
+
+    <!-- Create game -->
+    <string name="game_create_title">New game</string>
+    <string name="game_create_playfield">Playfield</string>
+    <string name="game_create_playfield_choose">Choose a playfield</string>
+    <string name="game_create_playfield_change">Change playfield</string>
+    <string name="game_create_duration">Game duration</string>
+    <string name="game_create_duration_help">How long the hunt lasts.</string>
+    <string name="game_create_hunter_delay">Hunter delay</string>
+    <string name="game_create_hunter_delay_help">Time the preys get before the hunter may move.</string>
+    <string name="game_create_final_stage">Final stage</string>
+    <string name="game_create_final_stage_help">The last minutes, with faster location pings.</string>
+    <string name="game_create_ping_interval">Location ping</string>
+    <string name="game_create_ping_interval_help">How often the preys\' positions are shared with the hunter.</string>
+    <string name="game_create_final_ping_interval">Ping in final stage</string>
+    <string name="game_create_final_ping_interval_help">Never longer than the location ping.</string>
+    <plurals name="game_create_minutes">
+        <item quantity="one">%d min</item>
+        <item quantity="other">%d min</item>
+    </plurals>
+    <string name="game_create_submit">Create game</string>
+    <string name="game_create_submitting">Creating</string>
+    <string name="game_create_failed">The game could not be created. Check your connection and try again.</string>
+    <string name="lobby_title">Lobby</string>
 </resources>

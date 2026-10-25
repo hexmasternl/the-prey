@@ -31,6 +31,7 @@ import nl.hexmaster.theprey.data.playfield.ApiPlayFieldRepository
 import nl.hexmaster.theprey.data.playfield.PlayFieldApi
 import nl.hexmaster.theprey.data.playfield.PlayFieldRepository
 import nl.hexmaster.theprey.data.user.DataStoreProfileStore
+import nl.hexmaster.theprey.data.user.ProfileStore
 import nl.hexmaster.theprey.data.user.UserApi
 import nl.hexmaster.theprey.tracking.DataStoreTrackingSessionStore
 import nl.hexmaster.theprey.tracking.LocationTrackingService
@@ -79,6 +80,9 @@ class AppContainer(context: Context) {
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
 
+    /** Device cache of the signed-in player's profile; written by the session, read by screens that need the callsign. */
+    val profileStore: ProfileStore = DataStoreProfileStore(context.profileDataStore, json)
+
     /** The app display language (per-app locale); also the language sent to the Users API. */
     val appLanguage: AppLanguage = LocaleAppLanguage(AppCompatLocaleSource())
 
@@ -86,7 +90,7 @@ class AppContainer(context: Context) {
         credentials = credentialsStore,
         webAuth = Auth0WebAuthClient(auth0, BuildConfig.AUTH0_SCHEME, BuildConfig.AUTH0_AUDIENCE),
         userApi = retrofit.create(UserApi::class.java),
-        profileStore = DataStoreProfileStore(context.profileDataStore, json),
+        profileStore = profileStore,
         scope = appScope,
         language = { appLanguage.effective() },
     )

@@ -80,6 +80,7 @@ class MainActivity : AppCompatActivity() {
                             locationConsentStore = container.locationConsentStore,
                             gameRepository = container.gameRepository,
                             playFieldRepository = container.playFieldRepository,
+                            profileStore = container.profileStore,
                             profileSettings = session,
                             appLanguage = container.appLanguage,
                             trackingStarter = container.trackingStarter,

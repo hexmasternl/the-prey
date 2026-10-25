@@ -28,6 +28,9 @@ data class CreateGameUiState(
     val canCreate: Boolean get() = playField != null && !submitting
 }
 
+/** What the screen does when it resumes; see [CreateGameViewModel.onResumed]. */
+enum class ResumeAction { None, OpenPicker, Leave }
+
 sealed interface CreateGameEvent {
     /** The server created the game: open its lobby. */
     data class Created(val gameId: String) : CreateGameEvent
@@ -61,6 +64,23 @@ class CreateGameViewModel(
 
     /** True when the picker opened by itself was cancelled before anything was chosen: leave the screen. */
     val firstPickCancelled: Boolean get() = pickerLaunched && _uiState.value.playField == null
+
+    /**
+     * Called each time the screen resumes, with the selection the picker delivered (if any). Opens
+     * the picker by itself once while no playfield is chosen, and leaves the screen when that first
+     * pick was cancelled.
+     */
+    fun onResumed(delivered: PlayFieldSelection?): ResumeAction {
+        delivered?.let(::onPlayFieldSelected)
+        return when {
+            firstPickCancelled -> ResumeAction.Leave
+            _uiState.value.playField == null -> {
+                onPickerLaunched()
+                ResumeAction.OpenPicker
+            }
+            else -> ResumeAction.None
+        }
+    }
 
     fun onPlayFieldSelected(selection: PlayFieldSelection) {
         if (_uiState.value.submitting) return

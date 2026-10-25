@@ -184,6 +184,41 @@ class CreateGameViewModelTest {
     }
 
     @Test
+    fun onResumed_ShouldOpenPickerOnce_WhenNoPlayFieldIsChosen() = runTest {
+        val sut = viewModel()
+
+        assertEquals(ResumeAction.OpenPicker, sut.onResumed(delivered = null))
+        assertTrue(sut.pickerLaunched)
+    }
+
+    @Test
+    fun onResumed_ShouldLeave_WhenFirstPickWasCancelled() = runTest {
+        val sut = viewModel()
+        sut.onResumed(delivered = null)
+
+        assertEquals(ResumeAction.Leave, sut.onResumed(delivered = null))
+    }
+
+    @Test
+    fun onResumed_ShouldApplySelectionAndStay_WhenPickerDeliveredOne() = runTest {
+        val sut = viewModel()
+        sut.onResumed(delivered = null)
+
+        assertEquals(ResumeAction.None, sut.onResumed(delivered = vondelpark))
+        assertEquals(vondelpark, sut.uiState.value.playField)
+    }
+
+    @Test
+    fun onResumed_ShouldKeepPlayField_WhenChangingPlayFieldWasCancelled() = runTest {
+        val sut = viewModel()
+        sut.onResumed(delivered = null)
+        sut.onResumed(delivered = vondelpark)
+
+        assertEquals(ResumeAction.None, sut.onResumed(delivered = null))
+        assertEquals(vondelpark, sut.uiState.value.playField)
+    }
+
+    @Test
     fun firstPickCancelled_ShouldBeTrue_WhenPickerLaunchedWithoutSelection() = runTest {
         val sut = viewModel()
         assertFalse(sut.pickerLaunched)

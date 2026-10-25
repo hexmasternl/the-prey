@@ -27,8 +27,11 @@ import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.location.LocationConsentStore
 import nl.hexmaster.theprey.data.location.LocationSource
 import nl.hexmaster.theprey.data.playfield.PlayFieldRepository
+import nl.hexmaster.theprey.data.user.ProfileStore
 import nl.hexmaster.theprey.tracking.TrackingStarter
 import nl.hexmaster.theprey.ui.consent.LocationConsentHost
+import nl.hexmaster.theprey.ui.games.create.CreateGameScreen
+import nl.hexmaster.theprey.ui.games.create.CreateGameViewModel
 import nl.hexmaster.theprey.ui.landing.LandingScreen
 import nl.hexmaster.theprey.ui.landing.LandingViewModel
 import nl.hexmaster.theprey.ui.mainmenu.MainMenuScreen
@@ -54,7 +57,13 @@ object Routes {
     /** The signed-in area: the main menu and everything opened from it. */
     const val SIGNED_IN = "signed_in"
     const val MAIN_MENU = "main_menu"
-    const val PLAY = "play"
+    /** Creates a game; opened by Play now. Starts with the playfield selection screen. */
+    const val GAME_CREATE = "game_create"
+
+    /** The lobby of a game that has not started yet. */
+    const val LOBBY = "lobby/{gameId}"
+
+    fun lobby(gameId: String) = "lobby/$gameId"
 
     /** A running game the player takes part in; opened by Resume game. */
     const val GAME = "game/{gameId}"
@@ -110,6 +119,7 @@ fun ThePreyNavHost(
     locationConsentStore: LocationConsentStore,
     gameRepository: GameRepository,
     playFieldRepository: PlayFieldRepository,
+    profileStore: ProfileStore,
     profileSettings: ProfileSettings,
     appLanguage: AppLanguage,
     modifier: Modifier = Modifier,
@@ -145,14 +155,32 @@ fun ThePreyNavHost(
                 composable(Routes.MAIN_MENU) {
                     MainMenuScreen(
                         viewModel = viewModel { MainMenuViewModel(session, locationSource, gameRepository, BuildConfig.VERSION_NAME) },
-                        onPlayNow = { navController.navigate(Routes.PLAY) },
+                        onPlayNow = { navController.navigate(Routes.GAME_CREATE) },
                         onResumeGame = { gameId -> navController.navigate(Routes.game(gameId)) },
                         onPlayfields = { navController.navigate(Routes.PLAYFIELDS) },
                         onSettings = { navController.navigate(Routes.SETTINGS) },
                     )
                 }
-                composable(Routes.PLAY) {
-                    PlaceholderScreen(R.string.main_menu_play_now, onBack = { navController.popBackStack() })
+                // Scoped to this entry: every Play now starts with the defaults.
+                composable(Routes.GAME_CREATE) { entry ->
+                    CreateGameScreen(
+                        viewModel = viewModel { CreateGameViewModel(gameRepository, profileStore, createSavedStateHandle()) },
+                        resultHandle = entry.savedStateHandle,
+                        onBack = { if (navController.currentBackStackEntry == entry) navController.popBackStack() },
+                        onChoosePlayField = {
+                            if (navController.currentBackStackEntry == entry) navController.navigate(Routes.PLAYFIELD_SELECT)
+                        },
+                        // The create screen leaves the back stack: Back from the lobby returns to the menu.
+                        onCreated = { gameId ->
+                            navController.navigate(Routes.lobby(gameId)) {
+                                popUpTo(Routes.GAME_CREATE) { inclusive = true }
+                            }
+                        },
+                    )
+                }
+                // Placeholder until the lobby screen exists; it will read Routes.GAME_ID from the entry.
+                composable(Routes.LOBBY, arguments = listOf(navArgument(Routes.GAME_ID) { type = NavType.StringType })) {
+                    PlaceholderScreen(R.string.lobby_title, onBack = { navController.popBackStack() })
                 }
                 // Placeholder until the game screen exists; it will read Routes.GAME_ID from the entry.
                 composable(Routes.GAME, arguments = listOf(navArgument(Routes.GAME_ID) { type = NavType.StringType })) {

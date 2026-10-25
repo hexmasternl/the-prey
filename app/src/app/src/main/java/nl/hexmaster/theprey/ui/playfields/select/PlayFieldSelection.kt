@@ -29,14 +29,21 @@ object PlayFieldSelectResult {
     fun consume(handle: SavedStateHandle): Flow<PlayFieldSelection> =
         handle.getStateFlow<String?>(KEY, null)
             .filterNotNull()
-            .mapNotNull { json ->
-                handle.remove<String>(KEY)
-                try {
-                    Json.decodeFromString<PlayFieldSelection>(json)
-                } catch (_: SerializationException) {
-                    null
-                } catch (_: IllegalArgumentException) {
-                    null
-                }
-            }
+            .mapNotNull { take(handle) }
+
+    /**
+     * Reads and removes a delivered selection right now, or null when there is none. For callers
+     * that must know the result synchronously, e.g. when their entry resumes after the picker.
+     */
+    fun take(handle: SavedStateHandle): PlayFieldSelection? {
+        val json = handle.get<String>(KEY) ?: return null
+        handle[KEY] = null
+        return try {
+            Json.decodeFromString<PlayFieldSelection>(json)
+        } catch (_: SerializationException) {
+            null
+        } catch (_: IllegalArgumentException) {
+            null
+        }
+    }
 }
