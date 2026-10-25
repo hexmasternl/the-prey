@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    System splash icon: the scope ring draws itself in (~650 ms), then the centre dot lights up
+    (last ~150 ms). The base drawable is the fully drawn mark, so a static splash (API < 31) and the
+    last animation frame both show the complete mark. Only the animators start empty (valueFrom 0).
+-->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_prey_mark">
+    <target android:name="ring">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <objectAnimator
+                android:duration="650"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="trimPathEnd"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+    <target android:name="dot">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <!-- Hold the dot dark while the ring draws (a plain startOffset would leave it lit). -->
+            <set android:ordering="sequentially">
+                <objectAnimator
+                    android:duration="650"
+                    android:propertyName="fillAlpha"
+                    android:valueFrom="0"
+                    android:valueTo="0"
+                    android:valueType="floatType" />
+                <objectAnimator
+                    android:duration="150"
+                    android:interpolator="@android:interpolator/linear"
+                    android:propertyName="fillAlpha"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

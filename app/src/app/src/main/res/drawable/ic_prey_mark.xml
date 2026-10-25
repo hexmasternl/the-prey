@@ -1,42 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The Prey mark (fox in the crosshairs), from designs/logo/the-prey-mark.svg. Never recolour it. -->
+<!--
+    The Prey mark (fox in the crosshairs), from designs/logo/the-prey-mark.svg. Never recolour it.
+    Shared by the launcher icon, the system splash (via avd_splash_mark) and Compose. Drawn on the
+    adaptive-icon grid: a 108×108 viewport with the 384-unit mark scaled into the central 66 dp safe
+    zone (scale 66/384, centred on 54,54), so it survives every launcher mask and the splash circle.
+    Paths are named so avd_splash_mark can animate them: ring, ticks, head (group), dot.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="160dp"
-    android:height="160dp"
-    android:viewportWidth="384"
-    android:viewportHeight="384">
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
     <group
-        android:translateX="-64"
-        android:translateY="-64">
-        <path
-            android:pathData="M419,296.6A168,168 0,0 1,296.6 419M215.4,419A168,168 0,0 1,93 296.6M93,215.4A168,168 0,0 1,215.4 93M296.6,93A168,168 0,0 1,419 215.4"
-            android:strokeWidth="18"
-            android:strokeColor="@color/signal"
-            android:strokeLineCap="round" />
-        <path
-            android:pathData="M256,74v40M256,398v40M74,256h40M398,256h40"
-            android:strokeWidth="18"
-            android:strokeColor="@color/signal"
-            android:strokeLineCap="round" />
-        <path
-            android:fillColor="@color/hunter"
-            android:pathData="M168,150L216,196H296L344,150L356,248L256,354L156,248Z" />
-        <path
-            android:fillAlpha="0.2"
-            android:fillColor="@color/bg_void"
-            android:pathData="M256,196H296L344,150L356,248L256,354Z" />
-        <path
-            android:fillAlpha="0.4"
-            android:fillColor="@color/bg_void"
-            android:pathData="M182,176L208,198L186,218Z M330,176L304,198L326,218Z" />
-        <path
-            android:fillColor="@color/bg_void"
-            android:pathData="M198,240L238,258L208,264Z M314,240L274,258L304,264Z" />
-        <path
-            android:fillColor="@color/bg_void"
-            android:pathData="M242,324H270L256,342Z" />
-        <path
-            android:fillColor="@color/signal"
-            android:pathData="M248,256a8,8 0,1 0,16 0a8,8 0,1 0,-16 0" />
+        android:name="mark"
+        android:scaleX="0.171875"
+        android:scaleY="0.171875"
+        android:translateX="54"
+        android:translateY="54">
+        <group
+            android:translateX="-256"
+            android:translateY="-256">
+            <path
+                android:name="ring"
+                android:pathData="M419,296.6A168,168 0,0 1,296.6 419M215.4,419A168,168 0,0 1,93 296.6M93,215.4A168,168 0,0 1,215.4 93M296.6,93A168,168 0,0 1,419 215.4"
+                android:strokeWidth="18"
+                android:strokeColor="@color/signal"
+                android:strokeLineCap="round" />
+            <path
+                android:name="ticks"
+                android:pathData="M256,74v40M256,398v40M74,256h40M398,256h40"
+                android:strokeWidth="18"
+                android:strokeColor="@color/signal"
+                android:strokeLineCap="round" />
+            <group android:name="head">
+                <path
+                    android:fillColor="@color/hunter"
+                    android:pathData="M168,150L216,196H296L344,150L356,248L256,354L156,248Z" />
+                <path
+                    android:fillAlpha="0.2"
+                    android:fillColor="@color/bg_void"
+                    android:pathData="M256,196H296L344,150L356,248L256,354Z" />
+                <path
+                    android:fillAlpha="0.4"
+                    android:fillColor="@color/bg_void"
+                    android:pathData="M182,176L208,198L186,218Z M330,176L304,198L326,218Z" />
+                <path
+                    android:fillColor="@color/bg_void"
+                    android:pathData="M198,240L238,258L208,264Z M314,240L274,258L304,264Z" />
+                <path
+                    android:fillColor="@color/bg_void"
+                    android:pathData="M242,324H270L256,342Z" />
+            </group>
+            <path
+                android:name="dot"
+                android:fillColor="@color/signal"
+                android:pathData="M248,256a8,8 0,1 0,16 0a8,8 0,1 0,-16 0" />
+        </group>
     </group>
 </vector>

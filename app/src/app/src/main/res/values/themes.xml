@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.ThePrey" parent="android:Theme.Material.NoActionBar">
+    <!-- Post-splash window theme. AppCompat because MainActivity is an AppCompatActivity (per-app
+         language); Compose draws all UI, so only the window colours matter and they stay on Base. -->
+    <style name="Theme.ThePrey" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/bg_base</item>
     </style>
 
+    <!-- System splash: the animated Prey mark on Void. ui/splash/LaunchSequence takes over from its last frame. -->
     <style name="Theme.ThePrey.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/bg_void</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/avd_splash_mark</item>
+        <item name="windowSplashScreenAnimationDuration">800</item>
         <item name="postSplashScreenTheme">@style/Theme.ThePrey</item>
     </style>
 </resources>
