@@ -396,4 +396,11 @@
     <string name="tour_hunter_penalised_body">How many preys have a penalty right now.</string>
     <string name="tour_hunter_tag_title">Tag</string>
     <string name="tour_hunter_tag_body">Opens the list of preys in tagging range. Only preys within %1$d m can be tagged. The button is locked while the hunter start delay runs.</string>
+
+    <!-- Settings: first-time hints -->
+    <string name="settings_section_hints">Hints</string>
+    <string name="settings_hints_body">Short tours explain the playfield area editor and the prey and hunter screens the first time you see them.</string>
+    <string name="settings_hints_reset">Show hints again</string>
+    <string name="settings_hints_reset_done">Hints will show again the next time.</string>
+    <string name="settings_hints_reset_failed">Hints could not be reset. Try again.</string>
 </resources>

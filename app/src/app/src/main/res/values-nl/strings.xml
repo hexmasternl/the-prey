@@ -370,4 +370,11 @@
     <string name="tour_hunter_penalised_body">Hoeveel prooien op dit moment een straf hebben.</string>
     <string name="tour_hunter_tag_title">Taggen</string>
     <string name="tour_hunter_tag_body">Opent de lijst met prooien binnen bereik. Alleen prooien binnen %1$d m kun je taggen. De knop is vergrendeld zolang de startvertraging van de jager loopt.</string>
+
+    <!-- Instellingen: eerste-keer-hints -->
+    <string name="settings_section_hints">Hints</string>
+    <string name="settings_hints_body">Korte rondleidingen leggen de speelveldeditor en de schermen van prooi en jager uit als je ze voor het eerst ziet.</string>
+    <string name="settings_hints_reset">Hints opnieuw tonen</string>
+    <string name="settings_hints_reset_done">De hints worden de volgende keer weer getoond.</string>
+    <string name="settings_hints_reset_failed">De hints konden niet worden teruggezet. Probeer het opnieuw.</string>
 </resources>

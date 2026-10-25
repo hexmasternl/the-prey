@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,9 +39,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -142,27 +147,45 @@ fun SettingsScreen(
         step = grantStep(access, canAskFine(rationale = rationale, disclosureAccepted = disclosureAccepted)),
     )
 
-    SettingsContent(
-        uiState = uiState,
-        location = location,
-        onBack = onBack,
-        onCallsignChange = viewModel::onCallsignChange,
-        onSave = viewModel::onSave,
-        onLanguageSelected = viewModel::onLanguageSelected,
-        onPrivacyPolicy = { uriHandler.openUri(privacyUrl) },
-        onGrant = {
-            when (location.step) {
-                GrantStep.RequestPrecise -> scope.launch {
-                    // The panel right above the button is the disclosure: record it before the prompt.
-                    consentStore.setDisclosureAccepted(true)
-                    locationLauncher.launch(arrayOf(FINE, COARSE))
-                }
-                GrantStep.OpenSettingsForPrecise, GrantStep.OpenSettingsForAllTheTime -> context.openAppSettings()
-                GrantStep.None -> Unit
+    val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
+    LaunchedEffect(viewModel) {
+        viewModel.hintsResetMessages.collect { message ->
+            val text = when (message) {
+                HintsResetMessage.Done -> R.string.settings_hints_reset_done
+                HintsResetMessage.Failed -> R.string.settings_hints_reset_failed
             }
-        },
-        modifier = modifier,
-    )
+            snackbarHostState.showSnackbar(resources.getString(text))
+        }
+    }
+
+    Box(modifier.fillMaxSize()) {
+        SettingsContent(
+            uiState = uiState,
+            location = location,
+            onBack = onBack,
+            onCallsignChange = viewModel::onCallsignChange,
+            onSave = viewModel::onSave,
+            onLanguageSelected = viewModel::onLanguageSelected,
+            onPrivacyPolicy = { uriHandler.openUri(privacyUrl) },
+            onGrant = {
+                when (location.step) {
+                    GrantStep.RequestPrecise -> scope.launch {
+                        // The panel right above the button is the disclosure: record it before the prompt.
+                        consentStore.setDisclosureAccepted(true)
+                        locationLauncher.launch(arrayOf(FINE, COARSE))
+                    }
+                    GrantStep.OpenSettingsForPrecise, GrantStep.OpenSettingsForAllTheTime -> context.openAppSettings()
+                    GrantStep.None -> Unit
+                }
+            },
+            onResetHints = viewModel::resetHints,
+        )
+        SnackbarHost(
+            snackbarHostState,
+            Modifier.align(Alignment.BottomCenter).windowInsetsPadding(WindowInsets.safeDrawing),
+        )
+    }
 }
 
 /** Whether the system would show the fine-location prompt again after an earlier denial. */
@@ -179,6 +202,7 @@ fun SettingsContent(
     onLanguageSelected: (LanguageChoice) -> Unit,
     onPrivacyPolicy: () -> Unit,
     onGrant: () -> Unit,
+    onResetHints: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -215,6 +239,7 @@ fun SettingsContent(
                 CallsignSection(uiState, onCallsignChange, onSave)
                 LanguageSection(uiState, onLanguageSelected)
                 LocationSection(location, onPrivacyPolicy, onGrant)
+                HintsSection(onResetHints)
             }
         }
     }
@@ -378,6 +403,20 @@ private fun LanguageSection(uiState: SettingsUiState, onLanguageSelected: (Langu
                 )
             }
         }
+    }
+}
+
+/** Brings the one-time tours back: they show again the next time their screen comes up. */
+@Composable
+private fun HintsSection(onResetHints: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionTitle(stringResource(R.string.settings_section_hints))
+        Text(
+            text = stringResource(R.string.settings_hints_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SecondaryButton(text = stringResource(R.string.settings_hints_reset), onClick = onResetHints, height = 48.dp)
     }
 }
 
