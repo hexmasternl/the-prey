@@ -18,7 +18,7 @@ intro:
   title: "Get In Before the Hunt Goes Live"
   body:
     - "The Prey is currently in <strong>closed testing</strong> on the Google Play Store. That means the Android app is only available to a hand-picked group of testers while we sharpen the gameplay, squash bugs, and tune the GPS hunt."
-    - "Testing is fully managed through Google Play. Before you can install the app, the The Prey Development Team has to add your Google account to the tester list. Once you're on the list, you opt in through a Google Play link and the app becomes available to download — just like any other app."
+    - "Testing is fully managed through Google Play. Before you can install the app, The Prey Development Team has to add your Google account to the tester list. Once you're on the list, you opt in through a Google Play link and the app becomes available to download — just like any other app."
 
 steps:
   eyebrow: "How It Works"
@@ -54,5 +54,5 @@ cta:
   title: "Send Us Your Email"
   body: "Email your Google Play address and we'll add you to the closed test. Spots open as the program grows — get in line now."
   button: "Email support@theprey.nl"
-  note: "Heads up: you can only install the app <strong>after</strong> the The Prey Development Team has onboarded your account. We'll confirm by email once you're added."
+  note: "Heads up: you can only install the app <strong>after</strong> The Prey Development Team has onboarded your account. We'll confirm by email once you're added."
 ---

@@ -18,7 +18,7 @@ intro:
   title: "Stap In Voordat de Jacht Live Gaat"
   body:
     - "The Prey zit op dit moment in de <strong>gesloten testfase</strong> in de Google Play Store. Dat betekent dat de Android-app alleen beschikbaar is voor een geselecteerde groep testers terwijl wij de gameplay aanscherpen, bugs oplossen en de GPS-jacht verfijnen."
-    - "Het testen verloopt volledig via Google Play. Voordat je de app kunt installeren, moet het The Prey Development Team jouw Google-account aan de testerslijst toevoegen. Zodra je op de lijst staat, meld je je aan via een Google Play-link en kun je de app downloaden — net als elke andere app."
+    - "Het testen verloopt volledig via Google Play. Voordat je de app kunt installeren, moet het ontwikkelteam van The Prey jouw Google-account aan de testerslijst toevoegen. Zodra je op de lijst staat, meld je je aan via een Google Play-link en kun je de app downloaden — net als elke andere app."
 
 steps:
   eyebrow: "Hoe Het Werkt"
@@ -54,5 +54,5 @@ cta:
   title: "Stuur Ons Je E-mailadres"
   body: "Mail je Google Play-adres en we voegen je toe aan de gesloten test. Er komen plekken vrij naarmate het programma groeit — sluit nu aan."
   button: "Mail support@theprey.nl"
-  note: "Let op: je kunt de app pas installeren <strong>nadat</strong> het The Prey Development Team je account heeft toegevoegd. We bevestigen per e-mail zodra je bent toegevoegd."
+  note: "Let op: je kunt de app pas installeren <strong>nadat</strong> het ontwikkelteam van The Prey je account heeft toegevoegd. We bevestigen per e-mail zodra je bent toegevoegd."
 ---

@@ -29,7 +29,7 @@ Run Hugo from `website/src` (`hugo --gc --minify`, and `hugo server` to view). E
 - [x] 5.2 Add `content/{en,nl}/how-to/get-started.md` (install, sign in, callsign, language, location "All the time" and notifications) with `main-menu` and `settings` screenshots, ordered first in the How-To list (`weight`); verify the index lists six guides in both languages
 - [x] 5.3 Rewrite `how-to/create-a-game.md`, `join-a-game.md` (invitation link only), `draw-a-playfield.md`, `understand-your-role.md` (HUD instead of a map tab, result dialog) and `gps-signal-lost.md` (Android settings path, "Allow all the time", tracking and resume notifications, silent → ruled out) in both languages with their screenshots; verify every quoted label matches `facts.md`
 - [x] 5.4 Rewrite `content/{en,nl}/faq/_index.md`: correct join, player count 2–16, permissions, tagging range, leaving the playfield, spectators, Android only, creator playing; keep ≥ 10 entries; verify the FAQ scenarios
-- [ ] 5.5 Update `description` and `keywords` front matter of every changed page and `params.description` in `hugo.toml` if it no longer fits, with real Dutch search terms in `nl`; fix "the The Prey" in `become-a-tester.md` (both languages); verify `hugo` builds without missing-i18n warnings
+- [x] 5.5 Update `description` and `keywords` front matter of every changed page and `params.description` in `hugo.toml` if it no longer fits, with real Dutch search terms in `nl`; fix "the The Prey" in `become-a-tester.md` (both languages); verify `hugo` builds without missing-i18n warnings
 
 ## 6. Integration check
 
