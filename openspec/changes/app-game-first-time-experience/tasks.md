@@ -23,8 +23,8 @@ Prerequisite: `app-playfield-edit-area-allow-delete` is implemented (the delete 
 
 ## 4. Prey and hunter HUD tours
 
-- [ ] 4.1 Tag `RolePill`, `ProximityPill`, the game-time tile, hunter-distance tile, next-broadcast tile and toggle row in `PreyHud.kt`, and `HunterRolePill`, `GameClockPill`, the four summary tiles and `TagFab` in `HunterHud.kt`; verify existing HUD previews and tests are unchanged
-- [ ] 4.2 Add `ui/game/tour/GameTours.kt` with the prey steps (6) and hunter steps (7, Tag step text with the 50 m range from one constant and the start-delay lock) and their en/nl strings; verify with a unit test asserting order and target keys for both roles
+- [x] 4.1 Tag `RolePill`, `ProximityPill`, the game-time tile, hunter-distance tile, next-broadcast tile and toggle row in `PreyHud.kt`, and `HunterRolePill`, `GameClockPill`, the four summary tiles and `TagFab` in `HunterHud.kt`; verify existing HUD previews and tests are unchanged
+- [x] 4.2 Add `ui/game/tour/GameTours.kt` with the prey steps (6) and hunter steps (7, Tag step text with the 50 m range from one constant and the start-delay lock) and their en/nl strings; verify with a unit test asserting order and target keys for both roles
 - [ ] 4.3 In `GameScreen`, provide `TourTargets` around content and overlay, take a `hints: HintsStore` parameter, and show the role tour when `ui` is `Ready`, `hudRoleFor` is Prey/Hunter, the warning is acknowledged and no result is shown; wire `hintsStore` from `ThePreyNavHost`; verify with a preview and that the warning-open preview shows no tour
 - [ ] 4.4 Update `in-game-tour` usage notes, if any, in `docs/` (none expected) and verify `./gradlew testDebugUnitTest lintDebug` passes
 

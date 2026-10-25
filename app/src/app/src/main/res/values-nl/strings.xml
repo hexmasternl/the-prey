@@ -340,4 +340,34 @@
     <string name="tour_area_erase_body">Alles wissen verwijdert alle punten, zodat je opnieuw kunt beginnen.</string>
     <string name="tour_area_save_title">Opslaan</string>
     <string name="tour_area_save_body">Opslaan zet het gebied terug in de speelveldgegevens. Het speelveld wordt bewaard zodra je het daar opslaat. Je kunt het gebied later wijzigen door het opnieuw te openen vanuit de gegevens. Annuleren gaat terug zonder het gebied te wijzigen.</string>
+
+    <!-- Eerste-keer-rondleiding: prooi-HUD -->
+    <string name="tour_prey_role_title">Je rol</string>
+    <string name="tour_prey_role_body">Je bent een prooi. Blijf verborgen tot de tijd om is. Het label knippert rood Straf zolang je een straf hebt.</string>
+    <string name="tour_prey_proximity_title">Nabijheid van de jager</string>
+    <string name="tour_prey_proximity_body">Hoe dichtbij de jager is. Veilig: 250 m of meer. Dichtbij: 100 tot 250 m. Waarschuwing: minder dan 100 m. Onbekend: nog geen locatie van de jager.</string>
+    <string name="tour_prey_time_title">Resterende tijd</string>
+    <string name="tour_prey_time_body">Hoe lang het spel nog duurt. Blijf vrij tot de tijd op nul staat.</string>
+    <string name="tour_prey_distance_title">Afstand jager</string>
+    <string name="tour_prey_distance_body">De afstand tot de dichtstbijzijnde jager, in de kleur van de nabijheid.</string>
+    <string name="tour_prey_broadcast_title">Volgende uitzending</string>
+    <string name="tour_prey_broadcast_body">Wanneer je locatie weer naar de jager wordt gestuurd. Verplaats je voordat de teller op nul staat.</string>
+    <string name="tour_prey_toggle_title">Paneel verbergen</string>
+    <string name="tour_prey_toggle_body">Tik hier om het paneel in te klappen en meer van de kaart te zien. Tik nog een keer om het uit te klappen.</string>
+
+    <!-- Eerste-keer-rondleiding: jager-HUD -->
+    <string name="tour_hunter_role_title">Je rol</string>
+    <string name="tour_hunter_role_body">Je bent de jager. Vind de prooien en tag ze voordat de tijd om is.</string>
+    <string name="tour_hunter_clock_title">Spelklok</string>
+    <string name="tour_hunter_clock_body">De resterende speeltijd. Hij wordt oranje bij 10 minuten en rood bij 5 minuten. Zolang je een straf hebt, staat er rood Straf.</string>
+    <string name="tour_hunter_ping_title">Volgende locatieping</string>
+    <string name="tour_hunter_ping_body">Wanneer de locaties van de prooien weer op je kaart worden bijgewerkt.</string>
+    <string name="tour_hunter_preys_title">Prooien in het spel</string>
+    <string name="tour_hunter_preys_body">Hoeveel prooien nog vrij zijn, van alle prooien in het spel.</string>
+    <string name="tour_hunter_closest_title">Dichtstbijzijnde prooi</string>
+    <string name="tour_hunter_closest_body">De afstand tot de laatst bekende locatie van de dichtstbijzijnde prooi, niet tot zijn actuele positie.</string>
+    <string name="tour_hunter_penalised_title">Prooien met straf</string>
+    <string name="tour_hunter_penalised_body">Hoeveel prooien op dit moment een straf hebben.</string>
+    <string name="tour_hunter_tag_title">Taggen</string>
+    <string name="tour_hunter_tag_body">Opent de lijst met prooien binnen bereik. Alleen prooien binnen %1$d m kun je taggen. De knop is vergrendeld zolang de startvertraging van de jager loopt.</string>
 </resources>

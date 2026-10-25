@@ -366,4 +366,34 @@
     <string name="tour_area_erase_body">Erase All removes every point so you can start over.</string>
     <string name="tour_area_save_title">Save</string>
     <string name="tour_area_save_body">Save returns the area to the playfield details. The playfield is stored when you save it there. You can change the area later by opening it again from the details. Cancel leaves without changing the area.</string>
+
+    <!-- First-time tour: prey HUD -->
+    <string name="tour_prey_role_title">Your role</string>
+    <string name="tour_prey_role_body">You are a prey. Stay hidden until the time runs out. The pill flashes red Penalty while you have a penalty.</string>
+    <string name="tour_prey_proximity_title">Hunter proximity</string>
+    <string name="tour_prey_proximity_body">How close the hunter is. Safe: 250 m or more. Close: 100 to 250 m. Warning: under 100 m. Unknown: no hunter location yet.</string>
+    <string name="tour_prey_time_title">Time left</string>
+    <string name="tour_prey_time_body">How long the game still runs. Stay free until it reaches zero.</string>
+    <string name="tour_prey_distance_title">Hunter distance</string>
+    <string name="tour_prey_distance_body">The distance to the closest hunter, in the colour of the proximity band.</string>
+    <string name="tour_prey_broadcast_title">Next broadcast</string>
+    <string name="tour_prey_broadcast_body">When your location is next sent to the hunter. Move before it reaches zero.</string>
+    <string name="tour_prey_toggle_title">Hide the panel</string>
+    <string name="tour_prey_toggle_body">Tap here to collapse the panel and see more of the map. Tap again to expand it.</string>
+
+    <!-- First-time tour: hunter HUD -->
+    <string name="tour_hunter_role_title">Your role</string>
+    <string name="tour_hunter_role_body">You are the hunter. Find the preys and tag them before the time runs out.</string>
+    <string name="tour_hunter_clock_title">Game clock</string>
+    <string name="tour_hunter_clock_body">Time left in the game. It turns orange at 10 minutes and red at 5 minutes. It shows Penalty in red while you have a penalty.</string>
+    <string name="tour_hunter_ping_title">Next location ping</string>
+    <string name="tour_hunter_ping_body">When the preys\' locations next update on your map.</string>
+    <string name="tour_hunter_preys_title">Preys in play</string>
+    <string name="tour_hunter_preys_body">How many preys are still free, out of all preys in the game.</string>
+    <string name="tour_hunter_closest_title">Closest prey</string>
+    <string name="tour_hunter_closest_body">The distance to the closest prey\'s last known location, not its live position.</string>
+    <string name="tour_hunter_penalised_title">Penalised preys</string>
+    <string name="tour_hunter_penalised_body">How many preys have a penalty right now.</string>
+    <string name="tour_hunter_tag_title">Tag</string>
+    <string name="tour_hunter_tag_body">Opens the list of preys in tagging range. Only preys within %1$d m can be tagged. The button is locked while the hunter start delay runs.</string>
 </resources>

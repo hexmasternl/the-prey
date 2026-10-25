@@ -42,7 +42,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import nl.hexmaster.theprey.R
+import nl.hexmaster.theprey.ui.components.tour.tourTarget
 import nl.hexmaster.theprey.ui.game.ActiveGameUi
+import nl.hexmaster.theprey.ui.game.tour.GameTourTargets
 import nl.hexmaster.theprey.ui.game.DelaySeed
 import nl.hexmaster.theprey.ui.game.hud.common.HudCountdown
 import nl.hexmaster.theprey.ui.game.hud.common.HudPill
@@ -107,16 +109,20 @@ internal fun HunterHudContent(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Box(modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(16.dp)) {
-        HunterRolePill(Modifier.align(Alignment.TopStart))
+        HunterRolePill(Modifier.align(Alignment.TopStart).tourTarget(GameTourTargets.HUNTER_ROLE))
         GameClockPill(
             band = state.clockBand(nowElapsed),
             secondsLeft = state.gameTime.secondsLeft(nowElapsed),
-            modifier = Modifier.align(Alignment.TopEnd),
+            modifier = Modifier.align(Alignment.TopEnd).tourTarget(GameTourTargets.HUNTER_CLOCK),
         )
         Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             SnackbarHost(snackbarHostState)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TagFab(enabled = state.tagUnlock.isUnlocked(nowElapsed), onClick = onTag)
+                TagFab(
+                    enabled = state.tagUnlock.isUnlocked(nowElapsed),
+                    onClick = onTag,
+                    modifier = Modifier.tourTarget(GameTourTargets.HUNTER_TAG),
+                )
             }
             HunterSummaryGrid(state = state, nowElapsed = nowElapsed)
         }
@@ -163,12 +169,12 @@ fun HunterSummaryGrid(state: HunterHudState, nowElapsed: Long, modifier: Modifie
             HudTile(
                 label = stringResource(R.string.hud_next_ping),
                 value = stringResource(R.string.hud_seconds, state.nextPing.secondsLeft(nowElapsed)),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier.weight(1f).fillMaxHeight().tourTarget(GameTourTargets.HUNTER_NEXT_PING),
             )
             HudTile(
                 label = stringResource(R.string.hud_preys_in_play),
                 value = stringResource(R.string.hud_preys_count, state.preysInPlay, state.preysTotal),
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier.weight(1f).fillMaxHeight().tourTarget(GameTourTargets.HUNTER_PREYS_IN_PLAY),
             )
         }
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -176,14 +182,14 @@ fun HunterSummaryGrid(state: HunterHudState, nowElapsed: Long, modifier: Modifie
                 label = stringResource(R.string.hud_closest_prey),
                 value = formatDistance(state.closestPreyMeters),
                 valueColor = if (state.closestPreyMeters == null) ThePreyTheme.colors.textGhost else MaterialTheme.colorScheme.primary,
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier.weight(1f).fillMaxHeight().tourTarget(GameTourTargets.HUNTER_CLOSEST_PREY),
             )
             HudTile(
                 label = stringResource(R.string.hud_penalised_preys),
                 value = state.penalisedPreys.toString(),
                 // A zero value is inactive: Ghost (design system HUD rule).
                 valueColor = if (state.penalisedPreys == 0) ThePreyTheme.colors.textGhost else ThePreyTheme.colors.hunter,
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier.weight(1f).fillMaxHeight().tourTarget(GameTourTargets.HUNTER_PENALISED),
             )
         }
     }

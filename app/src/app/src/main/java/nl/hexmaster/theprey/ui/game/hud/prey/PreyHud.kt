@@ -43,8 +43,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import nl.hexmaster.theprey.R
+import nl.hexmaster.theprey.ui.components.tour.tourTarget
 import nl.hexmaster.theprey.ui.components.rememberReducedMotion
 import nl.hexmaster.theprey.ui.game.ActiveGameUi
+import nl.hexmaster.theprey.ui.game.tour.GameTourTargets
 import nl.hexmaster.theprey.ui.game.hud.common.HudCountdown
 import nl.hexmaster.theprey.ui.game.hud.common.HudPill
 import nl.hexmaster.theprey.ui.game.hud.common.HudTile
@@ -73,8 +75,12 @@ internal fun PreyHudContent(
     reducedMotion: Boolean = rememberReducedMotion(),
 ) {
     Box(modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(16.dp)) {
-        RolePill(penaltyActive = state.penaltyActive, nowElapsed = nowElapsed, modifier = Modifier.align(Alignment.TopStart))
-        ProximityPill(band = state.band, modifier = Modifier.align(Alignment.TopEnd))
+        RolePill(
+            penaltyActive = state.penaltyActive,
+            nowElapsed = nowElapsed,
+            modifier = Modifier.align(Alignment.TopStart).tourTarget(GameTourTargets.PREY_ROLE),
+        )
+        ProximityPill(band = state.band, modifier = Modifier.align(Alignment.TopEnd).tourTarget(GameTourTargets.PREY_PROXIMITY))
         PreyHudPanel(state = state, nowElapsed = nowElapsed, reducedMotion = reducedMotion, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
@@ -146,13 +152,13 @@ fun PreyHudPanel(state: PreyHudState, nowElapsed: Long, reducedMotion: Boolean, 
                     label = stringResource(R.string.hud_time_left),
                     value = formatGameTime(state.gameTime.secondsLeft(nowElapsed)),
                     valueColor = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    modifier = Modifier.weight(1f).fillMaxHeight().tourTarget(GameTourTargets.PREY_GAME_TIME),
                 )
                 HudTile(
                     label = stringResource(R.string.hud_hunter_distance),
                     value = formatDistance(state.hunterDistanceMeters),
                     valueColor = state.band.color(),
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    modifier = Modifier.weight(1f).fillMaxHeight().tourTarget(GameTourTargets.PREY_HUNTER_DISTANCE),
                 )
             }
         }
@@ -160,7 +166,7 @@ fun PreyHudPanel(state: PreyHudState, nowElapsed: Long, reducedMotion: Boolean, 
         HudTile(
             label = stringResource(R.string.hud_next_broadcast),
             value = stringResource(R.string.hud_seconds, secondsLeft),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().tourTarget(GameTourTargets.PREY_NEXT_BROADCAST),
         ) {
             Spacer(Modifier.height(8.dp))
             LinearProgressIndicator(
@@ -177,6 +183,7 @@ fun PreyHudPanel(state: PreyHudState, nowElapsed: Long, reducedMotion: Boolean, 
             Modifier
                 .fillMaxWidth()
                 .heightIn(min = 48.dp)
+                .tourTarget(GameTourTargets.PREY_TOGGLE)
                 .background(hudSurface(), MaterialTheme.shapes.medium)
                 .clickable(onClickLabel = toggleLabel, role = Role.Button) { expanded = !expanded },
             contentAlignment = Alignment.Center,
