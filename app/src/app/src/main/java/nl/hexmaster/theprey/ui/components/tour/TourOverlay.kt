@@ -204,9 +204,9 @@ fun TourOverlay(
 // ---- Previews ----
 
 private val previewSteps = listOf(
-    TourStep(null, R.string.tour_next, R.string.tour_skip),
-    TourStep("target", R.string.tour_back, R.string.tour_done),
-    TourStep("target", R.string.tour_done, R.string.tour_next),
+    TourStep(null, R.string.tour_area_intro_title, R.string.tour_area_intro_body),
+    TourStep("target", R.string.tour_area_delete_title, R.string.tour_area_delete_body),
+    TourStep("target", R.string.tour_area_save_title, R.string.tour_area_save_body),
 )
 
 @Composable
