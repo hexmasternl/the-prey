@@ -23,6 +23,10 @@ abstract class UnusedGamesApi : GamesApi {
 
     override suspend fun getNotificationsToken(gameId: String): Response<NotificationConnectionDto> = error("Not used")
 
+    override suspend fun getTagCandidates(gameId: String): Response<TagCandidatesDto> = error("Not used")
+
+    override suspend fun tagParticipant(gameId: String, participantId: String): Response<Unit> = error("Not used")
+
     override suspend fun recordLocation(gameId: String, request: RecordLocationRequest): Response<RecordLocationResponse> =
         error("Not used")
 }
@@ -46,4 +50,8 @@ abstract class UnusedGameRepository : GameRepository {
     override suspend fun start(gameId: String, hunterUserId: String): CommandResult = error("Not used")
 
     override suspend fun leave(gameId: String): CommandResult = error("Not used")
+
+    override suspend fun tagCandidates(gameId: String): TagCandidatesResult = error("Not used")
+
+    override suspend fun tag(gameId: String, participantId: String): TagResult = error("Not used")
 }

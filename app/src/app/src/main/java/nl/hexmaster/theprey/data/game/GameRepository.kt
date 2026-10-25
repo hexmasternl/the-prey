@@ -42,6 +42,12 @@ interface GameRepository {
 
     /** Leaves the lobby; for the owner this cancels the game. */
     suspend fun leave(gameId: String): CommandResult
+
+    /** The preys the hunter may tag right now. */
+    suspend fun tagCandidates(gameId: String): TagCandidatesResult
+
+    /** Tags [participantId]; the server checks range and role. */
+    suspend fun tag(gameId: String, participantId: String): TagResult
 }
 
 class ApiGameRepository(private val api: GamesApi) : GameRepository {
@@ -138,6 +144,33 @@ class ApiGameRepository(private val api: GamesApi) : GameRepository {
         command { api.start(gameId, StartGameRequest(hunterUserId)) }
 
     override suspend fun leave(gameId: String): CommandResult = command { api.leave(gameId) }
+
+    override suspend fun tagCandidates(gameId: String): TagCandidatesResult = try {
+        val response = api.getTagCandidates(gameId)
+        val body = response.body()
+        if (response.isSuccessful && body != null) TagCandidatesResult.Ok(body) else TagCandidatesResult.Failed
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: IOException) {
+        TagCandidatesResult.Failed
+    } catch (_: RuntimeException) {
+        TagCandidatesResult.Failed
+    }
+
+    override suspend fun tag(gameId: String, participantId: String): TagResult = try {
+        val response = api.tagParticipant(gameId, participantId)
+        when {
+            response.isSuccessful -> TagResult.Tagged
+            response.code() == HTTP_CONFLICT -> TagResult.NoLongerTaggable
+            else -> TagResult.Failed
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: IOException) {
+        TagResult.Failed
+    } catch (_: RuntimeException) {
+        TagResult.Failed
+    }
 
     /** Maps a command response: a game body is [CommandResult.Ok], a bodiless 2xx [CommandResult.Left]. */
     private suspend fun command(call: suspend () -> Response<*>): CommandResult = try {

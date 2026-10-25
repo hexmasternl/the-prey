@@ -260,15 +260,33 @@ game rejects posts until the sweep commits play); `404` for an unknown game.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/games/{id}/tag` | Confirm a prey has been physically tagged (hunter only) |
+| `GET` | `/games/{id}/tag-candidates` | The preys the hunter may tag right now, judged by GPS proximity (hunter only) |
+| `POST` | `/games/{id}/participants/{participantId}/tag` | Tag a prey in range (hunter only) |
 
-### `POST /games/{id}/tag` — Request Body
+### `GET /games/{id}/tag-candidates` — Response
 
 ```json
 {
-  "preyId": "player-uuid-here"
+  "rangeMeters": 50.0,
+  "candidates": [
+    { "userId": "…", "callsign": "Vos", "state": "Active", "distanceMeters": 12.4 }
+  ]
 }
 ```
+
+Only preys still in play and within `rangeMeters` of the hunter's last known location are listed.
+`403` when the caller is not the hunter; `404` for an unknown game.
+
+### `POST /games/{id}/participants/{participantId}/tag`
+
+No body. The server checks role and range again at the moment of the tag.
+
+| Status | Meaning |
+|---|---|
+| `204 No Content` | The prey is tagged; `prey-updated` (`tagged`) is broadcast, and `game-ended` when it was the last prey |
+| `403 Forbidden` | The caller is not the hunter |
+| `404 Not Found` | Unknown game or participant |
+| `409 Conflict` | The prey can no longer be tagged (out of range by now, already tagged, or the game is not in progress) |
 
 ---
 

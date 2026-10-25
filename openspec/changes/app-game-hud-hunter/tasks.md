@@ -2,14 +2,14 @@
 
 ## 1. Shared HUD foundation
 
-- [ ] 1.1 Check whether `app-game-hud-prey` is implemented. If it is, move its role-agnostic pieces (`HudPill`, `HudTile`, `HudCountdown`, `formatGameTime`, `distanceMeters`, `isPenaltyActive`, the snapshot+location input source) to `ui/game/hud/common/`; if not, create them there from that change's tasks 1.1, 2.2–2.5 and 3.1. Verify `./gradlew testDebugUnitTest` stays green with the tests moved alongside.
-- [ ] 1.2 Add `status.hunterMayMoveAt` and `status.preysLeft` to `GameStatusDto` in `data/game/GameStateDto.kt` (nullable / defaulted) and add `ACTIVE`/`PASSIVE` to `PlayerStates`; verify a JSON parsing test with a hunter `/gamestate` sample, and one with `status` null.
-- [ ] 1.3 Add `hudRoleFor(state, userId)` returning `Hunter`, `Prey` or `None`; verify unit tests for hunter, prey, non-participant and non-`InProgress` games.
+- [x] 1.1 Check whether `app-game-hud-prey` is implemented. If it is, move its role-agnostic pieces (`HudPill`, `HudTile`, `HudCountdown`, `formatGameTime`, `distanceMeters`, `isPenaltyActive`, the snapshot+location input source) to `ui/game/hud/common/`; if not, create them there from that change's tasks 1.1, 2.2–2.5 and 3.1. Verify `./gradlew testDebugUnitTest` stays green with the tests moved alongside. _(The prey HUD was implemented first and created the shared pieces directly in `ui/game/hud/common/` (`HudPill`, `HudTile`, `HudCountdown`, `formatGameTime`, `distanceMeters`, `isPenaltyActive`, `ServerClock`); the input source is the game screen's `ActiveGameUi.Ready`.)_
+- [x] 1.2 Add `status.hunterMayMoveAt` and `status.preysLeft` to `GameStatusDto` in `data/game/GameStateDto.kt` (nullable / defaulted) and add `ACTIVE`/`PASSIVE` to `PlayerStates`; verify a JSON parsing test with a hunter `/gamestate` sample, and one with `status` null. _(landed with `app-game-active-view` 1.2; `GameStateDtoTest` covers a hunter sample and `status` null)_
+- [x] 1.3 Add `hudRoleFor(state, userId)` returning `Hunter`, `Prey` or `None`; verify unit tests for hunter, prey, non-participant and non-`InProgress` games. _(`hudRoleFor(state)` in `ui/game/hud/common/HudRole.kt`, tested in `HudRoleTest`)_
 
 ## 2. Tagging data
 
-- [ ] 2.1 Add `TagCandidatesDto(rangeMeters, candidates)` and `TagCandidateDto(userId, callsign, state, distanceMeters)`, plus `getTagCandidates(gameId)` and `tagParticipant(gameId, participantId)` to `GamesApi` and `GameRepository`, mapping 204 / 409 / other failures to a sealed `TagResult`; verify unit tests with a fake API for each status code and a parsing test for the candidates payload.
-- [ ] 2.2 Correct `docs/api/endpoints.md`: replace the old `POST /games/{id}/tag` body with `POST /games/{id}/participants/{participantId}/tag` (204/403/404/409) and document `GET /games/{id}/tag-candidates` with its response; verify the routes match `GameEndpoints.cs`.
+- [x] 2.1 Add `TagCandidatesDto(rangeMeters, candidates)` and `TagCandidateDto(userId, callsign, state, distanceMeters)`, plus `getTagCandidates(gameId)` and `tagParticipant(gameId, participantId)` to `GamesApi` and `GameRepository`, mapping 204 / 409 / other failures to a sealed `TagResult`; verify unit tests with a fake API for each status code and a parsing test for the candidates payload.
+- [x] 2.2 Correct `docs/api/endpoints.md`: replace the old `POST /games/{id}/tag` body with `POST /games/{id}/participants/{participantId}/tag` (204/403/404/409) and document `GET /games/{id}/tag-candidates` with its response; verify the routes match `GameEndpoints.cs`.
 
 ## 3. Pure hunter HUD logic
 

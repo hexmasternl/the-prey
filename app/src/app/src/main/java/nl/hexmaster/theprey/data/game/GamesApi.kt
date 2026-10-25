@@ -48,6 +48,14 @@ interface GamesApi {
     @POST("games/{id}/leave")
     suspend fun leave(@Path("id") gameId: String): Response<Unit>
 
+    /** The preys within tagging range of the caller (the hunter); 403 for anyone else. */
+    @GET("games/{id}/tag-candidates")
+    suspend fun getTagCandidates(@Path("id") gameId: String): Response<TagCandidatesDto>
+
+    /** Tags [participantId] (hunter only, range-checked by the server). 204; 409 when it is no longer taggable. */
+    @POST("games/{id}/participants/{participantId}/tag")
+    suspend fun tagParticipant(@Path("id") gameId: String, @Path("participantId") participantId: String): Response<Unit>
+
     /** A short-lived, group-scoped Web PubSub access URL; 403 for a non-member. */
     @GET("games/{id}/notifications/token")
     suspend fun getNotificationsToken(@Path("id") gameId: String): Response<NotificationConnectionDto>
