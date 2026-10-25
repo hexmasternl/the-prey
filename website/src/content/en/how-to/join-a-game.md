@@ -6,10 +6,10 @@ keywords: ["join a game", "invitation link", "lobby", "set ready", "The Prey how
 ---
 
 1. Make sure you are [set up]({{< relref "/how-to/get-started" >}}): app installed and location allowed all the time.
-2. Ask the Game Creator for the invitation. They send it from the lobby with **Share**.
+2. Ask the Game Creator for the invitation. They send it from the lobby with the share icon next to the game code.
 3. Tap the invitation link on your phone. It opens The Prey.
 4. Not signed in yet? Sign in first. The app keeps the invitation and continues after you sign in.
-5. The app joins the game and opens the lobby. You see the game settings and the other players.
+5. The app joins the game and opens the lobby. You see the other players and a summary of the game settings; tap the summary to see them all.
 6. Wait for the Game Creator to choose the Hunter. Your tag shows **Hunter** or **Prey**.
 7. Tap **Set ready**.
 8. When the Game Creator starts the game, confirm the safety warning. The head start begins straight away.

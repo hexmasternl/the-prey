@@ -24,7 +24,7 @@ Tap **Choose a playfield** and pick one of your own on the **Private** tab, or s
 Game duration, Hunter delay, Final stage, Location ping and Ping in final stage. The defaults give a 30-minute game. See the [Rules]({{< relref "/rules" >}}) for every option. Tap **Create game**.
 
 ### 4. Invite the players
-The lobby shows the **Game code**. Tap **Share** to send the invitation link. Players tap the link to join. You can still change the game settings here.
+The lobby shows the **Game code**. Tap the share icon next to it to send the invitation link. Players tap the link to join and appear in the player list right below the code, with how many are ready. The game settings are summarised in a card below the players: tap it to change them.
 
 ### 5. Choose the Hunter
 Tap a player and then **Make hunter**. Everyone else is Prey. You can make yourself the Hunter.

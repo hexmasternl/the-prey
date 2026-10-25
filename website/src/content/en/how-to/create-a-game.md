@@ -9,7 +9,7 @@ keywords: ["create a game", "start a game", "invite players", "choose the hunter
 2. Tap **Choose a playfield**. Pick one of your own on the **Private** tab, or search the **Public** tab, and tap **Select**. No playfield yet? [Draw one first]({{< relref "/how-to/draw-a-playfield" >}}).
 3. Set the game: **Game duration**, **Hunter delay**, **Final stage**, **Location ping** and **Ping in final stage**. The defaults make a 30-minute game with a 5-minute head start.
 4. Tap **Create game**. The lobby opens with the **Game code**.
-5. Tap **Share** and send the invitation link to the other players. They tap it to join.
+5. Tap the share icon next to the game code and send the invitation link to the other players. They tap it to join.
 6. Wait for players to join. They appear under **Players**.
 7. Tap one player, then **Make hunter**. Everyone else is Prey. You can pick yourself.
 8. Tap **Set ready** yourself and wait until every player shows **Ready**.

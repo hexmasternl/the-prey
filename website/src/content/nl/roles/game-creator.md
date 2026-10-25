@@ -24,7 +24,7 @@ Tik op **Kies een speelveld** en kies er een van jezelf op het tabblad **Privé*
 Speelduur, Vertraging jager, Eindfase, Locatie-ping en Ping in eindfase. De standaardwaarden geven een spel van 30 minuten. Zie de [Regels]({{< relref "/rules" >}}) voor alle opties. Tik op **Spel aanmaken**.
 
 ### 4. Nodig de spelers uit
-De lobby toont de **Spelcode**. Tik op **Delen** om de uitnodigingslink te versturen. Spelers tikken op de link om mee te doen. Je kunt de spelinstellingen hier nog aanpassen.
+De lobby toont de **Spelcode**. Tik op het deel-icoon ernaast om de uitnodigingslink te versturen. Spelers tikken op de link om mee te doen en verschijnen direct onder de code in de spelerslijst, met hoeveel er klaar zijn. De spelinstellingen staan samengevat in een kaart onder de spelers: tik erop om ze aan te passen.
 
 ### 5. Kies de Jager
 Tik op een speler en dan op **Maak Jager**. Alle anderen zijn Prooi. Je kunt jezelf ook Jager maken.

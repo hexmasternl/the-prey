@@ -6,10 +6,10 @@ keywords: ["meedoen met een spel", "uitnodigingslink", "lobby", "ik ben klaar", 
 ---
 
 1. Zorg dat je [klaar bent om te spelen]({{< relref "/how-to/get-started" >}}): app geïnstalleerd en locatie altijd toegestaan.
-2. Vraag de Spelmaker om de uitnodiging. Die verstuurt hij vanuit de lobby met **Delen**.
+2. Vraag de Spelmaker om de uitnodiging. De Spelmaker verstuurt die vanuit de lobby met het deel-icoon naast de spelcode.
 3. Tik op je telefoon op de uitnodigingslink. The Prey opent.
 4. Nog niet ingelogd? Log eerst in. De app onthoudt de uitnodiging en gaat na het inloggen verder.
-5. De app doet mee met het spel en opent de lobby. Je ziet de spelinstellingen en de andere spelers.
+5. De app doet mee met het spel en opent de lobby. Je ziet de andere spelers en een samenvatting van de spelinstellingen; tik op de samenvatting om ze allemaal te zien.
 6. Wacht tot de Spelmaker de Jager kiest. Je label toont **Jager** of **Prooi**.
 7. Tik op **Ik ben klaar**.
 8. Als de Spelmaker het spel start, bevestig je de veiligheidswaarschuwing. De voorsprong begint meteen.

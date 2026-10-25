@@ -9,7 +9,7 @@ keywords: ["spel aanmaken", "spel starten", "spelers uitnodigen", "jager kiezen"
 2. Tik op **Kies een speelveld**. Kies er een van jezelf op het tabblad **Privé**, of zoek op het tabblad **Openbaar**, en tik op **Kiezen**. Nog geen speelveld? [Teken er eerst een]({{< relref "/how-to/draw-a-playfield" >}}).
 3. Stel het spel in: **Speelduur**, **Vertraging jager**, **Eindfase**, **Locatie-ping** en **Ping in eindfase**. De standaardwaarden geven een spel van 30 minuten met 5 minuten voorsprong.
 4. Tik op **Spel aanmaken**. De lobby opent met de **Spelcode**.
-5. Tik op **Delen** en stuur de uitnodigingslink naar de andere spelers. Zij tikken erop om mee te doen.
+5. Tik op het deel-icoon naast de spelcode en stuur de uitnodigingslink naar de andere spelers. Zij tikken erop om mee te doen.
 6. Wacht tot de spelers binnenkomen. Ze verschijnen onder **Spelers**.
 7. Tik op een speler en dan op **Maak Jager**. Alle anderen zijn Prooi. Je kunt ook jezelf kiezen.
 8. Tik zelf op **Ik ben klaar** en wacht tot elke speler op **Klaar** staat.
