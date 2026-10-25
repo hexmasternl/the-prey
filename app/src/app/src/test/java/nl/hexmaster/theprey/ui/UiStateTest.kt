@@ -49,6 +49,12 @@ class UiStateTest {
         assertEquals(Routes.LANDING, routeFor(SessionState.SignedOut(SignOutReason.SessionExpired)))
     }
 
+    @Test
+    fun gameRoute_ShouldFillInTheGameId_WhenResumingAGame() {
+        assertEquals("game/3f2a1c4e", Routes.game("3f2a1c4e"))
+        assertEquals("game/{${Routes.GAME_ID}}", Routes.GAME)
+    }
+
     // --- landing ---
 
     @Test

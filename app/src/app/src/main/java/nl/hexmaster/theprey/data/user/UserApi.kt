@@ -4,6 +4,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 /** Users API. Calls are authenticated by the OkHttp client; the caller is identified by the token. */
 interface UserApi {
@@ -14,4 +15,11 @@ interface UserApi {
     /** 200 with the record, or 404 when the player has not been registered yet. */
     @GET("users/me")
     suspend fun getCurrentUser(): Response<UserDto>
+
+    /**
+     * 200 with the updated record, 400 with a [ValidationProblem] for an invalid callsign or an
+     * unsupported language, 404 when the player has not been registered yet.
+     */
+    @PUT("users/settings")
+    suspend fun updateSettings(@Body request: UpdateUserSettingsRequest): Response<UserDto>
 }

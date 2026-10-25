@@ -2,9 +2,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Position readout on the main menu; either grant is enough. -->
+    <!-- Asked only after the location tracking disclosure (ui/consent). Fine is needed for gameplay;
+         either grant is enough for the main menu position readout. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- "Allow all the time": required to play (main menu play button). Never requested at runtime;
+         the player grants it on the app's system settings page. Needs the Play Console
+         background location declaration. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!-- Android 13+: the persistent notification while in-game location tracking runs. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- In-game location tracking (tracking/): a location foreground service that keeps reporting
+         while the app is in the background, a timed wake lock, and the resume prompt after a reboot.
+         Needs the Play Console foreground service (location) declaration. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".ThePreyApplication"
@@ -24,6 +38,35 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- In-game location tracking. Started only from the foreground via TrackingStarter. -->
+        <service
+            android:name=".tracking.LocationTrackingService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+        <!-- Reboot / app update: posts the "tap to resume tracking" prompt for a running game.
+             Exported for the system broadcasts; both actions are protected, so other apps cannot send them. -->
+        <receiver
+            android:name=".tracking.TrackingBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+        <!-- Backup deadline alarm of the tracking service. -->
+        <receiver
+            android:name=".tracking.TrackingDeadlineReceiver"
+            android:exported="false" />
+        <!-- AppCompat per-app language on Android 12 and lower: stores the choice made in Settings
+             so it survives restarts. Android 13+ keeps it in the platform instead. -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>

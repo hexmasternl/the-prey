@@ -7,7 +7,7 @@ Makes sure every player of the Android app is told clearly, and before any syste
 ## ADDED Requirements
 
 ### Requirement: Disclosure is shown after the first sign-in on a device
-After a player signs in, if the location tracking disclosure has not been accepted on this device, the app SHALL show the disclosure as a modal dialog before the main menu can be used. The dialog SHALL NOT be dismissible by tapping outside it or pressing Back; it SHALL close only through one of its actions.
+After a player signs in, if location permission is missing and the main menu has not shown the location tracking disclosure automatically on this device before, the app SHALL show the disclosure as a modal dialog before the main menu can be used. The dialog SHALL NOT be dismissible by tapping outside it or pressing Back; it SHALL close only through one of its actions.
 
 #### Scenario: First sign-in on a fresh install
 - **WHEN** a player completes sign-in and the disclosure has never been accepted on this device
@@ -72,19 +72,20 @@ If the player taps Not now in the disclosure, or denies the system location prom
 - **WHEN** the player accepted the disclosure but denies the system location prompt
 - **THEN** the main menu is usable, no location is read, and the position readout shows the no-signal state
 
-### Requirement: Disclosure is shown again while permission is missing
-When the player has declined, or location permission was later revoked in system settings, the app SHALL show the disclosure again on the next sign-in or app start, and before any action that needs location. The disclosure SHALL NOT be shown again once it is accepted and location permission is granted.
+### Requirement: Main menu shows the disclosure automatically only once
+The main menu SHALL show the disclosure automatically only the first time on a device that it is shown while location permission is missing, whatever the player then chooses. After that, the app SHALL NOT show the disclosure or a location prompt by itself again on this device, also not after an app restart, a new sign-in or a revocation in system settings. The disclosure SHALL still be shown before every location permission request the player starts: before any action that starts or joins a game, and through the Grant location access action on the Settings screen. When the player accepted the disclosure but the system no longer shows the location prompt, those paths SHALL explain that location is off and offer to open the app's system settings page.
 
 #### Scenario: Next app start after Not now
 - **WHEN** the player tapped Not now earlier and starts the app again with a stored session
-- **THEN** the disclosure dialog is shown again
+- **THEN** the main menu is shown without the disclosure dialog
 
 #### Scenario: Permission revoked in system settings
-- **WHEN** the disclosure was accepted earlier but location permission has since been revoked, and the app returns to the foreground
-- **THEN** the disclosure dialog is shown again before location is requested
+- **WHEN** the main menu already showed the disclosure once, location permission has since been revoked, and the app returns to the foreground
+- **THEN** no disclosure dialog and no system prompt is shown by itself
+- **AND** the disclosure is shown again before location is requested from a start or join action or from Settings
 
 #### Scenario: Permission permanently denied
-- **WHEN** the player accepts the disclosure but the system will no longer show the location prompt (denied twice)
+- **WHEN** the player accepted the disclosure, the system will no longer show the location prompt (denied twice), and the player starts or joins a game
 - **THEN** the app explains that location is off for The Prey and offers a button that opens the app's system settings page
 
 ### Requirement: Starting or joining a game requires location consent

@@ -24,8 +24,139 @@
     <string name="main_menu_settings">Instellingen</string>
     <string name="main_menu_sign_out">Uitloggen</string>
     <string name="main_menu_quit">Afsluiten</string>
+    <string name="main_menu_resume_game">Spel hervatten</string>
+    <string name="main_menu_error_location_missing">Precieze locatie staat uit. Sta in de instellingen precieze locatie toe voor The Prey om te spelen.</string>
+    <string name="main_menu_error_background_location_missing">Locatie mag alleen als de app in gebruik is. Zet locatie in de instellingen op \"Altijd toestaan\" om te spelen.</string>
+    <string name="main_menu_error_check_failed">Spelstatus onbekend. Controleer je verbinding en probeer opnieuw.</string>
+    <string name="main_menu_open_settings">Instellingen openen</string>
+    <string name="main_menu_retry">Opnieuw</string>
+    <string name="main_menu_play_state_checking">Zoekt naar een lopend spel</string>
+    <string name="main_menu_play_state_location_missing">Niet beschikbaar: precieze locatie nodig</string>
+    <string name="main_menu_play_state_background_location_missing">Niet beschikbaar: locatie \"Altijd toestaan\" nodig</string>
+    <string name="main_menu_play_state_check_failed">Niet beschikbaar: spelstatus onbekend</string>
+
+    <!-- Launch sequence -->
+    <string name="launch_tagline_part1">Blijf</string>
+    <string name="launch_tagline_part2">verborgen.</string>
+    <string name="launch_tagline_part3">Jaag</string>
+    <string name="launch_tagline_part4">slim.</string>
+    <string-array name="launch_status_messages">
+        <item>Veldeenheid opstarten</item>
+        <item>GPS kalibreren</item>
+        <item>Speelveld scannen</item>
+        <item>Signaal vergrendeld</item>
+    </string-array>
+
+    <!-- Melding over locatievolging -->
+    <string name="location_consent_eyebrow">Locatievolging</string>
+    <string name="location_consent_title">The Prey gebruikt je locatie</string>
+    <string name="location_consent_body">The Prey verzamelt de precieze locatie van je apparaat, maar alleen terwijl je in een actief spel zit.</string>
+    <string name="location_consent_point_background">Dat gaat door terwijl de app gesloten is of niet wordt gebruikt, op de achtergrond, of terwijl het scherm uit staat.</string>
+    <string name="location_consent_point_notification">De volging draait als voorgrondservice, met een vaste melding zolang die loopt.</string>
+    <string name="location_consent_point_stop">De volging stopt zodra het spel eindigt of je het spel verlaat.</string>
+    <string name="location_consent_point_purpose">Het spel heeft je positie nodig om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft.</string>
+    <string name="location_consent_privacy">Lees de privacyverklaring</string>
+    <string name="location_consent_continue">Doorgaan</string>
+    <string name="location_consent_not_now">Niet nu</string>
+    <string name="location_consent_settings_title">Locatie staat uit voor The Prey</string>
+    <string name="location_consent_settings_body">The Prey heeft je precieze locatie nodig om te spelen. Open de instellingen, ga naar Rechten en sta precieze locatie toe.</string>
+    <string name="location_consent_settings_open">Instellingen openen</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Instellingen</string>
+    <string name="settings_section_callsign">Roepnaam</string>
+    <string name="settings_callsign_label">Roepnaam</string>
+    <string name="settings_callsign_rule">3 tot 30 letters, cijfers, spaties of - _ &amp; $ # @. Andere spelers zien hem tijdens een spel.</string>
+    <string name="settings_callsign_invalid">Gebruik 3 tot 30 letters, cijfers, spaties of - _ &amp; $ # @.</string>
+    <string name="settings_callsign_no_callsign">Geen roepnaam ingesteld. Andere spelers zien je naam, %1$s, tot je er een instelt.</string>
+    <string name="settings_callsign_save">Roepnaam opslaan</string>
+    <string name="settings_callsign_saved">Roepnaam opgeslagen.</string>
+    <string name="settings_callsign_rejected">Roepnaam geweigerd. Gebruik 3 tot 30 letters, cijfers, spaties of - _ &amp; $ # @.</string>
+    <string name="settings_callsign_failed">Roepnaam niet opgeslagen. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="settings_section_language">Taal</string>
+    <string name="settings_language_system">Systeemstandaard</string>
+    <string name="settings_language_sync_pending">Taal opgeslagen op deze telefoon. Bij de volgende verbinding gaat hij naar je account.</string>
+    <string name="settings_section_location">Locatie</string>
+    <string name="settings_location_access">Locatietoegang</string>
+    <string name="settings_location_off">Uit</string>
+    <string name="settings_location_approximate">Alleen bij benadering</string>
+    <string name="settings_location_while_in_use">Tijdens gebruik van de app</string>
+    <string name="settings_location_all_the_time">Altijd</string>
+    <string name="settings_location_approximate_explanation">Het spel heeft je precieze locatie nodig. Een locatie bij benadering is niet genoeg om te spelen.</string>
+    <string name="settings_notifications">Meldingen</string>
+    <string name="settings_notifications_allowed">Toegestaan</string>
+    <string name="settings_notifications_off">Uit</string>
+    <string name="settings_location_grant">Locatietoegang geven</string>
+    <string name="settings_location_instruction_precise">Locatie staat uit voor The Prey. Ga in de instellingen die openen naar Rechten, dan Locatie, en sta precieze locatie toe.</string>
+    <string name="settings_location_instruction_all_the_time">Kies \"Altijd toestaan\" om te spelen. Ga in de instellingen die openen naar Rechten, dan Locatie.</string>
+    <string name="settings_location_granted">Locatie is altijd toegestaan. De volging kan tijdens een spel lopen.</string>
+
+    <!-- Playfields list (ui/playfields/) -->
+    <string name="playfields_title">Speelvelden</string>
+    <string name="playfields_tab_private">Privé</string>
+    <string name="playfields_tab_public">Openbaar</string>
+    <string name="playfields_badge_private">Privé</string>
+    <string name="playfields_badge_public">Openbaar</string>
+    <string name="playfields_updated_on">Bijgewerkt %1$s</string>
+    <string name="playfields_empty">Nog geen speelvelden. Tik op + om je eerste te tekenen.</string>
+    <string name="playfields_load_error">Speelvelden niet geladen. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="playfields_retry">Opnieuw</string>
+    <string name="playfields_delete">Verwijderen</string>
+    <string name="playfields_deleting">Bezig met verwijderen</string>
+    <string name="playfields_delete_confirm_title">Speelveld verwijderen</string>
+    <string name="playfields_delete_confirm_body">\"%1$s\" verwijderen? Dit kan niet ongedaan worden gemaakt.</string>
+    <string name="playfields_cancel">Annuleren</string>
+    <string name="playfields_delete_failed">Speelveld niet verwijderd. Probeer het opnieuw.</string>
+    <string name="playfields_search_label">Zoek openbare speelvelden</string>
+    <string name="playfields_search_hint">Typ minstens 3 tekens om te zoeken.</string>
+    <string name="playfields_no_results">Geen openbare speelvelden gevonden voor je zoekopdracht.</string>
+    <string name="playfields_search_error">Zoeken mislukt. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="playfields_create">Speelveld maken</string>
+    <string name="playfield_editor_title">Nieuw speelveld</string>
+
+    <!-- Playfield details (ui/playfields/details/) -->
+    <string name="playfield_details_title">Speelveld</string>
+    <string name="playfield_details_name_label">Naam</string>
+    <string name="playfield_details_public">Openbaar</string>
+    <string name="playfield_details_public_hint">Openbare namen: LC, Plaats, Veldnaam (LC = landcode), bijv. NL, Amsterdam, Vondelpark</string>
+    <plurals name="playfield_details_points">
+        <item quantity="one">%d punt</item>
+        <item quantity="other">%d punten</item>
+    </plurals>
+    <string name="playfield_details_area">Speelveldgebied</string>
+    <string name="playfield_details_save">Opslaan</string>
+    <string name="playfield_details_saving">Bezig met opslaan</string>
+    <string name="playfield_details_cancel">Annuleren</string>
+    <string name="playfield_details_close">Sluiten</string>
+    <string name="playfield_details_not_found">Speelveld niet gevonden. Het is verwijderd, of je mag het niet bekijken.</string>
+    <string name="playfield_details_load_error">Speelveld niet geladen. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="playfield_details_retry">Opnieuw</string>
+    <string name="playfield_details_save_failed">Speelveld niet opgeslagen. Probeer het opnieuw.</string>
+    <string name="playfield_details_conflict">Dit speelveld is elders gewijzigd. De nieuwste versie wordt getoond.</string>
+
+    <!-- Playfield area map (ui/playfields/area/) -->
+    <string name="playfield_area_cancel">Annuleren</string>
+    <string name="playfield_area_erase_all">Alles wissen</string>
+    <string name="playfield_area_save">Opslaan</string>
+    <string name="playfield_area_close">Sluiten</string>
+    <string name="playfield_area_back">Terug naar speelveld</string>
+    <string name="playfield_area_attribution">© OpenFreeMap © OpenStreetMap-bijdragers</string>
 
     <!-- Destinations that are not built yet -->
     <string name="placeholder_not_operational">Nog niet operationeel. Kijk na de volgende update opnieuw.</string>
     <string name="navigate_back">Terug</string>
+
+    <!-- In-game location tracking notifications (tracking/) -->
+    <string name="tracking_channel_name">Spelvolging</string>
+    <string name="tracking_channel_description">Zichtbaar zolang je positie tijdens een spel wordt gedeeld.</string>
+    <string name="resume_channel_name">Spel hervatten</string>
+    <string name="resume_channel_description">Vraagt je de locatievolging te hervatten nadat je telefoon opnieuw is opgestart.</string>
+    <string name="tracking_notification_title">Spel bezig</string>
+    <string name="tracking_notification_text">Je positie wordt elke 5 seconden met het spel gedeeld.</string>
+    <string name="tracking_notification_starting">Locatievolging starten…</string>
+    <string name="tracking_notification_warning_title">Locatie niet beschikbaar</string>
+    <string name="tracking_notification_warning_text">De server ziet je niet. Zet je locatie weer aan, anders kun je een straf krijgen of uit het spel liggen.</string>
+    <string name="resume_notification_title">Je spel loopt nog</string>
+    <string name="resume_notification_text">Tik om de locatievolging te hervatten. Tot die tijd ziet de server je als stil.</string>
+    <string name="tracking_declined_silent">Locatievolging staat uit. De server ziet je als stil, en daardoor kun je uit het spel liggen.</string>
 </resources>

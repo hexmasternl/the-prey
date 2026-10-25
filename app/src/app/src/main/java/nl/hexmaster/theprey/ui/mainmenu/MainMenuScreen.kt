@@ -1,10 +1,6 @@
 package nl.hexmaster.theprey.ui.mainmenu
 
-import android.Manifest
-import android.content.pm.PackageManager
 import androidx.activity.compose.LocalActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,13 +23,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -41,26 +38,29 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.hexmaster.theprey.R
 import nl.hexmaster.theprey.data.location.GeoPosition
+import nl.hexmaster.theprey.data.location.LocationAccess
+import nl.hexmaster.theprey.data.location.readLocationAccess
 import nl.hexmaster.theprey.ui.components.PrimaryButton
+import nl.hexmaster.theprey.ui.components.PrimaryButtonStyle
 import nl.hexmaster.theprey.ui.components.RunningLightText
 import nl.hexmaster.theprey.ui.components.SecondaryButton
 import nl.hexmaster.theprey.ui.components.TacticalMapBackground
+import nl.hexmaster.theprey.ui.components.formatPosition
 import nl.hexmaster.theprey.ui.components.rememberReducedMotion
+import nl.hexmaster.theprey.ui.consent.LocalLocationConsent
+import nl.hexmaster.theprey.ui.consent.openAppSettings
 import nl.hexmaster.theprey.ui.theme.ThePreyTheme
-
-private val LocationPermissions = arrayOf(
-    Manifest.permission.ACCESS_FINE_LOCATION,
-    Manifest.permission.ACCESS_COARSE_LOCATION,
-)
 
 @Composable
 fun MainMenuScreen(
     viewModel: MainMenuViewModel,
     onPlayNow: () -> Unit,
+    onResumeGame: (gameId: String) -> Unit,
     onPlayfields: () -> Unit,
     onSettings: () -> Unit,
     modifier: Modifier = Modifier,
@@ -69,28 +69,25 @@ fun MainMenuScreen(
     val context = LocalContext.current
     val activity = LocalActivity.current
 
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-        // Either precision is enough for the readout.
-        viewModel.onLocationPermissionResult(grants.values.any { it })
+    // The consent host owns the permission prompt; the menu never prompts, it only reads. The
+    // lifecycle owner is the menu's back-stack entry, so this runs on first show, on return from a
+    // sub-screen and on return from the system settings.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onLocationAccess(readLocationAccess(context))
+        viewModel.refreshActiveGame()
     }
-    // Ask once per menu visit; a denial is not repeated when returning from a sub-screen.
-    var permissionAsked by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        val granted = LocationPermissions.any {
-            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
-        }
-        when {
-            granted -> viewModel.onLocationPermissionResult(true)
-            !permissionAsked -> {
-                permissionAsked = true
-                permissionLauncher.launch(LocationPermissions)
-            }
-        }
+    // A grant through the consent dialog while the menu stays resumed: read the permissions again.
+    val consent = LocalLocationConsent.current
+    LaunchedEffect(consent.granted, consent.canReadLocation) {
+        viewModel.onLocationAccess(readLocationAccess(context))
     }
 
     MainMenuContent(
         uiState = uiState,
         onPlayNow = onPlayNow,
+        onResumeGame = onResumeGame,
+        onOpenSettings = { context.openAppSettings() },
+        onRetry = viewModel::refreshActiveGame,
         onPlayfields = onPlayfields,
         onSettings = onSettings,
         onSignOut = { viewModel.signOut(context) },
@@ -104,6 +101,9 @@ fun MainMenuScreen(
 fun MainMenuContent(
     uiState: MainMenuUiState,
     onPlayNow: () -> Unit,
+    onResumeGame: (gameId: String) -> Unit,
+    onOpenSettings: () -> Unit,
+    onRetry: () -> Unit,
     onPlayfields: () -> Unit,
     onSettings: () -> Unit,
     onSignOut: () -> Unit,
@@ -127,7 +127,17 @@ fun MainMenuContent(
                 Readout(uiState)
                 Slogan(compact, Modifier.padding(vertical = 40.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    MenuActions(uiState, onPlayNow, onPlayfields, onSettings, onSignOut, onQuit)
+                    MenuActions(
+                        uiState = uiState,
+                        onPlayNow = onPlayNow,
+                        onResumeGame = onResumeGame,
+                        onOpenSettings = onOpenSettings,
+                        onRetry = onRetry,
+                        onPlayfields = onPlayfields,
+                        onSettings = onSettings,
+                        onSignOut = onSignOut,
+                        onQuit = onQuit,
+                    )
                     Spacer(Modifier.height(28.dp))
                     RunningLightText(
                         text = uiState.playerName.uppercase(),
@@ -206,13 +216,19 @@ private fun Slogan(compact: Boolean, modifier: Modifier = Modifier) {
 private fun MenuActions(
     uiState: MainMenuUiState,
     onPlayNow: () -> Unit,
+    onResumeGame: (gameId: String) -> Unit,
+    onOpenSettings: () -> Unit,
+    onRetry: () -> Unit,
     onPlayfields: () -> Unit,
     onSettings: () -> Unit,
     onSignOut: () -> Unit,
     onQuit: () -> Unit,
 ) {
     Column(Modifier.widthIn(max = 480.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        PrimaryButton(text = stringResource(R.string.main_menu_play_now), onClick = onPlayNow)
+        PlayButton(uiState.playAction, onPlayNow, onResumeGame)
+        uiState.playAction.error?.let { error ->
+            PlayActionNotice(error, onOpenSettings = onOpenSettings, onRetry = onRetry)
+        }
         SecondaryButton(text = stringResource(R.string.main_menu_playfields), onClick = onPlayfields, height = 48.dp)
         SecondaryButton(text = stringResource(R.string.main_menu_settings), onClick = onSettings, height = 48.dp)
         SecondaryButton(
@@ -225,13 +241,65 @@ private fun MenuActions(
     }
 }
 
-@Preview(widthDp = 360, heightDp = 800)
 @Composable
-private fun MainMenuNoSignalPreview() {
+private fun PlayButton(play: PlayActionState, onPlayNow: () -> Unit, onResumeGame: (gameId: String) -> Unit) {
+    val resumeGameId = play.gameId.takeIf { play.label == PlayActionLabel.ResumeGame }
+    // A disabled button alone tells screen-reader users nothing: say why it is unavailable.
+    val reason = if (play.enabled) {
+        null
+    } else {
+        stringResource(
+            when (play.error) {
+                null -> R.string.main_menu_play_state_checking
+                PlayActionError.LocationMissing -> R.string.main_menu_play_state_location_missing
+                PlayActionError.BackgroundLocationMissing -> R.string.main_menu_play_state_background_location_missing
+                PlayActionError.CheckFailed -> R.string.main_menu_play_state_check_failed
+            },
+        )
+    }
+    PrimaryButton(
+        text = stringResource(if (resumeGameId != null) R.string.main_menu_resume_game else R.string.main_menu_play_now),
+        onClick = { if (resumeGameId != null) onResumeGame(resumeGameId) else onPlayNow() },
+        enabled = play.enabled,
+        style = if (play.style == PlayActionStyle.Hunter) PrimaryButtonStyle.Hunter else PrimaryButtonStyle.Signal,
+        modifier = if (reason != null) Modifier.semantics { stateDescription = reason } else Modifier,
+    )
+}
+
+/** What blocks the play button and how to fix it, right below the button. */
+@Composable
+private fun PlayActionNotice(error: PlayActionError, onOpenSettings: () -> Unit, onRetry: () -> Unit) {
+    val message = when (error) {
+        PlayActionError.LocationMissing -> R.string.main_menu_error_location_missing
+        PlayActionError.BackgroundLocationMissing -> R.string.main_menu_error_background_location_missing
+        PlayActionError.CheckFailed -> R.string.main_menu_error_check_failed
+    }
+    Column(
+        Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(message),
+            style = MaterialTheme.typography.labelMedium,
+            color = ThePreyTheme.colors.hunter,
+        )
+        if (error == PlayActionError.CheckFailed) {
+            SecondaryButton(text = stringResource(R.string.main_menu_retry), onClick = onRetry, height = 48.dp)
+        } else {
+            SecondaryButton(text = stringResource(R.string.main_menu_open_settings), onClick = onOpenSettings, height = 48.dp)
+        }
+    }
+}
+
+@Composable
+private fun MainMenuPreview(uiState: MainMenuUiState) {
     ThePreyTheme {
         MainMenuContent(
-            uiState = MainMenuUiState(playerName = "Night-Hawk_7", appVersion = "1.0.0"),
+            uiState = uiState,
             onPlayNow = {},
+            onResumeGame = {},
+            onOpenSettings = {},
+            onRetry = {},
             onPlayfields = {},
             onSettings = {},
             onSignOut = {},
@@ -241,22 +309,39 @@ private fun MainMenuNoSignalPreview() {
     }
 }
 
+private val previewState = MainMenuUiState(playerName = "Night-Hawk_7", appVersion = "1.0.0")
+
 @Preview(widthDp = 360, heightDp = 800)
 @Composable
-private fun MainMenuWithPositionPreview() {
-    ThePreyTheme {
-        MainMenuContent(
-            uiState = MainMenuUiState(
-                playerName = "Night-Hawk_7",
-                appVersion = "1.0.0",
-                position = GeoPosition(52.36761, 4.90412),
-            ),
-            onPlayNow = {},
-            onPlayfields = {},
-            onSettings = {},
-            onSignOut = {},
-            onQuit = {},
-            animate = false,
-        )
-    }
+private fun MainMenuLoadingPreview() {
+    MainMenuPreview(previewState.copy(playAction = playAction(LocationAccess.Granted, ActiveGameCheck.Loading)))
+}
+
+@Preview(widthDp = 360, heightDp = 800)
+@Composable
+private fun MainMenuPlayNowPreview() {
+    MainMenuPreview(
+        previewState.copy(
+            position = GeoPosition(52.36761, 4.90412),
+            playAction = playAction(LocationAccess.Granted, ActiveGameCheck.None),
+        ),
+    )
+}
+
+@Preview(widthDp = 360, heightDp = 800)
+@Composable
+private fun MainMenuResumeGamePreview() {
+    MainMenuPreview(previewState.copy(playAction = playAction(LocationAccess.Granted, ActiveGameCheck.Active("game-1"))))
+}
+
+@Preview(widthDp = 360, heightDp = 900)
+@Composable
+private fun MainMenuBackgroundLocationMissingPreview() {
+    MainMenuPreview(previewState.copy(playAction = playAction(LocationAccess.ForegroundOnly, ActiveGameCheck.None)))
+}
+
+@Preview(widthDp = 360, heightDp = 900)
+@Composable
+private fun MainMenuCheckFailedPreview() {
+    MainMenuPreview(previewState.copy(playAction = playAction(LocationAccess.Granted, ActiveGameCheck.Failed)))
 }

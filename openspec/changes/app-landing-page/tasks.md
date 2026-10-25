@@ -43,5 +43,5 @@
 ## 7. End-to-end verification
 
 - [x] 7.1 Run `./gradlew lintDebug testDebugUnitTest assembleDebug` from `app/src` and verify all pass
-- [ ] 7.2 On a device against the real API: first sign-in creates the user (`POST /users` 201), main menu greets the player; kill and relaunch → main menu directly; airplane mode relaunch → main menu with cached profile; sign out → landing page and next sign-in asks for credentials again
-- [ ] 7.3 Revoke the refresh token for the test user in Auth0 (or delete the device grant), relaunch and trigger an API call; verify the app returns to the landing page without a "connection" error
+- [ ] 7.2 On a device against the real API: first sign-in creates the user (`POST /users` 201), main menu greets the player; kill and relaunch → main menu directly; airplane mode relaunch → main menu with cached profile; sign out → landing page and next sign-in asks for credentials again _(manual device run pending)_
+- [ ] 7.3 Revoke the refresh token for the test user in Auth0 (or delete the device grant), relaunch and trigger an API call; verify the app returns to the landing page without a "connection" error _(manual Auth0 + device check pending)_

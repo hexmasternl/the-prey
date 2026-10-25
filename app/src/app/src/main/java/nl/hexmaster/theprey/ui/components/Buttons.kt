@@ -1,11 +1,14 @@
 package nl.hexmaster.theprey.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -19,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,7 +33,13 @@ private val ButtonHeight = 56.dp
 
 private val buttonTextStyle = TextStyle(fontFamily = BodyFontFamily, fontSize = 14.sp, letterSpacing = 1.2.sp)
 
-/** The one primary action of a screen: Signal fill, Void label. Shows a spinner and [busyText] while [busy]. */
+/** Fill of a [PrimaryButton]: Signal for the normal primary action, Hunter for a red (danger/hunt) action. */
+enum class PrimaryButtonStyle { Signal, Hunter }
+
+/**
+ * The one primary action of a screen: Signal (or Hunter) fill, Void label. Shows a spinner and
+ * [busyText] while [busy]. Disabled looks the same for every [style].
+ */
 @Composable
 fun PrimaryButton(
     text: String,
@@ -39,6 +49,7 @@ fun PrimaryButton(
     busyText: String = text,
     enabled: Boolean = true,
     height: Dp = ButtonHeight,
+    style: PrimaryButtonStyle = PrimaryButtonStyle.Signal,
 ) {
     Button(
         onClick = onClick,
@@ -46,8 +57,14 @@ fun PrimaryButton(
         modifier = modifier.fillMaxWidth().height(height),
         shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
+            containerColor = when (style) {
+                PrimaryButtonStyle.Signal -> MaterialTheme.colorScheme.primary
+                PrimaryButtonStyle.Hunter -> ThePreyTheme.colors.hunter
+            },
+            contentColor = when (style) {
+                PrimaryButtonStyle.Signal -> MaterialTheme.colorScheme.onPrimary
+                PrimaryButtonStyle.Hunter -> MaterialTheme.colorScheme.onError
+            },
             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
@@ -93,5 +110,21 @@ private fun ButtonLabel(text: String, busy: Boolean) {
             Spacer(Modifier.width(12.dp))
         }
         Text(text = text.uppercase(), style = buttonTextStyle)
+    }
+}
+
+@Preview
+@Composable
+private fun PrimaryButtonStylesPreview() {
+    ThePreyTheme {
+        Column(
+            Modifier.background(MaterialTheme.colorScheme.background).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            PrimaryButton(text = "Play now", onClick = {})
+            PrimaryButton(text = "Play now", onClick = {}, enabled = false)
+            PrimaryButton(text = "Resume game", onClick = {}, style = PrimaryButtonStyle.Hunter)
+            PrimaryButton(text = "Resume game", onClick = {}, style = PrimaryButtonStyle.Hunter, enabled = false)
+        }
     }
 }

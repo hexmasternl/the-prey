@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 11 and lower; see data_extraction_rules.xml for Android 12+. -->
+<!-- Android 11 and lower; see data_extraction_rules.xml for Android 12+. Everything is excluded,
+     including the DataStore files profile, location_consent and tracking (in-game tracking session). -->
 <full-backup-content>
     <exclude domain="root" path="." />
     <exclude domain="file" path="." />

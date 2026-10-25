@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status bar icon of the tracking notifications: a crosshair ring with a centre dot. Status bar
+     icons must be a white silhouette; the system tints them (setColor applies the signal colour). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,2A10,10 0,1 0,22 12A10,10 0,0 0,12 2ZM12,4.5A7.5,7.5 0,1 1,4.5 12A7.5,7.5 0,0 1,12 4.5Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M11,0h2v5h-2zM11,19h2v5h-2zM0,11h5v2h-5zM19,11h5v2h-5z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,9.5A2.5,2.5 0,1 0,14.5 12A2.5,2.5 0,0 0,12 9.5Z" />
+</vector>

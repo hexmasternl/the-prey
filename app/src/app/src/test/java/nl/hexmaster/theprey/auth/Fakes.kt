@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import nl.hexmaster.theprey.data.user.CreateUserRequest
 import nl.hexmaster.theprey.data.user.ProfileStore
+import nl.hexmaster.theprey.data.user.UpdateUserSettingsRequest
 import nl.hexmaster.theprey.data.user.UserApi
 import nl.hexmaster.theprey.data.user.UserDto
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -91,6 +92,8 @@ class FakeUserApi : UserApi {
     var meResponse: () -> Response<UserDto> = { Response.success(aProfile()) }
     val createRequests = mutableListOf<CreateUserRequest>()
     var meCalls = 0
+    var settingsResponse: () -> Response<UserDto> = { Response.success(aProfile()) }
+    val settingsRequests = mutableListOf<UpdateUserSettingsRequest>()
 
     override suspend fun createUser(request: CreateUserRequest): Response<UserDto> {
         createRequests += request
@@ -102,8 +105,13 @@ class FakeUserApi : UserApi {
         return meResponse()
     }
 
+    override suspend fun updateSettings(request: UpdateUserSettingsRequest): Response<UserDto> {
+        settingsRequests += request
+        return settingsResponse()
+    }
+
     companion object {
-        fun <T> error(code: Int): Response<T> = Response.error(code, "".toResponseBody())
+        fun <T> error(code: Int, body: String = ""): Response<T> = Response.error(code, body.toResponseBody())
         fun <T> offline(): Response<T> = throw IOException("offline")
     }
 }

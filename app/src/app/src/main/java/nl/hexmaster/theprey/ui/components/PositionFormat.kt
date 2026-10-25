@@ -1,4 +1,4 @@
-package nl.hexmaster.theprey.ui.mainmenu
+package nl.hexmaster.theprey.ui.components
 
 import nl.hexmaster.theprey.data.location.GeoPosition
 import java.util.Locale

@@ -48,7 +48,12 @@ While the main menu is visible, the readout SHALL update as the device reports n
 - **THEN** the app stops requesting location updates for the main menu
 
 ### Requirement: Location permission is requested from the main menu
-When the app does not hold location permission, the main menu SHALL ask for it when it is shown. If the player denies it, or the device cannot provide a location, the readout SHALL keep showing the no-signal text and the rest of the main menu SHALL work normally.
+When the app does not hold location permission, the main menu SHALL ask for it (behind the location tracking disclosure) only the first time it is shown on a device, whatever the player then chooses. After that the main menu SHALL NOT ask by itself again on this device, also not after an app restart or a new sign-in; the player grants location later from the Settings screen. If the player denies it, or the device cannot provide a location, the readout SHALL keep showing the no-signal text and the rest of the main menu SHALL work normally.
+
+#### Scenario: Asked once per device
+- **WHEN** the player declined location on the main menu earlier and starts the app again without location permission
+- **THEN** the main menu is shown without the disclosure or a system permission prompt
+- **AND** the Settings screen offers the way to grant location access
 
 #### Scenario: Permission denied
 - **WHEN** the player denies the location permission

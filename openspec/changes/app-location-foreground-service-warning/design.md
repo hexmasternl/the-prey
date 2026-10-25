@@ -33,23 +33,25 @@ The tracking service (built in a separate change) has to keep sending location f
 
 This flow requests `ACCESS_FINE_LOCATION` + `ACCESS_COARSE_LOCATION` and, on API 33+, `POST_NOTIFICATIONS`. Those are enough for a location foreground service that is *started while the app is visible* to keep tracking after the app goes to the background. Whether the service can always be started from the foreground (for example on lobby join) or also needs `ACCESS_BACKGROUND_LOCATION` (to start at game start while the app is already backgrounded) is decided in the service change. If that change needs background location, it adds a second step to this flow. The disclosure dialog stays the same and the existing requirements still apply. On Android 11+ that second step sends the player to the system settings page to pick "Allow all the time", and Play requires a background-location declaration.
 
-### 3. Consent state = stored flag + live permission check
+### 3. Consent state = stored flags + live permission check
 
-A `LocationConsentStore` (Preferences DataStore file `location_consent`) stores one boolean, `disclosureAccepted`. Whether to show the disclosure is derived, never stored:
+A `LocationConsentStore` (Preferences DataStore file `location_consent`) stores two booleans: `disclosureAccepted`, and `menuPromptShown` (added by `app-settings-screen`). The main menu shows the disclosure by itself only when:
 
 ```
-showDisclosure = signedIn && !locationPermissionGranted
+showAutomatically = signedIn && onMainMenu && !menuPromptShown && !locationPermissionGranted
 ```
 
-`disclosureAccepted` is used only to tell a first-time "Continue" apart from the case where the system will no longer prompt (`shouldShowRequestPermissionRationale == false` after a denial). In that case the dialog shows the "location is off, open settings" variant. Permission is checked again on every `ON_RESUME`, so revoking it in settings brings the disclosure back (spec: *Disclosure is shown again while permission is missing*).
+`menuPromptShown` is set as soon as the dialog is shown automatically, whatever the player picks, so the main menu asks once per device (spec: *Main menu shows the disclosure automatically only once*). The explicit paths ignore the flag and always show the disclosure before a request: the `requireLocation` gate for start/join actions, and the Settings screen's Grant location access action (where the disclosure is an always-visible panel above the button).
 
-*Alternative:* store "disclosure shown" and never show it again. Rejected: Play requires the disclosure before every runtime request, and a player who tapped Not now must see it again before being asked.
+`disclosureAccepted` is used only to tell a first-time "Continue" apart from the case where the system will no longer prompt (`shouldShowRequestPermissionRationale == false` after a denial). In that case the dialog shows the "location is off, open settings" variant. Permission is still checked on every `ON_RESUME`, so a grant or revocation in settings updates the consent state, but a revocation does not bring the dialog back by itself.
+
+*Alternative:* show the disclosure again on every start while permission is missing. Rejected by `app-settings-screen`: a player who said no would be asked over and over. Settings is the place to change their mind, and it shows the same disclosure before any request, which is what Play requires.
 
 ### 4. Logic in a plain view model, Android calls at the edge
 
 `LocationConsentViewModel` exposes a `ConsentUiState` (`Hidden`, `Disclosure`, `OpenSettings`) and takes events (`onPermissionChecked(granted, canAsk)`, `onContinue()`, `onNotNow()`, `onPermissionResult(...)`). It emits one-shot effects (`RequestLocation`, `RequestNotifications`, `OpenAppSettings`). The composable does the `rememberLauncherForActivityResult(RequestMultiplePermissions())` calls and the `ContextCompat.checkSelfPermission` checks. This keeps the decision table unit-testable with JUnit, like the existing view models, with no instrumentation.
 
-"Not now" hides the dialog for the current process only (an in-memory flag in the view model). It comes back on the next start or before a game action.
+"Not now" hides the dialog (an in-memory flag in the view model). Because `menuPromptShown` is already set, the main menu does not bring it back on the next start; it comes back only before a game action or from the Settings grant action.
 
 ### 5. Main menu readout follows the consent result
 
@@ -64,7 +66,7 @@ The host exposes `requireLocation(onGranted: () -> Unit)` through a `Composition
 - [Play reviewers judge the disclosure wording] → The text follows Google's template elements (data type, purpose, "even when the app is closed or not in use"). The same text goes into the privacy page and the Play Console declaration so all three match.
 - [Some OEMs kill foreground services or delay location] → Out of scope here. The disclosure promises nothing about accuracy.
 - [Coarse-only grant: on Android 12+ the player can choose "approximate"] → Treated as not granted for gameplay. The settings variant explains that precise location is needed. The main menu readout still works with coarse.
-- [Showing the dialog on every start annoys players who refuse] → Acceptable: they cannot play without location, and the dialog is one tap to dismiss.
+- [A player who refuses never sees the automatic dialog again] → Intended (`app-settings-screen`): the play action shows a missing-permission error with a settings link, and the Settings screen offers the disclosure and a grant action.
 
 ## Migration Plan
 

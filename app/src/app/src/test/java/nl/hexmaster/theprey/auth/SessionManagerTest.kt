@@ -1,13 +1,17 @@
 package nl.hexmaster.theprey.auth
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import nl.hexmaster.theprey.data.user.UpdateUserSettingsRequest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
+import retrofit2.Response
 import java.io.IOException
 
 class SessionManagerTest {
@@ -264,5 +268,95 @@ class SessionManagerTest {
         assertEquals(SessionState.SignedOut(SignOutReason.SessionExpired), sut.state.value)
         assertEquals(false, credentials.stored)
         assertNull(profiles.value)
+    }
+
+    // --- updateSettings ---
+
+    private suspend fun TestScope.signedIn(): SessionManager {
+        val sut = sessionManager()
+        sut.signIn(testContext)
+        return sut
+    }
+
+    @Test
+    fun updateSettings_ShouldStoreAndPublishProfile_WhenServerAccepts() = runTest {
+        val sut = signedIn()
+        userApi.settingsResponse = { Response.success(aProfile(callsign = "Night Owl #7")) }
+
+        val result = sut.updateSettings("Night Owl #7", "nl")
+
+        assertEquals(SettingsResult.Saved(aProfile(callsign = "Night Owl #7")), result)
+        assertEquals(UpdateUserSettingsRequest(callsign = "Night Owl #7", preferredLanguage = "nl"), userApi.settingsRequests.single())
+        assertEquals(SessionState.SignedIn(aProfile(callsign = "Night Owl #7")), sut.state.value)
+        assertEquals("Night Owl #7", profiles.value?.callsign)
+    }
+
+    @Test
+    fun updateSettings_ShouldReturnFirstServerMessage_WhenServerRejectsTheCallsign() = runTest {
+        val sut = signedIn()
+        userApi.settingsResponse = {
+            FakeUserApi.error(
+                400,
+                """{"title":"One or more validation errors occurred.","status":400,""" +
+                    """"errors":{"callsign":["A callsign must be 3-30 characters. (Parameter 'callsign')"]}}""",
+            )
+        }
+
+        val result = sut.updateSettings("Hunter!", "en")
+
+        assertEquals(SettingsResult.Invalid(message = "A callsign must be 3-30 characters.", field = "callsign"), result)
+        assertEquals(SessionState.SignedIn(aProfile()), sut.state.value)
+        assertEquals(aProfile(), profiles.value)
+    }
+
+    @Test
+    fun updateSettings_ShouldBeInvalidWithoutMessage_WhenValidationBodyIsUnreadable() = runTest {
+        val sut = signedIn()
+        userApi.settingsResponse = { FakeUserApi.error(400, "not json") }
+
+        assertEquals(SettingsResult.Invalid(message = ""), sut.updateSettings("Owl", "en"))
+    }
+
+    @Test
+    fun updateSettings_ShouldFailAndKeepProfile_WhenServerErrors() = runTest {
+        val sut = signedIn()
+        userApi.settingsResponse = { FakeUserApi.error(500) }
+
+        val result = sut.updateSettings("Night Owl", "en")
+
+        assertEquals(SettingsResult.Failed, result)
+        assertEquals(SessionState.SignedIn(aProfile()), sut.state.value)
+        assertEquals(aProfile(), profiles.value)
+    }
+
+    @Test
+    fun updateSettings_ShouldFail_WhenOffline() = runTest {
+        val sut = signedIn()
+        userApi.settingsResponse = { FakeUserApi.offline() }
+
+        assertEquals(SettingsResult.Failed, sut.updateSettings("Night Owl", "en"))
+        assertEquals(aProfile(), profiles.value)
+    }
+
+    @Test
+    fun updateSettings_ShouldRethrow_WhenCancelled() = runTest {
+        val sut = signedIn()
+        userApi.settingsResponse = { throw CancellationException("left the screen") }
+
+        try {
+            sut.updateSettings("Night Owl", "en")
+            fail("Cancellation must propagate")
+        } catch (_: CancellationException) {
+            // expected
+        }
+        assertEquals(aProfile(), profiles.value)
+    }
+
+    @Test
+    fun updateSettings_ShouldFailWithoutRequest_WhenSignedOut() = runTest {
+        val sut = sessionManager()
+
+        assertEquals(SettingsResult.Failed, sut.updateSettings("Night Owl", "en"))
+        assertTrue(userApi.settingsRequests.isEmpty())
     }
 }

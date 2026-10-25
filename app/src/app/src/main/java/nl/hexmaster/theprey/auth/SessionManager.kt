@@ -9,13 +9,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import nl.hexmaster.theprey.data.user.CreateUserRequest
 import nl.hexmaster.theprey.data.user.ProfileStore
+import nl.hexmaster.theprey.data.user.UpdateUserSettingsRequest
 import nl.hexmaster.theprey.data.user.UserApi
 import nl.hexmaster.theprey.data.user.UserDto
+import nl.hexmaster.theprey.data.user.ValidationProblem
 import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
+import java.net.HttpURLConnection.HTTP_BAD_REQUEST
 import java.net.HttpURLConnection.HTTP_NOT_FOUND
 
 /**
@@ -29,7 +34,8 @@ class SessionManager(
     private val profileStore: ProfileStore,
     private val scope: CoroutineScope,
     private val language: () -> String,
-) : SessionController {
+    private val json: Json = Json { ignoreUnknownKeys = true },
+) : SessionController, ProfileSettings {
 
     private val _state = MutableStateFlow<SessionState>(SessionState.Unknown)
     override val state: StateFlow<SessionState> = _state.asStateFlow()
@@ -127,6 +133,52 @@ class SessionManager(
         scope.launch { profileStore.clear() }
     }
 
+    override suspend fun updateSettings(callsign: String, language: String): SettingsResult {
+        if (_state.value !is SessionState.SignedIn) return SettingsResult.Failed
+        val response = try {
+            userApi.updateSettings(UpdateUserSettingsRequest(callsign = callsign, preferredLanguage = language))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.i(TAG, "Settings update failed: ${e.javaClass.simpleName}")
+            return SettingsResult.Failed
+        }
+        return when {
+            response.isSuccessful -> {
+                val profile = response.body() ?: return SettingsResult.Failed
+                // Signed out while the request ran: nothing to update.
+                if (_state.value !is SessionState.SignedIn) return SettingsResult.Failed
+                profileStore.save(profile)
+                _state.update { if (it is SessionState.SignedIn) SessionState.SignedIn(profile) else it }
+                SettingsResult.Saved(profile)
+            }
+            response.code() == HTTP_BAD_REQUEST -> invalid(response)
+            else -> {
+                Log.i(TAG, "Settings update rejected with status ${response.code()}")
+                SettingsResult.Failed
+            }
+        }
+    }
+
+    /** The first message of a 400 validation problem, without .NET's "(Parameter 'x')" suffix. */
+    private fun invalid(response: Response<UserDto>): SettingsResult.Invalid {
+        val problem = try {
+            response.errorBody()?.string()?.let { json.decodeFromString(ValidationProblem.serializer(), it) }
+        } catch (_: SerializationException) {
+            null
+        } catch (_: IllegalArgumentException) {
+            null
+        } catch (_: IOException) {
+            null
+        }
+        val (field, messages) = problem?.errors?.entries?.firstOrNull { it.value.isNotEmpty() }?.toPair()
+            ?: return SettingsResult.Invalid(message = "")
+        return SettingsResult.Invalid(
+            message = messages.first().replace(PARAMETER_SUFFIX, "").trim(),
+            field = field,
+        )
+    }
+
     private suspend fun refreshProfile() {
         try {
             val response = userApi.getCurrentUser()
@@ -175,5 +227,8 @@ class SessionManager(
 
     private companion object {
         const val TAG = "Session"
+
+        /** ArgumentException.Message ends with " (Parameter 'callsign')". */
+        val PARAMETER_SUFFIX = Regex("""\s*\(Parameter '[^']*'\)\s*$""")
     }
 }

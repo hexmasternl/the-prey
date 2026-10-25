@@ -214,6 +214,23 @@ page, and HUD all read from it and never poll the server or keep their own copy.
 6. **Fail safe** — transient token/fetch failures retry with bounded backoff; a terminal `403`
    stops and reports "unavailable" rather than surfacing stale state.
 
+### In-game location tracking hook (Android)
+
+The Android app reports the player's position from a separate foreground service
+(`tracking/LocationTrackingService`, driven by `tracking/TrackingController`). The tracker never opens a
+socket of its own; the Game State Service owns the only one. When it applies a `game-ended` message
+(or a snapshot that shows the game `Completed`), it calls:
+
+```kotlin
+container.trackingController.onGameEnded(gameId)
+```
+
+Tracking for that game then stops at once, the tracking notification is removed, and nothing restarts
+it for that game. The hook is idempotent and ignores other game ids. Until the Game State Service
+exists, the tracker still stops on its own: on `keepReporting: false` in a location acknowledgement, on a
+rejected post confirmed by `GET /games/{id}/gamestate`, at the deadline (`endsAt` + 2 minutes) and on
+sign-out. See [endpoints.md](./endpoints.md#location).
+
 ### The server is in the lead
 
 The socket is an optimization, never an authority. Every state change originates from an HTTP command

@@ -1,8 +1,10 @@
 package nl.hexmaster.theprey.data.location
 
 import android.content.Context
+import android.location.Location
 import android.os.Looper
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -14,11 +16,12 @@ import kotlinx.coroutines.flow.callbackFlow
 
 private const val UPDATE_INTERVAL_MS = 10_000L
 
-/** [LocationSource] backed by Google Play services' fused location provider. */
-class FusedLocationSource(context: Context) : LocationSource {
+/** [LocationSource] and [PreciseLocationSource] backed by Google Play services' fused location provider. */
+class FusedLocationSource(context: Context) : LocationSource, PreciseLocationSource {
 
     private val client: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
 
+    /** Balanced power, every 10 s: the main menu position readout. */
     override fun positions(): Flow<GeoPosition> = callbackFlow {
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
@@ -39,4 +42,35 @@ class FusedLocationSource(context: Context) : LocationSource {
         }
         awaitClose { client.removeLocationUpdates(callback) }
     }
+
+    /** GPS-grade fixes at a fixed cadence, without waiting for a first accurate fix: in-game tracking. */
+    override fun preciseUpdates(intervalMs: Long): Flow<LocationUpdate> = callbackFlow {
+        val callback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                result.locations.forEach { trySend(LocationUpdate.Fix(it.toFix())) }
+            }
+
+            override fun onLocationAvailability(availability: LocationAvailability) {
+                trySend(LocationUpdate.Availability(availability.isLocationAvailable))
+            }
+        }
+        try {
+            val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
+                .setMinUpdateIntervalMillis(intervalMs)
+                .setWaitForAccurateLocation(false)
+                .build()
+            client.requestLocationUpdates(request, callback, Looper.getMainLooper())
+                .addOnFailureListener { close() }
+        } catch (_: SecurityException) {
+            close()
+        }
+        awaitClose { client.removeLocationUpdates(callback) }
+    }
+
+    private fun Location.toFix() = LocationFix(
+        latitude = latitude,
+        longitude = longitude,
+        timeMillis = time,
+        accuracyMeters = if (hasAccuracy()) accuracy else null,
+    )
 }

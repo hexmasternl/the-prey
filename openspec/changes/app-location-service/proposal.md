@@ -13,7 +13,7 @@ The server can only enforce the playfield boundary (and the hunter's head-start 
 - Persistent, non-dismissable notification while tracking runs: the game, a countdown to the end, and a warning when location is off or the permission was revoked.
 - Readings that cannot be sent (no network) are kept in a small bounded buffer and sent in order once the connection is back, so dropping mobile data does not hide where the player went.
 - Server: the location acknowledgement gets an additive `keepReporting` flag (false once the caller is `Tagged` or `Out`), and the advertised reporting interval constant becomes 5 seconds to match the device cadence.
-- Manifest: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK`, the `<service android:foregroundServiceType="location">` declaration and the boot receiver. No `ACCESS_BACKGROUND_LOCATION`.
+- Manifest: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK`, the `<service android:foregroundServiceType="location">` declaration and the boot receiver. `ACCESS_BACKGROUND_LOCATION` is not added here: `app-play-now-button-behavior` declares it and makes "Allow all the time" a precondition for playing (checked by the main menu, granted only on the system settings page), so this change can rely on it but does not need it to start the service.
 
 ## Capabilities
 

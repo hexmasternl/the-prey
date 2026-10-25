@@ -25,13 +25,13 @@
 - Detecting mock locations or rooted devices. The server has no field for it yet; this is a later change.
 - Boundary checks on the device. The server stays authoritative and the device only reports.
 - Opening a realtime socket from the service. The single Game State Service owns the socket (`the-prey-realtime-communication`). The tracker only *receives* its `game-ended` signal.
-- `ACCESS_BACKGROUND_LOCATION`. It is not needed (see D2) and would trigger the Play background-location review.
+- Declaring or requesting `ACCESS_BACKGROUND_LOCATION`. The service itself does not need it (see D2), but `app-play-now-button-behavior` already declares it and requires "Allow all the time" before the main menu lets the player start or resume a game, so it is normally granted when tracking starts. That change owns the permission, the settings flow and the Play background-location declaration.
 
 ## Decisions
 
 ### D1. Split: pure `TrackingController` + thin `LocationTrackingService`
 
-`tracking/TrackingController` is plain Kotlin with injected `GamesApi`, `LocationSource`, `TrackingSessionStore`, a clock and a coroutine scope. It owns the state machine `Idle → Validating → Tracking(gameId, deadline) → Stopped`, the 5-second ticker, the buffer and every stop rule. `LocationTrackingService` (Android `Service`) only promotes itself to the foreground, renders the notification from the controller's state flow, holds the wake lock and calls `stopSelf()` when the controller reaches `Stopped`.
+`tracking/TrackingController` is plain Kotlin with injected `GamesApi` (the `data/game/GamesApi` from `app-play-now-button-behavior`, extended with the `locations` and `gamestate` calls), `LocationSource`, `TrackingSessionStore`, a clock and a coroutine scope. It owns the state machine `Idle → Validating → Tracking(gameId, deadline) → Stopped`, the 5-second ticker, the buffer and every stop rule. `LocationTrackingService` (Android `Service`) only promotes itself to the foreground, renders the notification from the controller's state flow, holds the wake lock and calls `stopSelf()` when the controller reaches `Stopped`.
 *Why:* the rules that matter ("never run outside a game", "always stop") become JVM unit tests with a fake clock, matching the existing `app/src/app/src/test` setup.
 *Alternative:* all logic inside the service. Rejected: it can only be tested on a device.
 
