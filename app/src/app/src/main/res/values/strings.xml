@@ -268,6 +268,23 @@
     <string name="game_role_spectator">spectator</string>
     <string name="game_role_hunter">hunter</string>
     <string name="game_role_prey">prey</string>
+
+    <!-- Game result dialog -->
+    <string name="game_result_hunter_won_title">Hunter won</string>
+    <string name="game_result_hunter_won_message">You caught every prey. The hunt is yours.</string>
+    <string name="game_result_hunter_lost_title">Hunter lost</string>
+    <string name="game_result_hunter_lost_message">Time ran out. At least one prey got away from you.</string>
+    <string name="game_result_prey_won_title">Prey won</string>
+    <string name="game_result_prey_won_message">The hunter ran out of time. Your team got away.</string>
+    <string name="game_result_prey_lost_title">Prey lost</string>
+    <string name="game_result_prey_lost_message">The hunter caught every prey. Your team lost this hunt.</string>
+    <string name="game_result_role">You played: %1$s</string>
+    <plurals name="game_result_escaped">
+        <item quantity="one">%1$d of %2$d prey escaped</item>
+        <item quantity="other">%1$d of %2$d preys escaped</item>
+    </plurals>
+    <string name="game_result_dismiss">Back to menu</string>
+    <string name="game_result_mark_description">The Prey mark</string>
     <plurals name="game_map_description">
         <item quantity="one">Game map, %1$s, %2$d other player shown</item>
         <item quantity="other">Game map, %1$s, %2$d other players shown</item>

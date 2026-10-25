@@ -244,6 +244,23 @@
     <string name="game_role_spectator">toeschouwer</string>
     <string name="game_role_hunter">jager</string>
     <string name="game_role_prey">prooi</string>
+
+    <!-- Game result dialog -->
+    <string name="game_result_hunter_won_title">Jager wint</string>
+    <string name="game_result_hunter_won_message">Je hebt elke prooi gevangen. De jacht is van jou.</string>
+    <string name="game_result_hunter_lost_title">Jager verliest</string>
+    <string name="game_result_hunter_lost_message">De tijd is op. Minstens één prooi is je ontsnapt.</string>
+    <string name="game_result_prey_won_title">Prooien winnen</string>
+    <string name="game_result_prey_won_message">De jager had niet genoeg tijd. Jullie team is ontsnapt.</string>
+    <string name="game_result_prey_lost_title">Prooien verliezen</string>
+    <string name="game_result_prey_lost_message">De jager heeft elke prooi gevangen. Jullie team heeft deze jacht verloren.</string>
+    <string name="game_result_role">Jouw rol: %1$s</string>
+    <plurals name="game_result_escaped">
+        <item quantity="one">%1$d van %2$d prooi ontsnapt</item>
+        <item quantity="other">%1$d van %2$d prooien ontsnapt</item>
+    </plurals>
+    <string name="game_result_dismiss">Terug naar menu</string>
+    <string name="game_result_mark_description">Het logo van The Prey</string>
     <plurals name="game_map_description">
         <item quantity="one">Spelkaart, %1$s, %2$d andere speler zichtbaar</item>
         <item quantity="other">Spelkaart, %1$s, %2$d andere spelers zichtbaar</item>
