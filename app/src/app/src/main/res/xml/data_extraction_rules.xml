@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Session tokens and game state must not be restored onto another device. Everything is excluded,
-     including the DataStore files profile, location_consent and tracking (in-game tracking session). -->
+     including the DataStore files profile, location_consent, tracking (in-game tracking session) and pending_invite. -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="root" />

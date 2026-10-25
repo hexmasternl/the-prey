@@ -23,6 +23,8 @@ import nl.hexmaster.theprey.data.game.realtime.WebPubSubClient
 import nl.hexmaster.theprey.data.language.AppCompatLocaleSource
 import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.language.LocaleAppLanguage
+import nl.hexmaster.theprey.deeplink.DataStoreInviteStore
+import nl.hexmaster.theprey.deeplink.PendingInviteStore
 import nl.hexmaster.theprey.data.location.DataStoreLocationConsentStore
 import nl.hexmaster.theprey.data.location.FusedLocationSource
 import nl.hexmaster.theprey.data.location.LocationConsentStore
@@ -51,6 +53,7 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 private val Context.profileDataStore by preferencesDataStore(name = "profile")
 private val Context.locationConsentDataStore by preferencesDataStore(name = "location_consent")
 private val Context.trackingDataStore by preferencesDataStore(name = "tracking")
+private val Context.pendingInviteDataStore by preferencesDataStore(name = "pending_invite")
 
 /** Hand-wired app-wide dependencies. Created once by [ThePreyApplication]. */
 class AppContainer(context: Context) {
@@ -105,6 +108,9 @@ class AppContainer(context: Context) {
 
     /** Device-local: survives sign-out, reset only by clearing app data or reinstalling. */
     val locationConsentStore: LocationConsentStore = DataStoreLocationConsentStore(context.locationConsentDataStore)
+
+    /** The game invitation received last (link tapped), kept across the sign-in round trip until it is joined. */
+    val pendingInviteStore: PendingInviteStore = DataStoreInviteStore(context.pendingInviteDataStore)
 
     private val gamesApi = retrofit.create(GamesApi::class.java)
 
