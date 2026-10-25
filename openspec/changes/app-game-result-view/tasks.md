@@ -8,8 +8,8 @@
 
 ## 2. Pure result model
 
-- [ ] 2.1 Add `ui/game/result/GameResult.kt` with `GameResultKind` and `GameResult.from(final, myUserId)` (design Decision 2), deriving the role through `ActiveGameState.from`; verify unit tests for all four role × outcome combinations, a tagged prey getting `PreyWon`, and null for `Undecided`, `Cancelled`, an unknown outcome and a non-participant.
-- [ ] 2.2 Count `escaped` / `preys` from participant states, with `escaped` forced to 0 for `HuntersWin`; verify unit tests for 2 of 5 escaped (`PreysWin`), a `HuntersWin` whose last prey is still `Active` in the state giving 0, and `Out` counting as not escaped.
+- [x] 2.1 Add `ui/game/result/GameResult.kt` with `GameResultKind` and `GameResult.from(final, myUserId)` (design Decision 2), deriving the role through `ActiveGameState.from`; verify unit tests for all four role × outcome combinations, a tagged prey getting `PreyWon`, and null for `Undecided`, `Cancelled`, an unknown outcome and a non-participant.
+- [x] 2.2 Count `escaped` / `preys` from participant states, with `escaped` forced to 0 for `HuntersWin`; verify unit tests for 2 of 5 escaped (`PreysWin`), a `HuntersWin` whose last prey is still `Active` in the state giving 0, and `Out` counting as not escaped.
 
 ## 3. View model and navigation
 
