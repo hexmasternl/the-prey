@@ -105,7 +105,7 @@ body::after {
   flex: 0 0 auto;
 }
 
-.nav-mark svg { width: 22px; height: 22px; flex: 0 0 auto; }
+.nav-mark svg { width: 30px; height: 30px; flex: 0 0 auto; }
 
 .nav-mark span {
   font-family: var(--font-display);
@@ -984,10 +984,6 @@ section { margin-bottom: 64px; scroll-margin-top: 30px; }
 }
 @keyframes divider-pulse { 0% { left: -8%; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
 
-/* ---- nav logo ping ---- */
-.nav-mark svg .ping { animation: nav-ping 2.2s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
-@keyframes nav-ping { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
-
 /* ---- card hover lift ---- */
 .role-card-link .pcard { transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
 .role-card-link:hover .pcard { transform: translateY(-3px); border-color: var(--accent-muted); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(100, 255, 0, 0.14); }
@@ -1002,8 +998,7 @@ section { margin-bottom: 64px; scroll-margin-top: 30px; }
 @media (prefers-reduced-motion: reduce) {
   .site-main,
   .radar-sweep, .radar-blip, .radar-blip::after,
-  .ticker-track, .signal-divider::after,
-  .nav-mark svg .ping { animation: none !important; }
+  .ticker-track, .signal-divider::after { animation: none !important; }
   .reveal, .reveal-stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
 

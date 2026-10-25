@@ -10,7 +10,7 @@ Run Hugo from `website/src` (`hugo --gc --minify`, and `hugo server` to view). E
 
 - [x] 2.1 Replace the `:root` block in `assets/css/main.css` with v2 primitive and semantic tokens, spacing, radius, elevation, glow and motion tokens copied from `designs/the-prey-design-system.html`, and repoint existing rules to them; verify `hugo` builds and no `var(--…)` in the CSS references a removed token (grep)
 - [x] 2.2 Apply the v2 rules: remove the `body::before` scanlines, radius scale on cards / buttons / pills, labels in Text Soft, 48 px min-height on buttons, nav links and the language switcher, glow only on hover / active / live / radar; verify in `hugo server` at 375 px and 1280 px widths against the manual's Buttons, Lists & cards and Status sections
-- [ ] 2.3 Put the v2 mark in `layouts/partials/nav.html`, replace `static/favicon.svg` with `designs/logo/the-prey-mark.svg`, add `static/apple-touch-icon.png` (from the 512 app icon) and `static/images/brand/the-prey-share.png` (1200×630 lockup on Void), link them in `baseof.html` and set `params.ogImage`; verify the rendered `<head>` has the favicon, touch icon and an `og:image` PNG URL
+- [x] 2.3 Put the v2 mark in `layouts/partials/nav.html`, replace `static/favicon.svg` with `designs/logo/the-prey-mark.svg`, add `static/apple-touch-icon.png` (from the 512 app icon) and `static/images/brand/the-prey-share.png` (1200×630 lockup on Void), link them in `baseof.html` and set `params.ogImage`; verify the rendered `<head>` has the favicon, touch icon and an `og:image` PNG URL
 
 ## 3. Screenshots
 
