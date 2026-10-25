@@ -12,6 +12,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.theprey.data.location.GeoPosition
+import nl.hexmaster.theprey.data.playfield.CreateOutcome
+import nl.hexmaster.theprey.data.playfield.CreatePlayFieldRequest
 import nl.hexmaster.theprey.data.playfield.DeleteOutcome
 import nl.hexmaster.theprey.data.playfield.GpsCoordinateDto
 import nl.hexmaster.theprey.data.playfield.LoadOutcome
@@ -55,6 +57,16 @@ class PlayFieldDetailsViewModelTest {
             saves += id to request
             saveAnswer?.let { return it(request) }
             return CompletableDeferred<SaveOutcome>().also { saveCalls += it }.await()
+        }
+
+        var createAnswer: ((CreatePlayFieldRequest) -> CreateOutcome)? = null
+        val creates = mutableListOf<CreatePlayFieldRequest>()
+        val createCalls = mutableListOf<CompletableDeferred<CreateOutcome>>()
+
+        override suspend fun create(request: CreatePlayFieldRequest): CreateOutcome {
+            creates += request
+            createAnswer?.let { return it(request) }
+            return CompletableDeferred<CreateOutcome>().also { createCalls += it }.await()
         }
 
         override suspend fun delete(id: String): DeleteOutcome = error("Not used")
@@ -387,6 +399,185 @@ class PlayFieldDetailsViewModelTest {
         vm.save()
 
         assertFalse(repository.saves.single().second.isPublic)
+    }
+
+    // ---- Create mode ----
+
+    private fun newViewModel(handle: SavedStateHandle = SavedStateHandle()) =
+        PlayFieldDetailsViewModel(null, true, repository, handle)
+
+    @Test
+    fun init_ShouldStartLoadedAndEmptyWithoutDownloading_WhenCreating() {
+        val vm = newViewModel()
+
+        val state = vm.uiState.value
+        assertTrue(state.isNew)
+        assertTrue(state.editable)
+        assertEquals(DetailsLoad.Loaded, state.load)
+        assertEquals("", state.name)
+        assertFalse(state.isPublic)
+        assertTrue(state.points.isEmpty())
+        assertTrue(state.needsArea)
+        assertFalse(state.canSave)
+        assertTrue(repository.loads.isEmpty())
+    }
+
+    @Test
+    fun retry_ShouldDoNothing_WhenCreating() {
+        val vm = newViewModel()
+
+        vm.retry()
+
+        assertTrue(repository.loads.isEmpty())
+        assertEquals(DetailsLoad.Loaded, vm.uiState.value.load)
+    }
+
+    @Test
+    fun init_ShouldRestoreTheSavedDraft_WhenCreatingAfterProcessDeath() {
+        val handle = SavedStateHandle()
+        newViewModel(handle).apply {
+            onNameChange("NL, Utrecht, Wilhelminapark")
+            onPublicChange(true)
+            applyArea(triangle)
+        }
+
+        val restored = newViewModel(handle).uiState.value
+
+        assertEquals("NL, Utrecht, Wilhelminapark", restored.name)
+        assertTrue(restored.isPublic)
+        assertEquals(triangle, restored.points)
+        assertTrue(restored.canSave)
+        assertTrue(repository.loads.isEmpty())
+    }
+
+    @Test
+    fun canSave_ShouldBeFalse_WhenCreatingWithNameOnly() {
+        val vm = newViewModel()
+
+        vm.onNameChange("Backyard")
+
+        assertTrue(vm.uiState.value.needsArea)
+        assertFalse(vm.uiState.value.canSave)
+    }
+
+    @Test
+    fun canSave_ShouldBeFalse_WhenCreatingWithAreaOnly() {
+        val vm = newViewModel()
+
+        vm.applyArea(triangle)
+
+        assertFalse(vm.uiState.value.needsArea)
+        assertFalse(vm.uiState.value.canSave)
+    }
+
+    @Test
+    fun canSave_ShouldBeFalse_WhenCreatingWithAWhitespaceName() {
+        val vm = newViewModel()
+
+        vm.onNameChange("   ")
+        vm.applyArea(triangle)
+
+        assertFalse(vm.uiState.value.canSave)
+    }
+
+    @Test
+    fun canSave_ShouldBeTrue_WhenCreatingWithNameAndArea() {
+        val vm = newViewModel()
+
+        vm.onNameChange("Backyard")
+        vm.applyArea(triangle)
+
+        assertTrue(vm.uiState.value.canSave)
+    }
+
+    @Test
+    fun onNameChange_ShouldClearPublic_WhenCreatingAndNameBecomesIneligible() {
+        val vm = newViewModel()
+        vm.onNameChange("NL, Utrecht, Wilhelminapark")
+        vm.onPublicChange(true)
+        assertTrue(vm.uiState.value.isPublic)
+
+        vm.onNameChange("Wilhelminapark")
+
+        assertFalse(vm.uiState.value.isPublic)
+        assertFalse(vm.uiState.value.publicEnabled)
+    }
+
+    @Test
+    fun save_ShouldSendTheCreateRequest_WhenCreating() {
+        val vm = newViewModel()
+        vm.onNameChange("  NL, Utrecht, Wilhelminapark ")
+        vm.onPublicChange(true)
+        vm.applyArea(triangle)
+
+        vm.save()
+
+        assertEquals(
+            CreatePlayFieldRequest(
+                name = "NL, Utrecht, Wilhelminapark",
+                isPublic = true,
+                points = triangle.map { GpsCoordinateDto(it.latitude, it.longitude) },
+            ),
+            repository.creates.single(),
+        )
+        assertTrue(repository.saves.isEmpty())
+    }
+
+    @Test
+    fun save_ShouldSendPrivate_WhenCreatingWithAnIneligibleName() {
+        val vm = newViewModel()
+        vm.onNameChange("NL, Utrecht, Wilhelminapark")
+        vm.onPublicChange(true)
+        vm.onNameChange("Wilhelminapark")
+        vm.applyArea(triangle)
+
+        vm.save()
+
+        assertFalse(repository.creates.single().isPublic)
+    }
+
+    @Test
+    fun save_ShouldEmitClosed_WhenCreated() = runTest {
+        val vm = newViewModel()
+        val events = events(vm)
+        vm.onNameChange("Backyard")
+        vm.applyArea(triangle)
+
+        vm.save()
+        assertTrue(vm.uiState.value.saving)
+        repository.createCalls.single().complete(CreateOutcome.Created(stored.copy(name = "Backyard")))
+
+        assertEquals(listOf<DetailsEvent>(DetailsEvent.Closed), events)
+    }
+
+    @Test
+    fun save_ShouldKeepTheInputAndEmitCreateFailed_WhenCreateFails() = runTest {
+        val vm = newViewModel()
+        val events = events(vm)
+        vm.onNameChange("Backyard")
+        vm.applyArea(triangle)
+        repository.createAnswer = { CreateOutcome.Failed }
+
+        vm.save()
+
+        val state = vm.uiState.value
+        assertEquals(listOf<DetailsEvent>(DetailsEvent.CreateFailed), events)
+        assertEquals("Backyard", state.name)
+        assertEquals(triangle, state.points)
+        assertFalse(state.saving)
+        assertTrue("can try again", state.canSave)
+    }
+
+    @Test
+    fun save_ShouldSendOneCreate_WhenTappedTwice() {
+        val vm = newViewModel()
+        vm.onNameChange("Backyard")
+        vm.applyArea(triangle)
+
+        vm.save()
+        vm.save()
+
+        assertEquals(1, repository.creates.size)
     }
 
     @Test

@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.hexmaster.theprey.data.location.GeoPosition
+import nl.hexmaster.theprey.data.playfield.CreateOutcome
+import nl.hexmaster.theprey.data.playfield.CreatePlayFieldRequest
 import nl.hexmaster.theprey.data.playfield.LoadOutcome
 import nl.hexmaster.theprey.data.playfield.PlayFieldDto
 import nl.hexmaster.theprey.data.playfield.PlayFieldRepository
@@ -21,6 +23,7 @@ import nl.hexmaster.theprey.data.playfield.UpsertPlayFieldRequest
 import nl.hexmaster.theprey.data.playfield.isPublicEligibleName
 import nl.hexmaster.theprey.data.playfield.positions
 import nl.hexmaster.theprey.data.playfield.toGpsCoordinateDto
+import nl.hexmaster.theprey.ui.playfields.area.MIN_AREA_POINTS
 
 /** The download of the playfield. */
 enum class DetailsLoad { Loading, Loaded, NotFound, Error }
@@ -36,6 +39,8 @@ fun PlayFieldDto.toDraft(): PlayFieldDraft = PlayFieldDraft(name = name, isPubli
 
 data class PlayFieldDetailsUiState(
     val editable: Boolean,
+    /** A playfield that does not exist yet: Save creates it. */
+    val isNew: Boolean = false,
     val load: DetailsLoad = DetailsLoad.Loading,
     val name: String = "",
     val isPublic: Boolean = false,
@@ -52,7 +57,13 @@ data class PlayFieldDetailsUiState(
         get() = original != null &&
             (name.trim() != original.name.trim() || isPublic != original.isPublic || points != original.points)
 
-    val canSave: Boolean get() = editable && load == DetailsLoad.Loaded && !saving && name.isNotBlank() && isDirty
+    /** A new playfield needs an area before the server accepts it. */
+    val needsArea: Boolean get() = isNew && points.size < MIN_AREA_POINTS
+
+    // A new form that has a name and an area is dirty by definition, so isDirty is not checked for it.
+    val canSave: Boolean
+        get() = editable && load == DetailsLoad.Loaded && !saving && name.isNotBlank() &&
+            if (isNew) !needsArea else isDirty
 }
 
 /** One-shot results of a save, for the screen to act on once. */
@@ -65,6 +76,9 @@ sealed interface DetailsEvent {
 
     /** Changed elsewhere: the newer version replaced the edits. */
     data object Conflict : DetailsEvent
+
+    /** A new playfield was not created; the input is kept. */
+    data object CreateFailed : DetailsEvent
 }
 
 /**
@@ -73,15 +87,20 @@ sealed interface DetailsEvent {
  * the graph (Save, Cancel, Back) discards it. Opened from the Public tab it is read-only ([editable]
  * false) and ignores every edit. The draft is mirrored in [savedStateHandle] and laid over a fresh
  * download after process death.
+ *
+ * A null [playFieldId] is create mode: nothing is downloaded, the form starts empty (or from the
+ * saved draft after process death), and Save creates the playfield.
  */
 class PlayFieldDetailsViewModel(
-    private val playFieldId: String,
+    private val playFieldId: String?,
     editable: Boolean,
     private val repository: PlayFieldRepository,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(PlayFieldDetailsUiState(editable = editable))
+    private val isNew = playFieldId == null
+
+    private val _uiState = MutableStateFlow(PlayFieldDetailsUiState(editable = editable || isNew, isNew = isNew))
     val uiState: StateFlow<PlayFieldDetailsUiState> = _uiState.asStateFlow()
 
     private val events = Channel<DetailsEvent>(Channel.BUFFERED)
@@ -93,11 +112,17 @@ class PlayFieldDetailsViewModel(
     private var loadRequest: Job? = null
 
     init {
-        load()
+        if (isNew) {
+            val original = PlayFieldDraft(name = "", isPublic = false, points = emptyList())
+            showDraft(savedDraft() ?: original, original)
+        } else {
+            load()
+        }
     }
 
-    /** Downloads the playfield again after an error or a not-found. */
+    /** Downloads the playfield again after an error or a not-found. Nothing to download in create mode. */
     fun retry() {
+        if (isNew) return
         if (_uiState.value.load == DetailsLoad.Error || _uiState.value.load == DetailsLoad.NotFound) load()
     }
 
@@ -105,7 +130,7 @@ class PlayFieldDetailsViewModel(
         if (loadRequest?.isActive == true) return
         _uiState.update { it.copy(load = DetailsLoad.Loading) }
         loadRequest = viewModelScope.launch {
-            when (val outcome = repository.get(playFieldId)) {
+            when (val outcome = repository.get(playFieldId ?: return@launch)) {
                 is LoadOutcome.Found -> {
                     loaded = outcome.playField
                     val original = outcome.playField.toDraft()
@@ -136,11 +161,19 @@ class PlayFieldDetailsViewModel(
         updateDraft { it.copy(points = points.toList()) }
     }
 
-    /** Sends name, visibility and points in one update, from the loaded version's last-updated time. */
+    /**
+     * Sends name, visibility and points in one update, from the loaded version's last-updated time.
+     * In create mode it creates the playfield instead.
+     */
     fun save() {
         val state = _uiState.value
-        val base = loaded ?: return
         if (!state.canSave) return
+        if (isNew) {
+            create(state)
+            return
+        }
+        val id = playFieldId ?: return
+        val base = loaded ?: return
         _uiState.update { it.copy(saving = true) }
         val request = UpsertPlayFieldRequest(
             name = state.name.trim(),
@@ -149,7 +182,7 @@ class PlayFieldDetailsViewModel(
             lastUpdatedOn = base.lastUpdatedOn,
         )
         viewModelScope.launch {
-            when (val outcome = repository.save(playFieldId, request)) {
+            when (val outcome = repository.save(id, request)) {
                 is SaveOutcome.Saved -> {
                     // Show what the server keeps (it may have forced the playfield private).
                     loaded = outcome.playField
@@ -166,6 +199,25 @@ class PlayFieldDetailsViewModel(
                 SaveOutcome.Failed -> {
                     _uiState.update { it.copy(saving = false) }
                     events.send(DetailsEvent.SaveFailed)
+                }
+            }
+        }
+    }
+
+    private fun create(state: PlayFieldDetailsUiState) {
+        _uiState.update { it.copy(saving = true) }
+        val request = CreatePlayFieldRequest(
+            name = state.name.trim(),
+            isPublic = state.isPublic && isPublicEligibleName(state.name),
+            points = state.points.map { it.toGpsCoordinateDto() },
+        )
+        viewModelScope.launch {
+            when (repository.create(request)) {
+                // Leaving the graph discards this view model; the list reloads when it resumes.
+                is CreateOutcome.Created -> events.send(DetailsEvent.Closed)
+                CreateOutcome.Failed -> {
+                    _uiState.update { it.copy(saving = false) }
+                    events.send(DetailsEvent.CreateFailed)
                 }
             }
         }
