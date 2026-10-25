@@ -1,5 +1,6 @@
 package nl.hexmaster.theprey.ui.navigation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -10,6 +11,7 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,6 +25,7 @@ import nl.hexmaster.theprey.auth.ProfileSettings
 import nl.hexmaster.theprey.auth.SessionController
 import nl.hexmaster.theprey.auth.SessionState
 import nl.hexmaster.theprey.data.game.GameRepository
+import nl.hexmaster.theprey.data.game.GameSessions
 import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.location.LocationConsentStore
 import nl.hexmaster.theprey.data.location.LocationSource
@@ -32,8 +35,12 @@ import nl.hexmaster.theprey.tracking.TrackingStarter
 import nl.hexmaster.theprey.ui.consent.LocationConsentHost
 import nl.hexmaster.theprey.ui.games.create.CreateGameScreen
 import nl.hexmaster.theprey.ui.games.create.CreateGameViewModel
+import nl.hexmaster.theprey.ui.games.lobby.LobbyExit
+import nl.hexmaster.theprey.ui.games.lobby.LobbyScreen
+import nl.hexmaster.theprey.ui.games.lobby.LobbyViewModel
 import nl.hexmaster.theprey.ui.landing.LandingScreen
 import nl.hexmaster.theprey.ui.landing.LandingViewModel
+import nl.hexmaster.theprey.ui.mainmenu.MainMenuMessage
 import nl.hexmaster.theprey.ui.mainmenu.MainMenuScreen
 import nl.hexmaster.theprey.ui.mainmenu.MainMenuViewModel
 import nl.hexmaster.theprey.ui.placeholder.PlaceholderScreen
@@ -120,6 +127,7 @@ fun ThePreyNavHost(
     gameRepository: GameRepository,
     playFieldRepository: PlayFieldRepository,
     profileStore: ProfileStore,
+    gameSessions: GameSessions,
     profileSettings: ProfileSettings,
     appLanguage: AppLanguage,
     modifier: Modifier = Modifier,
@@ -152,14 +160,17 @@ fun ThePreyNavHost(
                 LandingScreen(viewModel { LandingViewModel(session) })
             }
             navigation(route = Routes.SIGNED_IN, startDestination = Routes.MAIN_MENU) {
-                composable(Routes.MAIN_MENU) {
-                    MainMenuScreen(
+                composable(Routes.MAIN_MENU) { entry ->
+                    Box {
+                        MainMenuScreen(
                         viewModel = viewModel { MainMenuViewModel(session, locationSource, gameRepository, BuildConfig.VERSION_NAME) },
                         onPlayNow = { navController.navigate(Routes.GAME_CREATE) },
                         onResumeGame = { gameId -> navController.navigate(Routes.game(gameId)) },
                         onPlayfields = { navController.navigate(Routes.PLAYFIELDS) },
                         onSettings = { navController.navigate(Routes.SETTINGS) },
-                    )
+                        )
+                        MainMenuMessage.Host(entry.savedStateHandle)
+                    }
                 }
                 // Scoped to this entry: every Play now starts with the defaults.
                 composable(Routes.GAME_CREATE) { entry ->
@@ -178,9 +189,28 @@ fun ThePreyNavHost(
                         },
                     )
                 }
-                // Placeholder until the lobby screen exists; it will read Routes.GAME_ID from the entry.
-                composable(Routes.LOBBY, arguments = listOf(navArgument(Routes.GAME_ID) { type = NavType.StringType })) {
-                    PlaceholderScreen(R.string.lobby_title, onBack = { navController.popBackStack() })
+                composable(Routes.LOBBY, arguments = listOf(navArgument(Routes.GAME_ID) { type = NavType.StringType })) { entry ->
+                    val gameId = entry.arguments?.getString(Routes.GAME_ID).orEmpty()
+                    LobbyScreen(
+                        viewModel = viewModel { LobbyViewModel(gameId, gameRepository, gameSessions, profileStore) },
+                        // The lobby leaves the back stack: Back from the game returns to the menu.
+                        onStarted = { id ->
+                            if (navController.currentBackStackEntry == entry) {
+                                navController.navigate(Routes.game(id)) { popUpTo(Routes.LOBBY) { inclusive = true } }
+                            }
+                        },
+                        onExit = { reason ->
+                            if (navController.currentBackStackEntry == entry) {
+                                val message = when (reason) {
+                                    LobbyExit.Left -> null
+                                    LobbyExit.Cancelled -> MainMenuMessage.GameCancelled
+                                    LobbyExit.Removed -> MainMenuMessage.RemovedFromGame
+                                    LobbyExit.Ended -> MainMenuMessage.GameEnded
+                                }
+                                navController.returnToMainMenu(message)
+                            }
+                        },
+                    )
                 }
                 // Placeholder until the game screen exists; it will read Routes.GAME_ID from the entry.
                 composable(Routes.GAME, arguments = listOf(navArgument(Routes.GAME_ID) { type = NavType.StringType })) {
@@ -272,6 +302,14 @@ fun ThePreyNavHost(
             }
         }
     }
+}
+
+/** Pops back to the main menu, posting [message] to show there (null: none). */
+private fun NavController.returnToMainMenu(message: MainMenuMessage?) {
+    if (message != null) {
+        runCatching { getBackStackEntry(Routes.MAIN_MENU) }.getOrNull()?.savedStateHandle?.let { MainMenuMessage.post(it, message) }
+    }
+    if (!popBackStack(Routes.MAIN_MENU, inclusive = false)) navigate(Routes.MAIN_MENU)
 }
 
 /**

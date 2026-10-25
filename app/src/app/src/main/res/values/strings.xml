@@ -214,4 +214,43 @@
     <string name="game_create_submitting">Creating</string>
     <string name="game_create_failed">The game could not be created. Check your connection and try again.</string>
     <string name="lobby_title">Lobby</string>
+
+    <!-- Lobby -->
+    <string name="lobby_code_label">Game code</string>
+    <string name="lobby_share">Share</string>
+    <string name="lobby_share_title">Invite players</string>
+    <string name="lobby_share_message">Join my game of The Prey. Open the app, tap Join game and enter the code: %1$s</string>
+    <string name="lobby_settings">Game settings</string>
+    <string name="lobby_players">Players</string>
+    <string name="lobby_players_owner_hint">Tap a player to make them the hunter.</string>
+    <string name="lobby_tag_hunter">Hunter</string>
+    <string name="lobby_tag_prey">Prey</string>
+    <string name="lobby_tag_waiting">Waiting</string>
+    <string name="lobby_tag_ready">Ready</string>
+    <string name="lobby_tag_you">You</string>
+    <string name="lobby_make_hunter">Make hunter</string>
+    <string name="lobby_set_ready">Set ready</string>
+    <string name="lobby_you_are_ready">You are ready</string>
+    <string name="lobby_start">Start game</string>
+    <string name="lobby_starting">Starting</string>
+    <string name="lobby_hint_waiting_for_players">Waiting for players to join.</string>
+    <string name="lobby_hint_choose_hunter">Tap a player to choose the hunter.</string>
+    <string name="lobby_hint_getting_ready">Players are getting ready.</string>
+    <string name="lobby_reconnecting">Reconnecting</string>
+    <string name="lobby_load_error">The lobby could not be loaded. Check your connection and try again.</string>
+    <string name="lobby_leave_title">Leave the lobby</string>
+    <string name="lobby_leave_body">You leave this game. You can join again with the code.</string>
+    <string name="lobby_leave_body_owner">You created this game. Leaving cancels it for everyone.</string>
+    <string name="lobby_leave_confirm">Leave</string>
+    <string name="lobby_leave_cancel_game">Cancel game</string>
+    <string name="lobby_stay">Stay</string>
+    <string name="lobby_error_setting">The setting was not saved. Showing the server\'s values.</string>
+    <string name="lobby_error_hunter">The hunter was not changed. Try again.</string>
+    <string name="lobby_error_ready">You are not marked ready yet. Try again.</string>
+    <string name="lobby_error_start">The game did not start. Check who is ready and try again.</string>
+    <string name="lobby_error_leave">You did not leave the lobby. Check your connection and try again.</string>
+    <string name="lobby_cancelled">The game was cancelled by its creator.</string>
+    <string name="lobby_removed">You are no longer in this game.</string>
+    <string name="game_ended">The game has ended.</string>
+    <string name="game_unavailable">This game is no longer available.</string>
 </resources>

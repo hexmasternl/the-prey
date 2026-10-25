@@ -190,4 +190,43 @@
     <string name="game_create_submitting">Aanmaken</string>
     <string name="game_create_failed">Het spel kon niet worden aangemaakt. Controleer je verbinding en probeer het opnieuw.</string>
     <string name="lobby_title">Lobby</string>
+
+    <!-- Lobby -->
+    <string name="lobby_code_label">Spelcode</string>
+    <string name="lobby_share">Delen</string>
+    <string name="lobby_share_title">Spelers uitnodigen</string>
+    <string name="lobby_share_message">Doe mee met mijn spel The Prey. Open de app, tik op Meedoen en vul de code in: %1$s</string>
+    <string name="lobby_settings">Spelinstellingen</string>
+    <string name="lobby_players">Spelers</string>
+    <string name="lobby_players_owner_hint">Tik op een speler om die Jager te maken.</string>
+    <string name="lobby_tag_hunter">Jager</string>
+    <string name="lobby_tag_prey">Prooi</string>
+    <string name="lobby_tag_waiting">Wacht</string>
+    <string name="lobby_tag_ready">Klaar</string>
+    <string name="lobby_tag_you">Jij</string>
+    <string name="lobby_make_hunter">Maak Jager</string>
+    <string name="lobby_set_ready">Ik ben klaar</string>
+    <string name="lobby_you_are_ready">Je bent klaar</string>
+    <string name="lobby_start">Spel starten</string>
+    <string name="lobby_starting">Starten</string>
+    <string name="lobby_hint_waiting_for_players">Wachten tot spelers meedoen.</string>
+    <string name="lobby_hint_choose_hunter">Tik op een speler om de Jager te kiezen.</string>
+    <string name="lobby_hint_getting_ready">Spelers maken zich klaar.</string>
+    <string name="lobby_reconnecting">Opnieuw verbinden</string>
+    <string name="lobby_load_error">De lobby kon niet worden geladen. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="lobby_leave_title">Lobby verlaten</string>
+    <string name="lobby_leave_body">Je verlaat dit spel. Met de code kun je opnieuw meedoen.</string>
+    <string name="lobby_leave_body_owner">Jij hebt dit spel gemaakt. Als je weggaat, wordt het voor iedereen geannuleerd.</string>
+    <string name="lobby_leave_confirm">Verlaten</string>
+    <string name="lobby_leave_cancel_game">Spel annuleren</string>
+    <string name="lobby_stay">Blijven</string>
+    <string name="lobby_error_setting">De instelling is niet opgeslagen. Je ziet de waarden van de server.</string>
+    <string name="lobby_error_hunter">De Jager is niet gewijzigd. Probeer het opnieuw.</string>
+    <string name="lobby_error_ready">Je staat nog niet op klaar. Probeer het opnieuw.</string>
+    <string name="lobby_error_start">Het spel is niet gestart. Kijk wie er klaar is en probeer het opnieuw.</string>
+    <string name="lobby_error_leave">Je hebt de lobby niet verlaten. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="lobby_cancelled">Het spel is geannuleerd door de spelmaker.</string>
+    <string name="lobby_removed">Je doet niet meer mee aan dit spel.</string>
+    <string name="game_ended">Het spel is afgelopen.</string>
+    <string name="game_unavailable">Dit spel is niet meer beschikbaar.</string>
 </resources>

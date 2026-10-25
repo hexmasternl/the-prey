@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity() {
                             gameRepository = container.gameRepository,
                             playFieldRepository = container.playFieldRepository,
                             profileStore = container.profileStore,
+                            gameSessions = container.gameStateService,
                             profileSettings = session,
                             appLanguage = container.appLanguage,
                             trackingStarter = container.trackingStarter,
