@@ -4,7 +4,7 @@ Run Hugo from `website/src` (`hugo --gc --minify`, and `hugo server` to view). E
 
 ## 1. Fact sheet
 
-- [ ] 1.1 Write `openspec/changes/website-update-to-kotlin-app/facts.md`: game settings and defaults (`GameSettings.kt`), lobby size, tag range, delay and boundary penalties, penalised reporting (`Game.cs`, `GameConfiguration.cs`), marker visibility (`MarkerStyle.kt`), create / join / lobby / playfield / HUD / result flows, and every app label the site quotes in English and Dutch (`strings.xml`, `values-nl/strings.xml`), each with its source file; verify every number in design §4 appears with a source
+- [x] 1.1 Write `openspec/changes/website-update-to-kotlin-app/facts.md`: game settings and defaults (`GameSettings.kt`), lobby size, tag range, delay and boundary penalties, penalised reporting (`Game.cs`, `GameConfiguration.cs`), marker visibility (`MarkerStyle.kt`), create / join / lobby / playfield / HUD / result flows, and every app label the site quotes in English and Dutch (`strings.xml`, `values-nl/strings.xml`), each with its source file; verify every number in design §4 appears with a source
 
 ## 2. Design system v2.0
 
