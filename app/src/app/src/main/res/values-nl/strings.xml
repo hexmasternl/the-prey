@@ -197,7 +197,7 @@
     <string name="lobby_code_label">Spelcode</string>
     <string name="lobby_share">Delen</string>
     <string name="lobby_share_title">Spelers uitnodigen</string>
-    <string name="lobby_share_message">Doe mee met mijn spel The Prey. Open de app, tik op Meedoen en vul de code in: %1$s</string>
+    <string name="lobby_share_message">Doe mee met mijn spel The Prey. Tik op de link om de lobby te openen:\n%1$s\nSpelcode: %2$s</string>
     <string name="lobby_settings">Spelinstellingen</string>
     <string name="lobby_players">Spelers</string>
     <string name="lobby_players_owner_hint">Tik op een speler om die Jager te maken.</string>

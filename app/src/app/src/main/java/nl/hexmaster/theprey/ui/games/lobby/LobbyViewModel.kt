@@ -65,7 +65,7 @@ sealed interface LobbyEvent {
  * collects [uiState], so the socket closes when the lobby is no longer on screen.
  */
 class LobbyViewModel(
-    private val gameId: String,
+    val gameId: String,
     private val games: GameRepository,
     private val sessions: GameSessions,
     private val profileStore: ProfileStore,

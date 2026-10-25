@@ -221,7 +221,7 @@
     <string name="lobby_code_label">Game code</string>
     <string name="lobby_share">Share</string>
     <string name="lobby_share_title">Invite players</string>
-    <string name="lobby_share_message">Join my game of The Prey. Open the app, tap Join game and enter the code: %1$s</string>
+    <string name="lobby_share_message">Join my game of The Prey. Tap the link to open the lobby:\n%1$s\nGame code: %2$s</string>
     <string name="lobby_settings">Game settings</string>
     <string name="lobby_players">Players</string>
     <string name="lobby_players_owner_hint">Tap a player to make them the hunter.</string>

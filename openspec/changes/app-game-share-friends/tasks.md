@@ -23,7 +23,7 @@
 
 ## 4. App: share link from the lobby
 
-- [ ] 4.1 Change `lobby_share_message` in `values/strings.xml` and `values-nl/strings.xml` to the invitation text, the link and then the code last (drop the "tap Join game" wording). Make `LobbyScreen` share with `joinLink(gameId, code)`. Verify with a unit test (or the existing lobby tests) that the message built for a game contains the link and ends with the code, and on a device that the share sheet shows it
+- [ ] 4.1 Change `lobby_share_message` in `values/strings.xml` and `values-nl/strings.xml` to the invitation text, the link and then the code last (drop the "tap Join game" wording). Make `LobbyScreen` share with `joinLink(gameId, code)`. Verify with a unit test (or the existing lobby tests) that the message built for a game contains the link and ends with the code, and on a device that the share sheet shows it _(code and unit test done; share sheet device check pending)_
 
 ## 5. Docs
 

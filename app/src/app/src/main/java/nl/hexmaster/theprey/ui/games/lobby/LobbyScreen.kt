@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.hexmaster.theprey.R
+import nl.hexmaster.theprey.deeplink.joinLink
 import nl.hexmaster.theprey.ui.components.PrimaryButton
 import nl.hexmaster.theprey.ui.components.SecondaryButton
 import nl.hexmaster.theprey.ui.games.create.GameSetting
@@ -105,7 +106,7 @@ fun LobbyScreen(
         snackbarHostState = snackbarHostState,
         onBack = { confirmLeave = true },
         onRetry = viewModel::retry,
-        onShare = { code -> context.shareGameCode(code) },
+        onShare = { code -> context.shareInvite(viewModel.gameId, code) },
         onSettingChange = viewModel::changeSetting,
         onPlayerTap = viewModel::designateHunter,
         onSetReady = viewModel::setReady,
@@ -136,10 +137,11 @@ private val LobbyCommand.errorRes: Int
     }
 
 /** Opens the Android share sheet with the localized invitation ending in [code]. */
-private fun Context.shareGameCode(code: String) {
+/** Opens the share sheet with the invitation: its text, the public join link and the code last. */
+private fun Context.shareInvite(gameId: String, code: String) {
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, getString(R.string.lobby_share_message, code))
+        putExtra(Intent.EXTRA_TEXT, getString(R.string.lobby_share_message, joinLink(gameId, code), code))
     }
     startActivity(Intent.createChooser(send, getString(R.string.lobby_share_title)))
 }
