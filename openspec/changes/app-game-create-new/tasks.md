@@ -2,14 +2,14 @@
 
 ## 1. Prerequisite
 
-- [ ] 1.1 Confirm `app-game-select-playfield` is implemented: `Routes.PLAYFIELD_SELECT`, `PlayFieldSelection` and `PlayFieldSelectResult.deliver/consume` exist in `app/src`, and `./gradlew testDebugUnitTest` passes from `app/src`. If they do not exist, stop and implement that change first.
+- [x] 1.1 Confirm `app-game-select-playfield` is implemented: `Routes.PLAYFIELD_SELECT`, `PlayFieldSelection` and `PlayFieldSelectResult.deliver/consume` exist in `app/src`, and `./gradlew testDebugUnitTest` passes from `app/src`. If they do not exist, stop and implement that change first.
 
 ## 2. Create-game API call
 
-- [ ] 2.1 Add the `@Serializable` `CreateGameRequest` (`playfieldId`, `displayName`, `gameDuration`, `hunterDelayTime`, `finalStageDuration`, `defaultLocationInterval`, `finalLocationInterval`, `enablePreyBoundaryPenalties`, `enableHunterBoundaryPenalty`) and `@POST("games") createGame(...)` returning `Response<GameDto>` to `data/game/`. Verify that a serialization unit test produces the camelCase JSON field names the server's `CreateGameRequest` expects.
-- [ ] 2.2 Add `NewGame` (values in minutes), `CreateGameResult` (`Created(gameId)` / `Failed`) and `GameRepository.createGame` to `ApiGameRepository`. Ping intervals are converted to seconds, penalties are `false`, and 201 maps to `Created`. Non-2xx, an empty body, `IOException` and parse errors map to `Failed`, and `CancellationException` is rethrown. Verify with unit tests against a fake `GamesApi` covering 201, 400, 500, an IO failure, and the minutes-to-seconds conversion (3 → 180, 1 → 60).
-- [ ] 2.3 Update the fake `GameRepository` used by existing tests (for example `MainMenuViewModelTest`) so the interface change compiles. Verify that `./gradlew testDebugUnitTest` passes.
-- [ ] 2.4 Correct the `POST /games` request and response examples in `docs/api/endpoints.md` to match `CreateGameRequest` and `GameDto`, noting minutes vs seconds. Verify the field names against `server/src/Games/HexMaster.ThePrey.Games.Abstractions/DataTransferObjects/Requests.cs`.
+- [x] 2.1 Add the `@Serializable` `CreateGameRequest` (`playfieldId`, `displayName`, `gameDuration`, `hunterDelayTime`, `finalStageDuration`, `defaultLocationInterval`, `finalLocationInterval`, `enablePreyBoundaryPenalties`, `enableHunterBoundaryPenalty`) and `@POST("games") createGame(...)` returning `Response<GameDto>` to `data/game/`. Verify that a serialization unit test produces the camelCase JSON field names the server's `CreateGameRequest` expects.
+- [x] 2.2 Add `NewGame` (values in minutes), `CreateGameResult` (`Created(gameId)` / `Failed`) and `GameRepository.createGame` to `ApiGameRepository`. Ping intervals are converted to seconds, penalties are `false`, and 201 maps to `Created`. Non-2xx, an empty body, `IOException` and parse errors map to `Failed`, and `CancellationException` is rethrown. Verify with unit tests against a fake `GamesApi` covering 201, 400, 500, an IO failure, and the minutes-to-seconds conversion (3 → 180, 1 → 60).
+- [x] 2.3 Update the fake `GameRepository` used by existing tests (for example `MainMenuViewModelTest`) so the interface change compiles. Verify that `./gradlew testDebugUnitTest` passes.
+- [x] 2.4 Correct the `POST /games` request and response examples in `docs/api/endpoints.md` to match `CreateGameRequest` and `GameDto`, noting minutes vs seconds. Verify the field names against `server/src/Games/HexMaster.ThePrey.Games.Abstractions/DataTransferObjects/Requests.cs`.
 
 ## 3. Settings model and view model
 

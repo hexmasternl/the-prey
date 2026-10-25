@@ -14,18 +14,13 @@ class GameRepositoryTest {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    private class FakeGamesApi(private val answer: suspend () -> Response<ActiveGameDto>) : GamesApi {
+    private class FakeGamesApi(private val answer: suspend () -> Response<ActiveGameDto>) : UnusedGamesApi() {
         var calls = 0
 
         override suspend fun getActiveGame(): Response<ActiveGameDto> {
             calls++
             return answer()
         }
-
-        override suspend fun getGameState(gameId: String): Response<FullGameStateDto> = error("Not used")
-
-        override suspend fun recordLocation(gameId: String, request: RecordLocationRequest): Response<RecordLocationResponse> =
-            error("Not used")
     }
 
     private fun errorResponse(code: Int): Response<ActiveGameDto> = Response.error(code, "".toResponseBody())

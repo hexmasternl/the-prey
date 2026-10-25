@@ -4,7 +4,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import nl.hexmaster.theprey.data.game.ActiveGameResult
-import nl.hexmaster.theprey.data.game.GameRepository
+import nl.hexmaster.theprey.data.game.UnusedGameRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -12,7 +12,7 @@ import org.junit.Test
 
 class TrackingStarterTest {
 
-    private class FakeGameRepository(var result: ActiveGameResult = ActiveGameResult.Active(GAME)) : GameRepository {
+    private class FakeGameRepository(var result: ActiveGameResult = ActiveGameResult.Active(GAME)) : UnusedGameRepository() {
         var calls = 0
 
         override suspend fun activeGame(): ActiveGameResult {

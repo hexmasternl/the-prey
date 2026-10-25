@@ -1,5 +1,6 @@
 package nl.hexmaster.theprey.data.game
 
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import java.io.IOException
 
@@ -18,6 +19,9 @@ sealed interface ActiveGameResult {
 /** Game data for the signed-in player. */
 interface GameRepository {
     suspend fun activeGame(): ActiveGameResult
+
+    /** Creates [game] with the signed-in player as its owner. */
+    suspend fun createGame(game: NewGame): CreateGameResult
 }
 
 class ApiGameRepository(private val api: GamesApi) : GameRepository {
@@ -39,7 +43,27 @@ class ApiGameRepository(private val api: GamesApi) : GameRepository {
         ActiveGameResult.Failed
     }
 
+    override suspend fun createGame(game: NewGame): CreateGameResult = try {
+        val response = api.createGame(game.toRequest())
+        val body = response.body()
+        if (response.isSuccessful && body != null) {
+            CreateGameResult.Created(body.id)
+        } else {
+            Log.w(TAG, "Create game refused: HTTP ${response.code()}")
+            CreateGameResult.Failed
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: IOException) {
+        Log.w(TAG, "Create game failed", e)
+        CreateGameResult.Failed
+    } catch (e: RuntimeException) {
+        Log.w(TAG, "Create game answer unreadable", e)
+        CreateGameResult.Failed
+    }
+
     private companion object {
+        const val TAG = "GameRepository"
         const val HTTP_NOT_FOUND = 404
     }
 }

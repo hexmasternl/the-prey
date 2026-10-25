@@ -14,7 +14,7 @@ import nl.hexmaster.theprey.data.game.FullGameStateDto
 import nl.hexmaster.theprey.data.game.GameConfigurationDto
 import nl.hexmaster.theprey.data.game.GameDto
 import nl.hexmaster.theprey.data.game.GameStatuses
-import nl.hexmaster.theprey.data.game.GamesApi
+import nl.hexmaster.theprey.data.game.UnusedGamesApi
 import nl.hexmaster.theprey.data.game.ParticipantDto
 import nl.hexmaster.theprey.data.game.RecordLocationRequest
 import nl.hexmaster.theprey.data.game.RecordLocationResponse
@@ -38,7 +38,7 @@ fun ack(keepReporting: Boolean = true) = RecordLocationResponse(
 
 fun iso(epochMillis: Long): String = Instant.ofEpochMilli(epochMillis).toString()
 
-class FakeGamesApi : GamesApi {
+class FakeGamesApi : UnusedGamesApi() {
     var active: suspend () -> Response<ActiveGameDto> = { Response.success(ActiveGameDto(GAME)) }
     var gameState: suspend (String) -> Response<FullGameStateDto> = { error("No game state configured") }
     var record: suspend (RecordLocationRequest) -> Response<RecordLocationResponse> = { Response.success(ack()) }

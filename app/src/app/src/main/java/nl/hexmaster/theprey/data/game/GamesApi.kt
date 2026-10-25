@@ -23,6 +23,10 @@ interface GamesApi {
      * Records the caller's position. 400 (validation problem) unless the game is `InProgress` and
      * the caller takes part in it, 404 for an unknown game.
      */
+    /** 201 with the new game (`GameDto`), 400 with a validation problem. The caller becomes its owner. */
+    @POST("games")
+    suspend fun createGame(@Body request: CreateGameRequest): Response<GameDto>
+
     @POST("games/{id}/locations")
     suspend fun recordLocation(
         @Path("id") gameId: String,

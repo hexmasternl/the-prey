@@ -20,7 +20,7 @@ import nl.hexmaster.theprey.auth.SessionState
 import nl.hexmaster.theprey.auth.aProfile
 import nl.hexmaster.theprey.auth.testContext
 import nl.hexmaster.theprey.data.game.ActiveGameResult
-import nl.hexmaster.theprey.data.game.GameRepository
+import nl.hexmaster.theprey.data.game.UnusedGameRepository
 import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.data.location.LocationAccess
 import nl.hexmaster.theprey.data.location.LocationSource
@@ -45,7 +45,7 @@ class MainMenuViewModelTest {
     }
 
     /** Each call waits until the test answers it through [answers], in call order. */
-    private class FakeGameRepository : GameRepository {
+    private class FakeGameRepository : UnusedGameRepository() {
         val answers = mutableListOf<CompletableDeferred<ActiveGameResult>>()
         var cancelled = 0
 

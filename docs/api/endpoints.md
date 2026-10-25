@@ -112,17 +112,36 @@ All three superseded reads remain available and unchanged, so existing clients k
 ```json
 {
   "playfieldId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "durationMinutes": 60
+  "displayName": "Fox",
+  "gameDuration": 60,
+  "hunterDelayTime": 5,
+  "finalStageDuration": 10,
+  "defaultLocationInterval": 180,
+  "finalLocationInterval": 60,
+  "enablePreyBoundaryPenalties": false,
+  "enableHunterBoundaryPenalty": false,
+  "profilePictureUrl": null
 }
 ```
 
+`gameDuration`, `hunterDelayTime` and `finalStageDuration` are **minutes**; `defaultLocationInterval` and
+`finalLocationInterval` are **seconds**. The caller becomes the owner and joins the lobby as its first
+player under `displayName`. `400` (validation problem) when the configuration breaks a rule: every value
+positive, `hunterDelayTime` and `finalStageDuration` shorter than `gameDuration`, and
+`finalLocationInterval <= defaultLocationInterval`. The penalty flags and `profilePictureUrl` are optional.
+
 ### `POST /games` — Response
+
+`201 Created` with the new game's `GameDto` (excerpt):
 
 ```json
 {
-  "gameId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-  "code": "HX-4291",
-  "state": "WaitingForPlayers"
+  "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "gameCode": "4291",
+  "status": "Lobby",
+  "ownerUserId": "...",
+  "configuration": { "gameDuration": 60, "hunterDelayTime": 5, "finalStageDuration": 10, "defaultLocationInterval": 180, "finalLocationInterval": 60, "enablePreyBoundaryPenalties": false, "enableHunterBoundaryPenalty": false },
+  "participants": [ { "userId": "...", "displayName": "Fox", "isReady": false, "state": "Active" } ]
 }
 ```
 
