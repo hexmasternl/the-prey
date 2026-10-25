@@ -2,17 +2,17 @@
 
 ## 1. Game state data
 
-- [ ] 1.1 Extend `data/game/GameStateDto.kt` with the `status` slice (`gameDurationLeft`, `nextPingDuration`, `currentPingInterval`), `roleState.hunterDistanceMeters`, and participant `hasActivePenalty` and `lastKnownLocation` (all with defaults so older payloads still parse); verify with a JSON parsing unit test using a sample `/gamestate` payload from `docs/api/endpoints.md`, plus one with `status`/`roleState` null.
-- [ ] 1.2 Add `PlayerStates`/`GameStatuses` constants the HUD needs (`IN_PROGRESS` exists; add `ACTIVE`/`PASSIVE` if used) and verify `./gradlew testDebugUnitTest` stays green.
+- [x] 1.1 Extend `data/game/GameStateDto.kt` with the `status` slice (`gameDurationLeft`, `nextPingDuration`, `currentPingInterval`), `roleState.hunterDistanceMeters`, and participant `hasActivePenalty` and `lastKnownLocation` (all with defaults so older payloads still parse); verify with a JSON parsing unit test using a sample `/gamestate` payload from `docs/api/endpoints.md`, plus one with `status`/`roleState` null. _(landed with `app-game-active-view` 1.2; parsing covered by `GameStateDtoTest` incl. `status`/`roleState` null)_
+- [x] 1.2 Add `PlayerStates`/`GameStatuses` constants the HUD needs (`IN_PROGRESS` exists; add `ACTIVE`/`PASSIVE` if used) and verify `./gradlew testDebugUnitTest` stays green.
 
 ## 2. Pure HUD logic
 
-- [ ] 2.1 Add `ProximityBand` (`Safe`, `Close`, `Warning`, `Unknown`) with `ProximityBand.of(meters: Int?)`; verify unit tests cover `null`, 250, 249, 100, 99 and 0 m.
-- [ ] 2.2 Add a haversine `distanceMeters(a, b)` helper and a `closestHunterMeters(ownFix, hunterLocations)` that returns the rounded minimum, or null with no hunters or no own fix; verify unit tests with known coordinate pairs (accuracy within 1 m) and the two-hunter scenario.
-- [ ] 2.3 Add `HudCountdown` (seed seconds + seed elapsed-realtime → seconds left, clamped at 0) and `broadcastProgress(secondsLeft, interval)` with the 30-second fallback; verify unit tests for 18/30 → 60%, ticking, clamp at 0 and interval 0 → 15/30 = 50%.
-- [ ] 2.4 Add `formatGameTime(seconds)` (`mm:ss`, `h:mm:ss` from one hour, never negative); verify unit tests for 754 → `12:34`, 0, negative input and 3725 → `1:02:05`.
-- [ ] 2.5 Add `penaltyLabelAt(elapsedSincePenaltyStartMs)` returning Penalty/Prey alternating every 1000 ms starting with Penalty, and `isPenaltyActive(hasActivePenalty, penaltyEndsAt, serverNow)`; verify unit tests at 0, 999, 1000, 2000 ms and for an expired `penaltyEndsAt`.
-- [ ] 2.6 Add the immutable `PreyHudState` and `PreyHudState.from(gameState, ownFix, now)` (server distance first, local recompute when a hunter location and own fix are known; see design Decision 2); verify unit tests for the snapshot-only, live-update and no-hunter-location cases.
+- [x] 2.1 Add `ProximityBand` (`Safe`, `Close`, `Warning`, `Unknown`) with `ProximityBand.of(meters: Int?)`; verify unit tests cover `null`, 250, 249, 100, 99 and 0 m.
+- [x] 2.2 Add a haversine `distanceMeters(a, b)` helper and a `closestHunterMeters(ownFix, hunterLocations)` that returns the rounded minimum, or null with no hunters or no own fix; verify unit tests with known coordinate pairs (accuracy within 1 m) and the two-hunter scenario.
+- [x] 2.3 Add `HudCountdown` (seed seconds + seed elapsed-realtime → seconds left, clamped at 0) and `broadcastProgress(secondsLeft, interval)` with the 30-second fallback; verify unit tests for 18/30 → 60%, ticking, clamp at 0 and interval 0 → 15/30 = 50%.
+- [x] 2.4 Add `formatGameTime(seconds)` (`mm:ss`, `h:mm:ss` from one hour, never negative); verify unit tests for 754 → `12:34`, 0, negative input and 3725 → `1:02:05`.
+- [x] 2.5 Add `penaltyLabelAt(elapsedSincePenaltyStartMs)` returning Penalty/Prey alternating every 1000 ms starting with Penalty, and `isPenaltyActive(hasActivePenalty, penaltyEndsAt, serverNow)`; verify unit tests at 0, 999, 1000, 2000 ms and for an expired `penaltyEndsAt`.
+- [x] 2.6 Add the immutable `PreyHudState` and `PreyHudState.from(gameState, ownFix, now)` (server distance first, local recompute when a hunter location and own fix are known; see design Decision 2); verify unit tests for the snapshot-only, live-update and no-hunter-location cases.
 
 ## 3. Theme and strings
 
