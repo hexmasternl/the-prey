@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +39,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -64,7 +68,8 @@ private val BarButtonHeight = 48.dp
 
 /**
  * The playfield area, full screen: a map edge to edge with the actions floating at the bottom.
- * Editable: Cancel, Erase All and Save (which hands the points to the details draft); read-only:
+ * Editable: Cancel, Erase All and Save (which hands the points to the details draft), plus a delete
+ * button for the selected point floating above them; read-only:
  * Close only. Cancel, Close, the back chip and system Back all leave without changing the details.
  * Location permission is never asked for here: the device position is only used when it is
  * already granted.
@@ -120,6 +125,36 @@ fun PlayFieldAreaScreen(
                 onSave = { if (viewModel.save()) onClose() },
             )
         }
+
+        // Outside the measured column, so the map's bottom padding and the attribution stay as they are.
+        if (uiState.editable) {
+            DeletePointFab(
+                enabled = uiState.canDeleteSelected,
+                onClick = viewModel::deleteSelected,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = chromeHeight + 16.dp),
+            )
+        }
+    }
+}
+
+/**
+ * Removes the selected point. Hunter red while a point is selected; greyed out, flat and inert
+ * (reported as disabled to TalkBack) otherwise. M3's FAB has no enabled state of its own.
+ */
+@Composable
+private fun DeletePointFab(enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    FloatingActionButton(
+        onClick = { if (enabled) onClick() },
+        containerColor = if (enabled) ThePreyTheme.colors.hunter else MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = if (enabled) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurfaceVariant,
+        elevation = if (enabled) {
+            FloatingActionButtonDefaults.elevation()
+        } else {
+            FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp)
+        },
+        modifier = modifier.semantics { if (!enabled) disabled() },
+    ) {
+        Icon(painter = painterResource(R.drawable.ic_trash), contentDescription = stringResource(R.string.playfield_area_delete_point))
     }
 }
 
@@ -298,3 +333,28 @@ private fun ReadOnlyBarPreview() = BarPreview(PlayFieldAreaUiState(points = prev
 @Preview(name = "Area bar, read-only (Dutch)", locale = "nl")
 @Composable
 private fun ReadOnlyBarDutchPreview() = BarPreview(PlayFieldAreaUiState(points = previewArea, editable = false))
+
+@Composable
+private fun FabPreview(enabled: Boolean) {
+    ThePreyTheme {
+        Box(Modifier.background(MaterialTheme.colorScheme.background).padding(16.dp)) {
+            DeletePointFab(enabled = enabled, onClick = {})
+        }
+    }
+}
+
+@Preview(name = "Delete FAB, enabled")
+@Composable
+private fun EnabledFabPreview() = FabPreview(enabled = true)
+
+@Preview(name = "Delete FAB, disabled")
+@Composable
+private fun DisabledFabPreview() = FabPreview(enabled = false)
+
+@Preview(name = "Delete FAB, enabled (Dutch)", locale = "nl")
+@Composable
+private fun EnabledFabDutchPreview() = FabPreview(enabled = true)
+
+@Preview(name = "Delete FAB, disabled (Dutch)", locale = "nl")
+@Composable
+private fun DisabledFabDutchPreview() = FabPreview(enabled = false)

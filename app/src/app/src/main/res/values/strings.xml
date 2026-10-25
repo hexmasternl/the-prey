@@ -162,6 +162,7 @@
     <!-- Playfield area map (ui/playfields/area/) -->
     <string name="playfield_area_cancel">Cancel</string>
     <string name="playfield_area_erase_all">Erase All</string>
+    <string name="playfield_area_delete_point">Delete selected point</string>
     <string name="playfield_area_save">Save</string>
     <string name="playfield_area_close">Close</string>
     <string name="playfield_area_back">Back to playfield</string>

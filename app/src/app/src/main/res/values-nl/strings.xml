@@ -139,6 +139,7 @@
     <!-- Playfield area map (ui/playfields/area/) -->
     <string name="playfield_area_cancel">Annuleren</string>
     <string name="playfield_area_erase_all">Alles wissen</string>
+    <string name="playfield_area_delete_point">Geselecteerd punt verwijderen</string>
     <string name="playfield_area_save">Opslaan</string>
     <string name="playfield_area_close">Sluiten</string>
     <string name="playfield_area_back">Terug naar speelveld</string>
