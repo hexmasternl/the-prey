@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -198,17 +199,13 @@ private fun LobbyContent(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(32.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
                     CodeCard(state.lobby.gameCode, onShare)
-                    Section(stringResource(R.string.lobby_settings)) {
-                        if (state.lobby.isOwner) {
-                            GameSettingsForm(settings = state.lobby.settings, onChange = onSettingChange, enabled = state.lobby.canEdit)
-                        } else {
-                            GameSettingsSummary(settings = state.lobby.settings)
-                        }
-                    }
-                    Section(stringResource(R.string.lobby_players)) {
+                    val playerCount = state.lobby.rows.size
+                    Section(
+                        pluralStringResource(R.plurals.lobby_players_ready, playerCount, playerCount, state.lobby.readyCount),
+                    ) {
                         if (state.lobby.isOwner) {
                             Text(
                                 text = stringResource(R.string.lobby_players_owner_hint),
@@ -218,6 +215,13 @@ private fun LobbyContent(
                             Spacer(Modifier.height(8.dp))
                         }
                         PlayerList(state.lobby, onPlayerTap)
+                    }
+                    Section(stringResource(R.string.lobby_settings)) {
+                        if (state.lobby.isOwner) {
+                            GameSettingsForm(settings = state.lobby.settings, onChange = onSettingChange, enabled = state.lobby.canEdit)
+                        } else {
+                            GameSettingsSummary(settings = state.lobby.settings)
+                        }
                     }
                 }
             }
@@ -474,11 +478,11 @@ private fun ContentPreview(state: LobbyScreenState) {
     }
 }
 
-@Preview(name = "Owner", heightDp = 1400)
+@Preview(name = "Owner", device = "id:pixel_5")
 @Composable
 private fun OwnerPreview() = ContentPreview(LobbyScreenState.Content(previewLobby(isOwner = true)))
 
-@Preview(name = "Player (Dutch)", locale = "nl", heightDp = 1000)
+@Preview(name = "Player (Dutch)", locale = "nl", device = "id:pixel_5")
 @Composable
 private fun PlayerPreview() = ContentPreview(LobbyScreenState.Content(previewLobby(isOwner = false).copy(reconnecting = true)))
 
