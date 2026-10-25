@@ -159,4 +159,11 @@
     <string name="resume_notification_title">Je spel loopt nog</string>
     <string name="resume_notification_text">Tik om de locatievolging te hervatten. Tot die tijd ziet de server je als stil.</string>
     <string name="tracking_declined_silent">Locatievolging staat uit. De server ziet je als stil, en daardoor kun je uit het spel liggen.</string>
+
+    <!-- Playfield selection -->
+    <string name="playfield_select_title">Kies een speelveld</string>
+    <string name="playfield_select_empty">Nog geen speelvelden. Maak er een via Speelvelden in het hoofdmenu.</string>
+    <string name="playfield_select_confirm">Kiezen</string>
+    <string name="playfield_select_selected">Gekozen: %1$s</string>
+    <string name="playfield_select_none">Geen speelveld gekozen</string>
 </resources>

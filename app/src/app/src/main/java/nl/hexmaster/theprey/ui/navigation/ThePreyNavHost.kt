@@ -40,6 +40,9 @@ import nl.hexmaster.theprey.ui.playfields.area.PlayFieldAreaScreen
 import nl.hexmaster.theprey.ui.playfields.area.PlayFieldAreaViewModel
 import nl.hexmaster.theprey.ui.playfields.details.PlayFieldDetailsScreen
 import nl.hexmaster.theprey.ui.playfields.details.PlayFieldDetailsViewModel
+import nl.hexmaster.theprey.ui.playfields.select.PlayFieldSelectResult
+import nl.hexmaster.theprey.ui.playfields.select.PlayFieldSelectScreen
+import nl.hexmaster.theprey.ui.playfields.select.PlayFieldSelectViewModel
 import nl.hexmaster.theprey.ui.settings.SettingsScreen
 import nl.hexmaster.theprey.ui.settings.SettingsViewModel
 import nl.hexmaster.theprey.ui.tracking.TrackingAutoStart
@@ -76,6 +79,13 @@ object Routes {
     const val PLAYFIELD_DETAILS = "playfield_details"
     const val PLAYFIELD_AREA = "playfield_area"
     const val SETTINGS = "settings"
+
+    /**
+     * Picks one playfield and hands it back to the destination that opened it. Cancel and Back
+     * return nothing. A caller consumes the result from its own back-stack entry:
+     * `PlayFieldSelectResult.consume(entry.savedStateHandle).collect { selection -> ... }`.
+     */
+    const val PLAYFIELD_SELECT = "playfield_select"
 }
 
 /** The destination a session state belongs on, or null while the stored session is still being checked. */
@@ -199,6 +209,19 @@ fun ThePreyNavHost(
                 // Placeholder until the playfield editor exists.
                 composable(Routes.PLAYFIELD_EDITOR) {
                     PlaceholderScreen(R.string.playfield_editor_title, onBack = { navController.popBackStack() })
+                }
+                // Scoped to this entry: every open starts on Private with nothing selected.
+                composable(Routes.PLAYFIELD_SELECT) {
+                    PlayFieldSelectScreen(
+                        viewModel = viewModel { PlayFieldSelectViewModel(playFieldRepository, createSavedStateHandle()) },
+                        onCancel = { navController.popBackStack() },
+                        onSelect = { selection ->
+                            navController.previousBackStackEntry?.savedStateHandle?.let {
+                                PlayFieldSelectResult.deliver(it, selection)
+                            }
+                            navController.popBackStack()
+                        },
+                    )
                 }
                 composable(Routes.SETTINGS) {
                     SettingsScreen(

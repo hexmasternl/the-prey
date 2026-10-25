@@ -183,4 +183,11 @@
     <string name="resume_notification_title">Your game is still running</string>
     <string name="resume_notification_text">Tap to resume location tracking. Until then the server sees you as silent.</string>
     <string name="tracking_declined_silent">Location tracking is off. The server will see you as silent, which can get you ruled out.</string>
+
+    <!-- Playfield selection -->
+    <string name="playfield_select_title">Select playfield</string>
+    <string name="playfield_select_empty">No playfields yet. Create one from Playfields in the main menu.</string>
+    <string name="playfield_select_confirm">Select</string>
+    <string name="playfield_select_selected">Selected: %1$s</string>
+    <string name="playfield_select_none">No playfield selected</string>
 </resources>
