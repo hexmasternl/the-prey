@@ -1,5 +1,6 @@
 package nl.hexmaster.theprey.data.game
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -51,9 +53,22 @@ sealed interface GameSession {
     data class Gone(val reason: GoneReason) : GameSession
 }
 
+/** Outcome of [GameSessions.refresh]. */
+sealed interface RefreshResult {
+    /** A fresh snapshot is now the state. */
+    data object Ok : RefreshResult
+
+    data class Failed(val retryable: Boolean) : RefreshResult
+
+    data class Gone(val reason: GoneReason) : RefreshResult
+}
+
 /** The Game State Service as screens use it; see [GameStateService]. */
 interface GameSessions {
     fun session(gameId: String): StateFlow<GameSession>
+
+    /** Downloads a fresh snapshot for [gameId] even when its session is live, and returns once it is applied. */
+    suspend fun refresh(gameId: String): RefreshResult
 
     fun replaceGame(gameId: String, game: GameDto)
 
@@ -83,7 +98,12 @@ class GameStateService(
 ) : GameSessions {
     private var sessionGameId: String? = null
     private var sessionFlow: StateFlow<GameSession>? = null
-    private var running: LiveSession? = null
+    private val runningFlow = MutableStateFlow<LiveSession?>(null)
+    private var running: LiveSession?
+        get() = runningFlow.value
+        set(value) {
+            runningFlow.value = value
+        }
 
     /** The live state of [gameId]. Asking for another game ends the previous game's session. */
     override fun session(gameId: String): StateFlow<GameSession> {
@@ -104,6 +124,23 @@ class GameStateService(
         sessionGameId = gameId
         sessionFlow = shared
         return shared
+    }
+
+    override suspend fun refresh(gameId: String): RefreshResult = coroutineScope {
+        val flow = session(gameId)
+        // Hold the session open while the download runs; the screen's own subscription takes over.
+        val holder = launch { flow.collect { } }
+        try {
+            val live = runningFlow.first { it != null && it.gameId.equals(gameId, ignoreCase = true) }!!
+            val result = CompletableDeferred<RefreshResult>()
+            if (live.send(Input.Refresh(result))) {
+                result.await()
+            } else {
+                (live.state.value as? GameSession.Gone)?.let { RefreshResult.Gone(it.reason) } ?: RefreshResult.Failed(retryable = true)
+            }
+        } finally {
+            holder.cancel()
+        }
     }
 
     /** Swaps in the game a command returned; keeps the `seq` baseline. */
@@ -131,6 +168,7 @@ class GameStateService(
         data object Timer : Input
         data class Replace(val game: GameDto) : Input
         data object Close : Input
+        data class Refresh(val result: CompletableDeferred<RefreshResult>) : Input
     }
 
     private inner class LiveSession(val gameId: String) {
@@ -138,11 +176,12 @@ class GameStateService(
         private val inputs = Channel<Input>(Channel.UNLIMITED)
         private var endedReported = false
 
-        fun send(input: Input) {
-            inputs.trySend(input)
-        }
+        /** False once the session has ended. */
+        fun send(input: Input): Boolean = inputs.trySend(input).isSuccess
 
-        fun close() = send(Input.Close)
+        fun close() {
+            send(Input.Close)
+        }
 
         suspend fun run() = coroutineScope {
             var timer: Job? = null
@@ -158,15 +197,12 @@ class GameStateService(
                 }
             }
 
-            /** Loads a snapshot; returns false when the session is over. */
-            suspend fun snapshot(): Boolean {
+            /** Loads a snapshot and makes it the state; [RefreshResult.Gone] ends the session. */
+            suspend fun snapshot(): RefreshResult {
                 when (val result = games.gameState(gameId)) {
                     is SnapshotResult.Ok -> {
                         val game = result.state.game
-                        if (game.status == GameStatuses.COMPLETED) {
-                            end(game.outcome)
-                            return false
-                        }
+                        if (game.status == GameStatuses.COMPLETED) return RefreshResult.Gone(end(game.outcome))
                         state.value = GameSession.Live(result.state, lastSeq = null, connection = connected)
                         scheduleResync()
                         if (socket == null) {
@@ -175,21 +211,25 @@ class GameStateService(
                     }
                     SnapshotResult.Forbidden -> {
                         state.value = GameSession.Gone(GoneReason.Removed)
-                        return false
+                        return RefreshResult.Gone(GoneReason.Removed)
                     }
                     SnapshotResult.Failed -> {
                         // Keep showing the last server state; the next timer or connect tries again.
                         if (state.value is GameSession.Live) scheduleResync() else state.value = GameSession.Failed(retryable = true)
+                        return RefreshResult.Failed(retryable = true)
                     }
                 }
-                return true
+                return RefreshResult.Ok
             }
 
-            var active = snapshot()
+            fun RefreshResult.continues() = this !is RefreshResult.Gone
+
+            var active = snapshot().continues()
             while (active) {
                 active = when (val input = inputs.receive()) {
                     Input.Close -> false
-                    Input.Resync, Input.Timer -> snapshot()
+                    Input.Resync, Input.Timer -> snapshot().continues()
+                    is Input.Refresh -> snapshot().also { input.result.complete(it) }.continues()
                     is Input.Replace -> {
                         (state.value as? GameSession.Live)?.let { live ->
                             state.value = live.copy(snapshot = live.snapshot.copy(game = input.game))
@@ -199,7 +239,7 @@ class GameStateService(
                     is Input.Socket -> when (val event = input.event) {
                         RealtimeEvent.Joined -> {
                             connected = ConnectionState.Connected
-                            snapshot()
+                            snapshot().continues()
                         }
                         is RealtimeEvent.Closed -> if (event.forbidden) {
                             state.value = GameSession.Gone(GoneReason.Removed)
@@ -219,7 +259,7 @@ class GameStateService(
                                         state.value = live.copy(snapshot = reduction.state, lastSeq = reduction.seq)
                                         true
                                     }
-                                    Reduction.Resync -> snapshot()
+                                    Reduction.Resync -> snapshot().continues()
                                     is Reduction.Removed -> {
                                         state.value = GameSession.Gone(GoneReason.Removed)
                                         false
@@ -235,15 +275,26 @@ class GameStateService(
                     }
                 }
             }
+            // Answer refreshes that arrived after the session ended; later ones fail to send.
+            inputs.close()
+            val gone = state.value as? GameSession.Gone
+            while (true) {
+                val left = inputs.tryReceive().getOrNull() ?: break
+                if (left is Input.Refresh) {
+                    left.result.complete(gone?.let { RefreshResult.Gone(it.reason) } ?: RefreshResult.Failed(retryable = true))
+                }
+            }
             coroutineContext.cancelChildren()
         }
 
-        private fun end(outcome: String) {
-            state.value = GameSession.Gone(if (outcome == GameOutcomes.CANCELLED) GoneReason.Cancelled else GoneReason.Completed)
+        private fun end(outcome: String): GoneReason {
+            val reason = if (outcome == GameOutcomes.CANCELLED) GoneReason.Cancelled else GoneReason.Completed
+            state.value = GameSession.Gone(reason)
             if (!endedReported) {
                 endedReported = true
                 onGameEnded(gameId)
             }
+            return reason
         }
 
         /** The socket with reconnects: backoff 1 s, 2 s, 4 s … 30 s, reset by every successful join. */

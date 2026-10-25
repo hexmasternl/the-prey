@@ -308,4 +308,51 @@ class GameStateServiceTest {
         observe(sut)
         assertEquals(2, connection.connects)
     }
+
+    @Test
+    fun refresh_ShouldReplaceSnapshotAndKeepSocket_WhenSessionIsLive() = runTest {
+        val sut = service()
+        val (seen, _) = observe(sut)
+        connection.emit(RealtimeEvent.Joined)
+        val before = games.snapshots
+        games.snapshot = { SnapshotResult.Ok(FullGameStateDto(game.copy(status = GameStatuses.IN_PROGRESS), "t2")) }
+
+        val result = sut.refresh("g1")
+
+        assertEquals(RefreshResult.Ok, result)
+        assertEquals(before + 1, games.snapshots)
+        assertEquals(GameStatuses.IN_PROGRESS, (seen.last() as GameSession.Live).snapshot.game.status)
+        assertEquals(1, connection.connects)
+    }
+
+    @Test
+    fun refresh_ShouldStartSessionAndDownload_WhenNobodyObservesYet() = runTest {
+        val sut = service()
+
+        val result = sut.refresh("g1")
+
+        assertEquals(RefreshResult.Ok, result)
+        assertEquals(2, games.snapshots)
+    }
+
+    @Test
+    fun refresh_ShouldReportRetryableFailure_WhenNetworkFails() = runTest {
+        val sut = service()
+        val (seen, _) = observe(sut)
+        games.snapshot = { SnapshotResult.Failed }
+
+        assertEquals(RefreshResult.Failed(retryable = true), sut.refresh("g1"))
+        assertTrue(seen.last() is GameSession.Live)
+    }
+
+    @Test
+    fun refresh_ShouldReportGoneRemoved_WhenServerForbids() = runTest {
+        val sut = service()
+        observe(sut)
+        games.snapshot = { SnapshotResult.Forbidden }
+
+        assertEquals(RefreshResult.Gone(GoneReason.Removed), sut.refresh("g1"))
+        // A later refresh on the ended session answers at once.
+        assertEquals(RefreshResult.Gone(GoneReason.Removed), sut.refresh("g1"))
+    }
 }

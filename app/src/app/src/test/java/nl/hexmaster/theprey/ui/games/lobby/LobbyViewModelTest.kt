@@ -66,6 +66,7 @@ class LobbyViewModelTest {
         override fun close(gameId: String) {
             closes++
         }
+        override suspend fun refresh(gameId: String) = error("Not used")
     }
 
     /** Each command waits until the test answers it through [answer], unless [auto] is set. */
