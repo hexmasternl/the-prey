@@ -183,4 +183,15 @@ class GameViewModelTest {
         assertEquals(5_000L, delay.seededAtElapsed)
         assertEquals("03:15", StartDelay.format(StartDelay.remaining(delay, 10_000)))
     }
+
+    @Test
+    fun uiState_ShouldRecordPingTime_WhenALocationsBatchIsApplied() = runTest {
+        val sut = viewModel()
+        assertNull(sut.ready().lastPingAtElapsed)
+
+        now = 42_000
+        sessions.state.value = GameSession.Live(snapshot, lastSeq = 1, connection = ConnectionState.Connected, locationBatches = 1)
+
+        assertEquals(42_000L, sut.ready().lastPingAtElapsed)
+    }
 }

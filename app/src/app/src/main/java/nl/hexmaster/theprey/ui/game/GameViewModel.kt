@@ -51,6 +51,8 @@ sealed interface ActiveGameUi {
         val clock: ServerClock?,
         /** The hunter's start delay, seeded when the snapshot arrived; null when none is running. */
         val delay: DelaySeed?,
+        /** Elapsed realtime of the latest `locations-updated` batch since the snapshot (a location ping); null before one. */
+        val lastPingAtElapsed: Long? = null,
     ) : ActiveGameUi
 }
 
@@ -84,6 +86,8 @@ class GameViewModel(
     private var seededFor: FullGameStateDto? = null
     private var clock: ServerClock? = null
     private var delay: DelaySeed? = null
+    private var seenBatches = 0
+    private var lastPingAt: Long? = null
 
     init {
         refresh()
@@ -125,7 +129,13 @@ class GameViewModel(
                 is GameSession.Gone -> ActiveGameUi.Exit(session.reason.toExit())
                 is GameSession.Live -> {
                     val snapshot = session.snapshot
-                    if (snapshot.serverTime != seededFor?.serverTime) reseed(snapshot)
+                    if (snapshot.serverTime != seededFor?.serverTime) {
+                        reseed(snapshot)
+                        seenBatches = session.locationBatches
+                    } else if (session.locationBatches != seenBatches) {
+                        seenBatches = session.locationBatches
+                        lastPingAt = elapsed()
+                    }
                     ActiveGameUi.Ready(
                         game = ActiveGameState.from(snapshot, myUserId),
                         snapshot = snapshot,
@@ -133,6 +143,7 @@ class GameViewModel(
                         heading = headings.resolve(heading),
                         clock = clock,
                         delay = delay,
+                        lastPingAtElapsed = lastPingAt,
                     )
                 }
             }
@@ -145,6 +156,7 @@ class GameViewModel(
         seededFor = snapshot
         clock = ServerClock.seed(snapshot.serverTime, now)
         delay = StartDelay.seed(snapshot.status?.hunterMayMoveAt, snapshot.serverTime, now)
+        lastPingAt = null
     }
 
     private fun GoneReason.toExit(): GameExit = when (this) {

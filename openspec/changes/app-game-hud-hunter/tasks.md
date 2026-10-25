@@ -13,9 +13,9 @@
 
 ## 3. Pure hunter HUD logic
 
-- [ ] 3.1 Add `ClockBand.of(secondsLeft, penaltyActive)`; verify unit tests at 601, 600, 301, 300 and 0 s, and that penalty wins at every time.
-- [ ] 3.2 Add the immutable `HunterHudState` and `HunterHudState.from(input, ownFix, nowElapsed)` (design Decision 2); verify unit tests for the `4/6` count, a tag dropping it to `3/6`, closest distance ignoring tagged/out preys, dash cases (no own fix, no prey locations), penalised-prey count incl. an expired `penaltyEndsAt`, and the hunter's own penalty.
-- [ ] 3.3 Add the tag-unlock countdown seeded from `hunterMayMoveAt - serverTime` and the ping countdown re-seeded on snapshot and `locations-updated`; verify unit tests for before, at and after the unlock moment, a skewed device clock, and the ping re-seed from `currentPingInterval`.
+- [x] 3.1 Add `ClockBand.of(secondsLeft, penaltyActive)`; verify unit tests at 601, 600, 301, 300 and 0 s, and that penalty wins at every time.
+- [x] 3.2 Add the immutable `HunterHudState` and `HunterHudState.from(input, ownFix, nowElapsed)` (design Decision 2); verify unit tests for the `4/6` count, a tag dropping it to `3/6`, closest distance ignoring tagged/out preys, dash cases (no own fix, no prey locations), penalised-prey count incl. an expired `penaltyEndsAt`, and the hunter's own penalty.
+- [x] 3.3 Add the tag-unlock countdown seeded from `hunterMayMoveAt - serverTime` and the ping countdown re-seeded on snapshot and `locations-updated`; verify unit tests for before, at and after the unlock moment, a skewed device clock, and the ping re-seed from `currentPingInterval`.
 
 ## 4. Strings
 

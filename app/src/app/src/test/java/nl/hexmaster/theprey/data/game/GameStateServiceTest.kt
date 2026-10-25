@@ -355,4 +355,20 @@ class GameStateServiceTest {
         // A later refresh on the ended session answers at once.
         assertEquals(RefreshResult.Gone(GoneReason.Removed), sut.refresh("g1"))
     }
+
+    @Test
+    fun session_ShouldCountLocationBatches_WhenLocationsUpdate() = runTest {
+        val sut = service()
+        val (seen, _) = observe(sut)
+        connection.emit(RealtimeEvent.Joined)
+
+        connection.emit(
+            RealtimeEvent.Message(
+                envelope(RealtimeProtocol.MessageTypes.LOCATIONS_UPDATED, 1, """{"locations":[{"userId":"me","role":"Prey","latitude":52.0,"longitude":5.0,"state":"Active"}]}"""),
+            ),
+        )
+        connection.emit(RealtimeEvent.Message(envelope(RealtimeProtocol.MessageTypes.PARTICIPANT_JOINED, 2, participant("x"))))
+
+        assertEquals(1, (seen.last() as GameSession.Live).locationBatches)
+    }
 }

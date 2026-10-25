@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import nl.hexmaster.theprey.data.game.realtime.GameStateReducer
 import nl.hexmaster.theprey.data.game.realtime.RealtimeConnection
 import nl.hexmaster.theprey.data.game.realtime.RealtimeEvent
+import nl.hexmaster.theprey.data.game.realtime.RealtimeProtocol
 import nl.hexmaster.theprey.data.game.realtime.Reduction
 
 /** Whether the realtime socket is up; the last server state stays on screen either way. */
@@ -45,6 +46,8 @@ sealed interface GameSession {
         val snapshot: FullGameStateDto,
         val lastSeq: Long?,
         val connection: ConnectionState,
+        /** How many `locations-updated` batches were applied since this session started: each is a location ping. */
+        val locationBatches: Int = 0,
     ) : GameSession
 
     /** The first snapshot could not be loaded; [retryable] when asking again may help. */
@@ -203,7 +206,8 @@ class GameStateService(
                     is SnapshotResult.Ok -> {
                         val game = result.state.game
                         if (game.status == GameStatuses.COMPLETED) return RefreshResult.Gone(end(game.outcome))
-                        state.value = GameSession.Live(result.state, lastSeq = null, connection = connected)
+                        val batches = (state.value as? GameSession.Live)?.locationBatches ?: 0
+                        state.value = GameSession.Live(result.state, lastSeq = null, connection = connected, locationBatches = batches)
                         scheduleResync()
                         if (socket == null) {
                             socket = launch { reconnecting().collect { send(Input.Socket(it)) } }
@@ -256,7 +260,12 @@ class GameStateService(
                             } else {
                                 when (val reduction = reducer.reduce(live.snapshot, live.lastSeq, me, event.envelope)) {
                                     is Reduction.Applied -> {
-                                        state.value = live.copy(snapshot = reduction.state, lastSeq = reduction.seq)
+                                        val ping = event.envelope.type == RealtimeProtocol.MessageTypes.LOCATIONS_UPDATED
+                                        state.value = live.copy(
+                                            snapshot = reduction.state,
+                                            lastSeq = reduction.seq,
+                                            locationBatches = live.locationBatches + if (ping) 1 else 0,
+                                        )
                                         true
                                     }
                                     Reduction.Resync -> snapshot().continues()
