@@ -1,0 +1,44 @@
+# Tasks
+
+## 1. Data and service seams
+
+- [ ] 1.1 Check that `app-game-lobby-view`'s `GameStateService` exists (implement that change first if it does not). Add `suspend fun refresh(gameId): RefreshResult` (`Ok`, `Failed(retryable)`, `Gone(reason)`), which forces a snapshot download on a `Live` session and returns once it has been applied. Verify with service unit tests using a fake API: a refresh on a live session replaces the snapshot and keeps the socket, a network error gives `Failed(retryable = true)`, and a 403/404 gives `Gone(Removed)`.
+- [ ] 1.2 In `data/game/GameStateDto.kt`, add whatever earlier changes have not added yet: `FullGameStateDto.playfieldCoordinates` (`List<GpsCoordinateDto>`, default empty), `status.hunterMayMoveAt`, `configuration.hunterDelayTime`, and participant `lastKnownLocation` and `hasActivePenalty`, all nullable or defaulted. Verify with JSON parsing tests on an `InProgress` prey sample, a hunter sample, and a `Started` sample with `status` null.
+- [ ] 1.3 Add `data/sensors/CompassHeading` (`headings(): Flow<Float?>`, rotation vector with a geomagnetic fallback, display-rotation remap, registered only while collected, `null` without a sensor), and wire it in `AppContainer`. Put the angle smoothing (wrap-aware low-pass and 2° threshold) in a pure `HeadingFilter`. Verify `HeadingFilter` unit tests cover 350° → 10° wrapping the short way and sub-threshold changes being dropped.
+- [ ] 1.4 Add the pure `HeadingResolver` (compass, else bearing between the last two fixes when they are 5 m or more apart, else the last heading, else 0). Verify unit tests for each fallback step and for fixes under 5 m apart.
+
+## 2. Pure game-view logic
+
+- [ ] 2.1 Add `ActiveGameState.from(snapshot, myUserId)` with `role` (Hunter/Prey/None), `phase` (Starting/Playing), the area and the participant list (design Decision 2). Verify unit tests for the hunter, a prey, a non-participant, `Started` vs `InProgress`, and an empty playfield polygon.
+- [ ] 2.2 Add `DelaySeed` and `StartDelay.remaining` / `format` (design Decision 5). Verify unit tests for `03:20` at the seed, one second later, rounding up below a whole second, zero at and after the end, a null or past `hunterMayMoveAt` giving no seed, and a device clock two minutes ahead.
+- [ ] 2.3 Add `MarkerStyle.of(viewer, target, isHunter, nowServer)` implementing the table in design Decision 7, reusing `isPenaltyActive` from `ui/game/hud/common/` when it exists (otherwise create it there). Verify one unit test per table row, plus an expired `penaltyEndsAt` (no pulse) and a participant without a location (not drawn).
+- [ ] 2.4 Add the pure `RecenterTimer` (`Following`/`Free`, `onGesture`, `shouldRecenter`, 5 000 ms). Verify unit tests with a fake clock: no re-center at 4 999 ms, re-center at 5 000 ms, a second gesture at 4 s pushes the re-center to 9 s, and back to `Following` after a re-center.
+
+## 3. Strings and assets
+
+- [ ] 3.1 Add the strings to `res/values/strings.xml` and `res/values-nl/strings.xml`, following the `the-prey-multilingual` skill: safety warning title, body and button ("Watch your surroundings" / "Let op je omgeving", with roads and traffic in the body), "Game is starting…" / "Het spel begint…", prey flee message, hunter stay-put penalty warning, countdown accessibility text, load error and retry, `game_ended`, `game_unavailable`, and the map description with role and count placeholders. Verify `./gradlew lintDebug` reports no missing translations.
+- [ ] 3.2 Add `res/drawable/ic_game_player_arrow.xml` (20 dp chevron, `Signal` fill, 1.5 dp `BgVoid` stroke, pointing up = north). Verify in the Android Studio preview, against a dark and a light background, that the border is visible.
+
+## 4. Map
+
+- [ ] 4.1 Build `ui/game/map/GameMap` on MapLibre, reusing `MAP_STYLE_URL` and `PlayFieldMap`'s lifecycle forwarding (extract a shared helper only if the duplication is substantial): rotate and tilt off, the `game-area` fill/line layers colored by role (0.15 fill opacity), the `game-participants` circle layer with data-driven `fill`/`stroke`, and the `game-self` arrow symbol layer with `iconRotate` from `heading` and map rotation alignment. Verify a debug build shows the area and markers from a sample state, and that `./gradlew assembleDebug` succeeds.
+- [ ] 4.2 Add camera control: initial fix at zoom 17 or the area bounds fitted with 48 dp padding; follow the device's fixes while `Following`; report `REASON_API_GESTURE` moves to `RecenterTimer`; ease back on `shouldRecenter`, with no animation under reduced motion. Verify on a device or emulator (mock location) that panning away re-centers after 5 s at the chosen zoom, that a continuous pinch does not re-center mid-gesture, and that walking keeps the arrow centered.
+- [ ] 4.3 Add the penalty pulse (design Decision 8): a 100 ms ticker writing `phase` to the pulsing features only while one exists, and a steady ring layer under reduced motion. Verify on a device that a penalised prey pulses on the hunter's map and stops when the penalty clears, and that with the animator scale set to 0 it shows a steady ring instead.
+- [ ] 4.4 Set the map's accessibility description from role and visible marker count. Verify with TalkBack that the map reads, for example, "Game map, prey, 4 other players shown" (and the Dutch text on a Dutch device).
+
+## 5. Screen
+
+- [ ] 5.1 Implement `GameViewModel` (design Decisions 2, 3, 11): `refresh` on creation, `Loading` until `Ok`, `Error` with `retry()`, map the session to `ActiveGameState` with `ProfileStore` user id, `LocationSource` fixes and resolved heading, and `Exit(reason)` on `Gone`/completed. Verify view-model unit tests with fake service, profile store, location and compass: loading then ready, retry after a failure, exit on 403 and on `game-ended`, a `locations-updated` delta moving a marker without a new refresh, and the heading fallback when the compass emits `null`.
+- [ ] 5.2 Build `StartingOverlay` and `StartDelayOverlay` (centered card on a translucent scrim, Special Elite `mm:ss`, role message in `Prey` green or `Hunter` red, no touch interception), driven by a 1-second ticker over `StartDelay.remaining`. Verify `@Preview`s for prey and hunter in English and Dutch, and on a device that the map can be panned while the countdown is shown.
+- [ ] 5.3 Build `SafetyWarningDialog` (`rememberSaveable` acknowledged flag; outside tap and back don't dismiss it; one confirm button). Verify on a device that it shows on entry and after Resume game, survives rotation without reappearing once acknowledged, and ignores taps outside it.
+- [ ] 5.4 Build `GameScreen` with the layer order map → starting/delay overlay → HUD slot → warning, taking `preyHud` and `hunterHud` composable lambdas, plus loading and error states and a `BackHandler` that calls `onExit(null)`. Verify a full-screen `@Preview` for prey and hunter during the delay, and that the warning covers the HUD.
+
+## 6. Navigation and HUD wiring
+
+- [ ] 6.1 In `ThePreyNavHost.kt`, replace the `Routes.GAME` placeholder with `GameScreen` (game id from `Routes.GAME_ID`). On exit, pop to `Routes.MAIN_MENU` and show the `game_ended` / `game_unavailable` message there through the lobby's one-shot message mechanism. Verify `./gradlew assembleDebug` succeeds, and on a device that Back goes to the main menu, where Resume game reopens the game with a fresh download and the warning.
+- [ ] 6.2 Fill the HUD slot: pass `PreyHud` / `HunterHud` if `app-game-hud-prey` / `app-game-hud-hunter` are implemented, and change their "mount on the route" wiring to the slot. If not, leave the lambdas empty and add a note to those changes' tasks (their route-wiring task becomes "fill the `GameScreen` HUD slot"). Verify the app builds and, where a HUD exists, that it is drawn above the map and below the warning.
+- [ ] 6.3 Update `docs/api/realtime.md`: a prey renders the hunter and the other preys from `locations-updated`, and the game screen calls `refresh()` on entry. Verify the wording matches design Decision 12 and the `MarkerStyle` table.
+
+## 7. Integration check
+
+- [ ] 7.1 With the Aspire AppHost running and three devices or emulators (owner as hunter, two preys, mock locations inside a playfield), start a game from the lobby. Verify that each device shows the safety warning and then the delay countdown with the right role message; that the area is green for preys and red for the hunter; that preys see each other green and the hunter red; that the hunter sees the preys red; that a prey leaving the area (penalty) pulses on the hunter's map; that a tagged prey turns grey with the role-colored outline on all devices; that moving the hunter more than 50 m during the delay gives the hunter a penalty; and that the game end returns everyone to the main menu with the ended message. Run `./gradlew lintDebug testDebugUnitTest` and verify it passes.

@@ -1,7 +1,7 @@
 # playfield-selection Specification
 
 ## Purpose
-TBD - created by archiving change playfield-selection. Update Purpose after archive.
+Lets a flow, such as creating a game, ask the player to choose one playfield from their own playfields or the public ones, and receive the chosen playfield or nothing when the player cancels.
 ## Requirements
 ### Requirement: Display local playfields on open
 The page SHALL load all playfields from IndexedDB and display them as the initial list when opened, before any search is performed.
