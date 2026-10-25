@@ -14,25 +14,25 @@ De Spelmaker zet het spel op in de app. Jij kiest het speelveld en de instelling
 
 {{< screenshot name="lobby" alt="De lobby met de spelcode, de knop Delen, de spelinstellingen en de spelerslijst met de labels Jager en Klaar" caption="De lobby" >}}
 
-**1. Tik op Nu spelen**
+### 1. Tik op Nu spelen
 Tik in het hoofdmenu op **Nu spelen**. Dat werkt alleen als locatie altijd is toegestaan en je nog niet in een spel zit.
 
-**2. Kies een speelveld**
+### 2. Kies een speelveld
 Tik op **Kies een speelveld** en kies er een van jezelf op het tabblad **Privé**, of zoek op het tabblad **Openbaar**.
 
-**3. Stel het spel in**
+### 3. Stel het spel in
 Speelduur, Vertraging jager, Eindfase, Locatie-ping en Ping in eindfase. De standaardwaarden geven een spel van 30 minuten. Zie de [Regels]({{< relref "/rules" >}}) voor alle opties. Tik op **Spel aanmaken**.
 
-**4. Nodig de spelers uit**
+### 4. Nodig de spelers uit
 De lobby toont de **Spelcode**. Tik op **Delen** om de uitnodigingslink te versturen. Spelers tikken op de link om mee te doen. Je kunt de spelinstellingen hier nog aanpassen.
 
-**5. Kies de Jager**
+### 5. Kies de Jager
 Tik op een speler en dan op **Maak Jager**. Alle anderen zijn Prooi. Je kunt jezelf ook Jager maken.
 
-**6. Wacht tot iedereen klaar is**
+### 6. Wacht tot iedereen klaar is
 Elke speler tikt op **Ik ben klaar**. Hun label verandert van **Wacht** naar **Klaar**.
 
-**7. Start het spel**
+### 7. Start het spel
 Tik op **Spel starten**. De voorsprong begint meteen.
 
 ---

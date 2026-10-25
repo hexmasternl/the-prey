@@ -35,4 +35,4 @@ Run Hugo from `website/src` (`hugo --gc --minify`, and `hugo server` to view). E
 
 - [x] 6.1 Grep `website/src/content` and `layouts` for `Ionic`, `MAUI`, `iOS` (except "no iOS"), `Join Game`, `Always Allow`, `Confirm Polygon`, `honour`, `scanline`; verify no stale hits remain
 - [x] 6.2 Re-check every quoted app label in both languages against the current `strings.xml` files, and that `/games/join/<id>/<code>`, `/.well-known/assetlinks.json`, `/privacy/` and `/account-removal/` still render unchanged; verify with `hugo server`
-- [ ] 6.3 Review every page in both languages at phone and desktop width with the `the-prey-design-system` checklist (contrast, 48 px targets, glow use, red only for hunter / warnings), and the language switcher on each page lands on its twin, including Get Started
+- [x] 6.3 Review every page in both languages at phone and desktop width with the `the-prey-design-system` checklist (contrast, 48 px targets, glow use, red only for hunter / warnings), and the language switcher on each page lands on its twin, including Get Started

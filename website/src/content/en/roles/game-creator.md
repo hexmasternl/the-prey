@@ -14,25 +14,25 @@ The Game Creator sets up the game in the app. You choose the playfield and the s
 
 {{< screenshot name="lobby" alt="The lobby with the game code, the Share button, the game settings and the player list with Hunter and Ready tags" caption="The lobby" >}}
 
-**1. Tap Play now**
+### 1. Tap Play now
 On the main menu, tap **Play now**. It only works when location is allowed all the time and you are not already in a game.
 
-**2. Choose a playfield**
+### 2. Choose a playfield
 Tap **Choose a playfield** and pick one of your own on the **Private** tab, or search the **Public** tab.
 
-**3. Set the game settings**
+### 3. Set the game settings
 Game duration, Hunter delay, Final stage, Location ping and Ping in final stage. The defaults give a 30-minute game. See the [Rules]({{< relref "/rules" >}}) for every option. Tap **Create game**.
 
-**4. Invite the players**
+### 4. Invite the players
 The lobby shows the **Game code**. Tap **Share** to send the invitation link. Players tap the link to join. You can still change the game settings here.
 
-**5. Choose the Hunter**
+### 5. Choose the Hunter
 Tap a player and then **Make hunter**. Everyone else is Prey. You can make yourself the Hunter.
 
-**6. Wait until everyone is ready**
+### 6. Wait until everyone is ready
 Each player taps **Set ready**. Their tag changes from **Waiting** to **Ready**.
 
-**7. Start the game**
+### 7. Start the game
 Tap **Start game**. The head start begins straight away.
 
 ---

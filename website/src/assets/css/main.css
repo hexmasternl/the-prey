@@ -222,6 +222,8 @@ h4 { font-size: 15px; color: var(--fg); margin: 24px 0 10px; }
 p { max-width: 68ch; margin-bottom: 14px; color: var(--fg-muted); }
 p strong { color: var(--fg); font-weight: normal; border-bottom: 1px dotted var(--accent-muted); }
 
+hr { border: 0; border-top: 1px solid var(--border); margin: var(--s-10) 0; }
+
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
