@@ -43,10 +43,20 @@ public sealed class UpdateGameSettingsCommandHandler : ICommandHandler<UpdateGam
                 command.EnablePreyBoundaryPenalties,
                 command.EnableHunterBoundaryPenalty);
 
+            // A settings change resets every non-owner ready flag. configuration-changed carries no
+            // participants, so each reset player is broadcast too, or other clients keep showing them ready.
+            var resetUserIds = game.Participants
+                .Where(p => p.UserId != game.OwnerUserId && p.IsReady)
+                .Select(p => p.UserId)
+                .ToList();
+
             game.UpdateSettings(config);
 
             await _games.UpdateAsync(game, ct);
             await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ConfigurationChanged, game.ToConfigurationChangedDto(), ct);
+            foreach (var userId in resetUserIds)
+                await _eventBus.PublishAsync(game.Id, RealtimeProtocol.MessageTypes.ParticipantChanged, game.ToParticipantDto(userId), ct);
+            activity?.SetTag("game.ready_reset_count", resetUserIds.Count);
 
             return new UpdateGameSettingsResult(game.ToDto(command.OwnerUserId));
         }

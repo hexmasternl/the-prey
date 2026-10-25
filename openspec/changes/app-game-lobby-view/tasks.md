@@ -2,9 +2,9 @@
 
 ## 1. Server: broadcast the ready reset
 
-- [ ] 1.1 In `UpdateGameSettingsCommandHandler`, capture the non-owner participants with `IsReady == true` before `game.UpdateSettings`. After the `configuration-changed` publish, publish `participant-changed` (`game.ToParticipantDto(userId)`) for each of them. Keep the existing OTel activity. Verify `dotnet build server/src/the-prey.slnx` succeeds.
-- [ ] 1.2 Add tests in `HexMaster.ThePrey.Games.Tests/UpdateGameSettings/`: two ready players and one waiting produce one `configuration-changed` and exactly two `participant-changed` messages with `isReady: false`, and no ready players produce no `participant-changed`. Verify `dotnet test server/src/Games/HexMaster.ThePrey.Games.Tests/` passes.
-- [ ] 1.3 In `docs/api/realtime.md`, note under `participant-changed` that a settings change broadcasts one per reset player. In `docs/api/endpoints.md`, list `PUT /games/{id}/config`, `POST /games/{id}/lobby/ready` and `POST /games/{id}/hunter` (with request bodies), and fix the 4-digit code. Verify by reading that the routes match `GameEndpoints.cs`.
+- [x] 1.1 In `UpdateGameSettingsCommandHandler`, capture the non-owner participants with `IsReady == true` before `game.UpdateSettings`. After the `configuration-changed` publish, publish `participant-changed` (`game.ToParticipantDto(userId)`) for each of them. Keep the existing OTel activity. Verify `dotnet build server/src/the-prey.slnx` succeeds.
+- [x] 1.2 Add tests in `HexMaster.ThePrey.Games.Tests/UpdateGameSettings/`: two ready players and one waiting produce one `configuration-changed` and exactly two `participant-changed` messages with `isReady: false`, and no ready players produce no `participant-changed`. Verify `dotnet test server/src/Games/HexMaster.ThePrey.Games.Tests/` passes.
+- [x] 1.3 In `docs/api/realtime.md`, note under `participant-changed` that a settings change broadcasts one per reset player. In `docs/api/endpoints.md`, list `PUT /games/{id}/config`, `POST /games/{id}/lobby/ready` and `POST /games/{id}/hunter` (with request bodies), and fix the 4-digit code. Verify by reading that the routes match `GameEndpoints.cs`.
 
 ## 2. Android data layer: lobby commands and models
 

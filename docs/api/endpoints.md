@@ -50,7 +50,10 @@ All endpoints require a valid Bearer token unless noted otherwise.
 | `GET` | `/games/{id}` | Get game state and player list |
 | `POST` | `/games/join` | Join a game using a game code |
 | `POST` | `/games/{id}/roles` | Assign roles (creator only) |
-| `POST` | `/games/{id}/start` | Start the game (creator only) |
+| `PUT` | `/games/{id}/config` | Update the game settings (owner only, `Lobby`/`Ready`); resets every non-owner ready flag |
+| `POST` | `/games/{id}/lobby/ready` | Mark the caller ready in the lobby (no-op for the owner) |
+| `POST` | `/games/{id}/hunter` | Designate the hunter (owner, `Lobby`/`Ready`) |
+| `POST` | `/games/{id}/start` | Start the game (owner only, from `Ready`) |
 | `POST` | `/games/{id}/leave` | Leave a game that has not started yet — `409` once it is under way |
 | `GET` | `/games/{id}/notifications/token` | Get a short-lived, group-scoped Web PubSub client access URL (see [realtime.md](./realtime.md)) |
 
@@ -149,9 +152,50 @@ positive, `hunterDelayTime` and `finalStageDuration` shorter than `gameDuration`
 
 ```json
 {
-  "code": "HX-4291"
+  "joinCode": "4291",
+  "displayName": "Fox"
 }
 ```
+
+### `PUT /games/{id}/config` — Request Body
+
+```json
+{
+  "gameDuration": 60,
+  "hunterDelayTime": 5,
+  "finalStageDuration": 10,
+  "defaultLocationInterval": 180,
+  "finalLocationInterval": 60,
+  "enablePreyBoundaryPenalties": false,
+  "enableHunterBoundaryPenalty": false
+}
+```
+
+The full configuration, with the same units and rules as `POST /games`. Owner only; `200` with the
+caller's `GameDto`. Every non-owner ready flag is reset: the server broadcasts `configuration-changed`
+and one `participant-changed` per reset player (see [realtime.md](./realtime.md#participant-changed)).
+
+### `POST /games/{id}/lobby/ready`
+
+No body. Marks the caller ready; `200` with the caller's `GameDto`. When every non-owner is ready, a
+hunter is designated and there are at least two players, the server moves the game to `Ready`.
+
+### `POST /games/{id}/hunter` — Request Body
+
+```json
+{ "newHunterUserId": "6f1c1d0e-8f43-4a8e-9a43-3d8b0e1f2a11" }
+```
+
+In the lobby the owner designates any participant (including themselves); `200` with the caller's
+`GameDto`.
+
+### `POST /games/{id}/start` — Request Body
+
+```json
+{ "hunterUserId": "6f1c1d0e-8f43-4a8e-9a43-3d8b0e1f2a11" }
+```
+
+Owner only and only from `Ready`; `200` with the caller's `GameDto` in status `Started`.
 
 ### `POST /games/{id}/roles` — Request Body
 

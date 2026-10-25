@@ -123,6 +123,11 @@ A participant's ready flag, callsign, state, or penalty changed (also used for i
 `participant-joined`) — the client replaces that participant entry wholesale, so no field is
 lost.
 
+A settings change (`PUT /games/{id}/config`) resets every non-owner ready flag. Because
+`configuration-changed` carries no participants, the server follows it with **one
+`participant-changed` per player whose ready flag was reset**, so other clients drop their ready tags
+without waiting for a resync.
+
 #### `participant-removed`
 A participant left or was removed.
 ```json
