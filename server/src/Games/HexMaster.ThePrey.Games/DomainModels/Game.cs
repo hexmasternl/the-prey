@@ -38,7 +38,7 @@ public sealed class Game
     /// The fixed interval, in seconds, at which every device posts its GPS coordinate.
     /// The phone always posts at this cadence regardless of game stage or penalties.
     /// </summary>
-    public const int LocationReportingIntervalSeconds = 10;
+    public const int LocationReportingIntervalSeconds = 5;
 
     /// <summary>The sweep cadence in seconds — how often the game tick service runs a sweep.</summary>
     public const int SweepIntervalSeconds = 30;

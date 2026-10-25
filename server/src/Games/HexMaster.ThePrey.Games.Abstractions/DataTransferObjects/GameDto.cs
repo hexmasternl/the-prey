@@ -39,9 +39,12 @@ public sealed record GameSummaryDto(
 /// <see cref="NextLocationIntervalSeconds"/> is the regular (non-penalty) reporting interval.
 /// While the participant has an active penalty, <see cref="PenaltyIntervalSeconds"/> overrides it
 /// until <see cref="PenaltyEndsAt"/>; both are null when no penalty is active.
+/// <see cref="KeepReporting"/> is false once the caller is <c>Tagged</c> or <c>Out</c>: the device
+/// may stop its location tracking for this game.
 /// </summary>
 public sealed record RecordLocationResponse(
     bool Accepted,
     int NextLocationIntervalSeconds,
     int? PenaltyIntervalSeconds = null,
-    DateTimeOffset? PenaltyEndsAt = null);
+    DateTimeOffset? PenaltyEndsAt = null,
+    bool KeepReporting = true);

@@ -65,7 +65,12 @@ public sealed class RecordPlayerLocationCommandHandler : ICommandHandler<RecordP
         var penaltyEndsAt = game.ActivePenaltyEndsAtFor(command.UserId, now);
         var penaltyInterval = penaltyEndsAt is null ? (int?)null : Game.PenaltyReportingIntervalSeconds;
 
+        // A tagged or timed-out participant is no longer in play: tell the device to stop tracking.
+        var state = game.Participants.FirstOrDefault(p => p.UserId == command.UserId)?.State;
+        var keepReporting = isHunter || state is not (PlayerState.Tagged or PlayerState.Out);
+        activity?.SetTag("game.keep_reporting", keepReporting);
+
         return new RecordPlayerLocationResult(
-            new RecordLocationResponse(true, Game.LocationReportingIntervalSeconds, penaltyInterval, penaltyEndsAt));
+            new RecordLocationResponse(true, Game.LocationReportingIntervalSeconds, penaltyInterval, penaltyEndsAt, keepReporting));
     }
 }

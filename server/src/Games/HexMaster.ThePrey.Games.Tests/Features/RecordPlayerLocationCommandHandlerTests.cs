@@ -31,7 +31,7 @@ public sealed class RecordPlayerLocationCommandHandlerTests
         new(_repository.Object, _metrics.Object, _eventBus.Object, new FixedTimeProvider(now));
 
     [Fact]
-    public async Task Handle_ShouldRecordAndReturn10sInterval_WhenParticipantSubmits()
+    public async Task Handle_ShouldRecordAndReturnRegularInterval_WhenParticipantSubmits()
     {
         var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
         _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
@@ -41,12 +41,92 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         Assert.NotNull(result);
         Assert.True(result!.Response.Accepted);
-        // Device sampling cadence is now a constant 10s regardless of game stage.
+        // Device sampling cadence is a constant 5s regardless of game stage.
         Assert.Equal(Game.LocationReportingIntervalSeconds, result.Response.NextLocationIntervalSeconds);
         Assert.Null(result.Response.PenaltyIntervalSeconds);
         Assert.Null(result.Response.PenaltyEndsAt);
         _repository.Verify(r => r.UpdateAsync(game, It.IsAny<CancellationToken>()), Times.Once);
         _metrics.Verify(m => m.RecordLocationRecorded(), Times.Once);
+    }
+
+    [Fact]
+    public void LocationReportingInterval_ShouldBeFiveSeconds()
+    {
+        Assert.Equal(5, Game.LocationReportingIntervalSeconds);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldKeepReporting_WhenActivePreySubmits()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, preyIds[0], 52.1, 5.1, null), CancellationToken.None);
+
+        Assert.True(result!.Response.KeepReporting);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldKeepReporting_WhenPassivePreySubmits()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        var preyId = preyIds[0];
+        game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Start);
+        game.ApplyTimeoutTransitions(Start.AddMinutes(6)); // → Passive
+        Assert.Equal(PlayerState.Passive, game.Participants.Single(p => p.UserId == preyId).State);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await CreateHandler(Start.AddMinutes(6)).Handle(
+            new RecordPlayerLocationCommand(game.Id, preyId, 52.2, 5.2, null), CancellationToken.None);
+
+        Assert.True(result!.Response.KeepReporting);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldKeepReporting_WhenHunterSubmits()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: GameFaker.ValidConfiguration());
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, hunterId, 52.1, 5.1, null), CancellationToken.None);
+
+        Assert.True(result!.Response.KeepReporting);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldStopReporting_WhenTaggedPreySubmits()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        var preyId = preyIds[0];
+        GameFaker.RecordColocated(game, Now, hunterId, preyId);
+        game.TagParticipant(hunterId, preyId, Now);
+        Assert.Equal(PlayerState.Tagged, game.Participants.Single(p => p.UserId == preyId).State);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await _handler.Handle(
+            new RecordPlayerLocationCommand(game.Id, preyId, 52.1, 5.1, null), CancellationToken.None);
+
+        Assert.True(result!.Response.Accepted);
+        Assert.False(result.Response.KeepReporting);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldStopReporting_WhenOutPreySubmits()
+    {
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, configuration: GameFaker.ValidConfiguration());
+        var preyId = preyIds[0];
+        game.RecordLocation(preyId, GpsCoordinate.Create(52.1, 5.1), Start);
+        game.ApplyTimeoutTransitions(Start.AddMinutes(8)); // → Out
+        Assert.Equal(PlayerState.Out, game.Participants.Single(p => p.UserId == preyId).State);
+        _repository.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
+
+        var result = await CreateHandler(Start.AddMinutes(8)).Handle(
+            new RecordPlayerLocationCommand(game.Id, preyId, 52.2, 5.2, null), CancellationToken.None);
+
+        Assert.True(result!.Response.Accepted);
+        Assert.False(result.Response.KeepReporting);
     }
 
     [Fact]
@@ -62,7 +142,7 @@ public sealed class RecordPlayerLocationCommandHandlerTests
 
         Assert.NotNull(result);
         Assert.True(result!.Response.Accepted);
-        // Device cadence stays at 10s; penalty info is still surfaced for UI display.
+        // Device cadence stays at 5s; penalty info is still surfaced for UI display.
         Assert.Equal(Game.LocationReportingIntervalSeconds, result.Response.NextLocationIntervalSeconds);
         Assert.Equal(Game.PenaltyReportingIntervalSeconds, result.Response.PenaltyIntervalSeconds);
         Assert.Equal(penaltyEndsAt, result.Response.PenaltyEndsAt);

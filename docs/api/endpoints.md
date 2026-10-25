@@ -151,20 +151,45 @@ All three superseded reads remain available and unchanged, so existing clients k
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/games/{id}/location` | Submit current GPS location (prey only) |
+| `POST` | `/games/{id}/locations` | Submit the caller's current GPS location (hunter and prey both report) |
 
-### `POST /games/{id}/location` — Request Body
+Every participant's device posts its position every **5 seconds** for the whole game, including while the
+app is in the background (the Android in-game location tracking service). The server stays authoritative:
+boundary violations, the hunter's head-start rule and the 5/7-minute silence rules are assessed by the
+sweep from this location history.
+
+### `POST /games/{id}/locations` — Request Body
 
 ```json
 {
-  "lat": 52.3702,
-  "lon": 4.8952,
-  "accuracy": 5.0,
-  "timestamp": "2025-06-01T14:00:00Z"
+  "latitude": 52.3702,
+  "longitude": 4.8952,
+  "recordedAt": "2026-06-01T14:00:00+00:00",
+  "accuracy": 5.0
 }
 ```
 
-The server rejects location updates during the head start phase and enforces the 60-second minimum interval during the final stretch.
+`recordedAt` is the time the fix was measured (defaults to the server time when omitted); `accuracy` is
+the horizontal accuracy in meters (optional).
+
+### `POST /games/{id}/locations` — Response
+
+```json
+{
+  "accepted": true,
+  "nextLocationIntervalSeconds": 5,
+  "penaltyIntervalSeconds": null,
+  "penaltyEndsAt": null,
+  "keepReporting": true
+}
+```
+
+- `nextLocationIntervalSeconds` is the regular device reporting interval (5 s).
+- `penaltyIntervalSeconds` / `penaltyEndsAt` are set only while the caller has an active penalty.
+- `keepReporting` is `false` once the caller is `Tagged` or `Out`; the device stops tracking for this game.
+
+`400` (validation problem) unless the game is `InProgress` and the caller is a participant (a `Started`
+game rejects posts until the sweep commits play); `404` for an unknown game.
 
 ---
 
