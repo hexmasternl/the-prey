@@ -28,6 +28,8 @@ data class LobbyUiState(
     val isOwner: Boolean,
     val settings: GameSettings,
     val rows: List<LobbyPlayerRow>,
+    /** Rows marked ready, the owner included. */
+    val readyCount: Int,
     /** Owner only: the settings and the rows can be changed (nothing in flight). */
     val canEdit: Boolean,
     /** Non-owners only: Set ready is enabled. */
@@ -72,6 +74,7 @@ data class LobbyUiState(
                 isOwner = isOwner,
                 settings = game.configuration.toSettings(),
                 rows = rows,
+                readyCount = rows.count { it.isReady },
                 canEdit = isOwner && idle,
                 canSetReady = !isOwner && idle && myRow != null && !myRow.isReady,
                 canStart = isOwner && idle && ready,

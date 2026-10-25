@@ -151,4 +151,29 @@ class LobbyUiStateTest {
         assertEquals("4291", state.gameCode)
         assertTrue(state.reconnecting)
     }
+
+    @Test
+    fun from_ShouldCountOwnerAsReady_WhenOwnerIsAlone() {
+        val state = LobbyUiState.from(snapshot(participants = listOf(player("owner"))), "owner", null)
+
+        assertEquals(1, state.rows.size)
+        assertEquals(1, state.readyCount)
+    }
+
+    @Test
+    fun from_ShouldCountReadyRows_WhenSomePlayersAreReady() {
+        val state = LobbyUiState.from(snapshot(), "p1", null)
+
+        assertEquals(3, state.rows.size)
+        assertEquals(2, state.readyCount)
+    }
+
+    @Test
+    fun from_ShouldCountOnlyOwner_WhenASettingsChangeResetReadyFlags() {
+        val ready = snapshot(participants = listOf(player("owner"), player("p1", ready = true), player("p2", ready = true)))
+        val reset = snapshot(participants = listOf(player("owner"), player("p1"), player("p2")))
+
+        assertEquals(3, LobbyUiState.from(ready, "owner", null).readyCount)
+        assertEquals(1, LobbyUiState.from(reset, "owner", null).readyCount)
+    }
 }

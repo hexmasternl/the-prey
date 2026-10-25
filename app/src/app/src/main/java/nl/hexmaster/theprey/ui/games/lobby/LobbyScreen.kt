@@ -442,6 +442,7 @@ private fun previewLobby(isOwner: Boolean, ready: Boolean = false) = LobbyUiStat
         LobbyPlayerRow("a", "Vos", isHunter = true, isReady = ready, isMe = !isOwner),
         LobbyPlayerRow("b", "Ghost-Runner", isHunter = false, isReady = false, isMe = false),
     ),
+    readyCount = if (ready) 2 else 1,
     canEdit = isOwner,
     canSetReady = !isOwner && !ready,
     canStart = false,
