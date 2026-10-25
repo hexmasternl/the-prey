@@ -2,19 +2,27 @@ package nl.hexmaster.theprey.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.hexmaster.theprey.auth.ProfileSettings
 import nl.hexmaster.theprey.auth.SessionController
 import nl.hexmaster.theprey.auth.SessionState
 import nl.hexmaster.theprey.auth.SettingsResult
+import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.language.LanguageChoice
 import nl.hexmaster.theprey.data.user.UserDto
+
+/** The outcome of "Show hints again". */
+enum class HintsResetMessage { Done, Failed }
 
 /** The outcome of the last callsign save, shown in the Callsign section until the next edit. */
 sealed interface CallsignSaveStatus {
@@ -48,18 +56,25 @@ data class SettingsUiState(
 /**
  * Callsign and language settings. The callsign is checked as the server does and saved with
  * `PUT /users/settings`; a language change applies on the phone first and is then synced as the
- * player's preferred language, best effort (see design Decision 4).
+ * player's preferred language, best effort (see design Decision 4). [resetHints] brings the
+ * first-time tours back.
  */
 class SettingsViewModel(
     private val session: SessionController,
     private val profileSettings: ProfileSettings,
     private val appLanguage: AppLanguage,
+    private val hints: HintsStore,
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<SettingsUiState>
     val uiState: StateFlow<SettingsUiState>
 
     private var languageSync: Job? = null
+
+    private val hintsMessages = Channel<HintsResetMessage>(Channel.BUFFERED)
+
+    /** One-shot outcome of [resetHints], for a snackbar. */
+    val hintsResetMessages: Flow<HintsResetMessage> = hintsMessages.receiveAsFlow()
 
     init {
         val profile = profile()
@@ -151,6 +166,21 @@ class SettingsViewModel(
                     else -> it
                 }
             }
+        }
+    }
+
+    /** Marks every first-time tour not seen, so each shows again the next time its situation occurs. */
+    fun resetHints() {
+        viewModelScope.launch {
+            val message = try {
+                hints.resetAll()
+                HintsResetMessage.Done
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                HintsResetMessage.Failed
+            }
+            hintsMessages.send(message)
         }
     }
 

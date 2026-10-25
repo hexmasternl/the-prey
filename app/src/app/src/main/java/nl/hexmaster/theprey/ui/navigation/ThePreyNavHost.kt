@@ -359,7 +359,7 @@ fun ThePreyNavHost(
                 }
                 composable(Routes.SETTINGS) {
                     SettingsScreen(
-                        viewModel = viewModel { SettingsViewModel(session, profileSettings, appLanguage) },
+                        viewModel = viewModel { SettingsViewModel(session, profileSettings, appLanguage, hintsStore) },
                         consentStore = locationConsentStore,
                         onBack = { navController.popBackStack() },
                     )

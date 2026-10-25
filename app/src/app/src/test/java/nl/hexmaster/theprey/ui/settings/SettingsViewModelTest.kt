@@ -3,13 +3,21 @@ package nl.hexmaster.theprey.ui.settings
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.theprey.auth.ProfileSettings
 import nl.hexmaster.theprey.auth.SessionState
 import nl.hexmaster.theprey.auth.SettingsResult
 import nl.hexmaster.theprey.auth.aProfile
+import nl.hexmaster.theprey.data.hints.Hint
+import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.language.LanguageChoice
 import nl.hexmaster.theprey.data.user.UserDto
@@ -20,6 +28,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -67,7 +76,25 @@ class SettingsViewModelTest {
         settings = FakeProfileSettings(session)
     }
 
-    private fun viewModel() = SettingsViewModel(session, settings, language)
+    /** Seen flags in memory; [failReset] makes [resetAll] throw like a failing disk. */
+    private class FakeHintsStore(seen: Set<Hint> = emptySet(), var failReset: Boolean = false) : HintsStore {
+        val current = MutableStateFlow(seen)
+
+        override fun seen(hint: Hint): Flow<Boolean> = current.map { hint in it }
+
+        override suspend fun markSeen(hint: Hint) {
+            current.value = current.value + hint
+        }
+
+        override suspend fun resetAll() {
+            if (failReset) throw IOException("disk")
+            current.value = emptySet()
+        }
+    }
+
+    private val hints = FakeHintsStore(seen = Hint.entries.toSet())
+
+    private fun viewModel() = SettingsViewModel(session, settings, language, hints)
 
     @Test
     fun uiState_ShouldShowTheCurrentCallsign_WhenOpened() {
@@ -273,5 +300,32 @@ class SettingsViewModelTest {
 
         assertEquals(1, settings.calls.size)
         assertFalse(sut.uiState.value.languageSyncPending)
+    }
+
+    // ---- First-time hints ----
+
+    @Test
+    fun resetHints_ShouldMarkEveryTourUnseenAndConfirm_WhenStorageWorks() = runTest {
+        val sut = viewModel()
+        val messages = mutableListOf<HintsResetMessage>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { sut.hintsResetMessages.toList(messages) }
+
+        sut.resetHints()
+
+        assertTrue(hints.current.value.isEmpty())
+        assertEquals(listOf(HintsResetMessage.Done), messages)
+    }
+
+    @Test
+    fun resetHints_ShouldReportTheFailure_WhenStorageFails() = runTest {
+        hints.failReset = true
+        val sut = viewModel()
+        val messages = mutableListOf<HintsResetMessage>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { sut.hintsResetMessages.toList(messages) }
+
+        sut.resetHints()
+
+        assertEquals(Hint.entries.toSet(), hints.current.value)
+        assertEquals(listOf(HintsResetMessage.Failed), messages)
     }
 }

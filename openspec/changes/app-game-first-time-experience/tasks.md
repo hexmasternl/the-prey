@@ -30,7 +30,7 @@ Prerequisite: `app-playfield-edit-area-allow-delete` is implemented (the delete 
 
 ## 5. Settings reset
 
-- [ ] 5.1 Add `HintsStore` to `SettingsViewModel` with `resetHints()` emitting a one-shot reset / failure message; verify with `SettingsViewModelTest` cases: reset clears all three flags in a fake store and emits success; a throwing store emits failure
+- [x] 5.1 Add `HintsStore` to `SettingsViewModel` with `resetHints()` emitting a one-shot reset / failure message; verify with `SettingsViewModelTest` cases: reset clears all three flags in a fake store and emits success; a throwing store emits failure
 - [ ] 5.2 Add a `HintsSection` (title, short explanation, outlined "Show hints again" button) after the location section in `SettingsScreen` and show the message in a snackbar; add `settings_section_hints`, `settings_hints_body`, `settings_hints_reset` ("Show hints again" / "Hints opnieuw tonen"), `settings_hints_reset_done`, `settings_hints_reset_failed` in en and nl; wire `hintsStore` in `ThePreyNavHost`; verify with en and nl previews and `./gradlew assembleDebug lintDebug testDebugUnitTest`
 
 ## 6. Integration check
