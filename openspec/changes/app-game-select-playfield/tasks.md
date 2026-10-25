@@ -13,8 +13,8 @@
 
 ## 3. Selection state and result contract
 
-- [ ] 3.1 Add `PlayFieldSelection` (`@Serializable` id, name, isPublic) and `PlayFieldSelectResult` (`KEY`, `deliver`, `consume` emitting once then removing the key) in `ui/playfields/select/PlayFieldSelection.kt`; add `PlayFieldSelectResultTest` with a real `SavedStateHandle` (round trip, emits once, nothing delivered → no emission) and verify it passes
-- [ ] 3.2 Implement `PlayFieldSelectViewModel` + `PlayFieldSelectUiState` in `ui/playfields/select/` composing `OwnPlayFields` and `PublicPlayFieldSearch`, with `selectTab`, `retry`, `onQueryChange` and `toggle`, and tab/query/selection in `SavedStateHandle`; verify `PlayFieldSelectViewModelTest` passes covering: Private on open, own list loaded once, tap selects, tap another moves, tap selected deselects, selection kept across tab switch and a search that drops the row, selection/tab/query restored from `SavedStateHandle`, own public playfield matched by id on both tabs
+- [x] 3.1 Add `PlayFieldSelection` (`@Serializable` id, name, isPublic) and `PlayFieldSelectResult` (`KEY`, `deliver`, `consume` emitting once then removing the key) in `ui/playfields/select/PlayFieldSelection.kt`; add `PlayFieldSelectResultTest` with a real `SavedStateHandle` (round trip, emits once, nothing delivered → no emission) and verify it passes
+- [x] 3.2 Implement `PlayFieldSelectViewModel` + `PlayFieldSelectUiState` in `ui/playfields/select/` composing `OwnPlayFields` and `PublicPlayFieldSearch`, with `selectTab`, `retry`, `onQueryChange` and `toggle`, and tab/query/selection in `SavedStateHandle`; verify `PlayFieldSelectViewModelTest` passes covering: Private on open, own list loaded once, tap selects, tap another moves, tap selected deselects, selection kept across tab switch and a search that drops the row, selection/tab/query restored from `SavedStateHandle`, own public playfield matched by id on both tabs
 
 ## 4. Selection screen and navigation
 
