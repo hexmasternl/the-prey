@@ -33,6 +33,7 @@ import nl.hexmaster.theprey.data.location.LocationSource
 import nl.hexmaster.theprey.data.playfield.PlayFieldRepository
 import nl.hexmaster.theprey.data.sensors.HeadingSource
 import nl.hexmaster.theprey.data.user.ProfileStore
+import nl.hexmaster.theprey.deeplink.PendingInviteStore
 import nl.hexmaster.theprey.tracking.TrackingStarter
 import nl.hexmaster.theprey.ui.consent.LocationConsentHost
 import nl.hexmaster.theprey.ui.game.GameExit
@@ -43,6 +44,9 @@ import nl.hexmaster.theprey.ui.game.hud.hunter.TagSheetViewModel
 import nl.hexmaster.theprey.ui.game.hud.prey.PreyHud
 import nl.hexmaster.theprey.ui.games.create.CreateGameScreen
 import nl.hexmaster.theprey.ui.games.create.CreateGameViewModel
+import nl.hexmaster.theprey.ui.games.join.JoinExit
+import nl.hexmaster.theprey.ui.games.join.JoinGameScreen
+import nl.hexmaster.theprey.ui.games.join.JoinGameViewModel
 import nl.hexmaster.theprey.ui.games.lobby.LobbyExit
 import nl.hexmaster.theprey.ui.games.lobby.LobbyScreen
 import nl.hexmaster.theprey.ui.games.lobby.LobbyViewModel
@@ -84,6 +88,9 @@ object Routes {
     const val GAME_ID = "gameId"
 
     fun game(gameId: String) = "game/$gameId"
+
+    /** Joins the game of a pending invitation; opened by itself while one is pending. */
+    const val JOIN = "join"
     const val PLAYFIELDS = "playfields"
 
     /**
@@ -129,7 +136,8 @@ fun routeFor(state: SessionState): String? = when (state) {
  * clears the back stack, so Back leaves the app. Signed-in players get the location tracking
  * disclosure on top (see [LocationConsentHost]): once by itself on the main menu, and before game actions.
  * While signed in, in-game location tracking is resumed for a running game (see [TrackingAutoStart]);
- * [trackingRequest] carries a tap on the resume notification.
+ * [trackingRequest] carries a tap on the resume notification. An invitation in [pendingInviteStore]
+ * opens the join step as soon as the player is signed in.
  */
 @Composable
 fun ThePreyNavHost(
@@ -143,11 +151,13 @@ fun ThePreyNavHost(
     headingSource: HeadingSource,
     profileSettings: ProfileSettings,
     appLanguage: AppLanguage,
+    pendingInviteStore: PendingInviteStore,
     modifier: Modifier = Modifier,
     trackingStarter: TrackingStarter? = null,
     trackingRequest: TrackingRequest? = null,
 ) {
     val state by session.state.collectAsStateWithLifecycle()
+    val hasPendingInvite by pendingInviteStore.pending.collectAsStateWithLifecycle(initialValue = false)
     // Nothing to show yet: the system splash stays up until the session is known.
     val target = routeFor(state) ?: return
 
@@ -310,6 +320,25 @@ fun ThePreyNavHost(
                         locationSource = locationSource,
                     )
                 }
+                // Opened by a pending invitation; every exit leaves this entry.
+                composable(Routes.JOIN) { entry ->
+                    JoinGameScreen(
+                        viewModel = viewModel { JoinGameViewModel(pendingInviteStore, gameRepository, profileStore) },
+                        onExit = { exit ->
+                            if (navController.currentBackStackEntry == entry) {
+                                when (exit) {
+                                    is JoinExit.Lobby -> navController.navigate(Routes.lobby(exit.gameId)) {
+                                        popUpTo(Routes.JOIN) { inclusive = true }
+                                    }
+                                    is JoinExit.Game -> navController.navigate(Routes.game(exit.gameId)) {
+                                        popUpTo(Routes.JOIN) { inclusive = true }
+                                    }
+                                    is JoinExit.Menu -> navController.returnToMainMenu(exit.message)
+                                }
+                            }
+                        },
+                    )
+                }
                 // Scoped to this entry: every open starts on Private with nothing selected.
                 composable(Routes.PLAYFIELD_SELECT) {
                     PlayFieldSelectScreen(
@@ -342,6 +371,17 @@ fun ThePreyNavHost(
                 popUpTo(navController.graph.id) { inclusive = true }
                 launchSingleTop = true
             }
+        }
+    }
+
+    // A pending invitation opens the join step once the player is in the signed-in area, on top of
+    // whatever is showing; signed out, it waits on the landing page until the sign-in completes.
+    val signedIn = state is SessionState.SignedIn
+    val currentDestination = currentEntry?.destination
+    LaunchedEffect(signedIn, hasPendingInvite, currentDestination) {
+        val inSignedInArea = currentDestination?.hierarchy?.any { it.route == Routes.SIGNED_IN } == true
+        if (signedIn && hasPendingInvite && inSignedInArea && currentDestination.route != Routes.JOIN) {
+            navController.navigate(Routes.JOIN) { launchSingleTop = true }
         }
     }
 }
