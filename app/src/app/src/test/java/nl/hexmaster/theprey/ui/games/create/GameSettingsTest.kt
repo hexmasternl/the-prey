@@ -1,5 +1,6 @@
 package nl.hexmaster.theprey.ui.games.create
 
+import nl.hexmaster.theprey.data.game.GameConfigurationDto
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -95,5 +96,21 @@ class GameSettingsTest {
                         }
                     }
         assertTrue(checked > 0)
+    }
+
+    @Test
+    fun toSettings_ShouldConvertSecondsToMinutes_WhenReadingServerConfiguration() {
+        val config = GameConfigurationDto(60, 5, 10, 180, 60, enablePreyBoundaryPenalties = true, enableHunterBoundaryPenalty = false)
+
+        assertEquals(GameSettings(60, 5, 10, 3, 1), config.toSettings())
+    }
+
+    @Test
+    fun with_ShouldConvertMinutesToSecondsAndKeepPenalties_WhenWritingServerConfiguration() {
+        val config = GameConfigurationDto(30, 5, 10, 180, 60, enablePreyBoundaryPenalties = true, enableHunterBoundaryPenalty = true)
+
+        val updated = config.with(GameSettings(90, 3, 5, 2, 2))
+
+        assertEquals(GameConfigurationDto(90, 3, 5, 120, 120, enablePreyBoundaryPenalties = true, enableHunterBoundaryPenalty = true), updated)
     }
 }

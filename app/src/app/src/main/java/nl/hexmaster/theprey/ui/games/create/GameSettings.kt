@@ -1,5 +1,7 @@
 package nl.hexmaster.theprey.ui.games.create
 
+import nl.hexmaster.theprey.data.game.GameConfigurationDto
+
 /** The five game settings a player chooses, each with its options and default, all in minutes. */
 enum class GameSetting(val options: List<Int>, val default: Int) {
     Duration(listOf(30, 60, 90), 30),
@@ -58,3 +60,27 @@ data class GameSettings(
         }
     }
 }
+
+private const val SECONDS_PER_MINUTE = 60
+
+/**
+ * The server's configuration as settings in minutes. Values the server holds that are not an
+ * option (e.g. a game made by another client) are kept as they are: they show with no segment
+ * selected.
+ */
+fun GameConfigurationDto.toSettings(): GameSettings = GameSettings(
+    duration = gameDuration,
+    hunterDelay = hunterDelayTime,
+    finalStage = finalStageDuration,
+    pingInterval = defaultLocationInterval / SECONDS_PER_MINUTE,
+    finalPingInterval = finalLocationInterval / SECONDS_PER_MINUTE,
+)
+
+/** [settings] applied to this configuration: ping intervals back to seconds, penalty flags unchanged. */
+fun GameConfigurationDto.with(settings: GameSettings): GameConfigurationDto = copy(
+    gameDuration = settings.duration,
+    hunterDelayTime = settings.hunterDelay,
+    finalStageDuration = settings.finalStage,
+    defaultLocationInterval = settings.pingInterval * SECONDS_PER_MINUTE,
+    finalLocationInterval = settings.finalPingInterval * SECONDS_PER_MINUTE,
+)
