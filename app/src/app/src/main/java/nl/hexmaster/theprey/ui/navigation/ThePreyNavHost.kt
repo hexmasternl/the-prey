@@ -250,6 +250,8 @@ fun ThePreyNavHost(
                                         GameExit.Ended -> MainMenuMessage.GameEnded
                                         GameExit.Cancelled -> MainMenuMessage.GameCancelled
                                         GameExit.Unavailable -> MainMenuMessage.GameUnavailable
+                                        // The result dialog already told the player how the game ended.
+                                        GameExit.Dismissed -> null
                                     },
                                 )
                             }

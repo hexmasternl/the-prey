@@ -19,6 +19,7 @@ import nl.hexmaster.theprey.data.game.ConnectionState
 import nl.hexmaster.theprey.data.game.FullGameStateDto
 import nl.hexmaster.theprey.data.game.GameConfigurationDto
 import nl.hexmaster.theprey.data.game.GameDto
+import nl.hexmaster.theprey.data.game.GameOutcomes
 import nl.hexmaster.theprey.data.game.GameSession
 import nl.hexmaster.theprey.data.game.GameSessions
 import nl.hexmaster.theprey.data.game.GameStatusDto
@@ -30,6 +31,8 @@ import nl.hexmaster.theprey.data.game.RefreshResult
 import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.data.location.LocationSource
 import nl.hexmaster.theprey.data.playfield.GpsCoordinateDto
+import nl.hexmaster.theprey.ui.game.result.GameResult
+import nl.hexmaster.theprey.ui.game.result.GameResultKind
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -137,6 +140,45 @@ class GameViewModelTest {
         sessions.state.value = GameSession.Gone(GoneReason.Completed)
 
         assertEquals(ActiveGameUi.Exit(GameExit.Ended), sut.uiState.value)
+    }
+
+    private fun ended(outcome: String) =
+        snapshot.copy(game = snapshot.game.copy(status = GameStatuses.COMPLETED, outcome = outcome))
+
+    @Test
+    fun uiState_ShouldShowTheResult_WhenGameEndsLiveWithADecidedOutcome() = runTest {
+        val sut = viewModel()
+
+        sessions.state.value = GameSession.Gone(GoneReason.Completed, ended(GameOutcomes.PREYS_WIN))
+
+        assertEquals(ActiveGameUi.Result(GameResult(GameResultKind.PreyWon, escaped = 1, preys = 1)), sut.uiState.value)
+    }
+
+    @Test
+    fun uiState_ShouldShowTheResult_WhenEnteringAnAlreadyEndedGame() = runTest {
+        sessions.auto = RefreshResult.Gone(GoneReason.Completed, ended(GameOutcomes.HUNTERS_WIN))
+
+        assertEquals(ActiveGameUi.Result(GameResult(GameResultKind.PreyLost, escaped = 0, preys = 1)), viewModel().uiState.value)
+    }
+
+    @Test
+    fun uiState_ShouldExitEnded_WhenGameEndsUndecided() = runTest {
+        val sut = viewModel()
+
+        sessions.state.value = GameSession.Gone(GoneReason.Completed, ended(GameOutcomes.UNDECIDED))
+
+        assertEquals(ActiveGameUi.Exit(GameExit.Ended), sut.uiState.value)
+    }
+
+    @Test
+    fun uiState_ShouldExitCancelledOrUnavailable_WhenCancelledOrRemoved() = runTest {
+        val sut = viewModel()
+
+        sessions.state.value = GameSession.Gone(GoneReason.Cancelled)
+        assertEquals(ActiveGameUi.Exit(GameExit.Cancelled), sut.uiState.value)
+
+        sessions.state.value = GameSession.Gone(GoneReason.Removed)
+        assertEquals(ActiveGameUi.Exit(GameExit.Unavailable), sut.uiState.value)
     }
 
     @Test

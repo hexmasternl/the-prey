@@ -26,9 +26,10 @@ import nl.hexmaster.theprey.data.sensors.HeadingResolver
 import nl.hexmaster.theprey.data.sensors.HeadingSource
 import nl.hexmaster.theprey.data.user.ProfileStore
 import nl.hexmaster.theprey.ui.game.hud.common.ServerClock
+import nl.hexmaster.theprey.ui.game.result.GameResult
 
-/** Why the game screen returns to the main menu. */
-enum class GameExit { Ended, Cancelled, Unavailable }
+/** Why the game screen returns to the main menu. [Dismissed]: the player closed the result dialog. */
+enum class GameExit { Ended, Cancelled, Unavailable, Dismissed }
 
 /** What the game screen shows. */
 sealed interface ActiveGameUi {
@@ -38,6 +39,9 @@ sealed interface ActiveGameUi {
     data class Error(val retryable: Boolean) : ActiveGameUi
 
     data class Exit(val reason: GameExit) : ActiveGameUi
+
+    /** The game was played out with a decided result: the result dialog over the screen. */
+    data class Result(val result: GameResult) : ActiveGameUi
 
     data class Ready(
         val game: ActiveGameState,
@@ -75,7 +79,7 @@ class GameViewModel(
     private sealed interface Entry {
         data object Loading : Entry
         data class Failed(val retryable: Boolean) : Entry
-        data class Gone(val reason: GoneReason) : Entry
+        data class Gone(val reason: GoneReason, val final: FullGameStateDto?, val myUserId: String?) : Entry
         data class Ready(val myUserId: String?) : Entry
     }
 
@@ -102,7 +106,7 @@ class GameViewModel(
             entry.value = when (val result = sessions.refresh(gameId)) {
                 RefreshResult.Ok -> Entry.Ready(profileStore.read()?.userId)
                 is RefreshResult.Failed -> Entry.Failed(result.retryable)
-                is RefreshResult.Gone -> Entry.Gone(result.reason)
+                is RefreshResult.Gone -> Entry.Gone(result.reason, result.final, profileStore.read()?.userId)
             }
         }
     }
@@ -111,7 +115,7 @@ class GameViewModel(
         when (current) {
             Entry.Loading -> flowOf(ActiveGameUi.Loading)
             is Entry.Failed -> flowOf(ActiveGameUi.Error(current.retryable))
-            is Entry.Gone -> flowOf(ActiveGameUi.Exit(current.reason.toExit()))
+            is Entry.Gone -> flowOf(gone(current.reason, current.final, current.myUserId))
             is Entry.Ready -> live(current.myUserId)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), ActiveGameUi.Loading)
@@ -126,7 +130,7 @@ class GameViewModel(
             when (session) {
                 GameSession.Loading -> ActiveGameUi.Loading
                 is GameSession.Failed -> ActiveGameUi.Error(session.retryable)
-                is GameSession.Gone -> ActiveGameUi.Exit(session.reason.toExit())
+                is GameSession.Gone -> gone(session.reason, session.final, myUserId)
                 is GameSession.Live -> {
                     val snapshot = session.snapshot
                     if (snapshot.serverTime != seededFor?.serverTime) {
@@ -157,6 +161,12 @@ class GameViewModel(
         clock = ServerClock.seed(snapshot.serverTime, now)
         delay = StartDelay.seed(snapshot.status?.hunterMayMoveAt, snapshot.serverTime, now)
         lastPingAt = null
+    }
+
+    /** A played-out game with a decided result shows the result; every other ending leaves the screen. */
+    private fun gone(reason: GoneReason, final: FullGameStateDto?, myUserId: String?): ActiveGameUi {
+        val result = if (reason == GoneReason.Completed && final != null) GameResult.from(final, myUserId) else null
+        return result?.let { ActiveGameUi.Result(it) } ?: ActiveGameUi.Exit(reason.toExit())
     }
 
     private fun GoneReason.toExit(): GameExit = when (this) {
