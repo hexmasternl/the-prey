@@ -32,6 +32,8 @@ import nl.hexmaster.theprey.data.location.LocationAccess
 import nl.hexmaster.theprey.data.playfield.ApiPlayFieldRepository
 import nl.hexmaster.theprey.data.playfield.PlayFieldApi
 import nl.hexmaster.theprey.data.playfield.PlayFieldRepository
+import nl.hexmaster.theprey.data.sensors.CompassHeading
+import nl.hexmaster.theprey.data.sensors.HeadingSource
 import nl.hexmaster.theprey.data.user.DataStoreProfileStore
 import nl.hexmaster.theprey.data.user.ProfileStore
 import nl.hexmaster.theprey.data.user.UserApi
@@ -124,6 +126,9 @@ class AppContainer(context: Context) {
         session = sessionManager.state,
         scope = appScope,
     )
+
+    /** The device compass for the in-game player arrow; the sensor runs only while collected. */
+    val headingSource: HeadingSource = CompassHeading(context)
 
     /** Plain client for the Web PubSub socket: the access URL carries its own short-lived token. */
     private val socketClient = OkHttpClient()
