@@ -202,6 +202,18 @@
     <string name="lobby_settings">Spelinstellingen</string>
     <string name="lobby_players">Spelers</string>
     <string name="lobby_players_owner_hint">Tik op een speler om die Jager te maken.</string>
+    <string name="lobby_share_description">Spelcode delen</string>
+    <plurals name="lobby_players_ready">
+        <item quantity="one">Speler · %1$d · %2$d klaar</item>
+        <item quantity="other">Spelers · %1$d · %2$d klaar</item>
+    </plurals>
+    <string name="lobby_settings_edit">Wijzigen</string>
+    <string name="lobby_settings_sheet_title">Spelinstellingen</string>
+    <string name="lobby_summary_duration">Spel %1$d min</string>
+    <string name="lobby_summary_hunter_delay">%1$d min voorsprong</string>
+    <string name="lobby_summary_final_stage">Eindfase %1$d min</string>
+    <string name="lobby_summary_ping">Ping %1$d min</string>
+    <string name="lobby_summary_final_ping">Eindping %1$d min</string>
     <string name="lobby_tag_hunter">Jager</string>
     <string name="lobby_tag_prey">Prooi</string>
     <string name="lobby_tag_waiting">Wacht</string>

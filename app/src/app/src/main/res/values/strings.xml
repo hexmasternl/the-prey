@@ -226,6 +226,18 @@
     <string name="lobby_settings">Game settings</string>
     <string name="lobby_players">Players</string>
     <string name="lobby_players_owner_hint">Tap a player to make them the hunter.</string>
+    <string name="lobby_share_description">Share game code</string>
+    <plurals name="lobby_players_ready">
+        <item quantity="one">Player · %1$d · %2$d ready</item>
+        <item quantity="other">Players · %1$d · %2$d ready</item>
+    </plurals>
+    <string name="lobby_settings_edit">Edit</string>
+    <string name="lobby_settings_sheet_title">Game settings</string>
+    <string name="lobby_summary_duration">%1$d min game</string>
+    <string name="lobby_summary_hunter_delay">%1$d min head start</string>
+    <string name="lobby_summary_final_stage">%1$d min final stage</string>
+    <string name="lobby_summary_ping">Ping %1$d min</string>
+    <string name="lobby_summary_final_ping">Final ping %1$d min</string>
     <string name="lobby_tag_hunter">Hunter</string>
     <string name="lobby_tag_prey">Prey</string>
     <string name="lobby_tag_waiting">Waiting</string>
