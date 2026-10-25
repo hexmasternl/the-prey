@@ -1,74 +1,88 @@
 ---
 title: "Playfield"
-description: "How to draw and use a playfield in The Prey: define the GPS boundary polygon, learn the map gestures, save playfields, and start a game from one."
-keywords: ["playfield", "GPS boundary", "polygon map", "game area", "draw playfield", "map editor", "The Prey playfield"]
+description: "Playfields in The Prey: the Private and Public tabs, drawing the area point by point, the area editor, making a playfield public, and choosing one for a game."
+keywords: ["playfield", "game area", "draw playfield", "area editor", "public playfield", "GPS boundary", "The Prey playfield"]
 ---
 
 ## What Is a Playfield?
 
-A playfield is a GPS polygon: a closed boundary drawn on a map that defines the valid game area. Players must stay within it during the hunt.
+A playfield is the area a game is played in: an outline of at least three points drawn on the map. Players have to stay inside it during the hunt.
 
-Playfields are created before the game and can be saved and reused for future sessions.
+You draw playfields in advance and reuse them as often as you like. When you create a game, you choose the playfield it is played on.
+
+---
+
+## Your Playfields
+
+{{< screenshot name="playfields-list" alt="The Playfields screen with the Private and Public tabs and a list of playfields" caption="The Playfields screen" >}}
+
+Open **Playfields** from the main menu. The screen has two tabs:
+
+- **Private**: the playfields you made. Tap one to open it. Swipe a playfield to reveal **Delete**.
+- **Public**: playfields other players shared. Type at least 3 characters to search. Public playfields open read-only.
 
 ---
 
 ## Creation Steps
 
-1. Open **New Playfield** in the app.
-2. The map centers on your current GPS position.
-3. Tap the map to place each vertex of your boundary polygon.
-4. Place at least three vertices to form a valid polygon. Confirm when done.
-5. Name the playfield and tap **Save**.
+1. Open **Playfields** and stay on the **Private** tab.
+2. Tap **+** to create a playfield. The **New playfield** screen opens.
+3. Enter a **Name**.
+4. Tap **Playfield Area**. The area editor opens full screen.
+5. Draw the area: tap the map to place at least 3 points.
+6. Tap **Save** to take the area back to the playfield.
+7. Tap **Save** on the playfield to store it.
 
-Your saved playfields appear in the Playfield list and can be selected when starting a new game.
+{{< screenshot name="playfield-details" alt="The playfield details screen with the name field, the Public switch and the Playfield Area button" caption="The playfield details" >}}
 
-{{< screenshot src="/images/screens/playfield-set-area.png" alt="The playfield editor with a boundary polygon drawn on the map" caption="The playfield editor" >}}
+Nothing is stored until you tap **Save** on the playfield itself. To change an area later, open the playfield from the Private tab and tap **Playfield Area** again.
+
+The first time you draw the area of a new playfield, the app walks you through the editor with a short tour.
 
 ---
 
-## Map Gestures
+## The Area Editor
 
-| Gesture | Action |
+{{< screenshot name="area-editor" alt="The area editor: a green outline on the map, one point selected with a red border, and the Cancel, Erase All and Save buttons" caption="The area editor" >}}
+
+| Action | What it does |
 |---|---|
-| Tap map | Place a new vertex |
-| Drag vertex | Reposition a placed vertex |
-| Pinch | Zoom in / zoom out |
-| Tap vertex | Select it, then tap the trash button to remove it |
+| Tap the map | Add a point. Points are joined in the order you place them. |
+| Tap a point | Select it. It gets a red border. |
+| Drag the selected point | Move it. |
+| Tap empty map | Deselect the point. |
+| Trash button | Remove the selected point. The rest of the outline stays. |
+| Erase All | Remove every point and start over. |
+| Pinch / drag the map | Zoom / pan. |
+
+With 3 or more points the area shows as a green shape. **Save** needs at least 3 points. **Cancel** leaves without changing the area.
 
 ---
 
-## Leaving the Boundary: the Penalty
+## Leaving the Playfield
 
-The playfield boundary is enforced automatically during a game. When the Game Creator enables boundary penalties, any player who steps outside the polygon is penalised by the game.
-
-While a penalty is active:
-
-- The penalty lasts **5 minutes** from the moment you cross the boundary.
-- Your live position is broadcast **continuously** for the whole penalty, instead of only at the normal reporting interval. For Prey this means the Hunter can see exactly where you are the entire time you are out, and you lose the gaps between location pings that normally keep you hidden.
-- Returning inside the boundary does not clear an active penalty early; it simply stops new penalties from being applied.
-
-The penalty can be enabled separately for Prey and for the Hunter when the game is configured.
+Stay inside the outline. In a game with boundary penalties on, a player outside the playfield gets a 5-minute penalty: their position is shared every 10 seconds for as long as it lasts. See the [Rules]({{< relref "/rules" >}}) for every penalty.
 
 ---
 
 ## Making a Playfield Public
 
-By default a playfield is **private**, so only you can use it. You can share a playfield with the wider community by switching it to **public**, but the public toggle only unlocks when the name follows the listing convention:
+A new playfield is **private**: only you can use it. Switch on **Public** to share it with every player. Public only works when the name follows this pattern:
 
 ```
 CC, City, Fieldname
 ```
 
-- **CC**: a country code of 2 to 4 uppercase letters (e.g. `NL`, `USA`).
-- **City**: the city, starting with a capital and using ordinary city-name characters only (no special symbols).
+- **CC**: a country code of 2 to 4 capital letters (e.g. `NL`, `USA`).
+- **City**: the city, starting with a capital and using ordinary city-name characters only.
 - **Fieldname**: the name of the field; ordinary characters, with ampersands (`&`) and dashes (`-`) allowed.
 
-For example: `NL, Amsterdam, Vondelpark Arena`.
+For example: `NL, Amsterdam, Vondelpark`.
 
-Name your playfield this way and the **Public** switch becomes available. If you rename it so it no longer matches, the playfield is automatically set back to private before the switch is locked again. This keeps public playfields consistently named and easy to find for other players.
+If you rename a public playfield so it no longer matches, it goes back to private. This keeps public playfields consistently named and easy to find.
 
 ---
 
-## Starting a Game from a Playfield
+## Playing on a Playfield
 
-Open a saved playfield and tap **Start Game**. This creates a game session linked to that boundary. Invite players with the generated join code, assign roles in the lobby, and launch.
+You choose the playfield while creating a game: tap **Play now** on the main menu, then **Choose a playfield**, and pick one from the Private or Public tab. See [Create a Game]({{< relref "/how-to/create-a-game" >}}).

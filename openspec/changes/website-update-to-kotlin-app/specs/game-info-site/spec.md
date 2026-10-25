@@ -95,7 +95,7 @@ The site SHALL have a Playfield page (`content/{lang}/playfield/_index.md`) expl
 
 #### Scenario: No outdated steps
 - **WHEN** the Playfield page is loaded
-- **THEN** it does not mention "Confirm Polygon", "New Playfield", long-press to insert a point, or starting a game from a playfield
+- **THEN** it does not mention "Confirm Polygon", a "New Playfield" button, long-press to insert a point, or starting a game from a playfield (the app's "New playfield" screen title may be named)
 
 #### Scenario: Public playfield naming
 - **WHEN** the Playfield page is loaded

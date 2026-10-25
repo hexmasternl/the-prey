@@ -1,74 +1,88 @@
 ---
 title: "Speelveld"
-description: "Hoe je een speelveld tekent en gebruikt in The Prey: bepaal de GPS-grens, leer de kaartgebaren, sla speelvelden op en start een spel vanuit een speelveld."
-keywords: ["speelveld", "GPS-grens", "polygoon kaart", "speelgebied", "speelveld tekenen", "kaarteditor", "The Prey speelveld"]
+description: "Speelvelden in The Prey: de tabbladen Privé en Openbaar, het gebied punt voor punt tekenen, de gebiedseditor, een speelveld openbaar maken en er een kiezen voor een spel."
+keywords: ["speelveld", "speelgebied", "speelveld tekenen", "gebiedseditor", "openbaar speelveld", "GPS-grens", "The Prey speelveld"]
 ---
 
 ## Wat Is een Speelveld?
 
-Een speelveld is een GPS-polygoon: een gesloten grens getekend op een kaart die het geldige spelgebied definieert. Spelers moeten er tijdens de jacht binnen blijven.
+Een speelveld is het gebied waarin een spel wordt gespeeld: een omtrek van minstens drie punten, getekend op de kaart. Spelers moeten er tijdens de jacht binnen blijven.
 
-Speelvelden worden voor het spel aangemaakt en kunnen worden opgeslagen en hergebruikt voor toekomstige sessies.
-
----
-
-## Aanmaakstappen
-
-1. Open **Nieuw Speelveld** in de app.
-2. De kaart centreert op je huidige GPS-positie.
-3. Tik op de kaart om elk hoekpunt van je grenspolygoon te plaatsen.
-4. Plaats minimaal drie hoekpunten om een geldige polygoon te vormen. Bevestig wanneer je klaar bent.
-5. Geef het speelveld een naam en tik op **Opslaan**.
-
-Je opgeslagen speelvelden verschijnen in de speelveldlijst en kunnen worden geselecteerd bij het starten van een nieuw spel.
-
-{{< screenshot src="/images/screens/playfield-set-area.png" alt="De speelveldeditor met een grenspolygoon getekend op de kaart" caption="De speelveldeditor" >}}
+Je tekent speelvelden van tevoren en gebruikt ze zo vaak als je wilt. Als je een spel aanmaakt, kies je het speelveld waarop het wordt gespeeld.
 
 ---
 
-## Kaartgebaren
+## Jouw Speelvelden
 
-| Gebaar | Actie |
+{{< screenshot name="playfields-list" alt="Het scherm Speelvelden met de tabbladen Privé en Openbaar en een lijst speelvelden" caption="Het scherm Speelvelden" >}}
+
+Open **Speelvelden** vanuit het hoofdmenu. Het scherm heeft twee tabbladen:
+
+- **Privé**: de speelvelden die jij hebt gemaakt. Tik op een speelveld om het te openen. Veeg een speelveld opzij om **Verwijderen** te zien.
+- **Openbaar**: speelvelden die andere spelers delen. Typ minstens 3 tekens om te zoeken. Openbare speelvelden open je alleen om te bekijken.
+
+---
+
+## Stappen om er Een te Maken
+
+1. Open **Speelvelden** en blijf op het tabblad **Privé**.
+2. Tik op **+** om een speelveld te maken. Het scherm **Nieuw speelveld** opent.
+3. Vul een **Naam** in.
+4. Tik op **Speelveldgebied**. De gebiedseditor opent schermvullend.
+5. Teken het gebied: tik op de kaart om minstens 3 punten te plaatsen.
+6. Tik op **Opslaan** om het gebied mee terug te nemen naar het speelveld.
+7. Tik op het speelveld op **Opslaan** om het te bewaren.
+
+{{< screenshot name="playfield-details" alt="Het detailscherm van een speelveld met het naamveld, de schakelaar Openbaar en de knop Speelveldgebied" caption="De details van een speelveld" >}}
+
+Er wordt niets bewaard tot je op het speelveld zelf op **Opslaan** tikt. Wil je een gebied later aanpassen, open dan het speelveld vanaf het tabblad Privé en tik opnieuw op **Speelveldgebied**.
+
+De eerste keer dat je het gebied van een nieuw speelveld tekent, leidt de app je met een korte rondleiding door de editor.
+
+---
+
+## De Gebiedseditor
+
+{{< screenshot name="area-editor" alt="De gebiedseditor: een groene omtrek op de kaart, één punt geselecteerd met een rode rand, en de knoppen Annuleren, Alles wissen en Opslaan" caption="De gebiedseditor" >}}
+
+| Actie | Wat het doet |
 |---|---|
-| Op kaart tikken | Nieuw hoekpunt plaatsen |
-| Hoekpunt slepen | Een geplaatst hoekpunt herpositioneren |
-| Knijpen | In- / uitzoomen |
-| Hoekpunt tikken | Selecteer het en tik op de prullenbakknop om het te verwijderen |
+| Tik op de kaart | Voeg een punt toe. Punten worden verbonden in de volgorde waarin je ze plaatst. |
+| Tik op een punt | Selecteer het. Het krijgt een rode rand. |
+| Sleep het geselecteerde punt | Verplaats het. |
+| Tik op een lege plek | Hef de selectie op. |
+| Prullenbakknop | Verwijder het geselecteerde punt. De rest van de omtrek blijft. |
+| Alles wissen | Verwijder alle punten en begin opnieuw. |
+| Knijpen / slepen op de kaart | Zoomen / verschuiven. |
+
+Bij 3 of meer punten verschijnt het gebied als groene vorm. **Opslaan** heeft minstens 3 punten nodig. **Annuleren** sluit zonder het gebied te veranderen.
 
 ---
 
-## De Grens Verlaten: de Strafmaatregel
+## Het Speelveld Verlaten
 
-De grens van het speelveld wordt tijdens een spel automatisch gehandhaafd. Wanneer de Spelmaker grensstraffen inschakelt, wordt elke speler die buiten de polygoon stapt automatisch door het spel zelf bestraft; er is geen handmatige diskwalificatie.
-
-Zolang een straf actief is:
-
-- De straf duurt **5 minuten** vanaf het moment dat je de grens overschrijdt.
-- Je live positie wordt de hele straf **doorlopend** uitgezonden, in plaats van alleen op het normale rapportage-interval. Voor Prooi betekent dit dat de Jager precies kan zien waar je bent zolang je buiten bent, en je verliest de pauzes tussen locatiepings die je normaal verborgen houden.
-- Terugkeren binnen de grens beëindigt een actieve straf niet eerder; het voorkomt alleen dat er nieuwe straffen worden toegepast.
-
-De straf kan apart worden ingeschakeld voor Prooi en voor de Jager bij het instellen van het spel.
+Blijf binnen de omtrek. In een spel waarin straffen voor de grens aan staan, krijgt een speler buiten het speelveld 5 minuten straf: zolang die duurt, wordt zijn positie elke 10 seconden gedeeld. Zie de [Regels]({{< relref "/rules" >}}) voor alle straffen.
 
 ---
 
 ## Een Speelveld Openbaar Maken
 
-Een speelveld is standaard **privé**, dus alleen jij kunt het gebruiken. Je kunt een speelveld met de bredere gemeenschap delen door het op **openbaar** te zetten, maar de openbaar-schakelaar ontgrendelt alleen wanneer de naam de naamgevingsconventie volgt:
+Een nieuw speelveld is **privé**: alleen jij kunt het gebruiken. Zet **Openbaar** aan om het met alle spelers te delen. Openbaar werkt alleen als de naam dit patroon volgt:
 
 ```
-LC, Stad, Veldnaam
+LC, Plaats, Veldnaam
 ```
 
 - **LC**: een landcode van 2 tot 4 hoofdletters (bijv. `NL`, `USA`).
-- **Stad**: de stad, beginnend met een hoofdletter en alleen gewone stadsnaamtekens (geen speciale symbolen).
-- **Veldnaam**: de naam van het veld; gewone tekens, waarbij ampersands (`&`) en streepjes (`-`) zijn toegestaan.
+- **Plaats**: de plaats, beginnend met een hoofdletter en alleen met gewone tekens voor plaatsnamen.
+- **Veldnaam**: de naam van het veld; gewone tekens, met ampersands (`&`) en streepjes (`-`) toegestaan.
 
-Bijvoorbeeld: `NL, Amsterdam, Vondelpark Arena`.
+Bijvoorbeeld: `NL, Amsterdam, Vondelpark`.
 
-Geef je speelveld op deze manier een naam en de **Openbaar**-schakelaar wordt beschikbaar. Als je het hernoemt zodat het niet meer voldoet, wordt het speelveld automatisch terug op privé gezet voordat de schakelaar weer wordt vergrendeld. Zo blijven openbare speelvelden consistent benoemd en gemakkelijk te vinden voor andere spelers.
+Hernoem je een openbaar speelveld zodat de naam niet meer klopt, dan wordt het weer privé. Zo blijven openbare speelvelden netjes benoemd en makkelijk te vinden.
 
 ---
 
-## Een Spel Starten vanuit een Speelveld
+## Spelen op een Speelveld
 
-Open een opgeslagen speelveld en tik op **Spel Starten**. Dit maakt een spelssessie gekoppeld aan die grens. Nodig spelers uit met de gegenereerde deelnamecode, wijs rollen toe in de lobby en lanceer.
+Je kiest het speelveld bij het aanmaken van een spel: tik in het hoofdmenu op **Nu spelen**, dan op **Kies een speelveld**, en kies er een op het tabblad Privé of Openbaar. Zie [Een Spel Aanmaken]({{< relref "/how-to/create-a-game" >}}).
