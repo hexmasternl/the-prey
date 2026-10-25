@@ -161,6 +161,15 @@ object GameStatuses {
 object GameOutcomes {
     const val NONE = "None"
     const val CANCELLED = "Cancelled"
+
+    /** Played out without a decided winner. */
+    const val UNDECIDED = "Undecided"
+
+    /** Every prey was tagged or knocked out. */
+    const val HUNTERS_WIN = "HuntersWin"
+
+    /** At least one prey survived to the end. */
+    const val PREYS_WIN = "PreysWin"
 }
 
 /** Participant state names as the server serializes them. */

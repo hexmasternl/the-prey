@@ -257,12 +257,64 @@ class GameStateServiceTest {
     }
 
     @Test
-    fun session_ShouldBeGoneCompleted_WhenSnapshotShowsCompletedGame() = runTest {
-        games.snapshot = { SnapshotResult.Ok(FullGameStateDto(game.copy(status = GameStatuses.COMPLETED, outcome = "HuntersWin"), "t")) }
+    fun session_ShouldBeGoneCompletedWithFinalState_WhenSnapshotShowsCompletedGame() = runTest {
+        val completed = FullGameStateDto(game.copy(status = GameStatuses.COMPLETED, outcome = GameOutcomes.HUNTERS_WIN), "t")
+        games.snapshot = { SnapshotResult.Ok(completed) }
         val sut = service()
         val (seen, _) = observe(sut)
 
-        assertEquals(GameSession.Gone(GoneReason.Completed), seen.last())
+        assertEquals(GameSession.Gone(GoneReason.Completed, completed), seen.last())
+        assertEquals(listOf("g1"), ended)
+    }
+
+    @Test
+    fun session_ShouldKeepTheEndedStateOnce_WhenGameEndedMessageArrives() = runTest {
+        val sut = service()
+        val (seen, _) = observe(sut)
+        connection.emit(RealtimeEvent.Joined)
+
+        connection.emit(RealtimeEvent.Message(envelope(RealtimeProtocol.MessageTypes.GAME_ENDED, 1, """{"outcome":"PreysWin"}""")))
+        connection.emit(RealtimeEvent.Message(envelope(RealtimeProtocol.MessageTypes.GAME_ENDED, 2, """{"outcome":"PreysWin"}""")))
+
+        val gone = seen.last() as GameSession.Gone
+        assertEquals(GoneReason.Completed, gone.reason)
+        assertEquals(GameOutcomes.PREYS_WIN, gone.final?.game?.outcome)
+        assertEquals(GameStatuses.COMPLETED, gone.final?.game?.status)
+        assertEquals(listOf("g1"), ended)
+    }
+
+    @Test
+    fun session_ShouldKeepTheFinalState_WhenAResyncShowsTheGameCompleted() = runTest {
+        val sut = service()
+        val (seen, _) = observe(sut)
+        val completed = FullGameStateDto(game.copy(status = GameStatuses.COMPLETED, outcome = GameOutcomes.PREYS_WIN), "t2")
+        games.snapshot = { SnapshotResult.Ok(completed) }
+
+        sut.resync("g1")
+
+        assertEquals(GameSession.Gone(GoneReason.Completed, completed), seen.last())
+        assertEquals(listOf("g1"), ended)
+    }
+
+    @Test
+    fun session_ShouldHaveNoFinalState_WhenGameIsCancelled() = runTest {
+        games.snapshot = { SnapshotResult.Ok(FullGameStateDto(game.copy(status = GameStatuses.COMPLETED, outcome = GameOutcomes.CANCELLED), "t")) }
+        val sut = service()
+        val (seen, _) = observe(sut)
+
+        assertEquals(GameSession.Gone(GoneReason.Cancelled, final = null), seen.last())
+    }
+
+    @Test
+    fun refresh_ShouldReportGoneCompletedWithFinalState_WhenEntryDownloadShowsCompletedGame() = runTest {
+        val completed = FullGameStateDto(game.copy(status = GameStatuses.COMPLETED, outcome = GameOutcomes.HUNTERS_WIN), "t")
+        val sut = service()
+        observe(sut)
+        games.snapshot = { SnapshotResult.Ok(completed) }
+
+        assertEquals(RefreshResult.Gone(GoneReason.Completed, completed), sut.refresh("g1"))
+        // A later refresh on the ended session still knows the final state.
+        assertEquals(RefreshResult.Gone(GoneReason.Completed, completed), sut.refresh("g1"))
         assertEquals(listOf("g1"), ended)
     }
 

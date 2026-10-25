@@ -2,9 +2,9 @@
 
 ## 1. Keep the final state when a game ends
 
-- [ ] 1.1 Add `HUNTERS_WIN`, `PREYS_WIN` and `UNDECIDED` to `GameOutcomes` in `data/game/GameStateDto.kt`; verify a parsing test that reads `"outcome": "HuntersWin"` from a `/gamestate` sample.
-- [ ] 1.2 Add `final: FullGameStateDto? = null` to `GameSession.Gone` and `RefreshResult.Gone`, and let `GameStateService.end()` take the ending state: `Reduction.Ended.state` for `game-ended`, the downloaded snapshot for a `Completed` snapshot, null for `Cancelled`/`Removed` (design Decision 1); verify `GameStateService` tests that a `game-ended` message, a `Completed` resync and a `Completed` entry refresh each give `Gone(Completed, final)` whose `final.game.outcome` matches, that a cancelled game gives `final == null`, and that `onGameEnded` is still reported once.
-- [ ] 1.3 Check that existing callers (lobby view model, game view model, their tests) still compile and behave unchanged with the defaulted field; verify `./gradlew testDebugUnitTest` is green.
+- [x] 1.1 Add `HUNTERS_WIN`, `PREYS_WIN` and `UNDECIDED` to `GameOutcomes` in `data/game/GameStateDto.kt`; verify a parsing test that reads `"outcome": "HuntersWin"` from a `/gamestate` sample.
+- [x] 1.2 Add `final: FullGameStateDto? = null` to `GameSession.Gone` and `RefreshResult.Gone`, and let `GameStateService.end()` take the ending state: `Reduction.Ended.state` for `game-ended`, the downloaded snapshot for a `Completed` snapshot, null for `Cancelled`/`Removed` (design Decision 1); verify `GameStateService` tests that a `game-ended` message, a `Completed` resync and a `Completed` entry refresh each give `Gone(Completed, final)` whose `final.game.outcome` matches, that a cancelled game gives `final == null`, and that `onGameEnded` is still reported once.
+- [x] 1.3 Check that existing callers (lobby view model, game view model, their tests) still compile and behave unchanged with the defaulted field; verify `./gradlew testDebugUnitTest` is green.
 
 ## 2. Pure result model
 

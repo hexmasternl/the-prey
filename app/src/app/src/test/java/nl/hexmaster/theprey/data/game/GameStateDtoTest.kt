@@ -111,6 +111,29 @@ class GameStateDtoTest {
     }
 
     @Test
+    fun fullGameStateDto_ShouldReadTheOutcome_WhenPayloadIsACompletedGame() {
+        val payload = """
+            {"game":{"id":"g","gameCode":"4291","ownerUserId":"owner","status":"Completed","outcome":"HuntersWin",
+              "completedAt":"2026-08-31T12:10:00+00:00",
+              "configuration":{"gameDuration":30,"hunterDelayTime":5,"finalStageDuration":10,
+                "defaultLocationInterval":180,"finalLocationInterval":60},
+              "participants":[{"userId":"owner","displayName":"Fox","isReady":true,"state":"Active",
+                "lastKnownLocation":null,"hasActivePenalty":false},
+                {"userId":"p1","displayName":"Hare","isReady":true,"state":"Tagged",
+                "lastKnownLocation":null,"hasActivePenalty":false}],
+              "hunterUserId":"owner","isOwnerPlayer":true,"isReadyToStart":false},
+             "playfieldName":"Vondelpark","playfieldCoordinates":[],"status":null,"roleState":null,
+             "serverTime":"2026-08-31T12:10:01+00:00"}
+        """.trimIndent()
+
+        val state = json.decodeFromString(FullGameStateDto.serializer(), payload)
+
+        assertEquals(GameStatuses.COMPLETED, state.game.status)
+        assertEquals(GameOutcomes.HUNTERS_WIN, state.game.outcome)
+        assertEquals(PlayerStates.TAGGED, state.game.participants.last().state)
+    }
+
+    @Test
     fun fullGameStateDto_ShouldDeserializeLobbyFields_WhenPayloadIsALobbyGame() {
         val payload = """
             {"game":{"id":"g","gameCode":"4291","ownerUserId":"owner","status":"Lobby","outcome":"None",

@@ -53,7 +53,8 @@ sealed interface GameSession {
     /** The first snapshot could not be loaded; [retryable] when asking again may help. */
     data class Failed(val retryable: Boolean) : GameSession
 
-    data class Gone(val reason: GoneReason) : GameSession
+    /** [final] is the state the game ended with, for [GoneReason.Completed] only. */
+    data class Gone(val reason: GoneReason, val final: FullGameStateDto? = null) : GameSession
 }
 
 /** Outcome of [GameSessions.refresh]. */
@@ -63,8 +64,11 @@ sealed interface RefreshResult {
 
     data class Failed(val retryable: Boolean) : RefreshResult
 
-    data class Gone(val reason: GoneReason) : RefreshResult
+    /** [final] as in [GameSession.Gone]. */
+    data class Gone(val reason: GoneReason, val final: FullGameStateDto? = null) : RefreshResult
 }
+
+private fun GameSession.Gone.toRefreshResult() = RefreshResult.Gone(reason, final)
 
 /** The Game State Service as screens use it; see [GameStateService]. */
 interface GameSessions {
@@ -139,7 +143,7 @@ class GameStateService(
             if (live.send(Input.Refresh(result))) {
                 result.await()
             } else {
-                (live.state.value as? GameSession.Gone)?.let { RefreshResult.Gone(it.reason) } ?: RefreshResult.Failed(retryable = true)
+                (live.state.value as? GameSession.Gone)?.toRefreshResult() ?: RefreshResult.Failed(retryable = true)
             }
         } finally {
             holder.cancel()
@@ -205,7 +209,7 @@ class GameStateService(
                 when (val result = games.gameState(gameId)) {
                     is SnapshotResult.Ok -> {
                         val game = result.state.game
-                        if (game.status == GameStatuses.COMPLETED) return RefreshResult.Gone(end(game.outcome))
+                        if (game.status == GameStatuses.COMPLETED) return end(result.state).toRefreshResult()
                         val batches = (state.value as? GameSession.Live)?.locationBatches ?: 0
                         state.value = GameSession.Live(result.state, lastSeq = null, connection = connected, locationBatches = batches)
                         scheduleResync()
@@ -274,7 +278,7 @@ class GameStateService(
                                         false
                                     }
                                     is Reduction.Ended -> {
-                                        end(reduction.outcome)
+                                        end(reduction.state)
                                         false
                                     }
                                     Reduction.Ignored -> true
@@ -290,20 +294,25 @@ class GameStateService(
             while (true) {
                 val left = inputs.tryReceive().getOrNull() ?: break
                 if (left is Input.Refresh) {
-                    left.result.complete(gone?.let { RefreshResult.Gone(it.reason) } ?: RefreshResult.Failed(retryable = true))
+                    left.result.complete(gone?.toRefreshResult() ?: RefreshResult.Failed(retryable = true))
                 }
             }
             coroutineContext.cancelChildren()
         }
 
-        private fun end(outcome: String): GoneReason {
-            val reason = if (outcome == GameOutcomes.CANCELLED) GoneReason.Cancelled else GoneReason.Completed
-            state.value = GameSession.Gone(reason)
+        /** Ends the session with [final], the state the game ended with; a played-out game keeps it. */
+        private fun end(final: FullGameStateDto): GameSession.Gone {
+            val gone = if (final.game.outcome == GameOutcomes.CANCELLED) {
+                GameSession.Gone(GoneReason.Cancelled)
+            } else {
+                GameSession.Gone(GoneReason.Completed, final)
+            }
+            state.value = gone
             if (!endedReported) {
                 endedReported = true
                 onGameEnded(gameId)
             }
-            return reason
+            return gone
         }
 
         /** The socket with reconnects: backoff 1 s, 2 s, 4 s … 30 s, reset by every successful join. */
