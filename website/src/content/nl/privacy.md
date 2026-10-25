@@ -4,7 +4,7 @@ description: "Hoe The Prey jouw persoonsgegevens verzamelt, gebruikt en bescherm
 keywords: ["The Prey privacy", "privacybeleid", "AVG", "GDPR", "locatiegegevens", "gegevensbescherming", "persoonsgegevens"]
 ---
 
-_Laatst bijgewerkt: 18 juni 2026_
+_Laatst bijgewerkt: 23 oktober 2026_
 
 The Prey is een op GPS gebaseerd verstoppertjesspel. Omdat het spel de locatie van spelers in realtime volgt, nemen we jouw privacy serieus. In deze verklaring lees je welke gegevens we verzamelen, waarom we dat doen en welke rechten je hebt op grond van de Algemene Verordening Gegevensbescherming (AVG).
 
@@ -36,7 +36,23 @@ Locatie is het hart van The Prey en verdient daarom een aparte vermelding:
 - GPS-coördinaten worden **alleen verzameld terwijl je deelneemt aan een actief spel**.
 - Locaties worden uitsluitend met andere spelers gedeeld volgens de spelregels (zo worden Prooi-posities gedurende het hele spel aan de Jager getoond).
 - Zodra een spel eindigt, stopt het delen van live locaties en wordt elke tijdens het spel verzamelde GPS-locatie binnen 48 uur permanent van onze servers verwijderd.
-- We volgen jouw locatie niet op de achtergrond buiten een actief spel.
+- Buiten een actief spel volgen we jouw locatie niet, ook niet op de achtergrond.
+
+---
+
+## Locatievolging Tijdens een Spel (Android-app)
+
+Voordat de app om toestemming voor je locatie vraagt, toont hij een melding die uitlegt hoe de locatievolging werkt. Kort samengevat:
+
+- The Prey verzamelt de **precieze locatie** van je apparaat, maar **alleen terwijl je in een actief spel zit**.
+- Dat gaat door terwijl de app gesloten is of niet wordt gebruikt, op de achtergrond, of terwijl het scherm uit staat, zodat het spel blijft werken als je telefoon in je zak zit.
+- De volging draait als **voorgrondservice**, met een **vaste melding** zolang die loopt.
+- De volging **stopt zodra het spel eindigt of je het spel verlaat**.
+- Het spel heeft je positie nodig om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft.
+
+Buiten een spel toont het hoofdmenu je huidige coördinaten alleen op je eigen scherm; ze worden niet naar onze servers gestuurd.
+
+Het hoofdmenu toont deze melding maar één keer uit zichzelf op je telefoon. Je kunt kiezen voor **Niet nu** en de menu's gewoon blijven gebruiken. Voor het starten van of meedoen aan een spel is je precieze locatie nodig, dus dan toont de app de melding opnieuw. Je kunt locatietoegang ook later geven via het scherm Instellingen in de app, dat dezelfde melding toont. Je kunt de toestemming altijd intrekken in de instellingen van je telefoon. Vanaf Android 13 vraagt de app ook om meldingen te mogen tonen, zodat de melding over de volging kan verschijnen.
 
 ---
 

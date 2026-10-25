@@ -4,7 +4,7 @@ description: "How The Prey collects, uses, and protects your personal data, incl
 keywords: ["The Prey privacy", "privacy policy", "GDPR", "location data", "data protection", "personal data"]
 ---
 
-_Last updated: 18 June 2026_
+_Last updated: 23 October 2026_
 
 The Prey is a GPS-based hide-and-seek game. Because the game tracks player locations in real time, we take your privacy seriously. This statement explains what data we collect, why we collect it, and the rights you have under the General Data Protection Regulation (GDPR).
 
@@ -36,7 +36,23 @@ Location is the heart of The Prey, so it deserves special mention:
 - GPS coordinates are collected **only while you are taking part in an active game**.
 - Locations are shared with other players strictly according to the game rules (for example, Prey positions are broadcast to the Hunter throughout the game).
 - When a game ends, live location sharing stops, and every GPS location collected during the game is permanently deleted from our servers within 48 hours.
-- We do not track your location in the background outside of an active game.
+- We do not track your location outside of an active game, in the foreground or in the background.
+
+---
+
+## In-Game Location Tracking (Android App)
+
+Before the app asks for location permission, it shows a notice that explains how location tracking works. In short:
+
+- The Prey collects your device's **precise location**, but **only while you are in an active game**.
+- Collection continues while the app is closed or not in use, in the background, or while the screen is off, so the game keeps working when your phone is in your pocket.
+- Tracking runs as a **foreground service**, with a **persistent notification** for as long as it runs.
+- Tracking **stops as soon as the game ends or you leave it**.
+- The game needs your position to show players to the Hunter and to check that you stay inside the playfield.
+
+Outside a game, the main menu only shows your current coordinates on your own screen; they are not sent to our servers.
+
+The main menu shows this notice by itself only once on your phone. You can choose **Not now** and still use the menus. Starting or joining a game requires precise location, so the app shows the notice again at that point, and you can grant location access later on the app's Settings screen, which shows the same notice. You can withdraw the permission at any time in your phone's settings. On Android 13 and later the app also asks for permission to show notifications, so the tracking notification can appear.
 
 ---
 
