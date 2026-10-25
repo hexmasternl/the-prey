@@ -19,7 +19,7 @@
 
 ## 4. Strings
 
-- [ ] 4.1 Add hunter HUD strings to `res/values/strings.xml` and `res/values-nl/strings.xml` following the `the-prey-multilingual` skill: Hunter/Jager, Live/Live, Penalty/Straf, tile labels (next ping / volgende ping, preys in play / prooien in het spel, closest prey / dichtstbijzijnde prooi, penalised preys / prooien met straf), Tag/Tikken, sheet title, empty state with range, load and tag errors, "no longer taggable", retry, "{callsign} tagged" / "{callsign} getikt", and the FAB's locked description; verify `./gradlew lintDebug` reports no missing translations.
+- [x] 4.1 Add hunter HUD strings to `res/values/strings.xml` and `res/values-nl/strings.xml` following the `the-prey-multilingual` skill: Hunter/Jager, Live/Live, Penalty/Straf, tile labels (next ping / volgende ping, preys in play / prooien in het spel, closest prey / dichtstbijzijnde prooi, penalised preys / prooien met straf), Tag/Tikken, sheet title, empty state with range, load and tag errors, "no longer taggable", retry, "{callsign} tagged" / "{callsign} getikt", and the FAB's locked description; verify `./gradlew lintDebug` reports no missing translations.
 
 ## 5. HUD composables
 
@@ -30,7 +30,7 @@
 
 ## 6. Tag sheet
 
-- [ ] 6.1 Build `TagSheetViewModel` with the `TagSheetState` machine and one-shot events (design Decision 5); verify unit tests with a fake repository for: loading → candidates, empty, load failure + retry, confirm disabled without selection, no second request while submitting, 204 → `Tagged` event, 409 → `NoLongerTaggable` + reload, network failure keeps the selection.
+- [x] 6.1 Build `TagSheetViewModel` with the `TagSheetState` machine and one-shot events (design Decision 5); verify unit tests with a fake repository for: loading → candidates, empty, load failure + retry, confirm disabled without selection, no second request while submitting, 204 → `Tagged` event, 409 → `NoLongerTaggable` + reload, network failure keeps the selection.
 - [ ] 6.2 Build the `TagSheet` `ModalBottomSheet`: candidates sorted by distance as single-select rows (callsign + meters, 48 dp), refresh action, red confirm button, loading/empty/error states; verify `@Preview`s for each state.
 - [ ] 6.3 Wire the FAB to open the sheet, show the "{callsign} tagged" snackbar on success and trigger one snapshot refresh of the HUD input source; verify a unit test that a `Tagged` event requests exactly one refresh.
 

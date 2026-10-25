@@ -265,4 +265,26 @@
     <string name="hud_seconds">%1$ds</string>
     <string name="hud_panel_collapse">Paneel inklappen</string>
     <string name="hud_panel_expand">Paneel uitklappen</string>
+
+    <!-- Hunter HUD -->
+    <string name="hud_role_hunter">Jager</string>
+    <string name="hud_role_hunter_a11y">Jouw rol: jager</string>
+    <string name="hud_clock_live">Live %1$s</string>
+    <string name="hud_clock_penalty">Straf %1$s</string>
+    <string name="hud_next_ping">Volgende ping</string>
+    <string name="hud_preys_in_play">Prooien in het spel</string>
+    <string name="hud_closest_prey">Dichtstbijzijnde prooi</string>
+    <string name="hud_penalised_preys">Prooien met straf</string>
+    <string name="hud_tag">Taggen</string>
+    <string name="hud_tag_locked">Taggen kan pas als de jacht begint</string>
+    <string name="tag_sheet_title">Een prooi taggen</string>
+    <string name="tag_sheet_subtitle">Prooien binnen %1$s van je. Kies er een en bevestig.</string>
+    <string name="tag_sheet_empty">Er is geen prooi binnen bereik om te taggen (%1$s). Kom dichterbij.</string>
+    <string name="tag_sheet_load_error">De prooien binnen bereik konden niet worden geladen. Controleer je verbinding.</string>
+    <string name="tag_sheet_error">De tag is niet verstuurd. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="tag_sheet_no_longer_taggable">Die prooi kan niet meer worden getagd. De lijst is weer bijgewerkt.</string>
+    <string name="tag_sheet_refresh">Vernieuwen</string>
+    <string name="tag_sheet_confirm">Prooi taggen</string>
+    <string name="tag_sheet_tagging">Taggen</string>
+    <string name="tag_sheet_tagged">%1$s getagd</string>
 </resources>

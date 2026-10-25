@@ -290,4 +290,27 @@
     <string name="hud_no_value" translatable="false">—</string>
     <string name="hud_panel_collapse">Collapse the panel</string>
     <string name="hud_panel_expand">Expand the panel</string>
+
+    <!-- Hunter HUD -->
+    <string name="hud_role_hunter">Hunter</string>
+    <string name="hud_role_hunter_a11y">Your role: hunter</string>
+    <string name="hud_clock_live">Live %1$s</string>
+    <string name="hud_clock_penalty">Penalty %1$s</string>
+    <string name="hud_next_ping">Next ping</string>
+    <string name="hud_preys_in_play">Preys in play</string>
+    <string name="hud_preys_count" translatable="false">%1$d/%2$d</string>
+    <string name="hud_closest_prey">Closest prey</string>
+    <string name="hud_penalised_preys">Penalised preys</string>
+    <string name="hud_tag">Tag</string>
+    <string name="hud_tag_locked">Tag locked until the hunt begins</string>
+    <string name="tag_sheet_title">Tag a prey</string>
+    <string name="tag_sheet_subtitle">Preys within %1$s of you. Choose one and confirm.</string>
+    <string name="tag_sheet_empty">No prey is within tagging range (%1$s). Get closer.</string>
+    <string name="tag_sheet_load_error">The preys in range could not be loaded. Check your connection.</string>
+    <string name="tag_sheet_error">The tag was not sent. Check your connection and try again.</string>
+    <string name="tag_sheet_no_longer_taggable">That prey can no longer be tagged. The list is up to date again.</string>
+    <string name="tag_sheet_refresh">Refresh</string>
+    <string name="tag_sheet_confirm">Tag prey</string>
+    <string name="tag_sheet_tagging">Tagging</string>
+    <string name="tag_sheet_tagged">%1$s tagged</string>
 </resources>
