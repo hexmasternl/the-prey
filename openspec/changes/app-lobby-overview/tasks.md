@@ -4,7 +4,7 @@
 
 - [x] 1.1 Add `readyCount` to `LobbyUiState` (rows with `isReady`, owner included) and set it in `LobbyUiState.from`; add `LobbyUiStateTest` cases for 1 player (owner only → 1/1), 3 players with 2 ready, and a ready flag reset by a settings change. Verify with `./gradlew testDebugUnitTest` from `app/src`.
 - [x] 1.2 Add the new strings from design decision 6 (`lobby_share_description`, `lobby_players_ready` plurals, `lobby_settings_edit`, `lobby_settings_sheet_title`, the five `lobby_summary_*` formats) to `res/values/strings.xml` and `res/values-nl/strings.xml`, following the `the-prey-multilingual` skill. Verify every new key exists in both files and `./gradlew lintDebug` reports no missing translations.
-- [ ] 1.3 Add `res/drawable/ic_share.xml` (24 dp Material share path) and verify it renders in a Compose preview.
+- [ ] 1.3 Add `res/drawable/ic_share.xml` (24 dp Material share path) and verify it renders in a Compose preview. _(added on the design-system 24 px / 2 px stroke grid like the other icons; used by the lobby previews; render check in Android Studio pending)_
 
 ## 2. Lobby layout
 
