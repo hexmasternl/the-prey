@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -114,6 +116,28 @@ fun MainMenuContent(
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         TacticalMapBackground(Modifier.matchParentSize(), animate = animate)
         BoxWithConstraints(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+            // The window the menu actually has, not the device orientation: covers split screen too.
+            if (maxWidth > maxHeight) {
+                LandscapeMenu(
+                    uiState = uiState,
+                    minHeight = maxHeight,
+                    animate = animate,
+                    actions = {
+                        MenuActions(
+                            uiState = uiState,
+                            onPlayNow = onPlayNow,
+                            onResumeGame = onResumeGame,
+                            onOpenSettings = onOpenSettings,
+                            onRetry = onRetry,
+                            onPlayfields = onPlayfields,
+                            onSettings = onSettings,
+                            onSignOut = onSignOut,
+                            onQuit = onQuit,
+                        )
+                    },
+                )
+                return@BoxWithConstraints
+            }
             val compact = maxWidth < 360.dp
             Column(
                 modifier = Modifier
@@ -141,6 +165,46 @@ fun MainMenuContent(
                     PlayerName(uiState.playerName, animate)
                 }
             }
+        }
+    }
+}
+
+/**
+ * Landscape arrangement: the readout across the top, the slogan left and the actions right, and the
+ * player name centred across the full width at the bottom. Like portrait, the whole column fills the
+ * screen and scrolls as one when it doesn't fit, so the name never covers the buttons.
+ */
+@Composable
+private fun LandscapeMenu(
+    uiState: MainMenuUiState,
+    minHeight: Dp,
+    animate: Boolean,
+    actions: @Composable () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .heightIn(min = minHeight)
+            .padding(horizontal = 28.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Readout(uiState)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(32.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // The left column is about half the width, so size the slogan by that column.
+            BoxWithConstraints(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Slogan(compact = maxWidth < 360.dp)
+            }
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                actions()
+            }
+        }
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            PlayerName(uiState.playerName, animate)
         }
     }
 }
