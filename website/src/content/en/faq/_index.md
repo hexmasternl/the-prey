@@ -1,53 +1,61 @@
 ---
 title: "FAQ"
-description: "Frequently asked questions about The Prey: player counts, GPS and location permissions, the head start, tagging, playfields, and win conditions."
-keywords: ["The Prey FAQ", "frequently asked questions", "GPS permissions", "how to play", "player count", "tagging", "playfield", "help"]
+description: "Frequently asked questions about The Prey: player counts, joining by invitation link, location permissions, the head start, tagging within 50 meters, playfields, and win conditions."
+keywords: ["The Prey FAQ", "frequently asked questions", "location permission", "how to play", "player count", "tagging", "playfield", "help"]
 ---
 
 {{< qa q="What is The Prey?" >}}
-A GPS-based hide-and-seek game played outdoors. Prey hide and move. A single Hunter tracks and tags. The game ends when all Prey are tagged or the timer runs out.
+A GPS hide-and-seek game played outdoors. Prey hide and keep moving. One Hunter tracks them on the map and tags them up close. The game ends when every Prey is caught or the timer runs out.
+{{< /qa >}}
+
+{{< qa q="Which phones does it run on?" >}}
+Android only. There is no iOS app and no web version. During closed testing you install it from Google Play after you [become a tester]({{< relref "/become-a-tester" >}}).
 {{< /qa >}}
 
 {{< qa q="How many players do I need?" >}}
-Minimum two (one Prey and one Hunter), and up to 16 players in a lobby. There is always exactly one Hunter, so larger games simply mean more Prey. The game scales well with 4 to 12 players.
-{{< /qa >}}
-
-{{< qa q="Do I need GPS always-on?" >}}
-Yes. Grant the app "Always Allow" location permissions. Background GPS is required to broadcast your position when the screen is off. Without it, you stop transmitting, which affects fair play for all.
-{{< /qa >}}
-
-{{< qa q="What happens during the head start?" >}}
-The head start (5 minutes by default) gives Prey time to scatter. The Hunter is held in place and cannot move or tag during this window, though Prey positions are already on the Hunter's map. When the head start ends, the Hunter is released and the chase begins.
-{{< /qa >}}
-
-{{< qa q="How does tagging work?" >}}
-A Hunter physically reaches a Prey's location and taps to tag them in the app. The tag is immediate. Only the Hunter confirms it; the Prey does not. Tagging is honour-based, so a Hunter should only tag a Prey they have genuinely reached.
-{{< /qa >}}
-
-{{< qa q="Can I play if my GPS is weak?" >}}
-Weak GPS results in inaccurate position data, so your pin appears in the wrong place. This affects both the Hunter (who gets bad data) and you (who get unreliable awareness). Play in open areas for best results.
-{{< /qa >}}
-
-{{< qa q="What is a playfield?" >}}
-A playfield is a GPS polygon drawn on a map that defines the valid game area. Players must stay inside it. The Game Creator draws and saves playfields before the session.
-{{< /qa >}}
-
-{{< qa q="Can I leave the playfield?" >}}
-Technically yes, but it is against the rules. Prey who leave the boundary can be disqualified at the Game Creator's discretion. Stay inside.
-{{< /qa >}}
-
-{{< qa q="What happens if a Prey is eliminated?" >}}
-You enter spectator mode. You can watch the rest of the game on the map, but your pin disappears from the Hunter's view. You cannot participate further.
+At least two (one Hunter and one Prey), and up to 16 in a lobby. There is always exactly one Hunter, so a bigger game simply means more Prey. It plays best with 4 to 12.
 {{< /qa >}}
 
 {{< qa q="How do I join a game?" >}}
-Get the join code from the Game Creator. Open the app, tap Join Game, enter the code. You land in the lobby where the Game Creator assigns roles.
+Tap the invitation link the Game Creator shares from the lobby. The app opens, signs you in if needed, and takes you to the lobby. Tap **Set ready** and wait for the start. There is no code to type.
+{{< /qa >}}
+
+{{< qa q="Which location permission does the app need?" >}}
+Precise location, set to **Allow all the time**. During a game your position is shared even when the screen is off, through a foreground service with a notification. **Play now** stays grey until the permission is right. Tracking stops when the game ends or you leave it.
+{{< /qa >}}
+
+{{< qa q="What happens during the head start?" >}}
+The head start (5 minutes by default) gives the Prey time to scatter. The Hunter has to stay put and cannot tag. Moving more than 25 meters earns the Hunter a 10-minute penalty. Prey positions already reach the Hunter's map, so keep moving.
+{{< /qa >}}
+
+{{< qa q="How does tagging work?" >}}
+The Hunter taps **Tag** and gets a list of the Prey within 50 meters. The server checks the distance. The Hunter picks a Prey and confirms. The tag takes effect straight away, and the Prey does not have to confirm it.
+{{< /qa >}}
+
+{{< qa q="Does the Hunter see me live?" >}}
+No. The Hunter sees each Prey at their last ping: every 3 minutes by default, every minute in the final stage. During a penalty your position is shared every 10 seconds.
+{{< /qa >}}
+
+{{< qa q="What is a playfield?" >}}
+The area a game is played in, drawn as an outline of at least three points on the map. You draw it in the app under **Playfields** and choose it when you create a game.
+{{< /qa >}}
+
+{{< qa q="Can I leave the playfield?" >}}
+Stay inside. In a game with boundary penalties on, leaving the playfield gives you a 5-minute penalty, during which your position is shared every 10 seconds.
+{{< /qa >}}
+
+{{< qa q="What if my location stops?" >}}
+After 5 minutes without a location the server marks you passive, and after 7 minutes you are out. For a Prey that counts as caught. See [GPS Signal Lost]({{< relref "/how-to/gps-signal-lost" >}}).
+{{< /qa >}}
+
+{{< qa q="What happens when I get tagged?" >}}
+You become a spectator. You keep watching the game on the map until it ends, but you are out of the hunt.
 {{< /qa >}}
 
 {{< qa q="Who wins if time runs out?" >}}
-Prey win. If at least one Prey is still untagged when the timer hits zero, all Prey win, regardless of how many were eliminated.
+The Prey. If at least one Prey is still in play when the timer hits zero, the Prey win, however many were caught.
 {{< /qa >}}
 
 {{< qa q="Can the Game Creator play too?" >}}
-Yes. In the lobby the Game Creator can make themselves the Hunter or stay as Prey. Once the game starts, they play that role. The Creator role ends at launch.
+Yes. In the lobby the Game Creator can make themselves the Hunter or stay as Prey. Leaving the lobby as Game Creator cancels the game for everyone.
 {{< /qa >}}

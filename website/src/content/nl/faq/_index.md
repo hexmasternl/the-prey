@@ -1,53 +1,61 @@
 ---
 title: "FAQ"
-description: "Veelgestelde vragen over The Prey: aantal spelers, GPS- en locatierechten, de voorsprong, taggen, speelvelden en winvoorwaarden."
-keywords: ["The Prey FAQ", "veelgestelde vragen", "GPS-rechten", "hoe te spelen", "aantal spelers", "taggen", "speelveld", "hulp"]
+description: "Veelgestelde vragen over The Prey: aantal spelers, meedoen via een uitnodigingslink, locatietoestemming, de voorsprong, taggen binnen 50 meter, speelvelden en winvoorwaarden."
+keywords: ["The Prey FAQ", "veelgestelde vragen", "locatietoestemming", "hoe te spelen", "aantal spelers", "taggen", "speelveld", "hulp"]
 ---
 
 {{< qa q="Wat is The Prey?" >}}
-Een GPS-gebaseerd verstoppertje gespeeld buiten. Prooi verstopt zich en beweegt. Eén Jager traceert en tagt. Het spel eindigt wanneer alle Prooi getagd zijn of de timer afloopt.
+Een GPS-verstoppertje dat je buiten speelt. De Prooi verstopt zich en blijft bewegen. Eén Jager volgt ze op de kaart en tagt ze van dichtbij. Het spel eindigt als alle Prooi gevangen is of de timer afloopt.
+{{< /qa >}}
+
+{{< qa q="Op welke telefoons werkt het?" >}}
+Alleen op Android. Er is geen iOS-app en geen webversie. Tijdens de gesloten test installeer je de app via Google Play nadat je [tester bent geworden]({{< relref "/become-a-tester" >}}).
 {{< /qa >}}
 
 {{< qa q="Hoeveel spelers heb ik nodig?" >}}
-Minimaal twee (één Prooi en één Jager), en maximaal 16 spelers in een lobby. Er is altijd precies één Jager, dus grotere spellen betekenen simpelweg meer Prooi. Het spel werkt goed met 4 tot 12 spelers.
+Minstens twee (één Jager en één prooi), en tot 16 in een lobby. Er is altijd precies één Jager, dus een groter spel betekent gewoon meer Prooi. Het speelt het best met 4 tot 12.
 {{< /qa >}}
 
-{{< qa q="Heb ik GPS altijd aan nodig?" >}}
-Ja. Geef de app toestemming voor "Altijd Toestaan" locatie. Achtergrond-GPS is vereist om je positie door te sturen wanneer het scherm uit is. Zonder dit stop je met uitzenden, wat eerlijk spel voor iedereen beïnvloedt.
+{{< qa q="Hoe doe ik mee met een spel?" >}}
+Tik op de uitnodigingslink die de Spelmaker vanuit de lobby deelt. De app opent, laat je zo nodig inloggen en brengt je naar de lobby. Tik op **Ik ben klaar** en wacht op de start. Je hoeft geen code te typen.
+{{< /qa >}}
+
+{{< qa q="Welke locatietoestemming heeft de app nodig?" >}}
+Precieze locatie, ingesteld op **Altijd toestaan**. Tijdens een spel wordt je positie gedeeld, ook als het scherm uit staat, via een voorgronddienst met een melding. **Nu spelen** blijft grijs tot de toestemming klopt. De volging stopt als het spel afloopt of als je het verlaat.
 {{< /qa >}}
 
 {{< qa q="Wat gebeurt er tijdens de voorsprong?" >}}
-De voorsprong (standaard 5 minuten) geeft Prooi tijd om zich te verspreiden. De Jager wordt op zijn plek gehouden en kan tijdens dit tijdvenster niet bewegen of taggen, al staan Prooiposities al op de kaart van de Jager. Wanneer de voorsprong eindigt, wordt de Jager losgelaten en begint de jacht.
+De voorsprong (standaard 5 minuten) geeft de Prooi tijd om zich te verspreiden. De Jager moet blijven staan en kan niet taggen. Beweegt de Jager meer dan 25 meter, dan krijgt hij 10 minuten straf. De posities van de Prooi staan al op de kaart van de Jager, dus blijf bewegen.
 {{< /qa >}}
 
 {{< qa q="Hoe werkt taggen?" >}}
-Een Jager bereikt fysiek de locatie van een Prooi en tikt om die te taggen in de app. De tag is direct. Alleen de Jager bevestigt de tag, de Prooi niet. Taggen is op basis van eerlijkheid, dus een Jager hoort alleen een Prooi te taggen die hij echt heeft bereikt.
+De Jager tikt op **Taggen** en krijgt een lijst met de prooien binnen 50 meter. De server controleert de afstand. De Jager kiest een prooi en bevestigt. De tag gaat meteen in en de prooi hoeft niets te bevestigen.
 {{< /qa >}}
 
-{{< qa q="Kan ik spelen als mijn GPS zwak is?" >}}
-Zwakke GPS resulteert in onnauwkeurige positiedata, dus je pin verschijnt op de verkeerde plek. Dit beïnvloedt zowel de Jager (die slechte data krijgt) als jou (die onbetrouwbaar bewustzijn heeft). Speel in open gebieden voor beste resultaten.
+{{< qa q="Ziet de Jager mij live?" >}}
+Nee. De Jager ziet elke prooi op zijn laatste ping: standaard elke 3 minuten, in de eindfase elke minuut. Tijdens een straf wordt je positie elke 10 seconden gedeeld.
 {{< /qa >}}
 
 {{< qa q="Wat is een speelveld?" >}}
-Een speelveld is een GPS-polygoon getekend op een kaart die het geldige spelgebied definieert. Spelers moeten er binnen blijven. De Spelmaker tekent en slaat speelvelden op voor de sessie.
+Het gebied waarin een spel wordt gespeeld, getekend als een omtrek van minstens drie punten op de kaart. Je tekent het in de app onder **Speelvelden** en kiest het als je een spel aanmaakt.
 {{< /qa >}}
 
 {{< qa q="Mag ik het speelveld verlaten?" >}}
-Technisch gezien ja, maar het is tegen de regels. Prooi die de grens verlaat kan naar goeddunken van de Spelmaker gediskwalificeerd worden. Blijf binnen.
+Blijf binnen. In een spel waarin straffen voor de grens aan staan, krijg je bij het verlaten van het speelveld 5 minuten straf, waarin je positie elke 10 seconden wordt gedeeld.
 {{< /qa >}}
 
-{{< qa q="Wat gebeurt er als een Prooi geëlimineerd wordt?" >}}
-Je gaat naar toeschouwermodus. Je kunt de rest van het spel op de kaart volgen, maar je pin verdwijnt uit het zicht van de Jager. Je kunt niet meer deelnemen.
+{{< qa q="Wat als mijn locatie stopt?" >}}
+Na 5 minuten zonder locatie markeert de server je als passief, en na 7 minuten lig je eruit. Voor een prooi telt dat als gevangen. Zie [GPS-signaal Verloren]({{< relref "/how-to/gps-signal-lost" >}}).
 {{< /qa >}}
 
-{{< qa q="Hoe sluit ik aan bij een spel?" >}}
-Haal de deelnamecode op bij de Spelmaker. Open de app, tik op Deelnemen aan Spel, voer de code in. Je belandt in de lobby waar de Spelmaker rollen toewijst.
+{{< qa q="Wat gebeurt er als ik getagd word?" >}}
+Je wordt toeschouwer. Je kijkt het spel op de kaart mee tot het afloopt, maar je doet niet meer mee aan de jacht.
 {{< /qa >}}
 
 {{< qa q="Wie wint als de tijd om is?" >}}
-Prooi wint. Als er ten minste één Prooi onaangeroerd is wanneer de timer nul bereikt, winnen alle Prooi, ongeacht hoeveel er geëlimineerd werden.
+De Prooi. Is er nog minstens één prooi in het spel als de timer nul bereikt, dan wint de Prooi, hoeveel er ook gevangen zijn.
 {{< /qa >}}
 
 {{< qa q="Kan de Spelmaker ook meespelen?" >}}
-Ja. In de lobby kan de Spelmaker zichzelf de Jager maken of als Prooi blijven. Zodra het spel begint, speelt hij die rol. De Spelmakerrol eindigt bij de lancering.
+Ja. In de lobby kan de Spelmaker zichzelf Jager maken of Prooi blijven. Verlaat de Spelmaker de lobby, dan wordt het spel voor iedereen geannuleerd.
 {{< /qa >}}
