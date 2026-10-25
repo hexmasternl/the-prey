@@ -270,4 +270,24 @@
         <item quantity="one">Game map, %1$s, %2$d other player shown</item>
         <item quantity="other">Game map, %1$s, %2$d other players shown</item>
     </plurals>
+
+    <!-- Prey HUD -->
+    <string name="hud_role_prey">Prey</string>
+    <string name="hud_role_penalty">Penalty</string>
+    <string name="hud_role_prey_a11y">Your role: prey</string>
+    <string name="hud_role_penalty_a11y">Your role: prey, penalty active</string>
+    <string name="hud_band_safe">Safe</string>
+    <string name="hud_band_close">Close</string>
+    <string name="hud_band_warning">Warning</string>
+    <string name="hud_band_unknown">Unknown</string>
+    <string name="hud_proximity_a11y">Hunter proximity: %1$s</string>
+    <string name="hud_time_left">Time left</string>
+    <string name="hud_hunter_distance">Hunter distance</string>
+    <string name="hud_next_broadcast">Next broadcast</string>
+    <string name="hud_meters">%1$d m</string>
+    <string name="hud_kilometers">%1$s km</string>
+    <string name="hud_seconds">%1$ds</string>
+    <string name="hud_no_value" translatable="false">—</string>
+    <string name="hud_panel_collapse">Collapse the panel</string>
+    <string name="hud_panel_expand">Expand the panel</string>
 </resources>

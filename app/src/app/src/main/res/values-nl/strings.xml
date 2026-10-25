@@ -246,4 +246,23 @@
         <item quantity="one">Spelkaart, %1$s, %2$d andere speler zichtbaar</item>
         <item quantity="other">Spelkaart, %1$s, %2$d andere spelers zichtbaar</item>
     </plurals>
+
+    <!-- Prey HUD -->
+    <string name="hud_role_prey">Prooi</string>
+    <string name="hud_role_penalty">Straf</string>
+    <string name="hud_role_prey_a11y">Jouw rol: prooi</string>
+    <string name="hud_role_penalty_a11y">Jouw rol: prooi, straf actief</string>
+    <string name="hud_band_safe">Veilig</string>
+    <string name="hud_band_close">Dichtbij</string>
+    <string name="hud_band_warning">Waarschuwing</string>
+    <string name="hud_band_unknown">Onbekend</string>
+    <string name="hud_proximity_a11y">Afstand tot de Jager: %1$s</string>
+    <string name="hud_time_left">Resterende tijd</string>
+    <string name="hud_hunter_distance">Afstand Jager</string>
+    <string name="hud_next_broadcast">Volgende uitzending</string>
+    <string name="hud_meters">%1$d m</string>
+    <string name="hud_kilometers">%1$s km</string>
+    <string name="hud_seconds">%1$ds</string>
+    <string name="hud_panel_collapse">Paneel inklappen</string>
+    <string name="hud_panel_expand">Paneel uitklappen</string>
 </resources>

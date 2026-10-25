@@ -67,6 +67,7 @@ Screens use `MaterialTheme.colorScheme.*`, `MaterialTheme.typography.*` or `TheP
 | `--tp-signal-deep` | `#1F4D00` | — | Radar grid, inactive tracks. **Decorative only** |
 | `--tp-hunter` | `#FF2F1F` | `danger` | Hunters, tagged, destructive actions |
 | `--tp-caution` | `#FFB300` | `warning` | Low time, contested/shrinking zones, approaching threat |
+| `--tp-alert` | `#FF7A1A` | `alert` | Hunter very close on the prey HUD: the orange step between caution and danger |
 | `--tp-info` | `#13E0C8` | `info` | Waypoints, neutral system messages |
 | `--tp-text` | `#DCF6D2` | `fg` | Headings, values, body |
 | `--tp-text-soft` | `#8C9A83` | `fg-muted` | Descriptions, **labels**, captions, units |
@@ -82,7 +83,7 @@ App-only extras (in `Color.kt`, not in v2): `LineSoft #2A2F24` (≈ `border-subt
 
 - **primary** = Signal `#64FF00`, onPrimary = Void · **primaryContainer** = Signal Deep
 - **secondary** = Signal Dim `#3F9E00` · **tertiary** = Info `#13E0C8`
-- **error** = Hunter `#FF2F1F`, onError = Void · warning = Caution `#FFB300`
+- **error** = Hunter `#FF2F1F`, onError = Void · warning = Caution `#FFB300` · alert = Alert `#FF7A1A` (`ThePreyTheme.colors.alert`)
 - **background** = Base · **surface** = Surface · **surfaceVariant** = Surface 2 · **surfaceContainerLowest** = Void
 - **outline** = Line · **onSurfaceVariant** = Text Soft
 
@@ -180,6 +181,7 @@ A **fox in the crosshairs**: a broken reticle (hunter's view, Signal green) arou
 - **Formatting** — distances as whole metres up to 999 m, then km with one decimal (`8.8 km`, never `8795248m`). Timers always `mm:ss`.
 - **Threat states** — colour changes at fixed thresholds **and the label changes too**:
   - Prey · nearest hunter: ≥100 m **Safe** (Signal) · 50–99 m **Caution** (amber) · <50 m **Danger** (Hunter, flash + haptic).
+  - Prey HUD proximity pill (Android): ≥250 m **Safe** (Signal) · 100–249 m **Close** (Caution) · <100 m **Warning** (Alert orange) · no hunter location **Unknown** (Ghost, neutral).
   - Hunter · closest prey: <50 m **In range** (Signal, TAG enabled) · 50–100 m **Approaching** (amber) · >100 m **Tracking** (Soft).
   - Game timer: normal (Signal, static) · final stage (amber, label appears) · last 5 min (Hunter, 1s flash loop).
 - **Radar** — Void disc, Signal Deep rings every 25% of radius plus cross axes, linear 3.4s conic sweep. You are the pale `fg` dot in the centre; blips are 10px with a coloured glow and optional 2s ping ring (green = prey, red = hunter).

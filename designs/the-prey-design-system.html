@@ -14,7 +14,7 @@
 :root{
   --tp-void:#0C0E0C; --tp-base:#181B17; --tp-surface:#23271F; --tp-surface-2:#2D3328; --tp-line:#39402F;
   --tp-signal:#64FF00; --tp-signal-dim:#3F9E00; --tp-signal-deep:#1F4D00;
-  --tp-hunter:#FF2F1F; --tp-caution:#FFB300; --tp-info:#13E0C8;
+  --tp-hunter:#FF2F1F; --tp-caution:#FFB300; --tp-info:#13E0C8; --tp-alert:#FF7A1A;
   --tp-text:#DCF6D2; --tp-text-soft:#8C9A83; --tp-text-ghost:#5A6553;
 
   /* semantic */
@@ -22,7 +22,7 @@
   --border:var(--tp-line); --border-subtle:rgba(57,64,47,.55);
   --fg:var(--tp-text); --fg-muted:var(--tp-text-soft); --fg-disabled:var(--tp-text-ghost);
   --accent:var(--tp-signal); --accent-muted:var(--tp-signal-dim); --on-accent:var(--tp-void);
-  --danger:var(--tp-hunter); --warning:var(--tp-caution); --info:var(--tp-info);
+  --danger:var(--tp-hunter); --warning:var(--tp-caution); --alert:var(--tp-alert); --info:var(--tp-info);
   --accent-a10:rgba(100,255,0,.10); --accent-a20:rgba(100,255,0,.20);
   --danger-a12:rgba(255,47,31,.12); --warning-a12:rgba(255,179,0,.12); --info-a12:rgba(19,224,200,.12);
 
@@ -551,6 +551,7 @@ pre .c{color:var(--fg-disabled)}pre .k{color:var(--accent)}pre .v{color:var(--fg
     <div class="card sw"><div class="chip" style="background:#64FF00"></div><div class="meta"><div class="n">Prey · Safe</div><div class="h">#64FF00</div><div class="t">accent</div><div class="u">You are hidden. Friendly markers.</div></div></div>
     <div class="card sw"><div class="chip" style="background:#FF2F1F"></div><div class="meta"><div class="n">Hunter · Threat</div><div class="h">#FF2F1F</div><div class="t">--tp-hunter · danger</div><div class="u">Hunters, tagged, destructive.</div></div></div>
     <div class="card sw"><div class="chip" style="background:#FFB300"></div><div class="meta"><div class="n">Caution</div><div class="h">#FFB300</div><div class="t">--tp-caution · warning</div><div class="u">Low time, contested zones.</div></div></div>
+    <div class="card sw"><div class="chip" style="background:#FF7A1A"></div><div class="meta"><div class="n">Alert</div><div class="h">#FF7A1A</div><div class="t">--tp-alert · alert</div><div class="u">Hunter very close (prey HUD), between caution and danger.</div></div></div>
     <div class="card sw"><div class="chip" style="background:#13E0C8"></div><div class="meta"><div class="n">Info</div><div class="h">#13E0C8</div><div class="t">--tp-info · info</div><div class="u">Waypoints, neutral system messages.</div></div></div>
   </div>
 
@@ -963,7 +964,7 @@ pre .c{color:var(--fg-disabled)}pre .k{color:var(--accent)}pre .v{color:var(--fg
 <pre style="margin-top:20px"><span class="c">/* primitives */</span>
 <span class="k">--tp-void</span>: <span class="v">#0C0E0C</span>;  <span class="k">--tp-base</span>: <span class="v">#181B17</span>;  <span class="k">--tp-surface</span>: <span class="v">#23271F</span>;  <span class="k">--tp-surface-2</span>: <span class="v">#2D3328</span>;  <span class="k">--tp-line</span>: <span class="v">#39402F</span>;
 <span class="k">--tp-signal</span>: <span class="v">#64FF00</span>;  <span class="k">--tp-signal-dim</span>: <span class="v">#3F9E00</span>;  <span class="k">--tp-signal-deep</span>: <span class="v">#1F4D00</span>;
-<span class="k">--tp-hunter</span>: <span class="v">#FF2F1F</span>;  <span class="k">--tp-caution</span>: <span class="v">#FFB300</span>;  <span class="k">--tp-info</span>: <span class="v">#13E0C8</span>;
+<span class="k">--tp-hunter</span>: <span class="v">#FF2F1F</span>;  <span class="k">--tp-caution</span>: <span class="v">#FFB300</span>;  <span class="k">--tp-alert</span>: <span class="v">#FF7A1A</span>;  <span class="k">--tp-info</span>: <span class="v">#13E0C8</span>;
 <span class="k">--tp-text</span>: <span class="v">#DCF6D2</span>;  <span class="k">--tp-text-soft</span>: <span class="v">#8C9A83</span>;  <span class="k">--tp-text-ghost</span>: <span class="v">#5A6553</span>;
 
 <span class="c">/* semantic */</span>

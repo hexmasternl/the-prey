@@ -16,7 +16,7 @@
 
 ## 3. Theme and strings
 
-- [ ] 3.1 Add the orange `Alert` token (`#FF7A1A`) to `ui/theme/Color.kt` and `alert` to `ThePreyColors`; add it to `designs/the-prey-design-system.html` and the `the-prey-design-system` skill; verify the app builds with `./gradlew assembleDebug`.
+- [x] 3.1 Add the orange `Alert` token (`#FF7A1A`) to `ui/theme/Color.kt` and `alert` to `ThePreyColors`; add it to `designs/the-prey-design-system.html` and the `the-prey-design-system` skill; verify the app builds with `./gradlew assembleDebug`.
 - [ ] 3.2 Add HUD strings to `res/values/strings.xml` and `res/values-nl/strings.xml` following the `the-prey-multilingual` skill: role (Prey/Prooi, Penalty/Straf), bands (Safe/Veilig, Close/Dichtbij, Warning/Waarschuwing, Unknown/Onbekend), tile labels (time left, hunter distance, next broadcast), distance/seconds formats and the expand/collapse descriptions; verify `./gradlew lintDebug` reports no missing translations.
 
 ## 4. HUD composables

@@ -18,6 +18,8 @@ data class ThePreyColors(
     val hunterDim: Color,
     val prey: Color,
     val caution: Color,
+    /** Orange between [caution] and [hunter]: the prey HUD's "Warning" band. */
+    val alert: Color,
     val info: Color,
     val void: Color,
     val textGhost: Color,
@@ -30,6 +32,7 @@ private val DarkThePreyColors = ThePreyColors(
     hunterDim = HunterDim,
     prey = Prey,
     caution = Caution,
+    alert = Alert,
     info = Info,
     void = BgVoid,
     textGhost = TextGhost,
