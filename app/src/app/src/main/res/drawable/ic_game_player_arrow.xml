@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The player on the game map: a navigation chevron pointing up (north), Signal fill with a
+     thin Void keyline so it stays visible on light tiles and on the green play area. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="20"
+    android:viewportHeight="20">
+    <path
+        android:pathData="M10,1.5L17,18L10,14L3,18Z"
+        android:fillColor="@color/signal"
+        android:strokeColor="@color/bg_void"
+        android:strokeWidth="1.5"
+        android:strokeLineJoin="round" />
+</vector>

@@ -229,4 +229,21 @@
     <string name="lobby_removed">Je doet niet meer mee aan dit spel.</string>
     <string name="game_ended">Het spel is afgelopen.</string>
     <string name="game_unavailable">Dit spel is niet meer beschikbaar.</string>
+
+    <!-- Active game -->
+    <string name="game_warning_title">Let op je omgeving</string>
+    <string name="game_warning_body">Kijk om je heen terwijl je speelt. Wees voorzichtig als je een weg oversteekt en let op auto\'s, fietsers en ander verkeer. Het spel is nooit belangrijker dan je veiligheid.</string>
+    <string name="game_warning_ack">Ik let goed op</string>
+    <string name="game_starting">Het spel begint…</string>
+    <string name="game_delay_prey">Ren. Kom weg bij de Jager voordat de jacht begint.</string>
+    <string name="game_delay_hunter">Blijf precies op deze plek. Beweeg je voordat het aftellen klaar is, dan krijg je straf.</string>
+    <string name="game_delay_a11y">De Jager mag bewegen over %1$s</string>
+    <string name="game_load_error">Het spel kon niet worden geladen. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="game_role_spectator">toeschouwer</string>
+    <string name="game_role_hunter">jager</string>
+    <string name="game_role_prey">prooi</string>
+    <plurals name="game_map_description">
+        <item quantity="one">Spelkaart, %1$s, %2$d andere speler zichtbaar</item>
+        <item quantity="other">Spelkaart, %1$s, %2$d andere spelers zichtbaar</item>
+    </plurals>
 </resources>

@@ -253,4 +253,21 @@
     <string name="lobby_removed">You are no longer in this game.</string>
     <string name="game_ended">The game has ended.</string>
     <string name="game_unavailable">This game is no longer available.</string>
+
+    <!-- Active game -->
+    <string name="game_warning_title">Watch your surroundings</string>
+    <string name="game_warning_body">Keep your eyes up while you play. Take care when you cross a road and look out for cars, cyclists and other traffic. The game is never more important than your safety.</string>
+    <string name="game_warning_ack">I will be careful</string>
+    <string name="game_starting">Game is starting…</string>
+    <string name="game_delay_prey">Run. Get away from the hunter before the hunt begins.</string>
+    <string name="game_delay_hunter">Stay in this exact position. Moving before the countdown ends gives you a penalty.</string>
+    <string name="game_delay_a11y">Hunter may move in %1$s</string>
+    <string name="game_load_error">The game could not be loaded. Check your connection and try again.</string>
+    <string name="game_role_spectator">spectator</string>
+    <string name="game_role_hunter">hunter</string>
+    <string name="game_role_prey">prey</string>
+    <plurals name="game_map_description">
+        <item quantity="one">Game map, %1$s, %2$d other player shown</item>
+        <item quantity="other">Game map, %1$s, %2$d other players shown</item>
+    </plurals>
 </resources>

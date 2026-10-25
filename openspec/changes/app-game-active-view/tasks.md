@@ -16,8 +16,8 @@
 
 ## 3. Strings and assets
 
-- [ ] 3.1 Add the strings to `res/values/strings.xml` and `res/values-nl/strings.xml`, following the `the-prey-multilingual` skill: safety warning title, body and button ("Watch your surroundings" / "Let op je omgeving", with roads and traffic in the body), "Game is starting…" / "Het spel begint…", prey flee message, hunter stay-put penalty warning, countdown accessibility text, load error and retry, `game_ended`, `game_unavailable`, and the map description with role and count placeholders. Verify `./gradlew lintDebug` reports no missing translations.
-- [ ] 3.2 Add `res/drawable/ic_game_player_arrow.xml` (20 dp chevron, `Signal` fill, 1.5 dp `BgVoid` stroke, pointing up = north). Verify in the Android Studio preview, against a dark and a light background, that the border is visible.
+- [x] 3.1 Add the strings to `res/values/strings.xml` and `res/values-nl/strings.xml`, following the `the-prey-multilingual` skill: safety warning title, body and button ("Watch your surroundings" / "Let op je omgeving", with roads and traffic in the body), "Game is starting…" / "Het spel begint…", prey flee message, hunter stay-put penalty warning, countdown accessibility text, load error and retry, `game_ended`, `game_unavailable`, and the map description with role and count placeholders. Verify `./gradlew lintDebug` reports no missing translations.
+- [x] 3.2 Add `res/drawable/ic_game_player_arrow.xml` (20 dp chevron, `Signal` fill, 1.5 dp `BgVoid` stroke, pointing up = north). Verify in the Android Studio preview, against a dark and a light background, that the border is visible.
 
 ## 4. Map
 
