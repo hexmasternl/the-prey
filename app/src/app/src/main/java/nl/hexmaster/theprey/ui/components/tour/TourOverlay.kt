@@ -188,13 +188,19 @@ fun TourOverlay(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Spacer(Modifier.weight(1f))
+                // The buttons fill their width, so they share the row by weight; unweighted, Back would
+                // take all of it and squeeze Next out.
                 if (!state.isFirst) {
-                    SecondaryButton(text = stringResource(R.string.tour_back), onClick = { index = state.back().index })
+                    SecondaryButton(
+                        text = stringResource(R.string.tour_back),
+                        onClick = { index = state.back().index },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
                 PrimaryButton(
                     text = stringResource(if (state.isLast) R.string.tour_done else R.string.tour_next),
                     onClick = { if (state.isLast) onFinish(TourOutcome.Completed) else index = state.next().index },
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
