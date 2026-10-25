@@ -14,7 +14,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import nl.hexmaster.theprey.auth.SessionState
+import nl.hexmaster.theprey.deeplink.parseJoinLink
 import nl.hexmaster.theprey.tracking.TrackingNotifications
 import nl.hexmaster.theprey.ui.navigation.ThePreyNavHost
 import nl.hexmaster.theprey.ui.splash.LaunchSequence
@@ -45,7 +48,10 @@ class MainActivity : AppCompatActivity() {
         }
         splashReleased = savedInstanceState != null
         // A recreated activity already handled the intent that opened it.
-        if (savedInstanceState == null) onResumeTrackingIntent(intent)
+        if (savedInstanceState == null) {
+            onResumeTrackingIntent(intent)
+            onInviteIntent(intent)
+        }
         // Hold the system splash until the stored session is checked, so a signed-in
         // player never sees the landing page flash by.
         installSplashScreen().setKeepOnScreenCondition {
@@ -98,6 +104,15 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         onResumeTrackingIntent(intent)
+        onInviteIntent(intent)
+    }
+
+    /** Keeps a tapped invitation link until the player is signed in; the nav host then joins it. */
+    private fun onInviteIntent(intent: Intent?) {
+        val invite = intent?.dataString?.let(::parseJoinLink) ?: return
+        val store = (application as ThePreyApplication).container.pendingInviteStore
+        val receivedAt = System.currentTimeMillis()
+        lifecycleScope.launch { store.save(invite, receivedAt) }
     }
 
     private fun onResumeTrackingIntent(intent: Intent?) {

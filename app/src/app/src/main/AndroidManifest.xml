@@ -37,6 +37,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Game invitations: https://theprey.nl/games/join/{gameId}/{code}. Verified through
+                 https://theprey.nl/.well-known/assetlinks.json; the website page hands unverified
+                 opens over with an intent:// URL. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="theprey.nl"
+                    android:pathPrefix="/games/join/" />
+            </intent-filter>
         </activity>
         <!-- In-game location tracking. Started only from the foreground via TrackingStarter. -->
         <service
