@@ -59,7 +59,8 @@ import nl.hexmaster.theprey.ui.theme.ThePreyTheme
  * One playfield: its name, the Public checkbox (only for public-eligible names) and the entry to
  * its area. Editable when opened from the Private tab: Cancel and Save (one update, then back to
  * the list). Read-only when opened from the Public tab: Close only. Cancel, Close, the back arrow
- * and system Back leave without saving; nothing is sent until Save.
+ * and system Back leave without saving; nothing is sent until Save. In create mode it is titled
+ * "New playfield", hints that an area is needed, and Save creates the playfield.
  */
 @Composable
 fun PlayFieldDetailsScreen(
@@ -72,6 +73,7 @@ fun PlayFieldDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val saveFailedText = stringResource(R.string.playfield_details_save_failed)
     val conflictText = stringResource(R.string.playfield_details_conflict)
+    val createFailedText = stringResource(R.string.playfield_create_failed)
     val currentOnClose by rememberUpdatedState(onClose)
 
     LaunchedEffect(viewModel) {
@@ -80,6 +82,7 @@ fun PlayFieldDetailsScreen(
                 DetailsEvent.Closed -> currentOnClose()
                 DetailsEvent.SaveFailed -> snackbarHostState.showSnackbar(saveFailedText)
                 DetailsEvent.Conflict -> snackbarHostState.showSnackbar(conflictText)
+                DetailsEvent.CreateFailed -> snackbarHostState.showSnackbar(createFailedText)
             }
         }
     }
@@ -120,7 +123,10 @@ private fun PlayFieldDetailsContent(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = stringResource(R.string.playfield_details_title), style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        text = stringResource(if (uiState.isNew) R.string.playfield_editor_title else R.string.playfield_details_title),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onClose, enabled = !uiState.saving) {
@@ -262,6 +268,14 @@ private fun DetailsForm(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (uiState.needsArea) {
+                Text(
+                    text = stringResource(R.string.playfield_create_area_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
             Spacer(Modifier.height(12.dp))
             SecondaryButton(
                 text = stringResource(R.string.playfield_details_area),
@@ -394,3 +408,21 @@ private fun ErrorPreview() = ContentPreview(previewState(load = DetailsLoad.Erro
 @Preview(name = "Error (Dutch)", locale = "nl")
 @Composable
 private fun ErrorDutchPreview() = ContentPreview(previewState(load = DetailsLoad.Error))
+
+private val emptyDraft = PlayFieldDraft(name = "", isPublic = false, points = emptyList())
+
+private val newEmptyState = PlayFieldDetailsUiState(editable = true, isNew = true, load = DetailsLoad.Loaded, original = emptyDraft)
+
+@Preview(name = "New, empty")
+@Composable
+private fun NewEmptyPreview() = ContentPreview(newEmptyState)
+
+@Preview(name = "New, ready to save")
+@Composable
+private fun NewReadyPreview() = ContentPreview(
+    newEmptyState.copy(name = "NL, Utrecht, Wilhelminapark", isPublic = true, points = previewPoints),
+)
+
+@Preview(name = "New, empty (Dutch)", locale = "nl")
+@Composable
+private fun NewEmptyDutchPreview() = ContentPreview(newEmptyState)

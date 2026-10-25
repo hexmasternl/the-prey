@@ -156,6 +156,8 @@
     <string name="playfield_details_retry">Retry</string>
     <string name="playfield_details_save_failed">Playfield not saved. Try again.</string>
     <string name="playfield_details_conflict">This playfield was changed elsewhere. Showing the latest version.</string>
+    <string name="playfield_create_area_hint">Set the playfield area (at least 3 points) to save.</string>
+    <string name="playfield_create_failed">The playfield was not created. Try again.</string>
 
     <!-- Playfield area map (ui/playfields/area/) -->
     <string name="playfield_area_cancel">Cancel</string>

@@ -133,6 +133,8 @@
     <string name="playfield_details_retry">Opnieuw</string>
     <string name="playfield_details_save_failed">Speelveld niet opgeslagen. Probeer het opnieuw.</string>
     <string name="playfield_details_conflict">Dit speelveld is elders gewijzigd. De nieuwste versie wordt getoond.</string>
+    <string name="playfield_create_area_hint">Stel het speelveldgebied in (minstens 3 punten) om op te slaan.</string>
+    <string name="playfield_create_failed">Het speelveld is niet aangemaakt. Probeer het opnieuw.</string>
 
     <!-- Playfield area map (ui/playfields/area/) -->
     <string name="playfield_area_cancel">Annuleren</string>
