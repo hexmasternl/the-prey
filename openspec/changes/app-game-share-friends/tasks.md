@@ -27,10 +27,10 @@
 
 ## 5. Docs
 
-- [ ] 5.1 In `docs/api/endpoints.md`, replace `POST /games/join` with `POST /games/{id}/join` and its request body (`joinCode`, `displayName`) and error codes. Add a short "Invitation links" section describing the `https://theprey.nl/games/join/{gameId}/{code}` format, the website fallback page and `assetlinks.json`. Verify the links in the doc resolve to existing sections
+- [x] 5.1 In `docs/api/endpoints.md`, replace `POST /games/join` with `POST /games/{id}/join` and its request body (`joinCode`, `displayName`) and error codes. Add a short "Invitation links" section describing the `https://theprey.nl/games/join/{gameId}/{code}` format, the website fallback page and `assetlinks.json`. Verify the links in the doc resolve to existing sections
 
 ## 6. Integration checks
 
-- [ ] 6.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and `hugo` from `website/src`. Both pass
-- [ ] 6.2 End to end on a device with the debug build: signed in, tap a shared link in a chat app → lobby. Signed out → landing page → sign in → lobby. Force-stop the app during sign-in → sign in again → lobby. Owner taps own link → lobby without an error. Tap a link for a started game → "already started" message. Tap a link while in another running game → "already in a game". Uninstall the app and tap a link → Play Store
-- [ ] 6.3 After deploying the website, run `adb shell pm verify-app-links --re-verify nl.hexmaster.theprey` and `adb shell pm get-app-links nl.hexmaster.theprey`, and confirm `theprey.nl` is `verified` for the installed build's key
+- [x] 6.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and `hugo` from `website/src`. Both pass
+- [ ] 6.2 End to end on a device with the debug build: signed in, tap a shared link in a chat app → lobby. Signed out → landing page → sign in → lobby. Force-stop the app during sign-in → sign in again → lobby. Owner taps own link → lobby without an error. Tap a link for a started game → "already started" message. Tap a link while in another running game → "already in a game". Uninstall the app and tap a link → Play Store _(device check pending)_
+- [ ] 6.3 After deploying the website, run `adb shell pm verify-app-links --re-verify nl.hexmaster.theprey` and `adb shell pm get-app-links nl.hexmaster.theprey`, and confirm `theprey.nl` is `verified` for the installed build's key _(device check pending)_

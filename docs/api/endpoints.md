@@ -48,7 +48,7 @@ All endpoints require a valid Bearer token unless noted otherwise.
 | `POST` | `/games` | Create a new game on a playfield |
 | `GET` | `/games/{id}/gamestate` | **Preferred read.** The complete state of the game for the calling user in one response (see below) |
 | `GET` | `/games/{id}` | Get game state and player list |
-| `POST` | `/games/join` | Join a game using a game code |
+| `POST` | `/games/{id}/join` | Join a game's lobby with its code (see [Invitation links](#invitation-links)) |
 | `POST` | `/games/{id}/roles` | Assign roles (creator only) |
 | `PUT` | `/games/{id}/config` | Update the game settings (owner only, `Lobby`/`Ready`); resets every non-owner ready flag |
 | `POST` | `/games/{id}/lobby/ready` | Mark the caller ready in the lobby (no-op for the owner) |
@@ -148,7 +148,7 @@ positive, `hunterDelayTime` and `finalStageDuration` shorter than `gameDuration`
 }
 ```
 
-### `POST /games/join` — Request Body
+### `POST /games/{id}/join` — Request Body
 
 ```json
 {
@@ -156,6 +156,27 @@ positive, `hunterDelayTime` and `finalStageDuration` shorter than `gameDuration`
   "displayName": "Fox"
 }
 ```
+
+Joins the lobby of game `{id}` with its 4-digit code. `profilePictureUrl` is optional. `200` with the
+caller's `GameDto`. Errors are problem details with a machine-readable `code`:
+
+| Status | `code` | Meaning |
+|---|---|---|
+| `400` | `invalid_join_code` | The code does not match the game |
+| `404` | `game_not_found` | The game does not exist |
+| `409` | `player_already_joined` | The caller is already in this lobby |
+| `409` | `game_already_started` | The game has left the lobby |
+| `409` | `lobby_full` | The lobby has no room left |
+
+### Invitation links
+
+The lobby shares `https://theprey.nl/games/join/{gameId}/{code}`: the game's GUID and its 4-digit
+code. The client builds the link; the backend does not store it. The Android app is the verified
+handler of `https://theprey.nl/games/join/*` through
+[`/.well-known/assetlinks.json`](../../website/src/static/.well-known/assetlinks.json), and joins with
+`POST /games/{id}/join` once the player is signed in. Links that the app does not open land on the
+website page [`/games/join/index.html`](../../website/src/static/games/join/index.html), which hands
+them to the app with an `intent://` URL and falls back to the Play Store.
 
 ### `PUT /games/{id}/config` — Request Body
 
