@@ -38,6 +38,8 @@ import nl.hexmaster.theprey.ui.consent.LocationConsentHost
 import nl.hexmaster.theprey.ui.game.GameExit
 import nl.hexmaster.theprey.ui.game.GameScreen
 import nl.hexmaster.theprey.ui.game.GameViewModel
+import nl.hexmaster.theprey.ui.game.hud.hunter.HunterHud
+import nl.hexmaster.theprey.ui.game.hud.hunter.TagSheetViewModel
 import nl.hexmaster.theprey.ui.game.hud.prey.PreyHud
 import nl.hexmaster.theprey.ui.games.create.CreateGameScreen
 import nl.hexmaster.theprey.ui.games.create.CreateGameViewModel
@@ -227,6 +229,14 @@ fun ThePreyNavHost(
                             GameViewModel(gameId, gameSessions, profileStore, locationSource, headingSource, SystemClock::elapsedRealtime)
                         },
                         preyHud = { ready -> PreyHud(ready) },
+                        hunterHud = { ready ->
+                            HunterHud(
+                                ready = ready,
+                                tagSheetViewModel = {
+                                    viewModel(key = "tag_sheet") { TagSheetViewModel(gameId, gameRepository, gameSessions) }
+                                },
+                            )
+                        },
                         // Back leaves the screen, not the game: Resume game on the menu reopens it.
                         onExit = { reason ->
                             if (navController.currentBackStackEntry == entry) {

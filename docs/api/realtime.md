@@ -237,6 +237,18 @@ locally on the device's monotonic clock; `serverTime` corrects for device clock 
 | Time left | `status.gameDurationLeft` |
 | Next broadcast bar | `status.nextPingDuration` over `status.currentPingInterval` (30 s when 0) |
 
+**Hunter HUD**
+
+| Shows | Source |
+|---|---|
+| Game clock, penalty | `status.gameDurationLeft`; own participant `hasActivePenalty` / `penaltyEndsAt` |
+| Next ping | `status.nextPingDuration` at snapshot time; re-seeded from `status.currentPingInterval` at every `locations-updated` batch |
+| Preys in play | participants other than `game.hunterUserId` in state `Active`/`Passive`, over all of them (`participant-changed`, `prey-updated` `tagged`) |
+| Closest prey | the device fix to each in-play prey's `lastKnownLocation` (moved by `locations-updated`) |
+| Penalised preys | in-play preys with `hasActivePenalty`, or a `penaltyEndsAt` still ahead |
+| Tag button lock | `status.hunterMayMoveAt` − `serverTime` |
+| Tag sheet | `GET /games/{id}/tag-candidates`; after a `204` from the tag call the HUD asks the Game State Service for one fresh snapshot (`resync`), so the counts change at once |
+
 ### In-game location tracking hook (Android)
 
 The Android app reports the player's position from a separate foreground service
