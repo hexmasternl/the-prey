@@ -61,7 +61,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.hexmaster.theprey.R
 import nl.hexmaster.theprey.deeplink.joinLink
 import nl.hexmaster.theprey.ui.components.PrimaryButton
-import nl.hexmaster.theprey.ui.components.SecondaryButton
 import nl.hexmaster.theprey.ui.games.create.GameSetting
 import nl.hexmaster.theprey.ui.games.create.GameSettings
 import nl.hexmaster.theprey.ui.games.create.GameSettingsForm
@@ -246,7 +245,7 @@ private fun CodeCard(code: String, onShare: (String) -> Unit) {
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
             .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), MaterialTheme.shapes.medium)
-            .padding(20.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -254,15 +253,22 @@ private fun CodeCard(code: String, onShare: (String) -> Unit) {
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = code,
-            style = MaterialTheme.typography.displayMedium.copy(letterSpacing = 12.sp),
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(16.dp))
-        SecondaryButton(text = stringResource(R.string.lobby_share), onClick = { onShare(code) }, height = 48.dp)
+        Spacer(Modifier.height(4.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = code,
+                style = MaterialTheme.typography.displayMedium.copy(letterSpacing = 12.sp),
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+            )
+            IconButton(onClick = { onShare(code) }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_share),
+                    contentDescription = stringResource(R.string.lobby_share_description),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
     }
 }
 
