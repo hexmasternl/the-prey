@@ -64,7 +64,7 @@ private val HitRadius = 24.dp
 /** Room around a fitted area. */
 private val FitPadding = 48.dp
 
-/** Gap between the map's logo/attribution and the chrome below them. */
+/** Gap between the map's attribution button and the chrome below it. */
 private val OrnamentGap = 8.dp
 
 /** Theme colours as ARGB ints, the form MapLibre takes. */
@@ -82,8 +82,8 @@ private data class MapColors(val signal: Int, val selected: Int, val keyline: In
  * - The camera starts from [initialCamera]; with no points it may move once to [locateDevice]'s
  *   position, unless the player moved the map first. It survives rotation.
  *
- * [contentPadding] is the chrome over the map (the bottom bar): fitted areas, the logo and the
- * attribution stay clear of it.
+ * [contentPadding] is the chrome over the map (the bottom bar): fitted areas and the
+ * attribution button stay clear of it.
  */
 @Composable
 // The drag listener is touch-only by nature: drawing an area has no click equivalent.
@@ -187,9 +187,9 @@ fun PlayFieldMap(
                 isTiltGesturesEnabled = false
                 isCompassEnabled = false
                 isDoubleTapGesturesEnabled = true
-                // Attribution stays: the tile licence requires it.
+                // Attribution stays: the tile licence requires it. The MapLibre logo is optional.
                 isAttributionEnabled = true
-                isLogoEnabled = true
+                isLogoEnabled = false
             }
             m.addOnCameraMoveStartedListener { reason ->
                 if (reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) userMoved = true
@@ -290,12 +290,6 @@ fun PlayFieldMap(
 
     LaunchedEffect(map, padBottom) {
         val settings = map?.uiSettings ?: return@LaunchedEffect
-        settings.setLogoMargins(
-            settings.logoMarginLeft,
-            settings.logoMarginTop,
-            settings.logoMarginRight,
-            padBottom + gapPx,
-        )
         settings.setAttributionMargins(
             settings.attributionMarginLeft,
             settings.attributionMarginTop,
