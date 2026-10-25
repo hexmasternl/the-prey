@@ -46,10 +46,10 @@ import org.maplibre.geojson.Polygon
 import java.util.Locale
 
 /**
- * OpenFreeMap's dark style: OpenStreetMap vector tiles, free and without a key, desaturated so the
- * markers are the brightest things on screen. The one place to swap the map provider.
+ * OpenFreeMap's default (Liberty) style: full-colour OpenStreetMap vector tiles, free and without
+ * a key. The one place to swap the map provider.
  */
-const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/dark"
+const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
 
 private const val AREA_SOURCE = "playfield-area"
 private const val POINTS_SOURCE = "playfield-points"

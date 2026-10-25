@@ -87,7 +87,7 @@ data class PlayFieldDetailsUiState(
 
 ### 5. Map: MapLibre Native Android + OpenFreeMap
 - Dependency `org.maplibre.gl:android-sdk`: the current stable release, pinned in `libs.versions.toml` (BSD-2-Clause, no key). `MapLibre.getInstance(context)` is called once in `ThePreyApplication`.
-- Style: `const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/dark"`, in a single place so it can be swapped. OpenFreeMap serves OpenStreetMap vector tiles for free with no registration. The dark style fits the design system rule "dark, desaturated so markers are the brightest things on screen".
+- Style: `const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"`, in a single place so it can be swapped. OpenFreeMap serves OpenStreetMap vector tiles for free with no registration. Liberty is OpenFreeMap's default full-colour style, chosen over the dark style so the map reads like a familiar street map.
 - **Alternatives:**
   - osmdroid. Rejected: the project is archived and raster-only.
   - Google Maps SDK. Rejected: not open, needs an API key and billing.

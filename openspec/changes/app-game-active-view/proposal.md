@@ -13,7 +13,7 @@ The Android game route (`game/{gameId}`) is still a placeholder. The lobby (`app
   - Preys see the remaining time and a message that urges them to flee.
   - The hunter sees the same countdown with a warning to stay in this exact position, and that moving during the delay gives the hunter a penalty. The server already applies that penalty (`hunter-start-delay`).
   - While the game is `Started` but not yet `InProgress` (no clock yet), a short "game is starting" state is shown instead.
-- **Live map** as the screen's background (MapLibre with the existing OpenFreeMap dark style):
+- **Live map** as the screen's background (MapLibre with the existing OpenFreeMap Liberty style):
   - It is centered on the device's current location. The player is a small green arrow with a thin black border that points where the device points, using the compass.
   - Pinch to zoom and drag to pan. After 5 seconds without touch, the map re-centers on the device's location.
   - **Playfield area:** a solid green outline with a transparent green fill for preys, and a red outline with a transparent red fill for the hunter.
