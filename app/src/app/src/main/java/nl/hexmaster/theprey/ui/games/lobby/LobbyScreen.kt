@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +47,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -161,6 +163,7 @@ private fun LobbyContent(
     modifier: Modifier = Modifier,
 ) {
     val lobby = (state as? LobbyScreenState.Content)?.lobby
+    var settingsOpen by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
@@ -216,13 +219,7 @@ private fun LobbyContent(
                         }
                         PlayerList(state.lobby, onPlayerTap)
                     }
-                    Section(stringResource(R.string.lobby_settings)) {
-                        if (state.lobby.isOwner) {
-                            GameSettingsForm(settings = state.lobby.settings, onChange = onSettingChange, enabled = state.lobby.canEdit)
-                        } else {
-                            GameSettingsSummary(settings = state.lobby.settings)
-                        }
-                    }
+                    SettingsSummaryCard(state.lobby, onClick = { settingsOpen = true })
                 }
             }
         }
@@ -274,6 +271,64 @@ private fun CodeCard(code: String, onShare: (String) -> Unit) {
             }
         }
     }
+}
+
+/**
+ * The five settings as chips in one bordered card; the whole card opens the settings sheet. The
+ * owner also sees an Edit affordance, since only they can change the values there.
+ */
+@Composable
+private fun SettingsSummaryCard(lobby: LobbyUiState, onClick: () -> Unit) {
+    val settings = lobby.settings
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant), MaterialTheme.shapes.medium)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(16.dp),
+    ) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.lobby_settings).uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.weight(1f),
+            )
+            if (lobby.isOwner) {
+                Text(
+                    text = stringResource(R.string.lobby_settings_edit).uppercase(),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SummaryChip(stringResource(R.string.lobby_summary_duration, settings.duration))
+            SummaryChip(stringResource(R.string.lobby_summary_hunter_delay, settings.hunterDelay))
+            SummaryChip(stringResource(R.string.lobby_summary_final_stage, settings.finalStage))
+            SummaryChip(stringResource(R.string.lobby_summary_ping, settings.pingInterval))
+            SummaryChip(stringResource(R.string.lobby_summary_final_ping, settings.finalPingInterval))
+        }
+    }
+}
+
+@Composable
+private fun SummaryChip(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = 1,
+        modifier = Modifier
+            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), CircleShape)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+    )
 }
 
 @Composable
