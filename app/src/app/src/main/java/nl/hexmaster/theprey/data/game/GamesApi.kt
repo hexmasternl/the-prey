@@ -28,6 +28,13 @@ interface GamesApi {
     @POST("games")
     suspend fun createGame(@Body request: CreateGameRequest): Response<GameDto>
 
+    /**
+     * Joins the lobby of [gameId] with its code. 200 with the caller's game; 404 `game_not_found`,
+     * 400 `invalid_join_code`, 409 `player_already_joined` / `game_already_started` / `lobby_full`.
+     */
+    @POST("games/{id}/join")
+    suspend fun join(@Path("id") gameId: String, @Body request: JoinGameRequest): Response<GameDto>
+
     /** Replaces the game settings (owner only, before the start). 200 with the caller's game. */
     @PUT("games/{id}/config")
     suspend fun updateConfig(@Path("id") gameId: String, @Body request: UpdateGameConfigRequest): Response<GameDto>

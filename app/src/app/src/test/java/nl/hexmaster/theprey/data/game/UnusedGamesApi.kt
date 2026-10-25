@@ -10,6 +10,8 @@ abstract class UnusedGamesApi : GamesApi {
 
     override suspend fun createGame(request: CreateGameRequest): Response<GameDto> = error("Not used")
 
+    override suspend fun join(gameId: String, request: JoinGameRequest): Response<GameDto> = error("Not used")
+
     override suspend fun updateConfig(gameId: String, request: UpdateGameConfigRequest): Response<GameDto> =
         error("Not used")
 
@@ -36,6 +38,8 @@ abstract class UnusedGameRepository : GameRepository {
     override suspend fun activeGame(): ActiveGameResult = error("Not used")
 
     override suspend fun createGame(game: NewGame): CreateGameResult = error("Not used")
+
+    override suspend fun join(gameId: String, code: String, displayName: String): JoinResult = error("Not used")
 
     override suspend fun gameState(gameId: String): SnapshotResult = error("Not used")
 

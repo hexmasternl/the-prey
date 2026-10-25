@@ -24,6 +24,9 @@ interface GameRepository {
     /** Creates [game] with the signed-in player as its owner. */
     suspend fun createGame(game: NewGame): CreateGameResult
 
+    /** Joins the lobby of [gameId] with its invitation [code], as [displayName]. */
+    suspend fun join(gameId: String, code: String, displayName: String): JoinResult
+
     /** The complete state of [gameId] as the caller sees it. */
     suspend fun gameState(gameId: String): SnapshotResult
 
@@ -86,6 +89,24 @@ class ApiGameRepository(private val api: GamesApi) : GameRepository {
     } catch (e: RuntimeException) {
         Log.w(TAG, "Create game answer unreadable", e)
         CreateGameResult.Failed
+    }
+
+    override suspend fun join(gameId: String, code: String, displayName: String): JoinResult = try {
+        val response = api.join(gameId, JoinGameRequest(joinCode = code, displayName = displayName))
+        val body = response.body()
+        when {
+            response.isSuccessful && body != null -> JoinResult.Joined(body)
+            response.isSuccessful -> JoinResult.Network
+            else -> joinRefusal(response.code(), problemCode(response.errorBody()?.string()))
+                .also { Log.w(TAG, "Join refused: HTTP ${response.code()} -> $it") }
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: IOException) {
+        JoinResult.Network
+    } catch (e: RuntimeException) {
+        Log.w(TAG, "Join answer unreadable", e)
+        JoinResult.Network
     }
 
     override suspend fun gameState(gameId: String): SnapshotResult = try {
