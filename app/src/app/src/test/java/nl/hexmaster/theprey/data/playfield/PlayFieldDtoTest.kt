@@ -82,6 +82,23 @@ class PlayFieldDtoTest {
     }
 
     @Test
+    fun encode_ShouldSendNameVisibilityAndPointsOnly_WhenCreateRequestIsSerialized() {
+        val request = CreatePlayFieldRequest(
+            name = "NL, Utrecht, Wilhelminapark",
+            isPublic = true,
+            points = listOf(GpsCoordinateDto(52.09, 5.13), GpsCoordinateDto(52.1, 5.14)),
+        )
+
+        val encoded = json.encodeToString(CreatePlayFieldRequest.serializer(), request)
+
+        assertEquals(
+            """{"name":"NL, Utrecht, Wilhelminapark","isPublic":true,""" +
+                """"points":[{"latitude":52.09,"longitude":5.13},{"latitude":52.1,"longitude":5.14}]}""",
+            encoded,
+        )
+    }
+
+    @Test
     fun positions_ShouldMapPointsInOrder_WhenConvertingBothWays() {
         val dto = PlayFieldDto(
             id = "p1",

@@ -38,6 +38,17 @@ data class UpsertPlayFieldRequest(
     val lastUpdatedOn: String,
 )
 
+/**
+ * Body of `POST /playfields` (`CreatePlayFieldRequest`). Same rules as [UpsertPlayFieldRequest], but
+ * without a last-updated time: the server stamps its own on a new playfield.
+ */
+@Serializable
+data class CreatePlayFieldRequest(
+    val name: String,
+    val isPublic: Boolean,
+    val points: List<GpsCoordinateDto>,
+)
+
 fun GpsCoordinateDto.toGeoPosition(): GeoPosition = GeoPosition(latitude, longitude)
 
 fun GeoPosition.toGpsCoordinateDto(): GpsCoordinateDto = GpsCoordinateDto(latitude, longitude)

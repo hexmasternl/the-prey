@@ -12,6 +12,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import nl.hexmaster.theprey.data.playfield.CreateOutcome
+import nl.hexmaster.theprey.data.playfield.CreatePlayFieldRequest
 import nl.hexmaster.theprey.data.playfield.DeleteOutcome
 import nl.hexmaster.theprey.data.playfield.GpsCoordinateDto
 import nl.hexmaster.theprey.data.playfield.LoadOutcome
@@ -55,6 +57,8 @@ class PlayFieldsViewModelTest {
         override suspend fun get(id: String): LoadOutcome = error("Not used")
 
         override suspend fun save(id: String, request: UpsertPlayFieldRequest): SaveOutcome = error("Not used")
+
+        override suspend fun create(request: CreatePlayFieldRequest): CreateOutcome = error("Not used")
 
         override suspend fun delete(id: String): DeleteOutcome {
             deletes += id

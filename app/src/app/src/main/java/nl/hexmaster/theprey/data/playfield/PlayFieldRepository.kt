@@ -37,6 +37,15 @@ sealed interface SaveOutcome {
     data object Failed : SaveOutcome
 }
 
+/** Outcome of creating a playfield. */
+sealed interface CreateOutcome {
+    /** Stored; [playField] is what the server keeps (its id, owner and last-updated time). */
+    data class Created(val playField: PlayFieldDto) : CreateOutcome
+
+    /** Not stored: no network, validation (400), a server error, or an unreadable answer. */
+    data object Failed : CreateOutcome
+}
+
 /** Thrown inside a failed [Result] when the server answers with a non-2xx status. */
 class HttpStatusException(val code: Int) : IOException("HTTP $code")
 
@@ -53,6 +62,9 @@ interface PlayFieldRepository {
 
     /** Writes name, visibility and points in one update (last-write-wins on [UpsertPlayFieldRequest.lastUpdatedOn]). */
     suspend fun save(id: String, request: UpsertPlayFieldRequest): SaveOutcome
+
+    /** Creates a new playfield owned by the player. */
+    suspend fun create(request: CreatePlayFieldRequest): CreateOutcome
 
     suspend fun delete(id: String): DeleteOutcome
 }
@@ -91,6 +103,12 @@ class ApiPlayFieldRepository(
             }
             else -> SaveOutcome.Failed
         }
+    }
+
+    override suspend fun create(request: CreatePlayFieldRequest): CreateOutcome = guarded(CreateOutcome.Failed) {
+        val response = api.create(request)
+        val body = response.body()
+        if (response.isSuccessful && body != null) CreateOutcome.Created(body) else CreateOutcome.Failed
     }
 
     override suspend fun delete(id: String): DeleteOutcome = guarded(DeleteOutcome.Failed) {

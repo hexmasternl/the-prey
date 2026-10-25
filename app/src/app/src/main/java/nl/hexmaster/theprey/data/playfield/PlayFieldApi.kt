@@ -4,6 +4,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -21,6 +22,13 @@ interface PlayFieldApi {
     /** 200 with the playfield; 404 when it does not exist, or is private and owned by someone else. */
     @GET("playfields/{id}")
     suspend fun get(@Path("id") id: String): Response<PlayFieldDto>
+
+    /**
+     * 201 with the new playfield, owned by the caller; 400 for a blank name or fewer than 3 points.
+     * The server forces [CreatePlayFieldRequest.isPublic] to false for an ineligible name.
+     */
+    @POST("playfields")
+    suspend fun create(@Body body: CreatePlayFieldRequest): Response<PlayFieldDto>
 
     /**
      * 200 with the updated playfield (201 when it did not exist), 409 with the stored playfield as

@@ -1,6 +1,8 @@
 package nl.hexmaster.theprey.ui.playfields
 
 import kotlinx.coroutines.CompletableDeferred
+import nl.hexmaster.theprey.data.playfield.CreateOutcome
+import nl.hexmaster.theprey.data.playfield.CreatePlayFieldRequest
 import nl.hexmaster.theprey.data.playfield.DeleteOutcome
 import nl.hexmaster.theprey.data.playfield.GpsCoordinateDto
 import nl.hexmaster.theprey.data.playfield.LoadOutcome
@@ -32,6 +34,8 @@ class ScriptedPlayFieldRepository : PlayFieldRepository {
     override suspend fun get(id: String): LoadOutcome = error("Not used")
 
     override suspend fun save(id: String, request: UpsertPlayFieldRequest): SaveOutcome = error("Not used")
+
+    override suspend fun create(request: CreatePlayFieldRequest): CreateOutcome = error("Not used")
 
     override suspend fun delete(id: String): DeleteOutcome = error("Not used")
 }

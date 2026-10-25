@@ -2,6 +2,7 @@ package nl.hexmaster.theprey.data.playfield
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.SerializationException
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -17,11 +18,13 @@ class PlayFieldRepositoryTest {
         private val delete: suspend () -> Response<Unit> = { error("Not used") },
         private val get: suspend () -> Response<PlayFieldDto> = { error("Not used") },
         private val upsert: suspend () -> Response<PlayFieldDto> = { error("Not used") },
+        private val create: suspend () -> Response<PlayFieldDto> = { error("Not used") },
     ) : PlayFieldApi {
         val queries = mutableListOf<String>()
         val deleted = mutableListOf<String>()
         val loaded = mutableListOf<String>()
         val upserts = mutableListOf<Pair<String, UpsertPlayFieldRequest>>()
+        val creates = mutableListOf<CreatePlayFieldRequest>()
 
         override suspend fun listMine(): Response<List<PlayFieldSummaryDto>> = list()
 
@@ -38,6 +41,11 @@ class PlayFieldRepositoryTest {
         override suspend fun upsert(id: String, body: UpsertPlayFieldRequest): Response<PlayFieldDto> {
             upserts += id to body
             return upsert()
+        }
+
+        override suspend fun create(body: CreatePlayFieldRequest): Response<PlayFieldDto> {
+            creates += body
+            return create()
         }
 
         override suspend fun delete(id: String): Response<Unit> {
@@ -286,6 +294,60 @@ class PlayFieldRepositoryTest {
 
         try {
             ApiPlayFieldRepository(api).save("p1", request)
+            fail("Expected the cancellation to propagate")
+        } catch (e: CancellationException) {
+            assertEquals("left", e.message)
+        }
+    }
+
+    // ---- create ----
+
+    private val createRequest = CreatePlayFieldRequest(name = full.name, isPublic = true, points = full.points)
+
+    @Test
+    fun create_ShouldReturnCreatedAndSendRequest_WhenServerReturns201() = runTest {
+        val api = FakePlayFieldApi(create = { Response.success(201, full) })
+
+        assertEquals(CreateOutcome.Created(full), ApiPlayFieldRepository(api).create(createRequest))
+        assertEquals(listOf(createRequest), api.creates)
+    }
+
+    @Test
+    fun create_ShouldReturnFailed_WhenServerReturns201WithoutBody() = runTest {
+        val api = FakePlayFieldApi(create = { Response.success<PlayFieldDto>(201, null) })
+
+        assertEquals(CreateOutcome.Failed, ApiPlayFieldRepository(api).create(createRequest))
+    }
+
+    @Test
+    fun create_ShouldReturnFailed_WhenServerReturns400Or500() = runTest {
+        listOf(400, 500).forEach { code ->
+            val api = FakePlayFieldApi(create = { errorResponse(code) })
+
+            assertEquals("HTTP $code", CreateOutcome.Failed, ApiPlayFieldRepository(api).create(createRequest))
+        }
+    }
+
+    @Test
+    fun create_ShouldReturnFailed_WhenNetworkFails() = runTest {
+        val api = FakePlayFieldApi(create = { throw IOException("offline") })
+
+        assertEquals(CreateOutcome.Failed, ApiPlayFieldRepository(api).create(createRequest))
+    }
+
+    @Test
+    fun create_ShouldReturnFailed_WhenBodyDoesNotParse() = runTest {
+        val api = FakePlayFieldApi(create = { throw SerializationException("bad body") })
+
+        assertEquals(CreateOutcome.Failed, ApiPlayFieldRepository(api).create(createRequest))
+    }
+
+    @Test
+    fun create_ShouldRethrow_WhenCancelled() = runTest {
+        val api = FakePlayFieldApi(create = { throw CancellationException("left") })
+
+        try {
+            ApiPlayFieldRepository(api).create(createRequest)
             fail("Expected the cancellation to propagate")
         } catch (e: CancellationException) {
             assertEquals("left", e.message)
