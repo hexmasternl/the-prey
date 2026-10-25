@@ -318,4 +318,12 @@
     <string name="tag_sheet_confirm">Prooi taggen</string>
     <string name="tag_sheet_tagging">Taggen</string>
     <string name="tag_sheet_tagged">%1$s getagd</string>
+
+    <!-- Eerste-keer-rondleidingen: gedeelde knoppen -->
+    <string name="tour_skip">Overslaan</string>
+    <string name="tour_back">Terug</string>
+    <string name="tour_next">Volgende</string>
+    <string name="tour_done">Klaar</string>
+    <string name="tour_counter">%1$d / %2$d</string>
+    <string name="tour_a11y_pane">Rondleiding, stap %1$d van %2$d: %3$s</string>
 </resources>
