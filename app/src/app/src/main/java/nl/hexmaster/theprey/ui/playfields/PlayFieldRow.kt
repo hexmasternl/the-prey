@@ -24,6 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -45,14 +47,29 @@ import java.time.format.FormatStyle
 
 /**
  * One playfield in a list: name, visibility pill, last-updated date and, when known, the centre
- * coordinates. Shows a small spinner while [busy] (a delete is in flight).
+ * coordinates. Shows a small spinner while [busy] (a delete is in flight), and the selected-item
+ * treatment while [selected] (playfield selection screen).
  */
 @Composable
-fun PlayFieldRow(item: PlayFieldItem, modifier: Modifier = Modifier, busy: Boolean = false) {
+fun PlayFieldRow(item: PlayFieldItem, modifier: Modifier = Modifier, busy: Boolean = false, selected: Boolean = false) {
     val locale = LocalConfiguration.current.locales[0]
     val dateFormat = remember(locale) { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale) }
+    val accent = MaterialTheme.colorScheme.primary
     Row(
-        modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
+        modifier
+            .fillMaxWidth()
+            .then(
+                if (selected) {
+                    // Selected list item: accent tint behind the row and a 3 dp accent bar on the leading edge.
+                    Modifier.drawBehind {
+                        drawRect(accent.copy(alpha = 0.12f))
+                        drawRect(accent, size = Size(3.dp.toPx(), size.height))
+                    }
+                } else {
+                    Modifier
+                },
+            )
+            .padding(horizontal = 18.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
@@ -180,6 +197,8 @@ private fun RowsPreviewContent() {
             RowSeparator()
             PlayFieldRow(previewItems[1], busy = true)
             RowSeparator()
+            PlayFieldRow(previewItems[2], selected = true)
+            RowSeparator()
             MessageState(
                 text = stringResource(R.string.playfields_load_error),
                 actionLabel = stringResource(R.string.playfields_retry),
@@ -197,3 +216,15 @@ private fun PlayFieldRowPreview() = RowsPreviewContent()
 @Preview(name = "Rows (Dutch)", locale = "nl")
 @Composable
 private fun PlayFieldRowDutchPreview() = RowsPreviewContent()
+
+@Preview(name = "Selected")
+@Composable
+private fun PlayFieldRowSelectedPreview() {
+    ThePreyTheme {
+        Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+            PlayFieldRow(previewItems[0], selected = true)
+            RowSeparator()
+            PlayFieldRow(previewItems[1])
+        }
+    }
+}

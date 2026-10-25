@@ -5,11 +5,11 @@
 - [x] 1.1 Extract `OwnPlayFields(repository, scope)` (`state`, `refresh()`, `remove(id)`) from `PlayFieldsViewModel` into `ui/playfields/OwnPlayFields.kt`, keeping the in-flight guard, first-load-only `Loading` and keep-items-on-failed-refresh behaviour; add `OwnPlayFieldsTest` (first load, error, retry, refresh keeps items, refresh failure keeps items, `remove`) and verify it passes with `./gradlew testDebugUnitTest`
 - [x] 1.2 Extract `PublicPlayFieldSearch(repository, scope, initialQuery)` (`query`, `state`, `onQueryChange`) with the 366 ms debounce, `MIN_SEARCH_LENGTH`, `transformLatest` and generation logic into `ui/playfields/PublicPlayFieldSearch.kt`; add `PublicPlayFieldSearchTest` (debounce with `advanceTimeBy`, short query clears at once, stale results ignored, same text searched again after an error or after clearing) and verify it passes
 - [x] 1.3 Rebuild `PlayFieldsViewModel` on top of both holders without changing `PlayFieldsUiState` or its public functions; verify `PlayFieldsViewModelTest` passes unchanged
-- [ ] 1.4 Move the tab row, the Public search field and the list/search `MessageState` mapping out of `PlayFieldsScreen.kt` into `ui/playfields/PlayFieldTabs.kt` (`PlayFieldTabRow`, `PlayFieldSearchField`, `OwnPlayFieldsState`, `PublicSearchState`) and use them from `PlayFieldsScreen`; verify `./gradlew assembleDebug` builds and the playfields screen previews render as before
+- [x] 1.4 Move the tab row, the Public search field and the list/search `MessageState` mapping out of `PlayFieldsScreen.kt` into `ui/playfields/PlayFieldTabs.kt` (`PlayFieldTabRow`, `PlayFieldSearchField`, `OwnPlayFieldsState`, `PublicSearchState`) and use them from `PlayFieldsScreen`; verify `./gradlew assembleDebug` builds and the playfields screen previews render as before
 
 ## 2. Selectable rows
 
-- [ ] 2.1 Add `selected: Boolean = false` to `PlayFieldRow` (12 % `primary` tint + 3 dp leading `primary` bar, theme tokens only, checked against the `the-prey-design-system` skill) and a "Selected" preview; verify the previews render and the list screen rows look unchanged
+- [x] 2.1 Add `selected: Boolean = false` to `PlayFieldRow` (12 % `primary` tint + 3 dp leading `primary` bar, theme tokens only, checked against the `the-prey-design-system` skill) and a "Selected" preview; verify the previews render and the list screen rows look unchanged
 
 ## 3. Selection state and result contract
 

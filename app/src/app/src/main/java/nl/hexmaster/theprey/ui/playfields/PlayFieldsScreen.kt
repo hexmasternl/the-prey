@@ -6,26 +6,19 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -39,13 +32,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -160,35 +149,13 @@ private fun PlayFieldsContent(
         },
     ) { innerPadding ->
         Column(Modifier.padding(innerPadding).fillMaxSize()) {
-            PrimaryTabRow(
-                selectedTabIndex = uiState.selectedTab.ordinal,
-                containerColor = MaterialTheme.colorScheme.background,
-                contentColor = MaterialTheme.colorScheme.primary,
-                divider = { RowSeparator() },
-            ) {
-                PlayFieldsTab.entries.forEach { tab ->
-                    Tab(
-                        selected = uiState.selectedTab == tab,
-                        onClick = {
-                            revealedId = null
-                            onSelectTab(tab)
-                        },
-                        selectedContentColor = MaterialTheme.colorScheme.primary,
-                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        text = {
-                            Text(
-                                text = stringResource(
-                                    when (tab) {
-                                        PlayFieldsTab.Private -> R.string.playfields_tab_private
-                                        PlayFieldsTab.Public -> R.string.playfields_tab_public
-                                    },
-                                ).uppercase(),
-                                style = MaterialTheme.typography.labelLarge,
-                            )
-                        },
-                    )
-                }
-            }
+            PlayFieldTabRow(
+                selectedTab = uiState.selectedTab,
+                onSelectTab = { tab ->
+                    revealedId = null
+                    onSelectTab(tab)
+                },
+            )
             when (uiState.selectedTab) {
                 PlayFieldsTab.Private -> PrivateTab(
                     mine = uiState.mine,
@@ -234,55 +201,45 @@ private fun PrivateTab(
     onRequestDelete: (PlayFieldItem) -> Unit,
     onOpen: (id: String) -> Unit,
 ) {
-    when (mine) {
-        ListState.Loading -> MessageState(text = null, loading = true)
-        ListState.Error -> MessageState(
-            text = stringResource(R.string.playfields_load_error),
-            actionLabel = stringResource(R.string.playfields_retry),
-            onAction = onRetry,
-        )
-        is ListState.Loaded -> if (mine.items.isEmpty()) {
-            MessageState(text = stringResource(R.string.playfields_empty))
-        } else {
-            val listState = rememberLazyListState()
-            LaunchedEffect(listState) {
-                snapshotFlow { listState.isScrollInProgress }.filter { it }.collect { onRevealedChange(null) }
-            }
-            val deleteLabel = stringResource(R.string.playfields_delete)
-            LazyColumn(
-                state = listState,
-                // Room below the last row so the create button never covers it.
-                contentPadding = PaddingValues(bottom = 88.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    // Taps that no row consumes (between or below rows) close the revealed row.
-                    .pointerInput(Unit) { detectTapGestures { onRevealedChange(null) } },
-            ) {
-                items(mine.items, key = { it.id }) { item ->
-                    val busy = item.id in deletingIds
-                    SwipeRevealRow(
-                        revealed = revealedId == item.id,
-                        onRevealChange = { open ->
-                            when {
-                                open -> onRevealedChange(item.id)
-                                revealedId == item.id -> onRevealedChange(null)
-                            }
+    OwnPlayFieldsState(mine = mine, emptyText = stringResource(R.string.playfields_empty), onRetry = onRetry) { items ->
+        val listState = rememberLazyListState()
+        LaunchedEffect(listState) {
+            snapshotFlow { listState.isScrollInProgress }.filter { it }.collect { onRevealedChange(null) }
+        }
+        val deleteLabel = stringResource(R.string.playfields_delete)
+        LazyColumn(
+            state = listState,
+            // Room below the last row so the create button never covers it.
+            contentPadding = PaddingValues(bottom = 88.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                // Taps that no row consumes (between or below rows) close the revealed row.
+                .pointerInput(Unit) { detectTapGestures { onRevealedChange(null) } },
+        ) {
+            items(items, key = { it.id }) { item ->
+                val busy = item.id in deletingIds
+                SwipeRevealRow(
+                    revealed = revealedId == item.id,
+                    onRevealChange = { open ->
+                        when {
+                            open -> onRevealedChange(item.id)
+                            revealedId == item.id -> onRevealedChange(null)
+                        }
+                    },
+                    enabled = !busy,
+                    actionLabel = deleteLabel,
+                    onAction = { onRequestDelete(item) },
+                ) {
+                    PlayFieldRow(
+                        item,
+                        busy = busy,
+                        // With a Delete button revealed anywhere, a tap only closes it.
+                        modifier = Modifier.clickable {
+                            if (revealedId != null) onRevealedChange(null) else onOpen(item.id)
                         },
-                        enabled = !busy,
-                        actionLabel = deleteLabel,
-                        onAction = { onRequestDelete(item) },
-                    ) {
-                        PlayFieldRow(
-                            item,
-                            busy = busy,
-                            // With a Delete button revealed anywhere, a tap only closes it.
-                            modifier = Modifier.clickable {
-                                if (revealedId != null) onRevealedChange(null) else onOpen(item.id)
-                            },
-                        )
-                    }
-                    RowSeparator()
+                    )
                 }
+                RowSeparator()
             }
         }
     }
@@ -295,59 +252,22 @@ private fun PublicTab(
     onQueryChange: (String) -> Unit,
     onOpen: (id: String) -> Unit,
 ) {
-    val focusRequester = remember { FocusRequester() }
-    val keyboard = LocalSoftwareKeyboardController.current
-    // The tab enters composition when it is selected: focus the field and open the keyboard.
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-        keyboard?.show()
-    }
     Column(Modifier.fillMaxSize()) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = onQueryChange,
-            label = { Text(stringResource(R.string.playfields_search_label)) },
-            leadingIcon = { Icon(painter = painterResource(R.drawable.ic_search), contentDescription = null) },
-            singleLine = true,
-            // The search is already live; the action key only closes the keyboard.
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
-            shape = MaterialTheme.shapes.small,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-                unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .focusRequester(focusRequester),
-        )
-        when (search) {
-            SearchState.Idle -> MessageState(text = stringResource(R.string.playfields_search_hint))
-            SearchState.Searching -> MessageState(text = null, loading = true)
-            SearchState.Error -> MessageState(text = stringResource(R.string.playfields_search_error))
-            is SearchState.Results -> if (search.items.isEmpty()) {
-                MessageState(text = stringResource(R.string.playfields_no_results))
-            } else {
-                LazyColumn(Modifier.fillMaxSize()) {
-                    items(search.items, key = { it.id }) { item ->
-                        // Public playfields can never be removed here, not even the player's own.
-                        SwipeRevealRow(
-                            revealed = false,
-                            onRevealChange = {},
-                            enabled = false,
-                            actionLabel = "",
-                            onAction = {},
-                        ) {
-                            PlayFieldRow(item, modifier = Modifier.clickable { onOpen(item.id) })
-                        }
-                        RowSeparator()
+        PlayFieldSearchField(query = query, onQueryChange = onQueryChange)
+        PublicSearchState(search) { items ->
+            LazyColumn(Modifier.fillMaxSize()) {
+                items(items, key = { it.id }) { item ->
+                    // Public playfields can never be removed here, not even the player's own.
+                    SwipeRevealRow(
+                        revealed = false,
+                        onRevealChange = {},
+                        enabled = false,
+                        actionLabel = "",
+                        onAction = {},
+                    ) {
+                        PlayFieldRow(item, modifier = Modifier.clickable { onOpen(item.id) })
                     }
+                    RowSeparator()
                 }
             }
         }
