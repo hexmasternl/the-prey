@@ -30,6 +30,9 @@ import nl.hexmaster.theprey.ui.game.hud.common.hudRoleFor
 import nl.hexmaster.theprey.ui.game.map.GameMap
 import nl.hexmaster.theprey.ui.game.map.MapMarker
 import nl.hexmaster.theprey.ui.game.map.MarkerStyle
+import nl.hexmaster.theprey.ui.game.result.GameResult
+import nl.hexmaster.theprey.ui.game.result.GameResultDialog
+import nl.hexmaster.theprey.ui.game.result.GameResultKind
 import nl.hexmaster.theprey.ui.playfields.MessageState
 import nl.hexmaster.theprey.ui.theme.ThePreyTheme
 import java.time.Instant
@@ -41,7 +44,9 @@ typealias GameHud = @Composable (state: ActiveGameUi.Ready) -> Unit
  * The active game screen. Layers, bottom to top: the live map, the starting / start-delay
  * overlay, the HUD of the player's role ([preyHud] or [hunterHud]), and the traffic-safety warning,
  * which is shown on every entry (not again after a rotation). Back returns to the main menu
- * without leaving the game ([onExit] with null); the game ending does so with its reason.
+ * without leaving the game ([onExit] with null); the game ending does so with its reason. A game
+ * played out with a decided result shows the result dialog instead, whose button and Back go to the
+ * menu with [GameExit.Dismissed].
  */
 @Composable
 fun GameScreen(
@@ -59,7 +64,8 @@ fun GameScreen(
         (ui as? ActiveGameUi.Exit)?.let { currentOnExit(it.reason) }
     }
     // While the warning is open its dialog takes Back itself, so Back does nothing then.
-    BackHandler { currentOnExit(null) }
+    // Over a result, Back dismisses it like its button.
+    BackHandler { currentOnExit(if (ui is ActiveGameUi.Result) GameExit.Dismissed else null) }
 
     GameContent(
         ui = ui,
@@ -68,7 +74,14 @@ fun GameScreen(
         hunterHud = hunterHud,
         modifier = modifier,
     )
-    if (!warningAcknowledged) SafetyWarningDialog(onAcknowledge = { warningAcknowledged = true })
+    when {
+        ui is ActiveGameUi.Result -> GameResultDialog(
+            result = (ui as ActiveGameUi.Result).result,
+            onDismiss = { currentOnExit(GameExit.Dismissed) },
+        )
+        // The game is over: nothing left to warn about.
+        !warningAcknowledged -> SafetyWarningDialog(onAcknowledge = { warningAcknowledged = true })
+    }
 }
 
 @Composable
@@ -83,6 +96,8 @@ private fun GameContent(
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         when (ui) {
             ActiveGameUi.Loading, is ActiveGameUi.Exit -> MessageState(text = null, loading = true)
+            // The session is gone, so there is no map: the background under the result dialog.
+            is ActiveGameUi.Result -> Unit
             is ActiveGameUi.Error -> MessageState(
                 text = stringResource(R.string.game_load_error),
                 actionLabel = if (ui.retryable) stringResource(R.string.playfields_retry) else null,
@@ -155,6 +170,16 @@ private fun LoadingPreview() {
     ThePreyTheme {
         GameContent(ui = ActiveGameUi.Loading, onRetry = {}, preyHud = {}, hunterHud = {}, reducedMotion = true)
         SafetyWarningDialog(onAcknowledge = {})
+    }
+}
+
+@Preview(name = "Result")
+@Composable
+private fun ResultPreview() {
+    val ui = ActiveGameUi.Result(GameResult(GameResultKind.PreyWon, escaped = 2, preys = 5))
+    ThePreyTheme {
+        GameContent(ui = ui, onRetry = {}, preyHud = {}, hunterHud = {}, reducedMotion = true)
+        GameResultDialog(result = ui.result, onDismiss = {}, reducedMotion = true)
     }
 }
 
