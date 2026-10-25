@@ -1,4 +1,19 @@
+{{- /*
+  An app screenshot in the page's language:
+  {{< screenshot name="area-editor" alt="…" caption="…" >}} renders
+  static/images/screens/{lang}/area-editor.webp, so the English and Dutch twins of a page share the
+  same call and each shows the app in its own language. A missing capture renders nothing and logs a
+  build warning, so `hugo` output must be free of "screenshot" warnings before a release.
+*/ -}}
+{{- $name := .Get "name" -}}
+{{- $path := printf "images/screens/%s/%s.webp" .Page.Language.Lang $name -}}
+{{- $file := printf "static/%s" $path -}}
+{{- if not (fileExists $file) -}}
+  {{- warnf "screenshot %q: %s does not exist (%s)" $name $file .Position -}}
+{{- else -}}
+{{- $img := imageConfig $file -}}
 <figure class="screenshot">
-  <img src="{{ .Get "src" | relURL }}" alt="{{ .Get "alt" }}" loading="lazy">
+  <img src="{{ $path | relURL }}" alt="{{ .Get "alt" }}" width="{{ $img.Width }}" height="{{ $img.Height }}" loading="lazy" decoding="async">
   {{ with .Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end }}
 </figure>
+{{- end -}}

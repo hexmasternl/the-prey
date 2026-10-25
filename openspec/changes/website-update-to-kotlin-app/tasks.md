@@ -14,7 +14,7 @@ Run Hugo from `website/src` (`hugo --gc --minify`, and `hugo server` to view). E
 
 ## 3. Screenshots
 
-- [ ] 3.1 Rewrite `layouts/shortcodes/screenshot.html` to take `name`, `alt`, `caption` and resolve `/images/screens/{lang}/{name}.webp` with width / height and lazy loading; verify with a temporary page in both languages
+- [x] 3.1 Rewrite `layouts/shortcodes/screenshot.html` to take `name`, `alt`, `caption` and resolve `/images/screens/{lang}/{name}.webp` with width / height and lazy loading; verify with a temporary page in both languages
 - [ ] 3.2 Capture the eleven screens of design §3 in English and Dutch from the current app (local Aspire backend, emulators, made-up callsigns and playfield names), export as 1080 px WebP ≤ 200 KB into `static/images/screens/en/` and `static/images/screens/nl/`; delete the six v1 PNGs from `static/images/screens/`; verify 22 files exist and `public/` after a build contains no v1 PNG
 
 ## 4. Home, Rules and Roles
