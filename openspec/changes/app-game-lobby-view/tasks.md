@@ -8,7 +8,7 @@
 
 ## 2. Android data layer: lobby commands and models
 
-- [ ] 2.1 Extend `data/game/GameStateDto.kt`: `GameDto` gets `gameCode`, `ownerUserId`, `outcome`. `GameConfigurationDto` gets all seven fields. `ParticipantDto` gets `displayName`, `isReady`, `hasActivePenalty`. Add `GameStatuses.LOBBY`/`READY` and request DTOs (`UpdateGameConfigRequest`, `SetHunterRequest(newHunterUserId)`, `StartGameRequest(hunterUserId)`, `NotificationConnectionDto(url)`). Verify `./gradlew testDebugUnitTest` still passes, including the existing tracking tests that parse snapshots.
+- [x] 2.1 Extend `data/game/GameStateDto.kt`: `GameDto` gets `gameCode`, `ownerUserId`, `outcome`. `GameConfigurationDto` gets all seven fields. `ParticipantDto` gets `displayName`, `isReady`, `hasActivePenalty`. Add `GameStatuses.LOBBY`/`READY` and request DTOs (`UpdateGameConfigRequest`, `SetHunterRequest(newHunterUserId)`, `StartGameRequest(hunterUserId)`, `NotificationConnectionDto(url)`). Verify `./gradlew testDebugUnitTest` still passes, including the existing tracking tests that parse snapshots.
 - [ ] 2.2 Add `updateConfig`, `setReady`, `setHunter`, `start`, `leave` and `getNotificationsToken` to `GamesApi`. Add them to `GameRepository` / `ApiGameRepository` as a `CommandResult` (`Ok(GameDto)`, `Left`, `Forbidden`, `NotFound`, `Conflict`, `Rejected`, `NetworkError`). Verify with unit tests against a fake `GamesApi` that cover each status code mapping.
 
 ## 3. Android Game State Service

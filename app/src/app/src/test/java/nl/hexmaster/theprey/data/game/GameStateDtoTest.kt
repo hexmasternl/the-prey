@@ -3,6 +3,7 @@ package nl.hexmaster.theprey.data.game
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import nl.hexmaster.theprey.data.playfield.GpsCoordinateDto
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -47,8 +48,14 @@ class GameStateDtoTest {
         assertEquals("2026-08-31T11:40:00+00:00", state.serverTime)
         assertEquals(
             listOf(
-                ParticipantDto("6f1c1d0e-8f43-4a8e-9a43-3d8b0e1f2a11", "Active"),
-                ParticipantDto("0b5e2a8c-0000-4000-8000-000000000002", PlayerStates.TAGGED),
+                ParticipantDto(
+                    "6f1c1d0e-8f43-4a8e-9a43-3d8b0e1f2a11",
+                    PlayerStates.ACTIVE,
+                    displayName = "Nina",
+                    isReady = true,
+                    lastKnownLocation = GpsCoordinateDto(52.36, 4.87),
+                ),
+                ParticipantDto("0b5e2a8c-0000-4000-8000-000000000002", PlayerStates.TAGGED, displayName = "Rex", isReady = true),
             ),
             state.game.participants,
         )
@@ -101,5 +108,33 @@ class GameStateDtoTest {
         val fields = json.parseToJsonElement(body).jsonObject
         assertEquals(setOf("latitude", "longitude", "recordedAt", "accuracy"), fields.keys)
         assertEquals("2026-06-01T14:00:00Z", fields.getValue("recordedAt").jsonPrimitive.content)
+    }
+
+    @Test
+    fun fullGameStateDto_ShouldDeserializeLobbyFields_WhenPayloadIsALobbyGame() {
+        val payload = """
+            {"game":{"id":"g","gameCode":"4291","ownerUserId":"owner","status":"Lobby","outcome":"None",
+              "configuration":{"gameDuration":30,"hunterDelayTime":5,"finalStageDuration":10,
+                "defaultLocationInterval":180,"finalLocationInterval":60,
+                "enablePreyBoundaryPenalties":true,"enableHunterBoundaryPenalty":false},
+              "participants":[{"userId":"owner","displayName":"Fox","isReady":false,"state":"Active",
+                "lastKnownLocation":null,"hasActivePenalty":false}],
+              "hunterUserId":null,"isOwnerPlayer":true,"isReadyToStart":false},
+             "playfieldName":"Vondelpark","playfieldCoordinates":[],"status":null,"roleState":null,
+             "serverTime":"2026-08-31T11:40:00+00:00"}
+        """.trimIndent()
+
+        val state = json.decodeFromString(FullGameStateDto.serializer(), payload)
+
+        assertEquals("4291", state.game.gameCode)
+        assertEquals("owner", state.game.ownerUserId)
+        assertEquals(GameStatuses.LOBBY, state.game.status)
+        assertEquals(GameOutcomes.NONE, state.game.outcome)
+        assertEquals(
+            GameConfigurationDto(30, 5, 10, 180, 60, enablePreyBoundaryPenalties = true, enableHunterBoundaryPenalty = false),
+            state.game.configuration,
+        )
+        assertEquals(ParticipantDto("owner", PlayerStates.ACTIVE, displayName = "Fox"), state.game.participants.single())
+        assertEquals("Vondelpark", state.playfieldName)
     }
 }
