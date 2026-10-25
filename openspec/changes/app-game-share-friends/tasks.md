@@ -1,0 +1,36 @@
+# Tasks
+
+## 1. Website: invitation page and app association
+
+- [ ] 1.1 Rewrite `website/src/static/games/join/index.html` for `/games/join/{gameId}/{code}`: parse and validate both segments (GUID, 4 digits), build the `intent://theprey.nl/games/join/{id}/{code}#Intent;scheme=https;package=nl.hexmaster.theprey;S.browser_fallback_url=<Play Store>;end` URL, auto-attempt on Android after 250 ms, and show the "Open in app" button and Play Store link (store link only when not Android or the link is malformed). Include the "tap the link again after installing" hint. Verify by opening the page locally with a valid path, a path without a code and a path with a 3-digit code, using a desktop and an Android user agent (devtools device mode), and checking the `href`s
+- [ ] 1.2 Make the page bilingual: English and Dutch texts in the page, Dutch when `navigator.languages[0]` starts with `nl`, `<html lang>` set to match, title and `noindex` kept. Apply the design system colors and fonts inline, following the `the-prey-design-system` and `the-prey-multilingual` skills. Verify by switching the browser language to Dutch and seeing every text in Dutch
+- [ ] 1.3 Update `website/src/static/.well-known/assetlinks.json`: one statement for `nl.hexmaster.theprey` with the existing `64:D0…` fingerprint, the debug key fingerprint from `./gradlew signingReport` and the upload key fingerprint (plus the Play App Signing key from the Play Console if it differs). Remove the `maui.app` statement. Verify the file is valid JSON (`python -m json.tool`) and lists only the one package
+- [ ] 1.4 Remove `website/src/static/join/` and `website/src/static/.well-known/apple-app-site-association`, and their routes in `staticwebapp.config.json`. Keep the `assetlinks.json` header route and the `/games/join/*` rewrite. Verify `hugo` builds from `website/src` and that `public/` contains `games/join/index.html` and `.well-known/assetlinks.json` but no `join/`
+
+## 2. App: join link parsing and pending invite store
+
+- [ ] 2.1 Add `deeplink/JoinLink.kt` with `JoinInvite(gameId, code)`, `parseJoinLink(uri: String): JoinInvite?` (https, host `theprey.nl`, exactly `/games/join/{guid}/{4 digits}`, optional trailing slash, game id lowercased) and `joinLink(gameId, code)`. Verify with unit tests covering a valid link, a round trip through `joinLink`, a missing code, a non-GUID id, 3- and 5-digit codes, another host, `http`, and extra segments
+- [ ] 2.2 Add `PendingInviteStore` (interface) and `DataStoreInviteStore` (own Preferences DataStore file, excluded from backups like the other stores) with `save`, atomic `take(nowMillis)` with a one-hour expiry, and `pending: Flow<Boolean>`. Wire it in `AppContainer`. Verify with unit tests: a newer save replaces an older one, `take` returns the invite once and then null, an invite older than an hour returns null and is cleared
+- [ ] 2.3 Add the `VIEW`/`BROWSABLE`/`DEFAULT` intent filter with `android:autoVerify="true"` for `https://theprey.nl` and `pathPrefix="/games/join/"` on `MainActivity` in `AndroidManifest.xml`. In `MainActivity`, parse `intent.data` in `onCreate` (only when `savedInstanceState == null`) and in `onNewIntent`, and save valid invites to the store. Verify `./gradlew lintDebug` is clean and `adb shell am start -a android.intent.action.VIEW -d https://theprey.nl/games/join/<guid>/4291 nl.hexmaster.theprey` opens the app
+
+## 3. App: joining a game
+
+- [ ] 3.1 Add `GamesApi.join` (`POST games/{id}/join` with `JoinGameRequest(joinCode, displayName)`) and `GameRepository.join(gameId, code, displayName): JoinResult` (`Joined`, `AlreadyJoined`, `InvalidInvite`, `AlreadyStarted`, `LobbyFull`, `Network`), mapping problem codes with the existing problem-details parsing: 404 and `invalid_join_code` give `InvalidInvite`, other 4xx give `InvalidInvite`, 5xx and `IOException` give `Network`. Verify with repository unit tests against a mocked API for every code and status
+- [ ] 3.2 Add the new `MainMenuMessage` entries (`InviteInvalid`, `GameAlreadyStarted`, `LobbyFull`, `AlreadyInGame`, `LocationNeededToJoin`) and their strings in `values/strings.xml` and `values-nl/strings.xml`. Verify `lintDebug` reports no missing translations
+- [ ] 3.3 Add `ui/games/join/JoinGameViewModel` with the pure outcome mapping: take the invite (none → menu, no message); check the running game (same → game screen, other → `AlreadyInGame`, failed → error state); join with the callsign from `ProfileStore` (success or already joined → lobby, refusals → their message, network → error state); Retry repeats with the held invite, Cancel goes to the menu. Verify with unit tests using fake repository and store for every branch, including that the invite is taken exactly once
+- [ ] 3.4 Add `ui/games/join/JoinGameScreen`: the "Joining game…" progress state and the error state with Retry and Cancel (Back cancels), using theme colors and existing buttons only. Start through `LocalLocationConsent.requireLocation` (declined → menu with `LocationNeededToJoin`). Add the English and Dutch strings. Verify with a Compose preview of both states and `lintDebug`
+- [ ] 3.5 Add `Routes.JOIN` to the signed-in graph in `ThePreyNavHost` and a `LaunchedEffect` that opens it with `launchSingleTop` when the session is `SignedIn` and an invite is pending, after the session-target navigation. The join's exits go to `Routes.lobby(id)` / `Routes.game(id)` with `JOIN` popped, or to the main menu with a message through `returnToMainMenu`. Pass the store in from `MainActivity`. Verify on a device: a signed-in player joins and lands in the lobby, and Back from that lobby returns to the main menu
+
+## 4. App: share link from the lobby
+
+- [ ] 4.1 Change `lobby_share_message` in `values/strings.xml` and `values-nl/strings.xml` to the invitation text, the link and then the code last (drop the "tap Join game" wording). Make `LobbyScreen` share with `joinLink(gameId, code)`. Verify with a unit test (or the existing lobby tests) that the message built for a game contains the link and ends with the code, and on a device that the share sheet shows it
+
+## 5. Docs
+
+- [ ] 5.1 In `docs/api/endpoints.md`, replace `POST /games/join` with `POST /games/{id}/join` and its request body (`joinCode`, `displayName`) and error codes. Add a short "Invitation links" section describing the `https://theprey.nl/games/join/{gameId}/{code}` format, the website fallback page and `assetlinks.json`. Verify the links in the doc resolve to existing sections
+
+## 6. Integration checks
+
+- [ ] 6.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and `hugo` from `website/src`. Both pass
+- [ ] 6.2 End to end on a device with the debug build: signed in, tap a shared link in a chat app → lobby. Signed out → landing page → sign in → lobby. Force-stop the app during sign-in → sign in again → lobby. Owner taps own link → lobby without an error. Tap a link for a started game → "already started" message. Tap a link while in another running game → "already in a game". Uninstall the app and tap a link → Play Store
+- [ ] 6.3 After deploying the website, run `adb shell pm verify-app-links --re-verify nl.hexmaster.theprey` and `adb shell pm get-app-links nl.hexmaster.theprey`, and confirm `theprey.nl` is `verified` for the installed build's key
