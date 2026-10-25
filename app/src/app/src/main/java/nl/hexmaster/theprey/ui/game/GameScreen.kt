@@ -25,6 +25,8 @@ import kotlinx.coroutines.isActive
 import nl.hexmaster.theprey.R
 import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.ui.components.rememberReducedMotion
+import nl.hexmaster.theprey.ui.game.hud.common.HudRole
+import nl.hexmaster.theprey.ui.game.hud.common.hudRoleFor
 import nl.hexmaster.theprey.ui.game.map.GameMap
 import nl.hexmaster.theprey.ui.game.map.MapMarker
 import nl.hexmaster.theprey.ui.game.map.MarkerStyle
@@ -103,10 +105,10 @@ private fun GameContent(
                     ui.game.phase == GamePhase.Starting -> StartingOverlay()
                     ui.delay != null -> StartDelayOverlay(ui.delay, ui.game.role)
                 }
-                when (ui.game.role) {
-                    GameRole.Prey -> preyHud(ui)
-                    GameRole.Hunter -> hunterHud(ui)
-                    GameRole.None -> Unit
+                when (hudRoleFor(ui.game)) {
+                    HudRole.Prey -> preyHud(ui)
+                    HudRole.Hunter -> hunterHud(ui)
+                    HudRole.None -> Unit
                 }
             }
         }

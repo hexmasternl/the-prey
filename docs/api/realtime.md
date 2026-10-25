@@ -222,6 +222,21 @@ page, and HUD all read from it and never poll the server or keep their own copy.
    once it is applied. The Android game screen calls it every time it is entered (after the lobby
    hand-off and on Resume game), so it never starts from a warm but seconds-old state.
 
+### HUD data sources (Android)
+
+The game screen's HUDs read the Game State Service only (snapshot + deltas); they never poll. Field
+names match `app/src/.../data/game/GameStateDto.kt`. Countdowns are seeded from the snapshot and tick
+locally on the device's monotonic clock; `serverTime` corrects for device clock skew.
+
+**Prey HUD**
+
+| Shows | Source |
+|---|---|
+| Role pill, penalty | own participant `hasActivePenalty`; `prey-updated` `penalized` (`penaltyEndsAt`) / `penalty-cleared`; `participant-changed` |
+| Proximity pill, hunter distance tile | `roleState.hunterDistanceMeters` at snapshot time; recomputed locally from the device fix and the hunter's `lastKnownLocation` as `locations-updated` moves it |
+| Time left | `status.gameDurationLeft` |
+| Next broadcast bar | `status.nextPingDuration` over `status.currentPingInterval` (30 s when 0) |
+
 ### In-game location tracking hook (Android)
 
 The Android app reports the player's position from a separate foreground service
