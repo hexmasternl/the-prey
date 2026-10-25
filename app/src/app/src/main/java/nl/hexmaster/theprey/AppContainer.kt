@@ -17,7 +17,9 @@ import nl.hexmaster.theprey.auth.SessionManager
 import nl.hexmaster.theprey.auth.TokenAuthenticator
 import nl.hexmaster.theprey.data.game.ApiGameRepository
 import nl.hexmaster.theprey.data.game.GameRepository
+import nl.hexmaster.theprey.data.game.GameStateService
 import nl.hexmaster.theprey.data.game.GamesApi
+import nl.hexmaster.theprey.data.game.realtime.WebPubSubClient
 import nl.hexmaster.theprey.data.language.AppCompatLocaleSource
 import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.language.LocaleAppLanguage
@@ -120,6 +122,18 @@ class AppContainer(context: Context) {
         locations = fusedLocationSource,
         store = trackingSessionStore,
         session = sessionManager.state,
+        scope = appScope,
+    )
+
+    /** Plain client for the Web PubSub socket: the access URL carries its own short-lived token. */
+    private val socketClient = OkHttpClient()
+
+    /** The single source of truth for the game on screen: one snapshot, one socket, deltas on top. */
+    val gameStateService = GameStateService(
+        games = gameRepository,
+        connection = WebPubSubClient(gameRepository, socketClient::newWebSocket),
+        myUserId = { profileStore.read()?.userId },
+        onGameEnded = { gameId -> trackingController.onGameEnded(gameId) },
         scope = appScope,
     )
 
