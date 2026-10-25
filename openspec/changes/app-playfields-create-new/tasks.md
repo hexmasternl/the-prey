@@ -18,11 +18,11 @@
 ## 4. Screen and navigation
 
 - [x] 4.1 In `PlayFieldDetailsScreen`, show the `playfield_editor_title` title when `isNew`, the area hint while a new playfield has fewer than 3 points, and `playfield_create_failed` for `CreateFailed`. Add previews for an empty new form, a ready-to-save new form and a Dutch new form (design Decision 4). Verify the previews render in Android Studio and `./gradlew assembleDebug` succeeds.
-- [ ] 4.2 Move the bodies of the playfield details and area `composable`s in `ThePreyNavHost` into two private helpers parameterised by the graph route and the area route. Then turn `Routes.PLAYFIELD_EDITOR` into a nested graph (`PLAYFIELD_NEW_DETAILS` start, `PLAYFIELD_NEW_AREA`) that uses them, and make `playFieldDetailsViewModel` read the id as nullable with `editable = true` in the editor graph (design Decision 3). Drop the placeholder for this route. Verify `./gradlew assembleDebug` succeeds and that `PlaceholderScreen` is no longer referenced for the editor.
+- [x] 4.2 Move the bodies of the playfield details and area `composable`s in `ThePreyNavHost` into two private helpers parameterised by the graph route and the area route. Then turn `Routes.PLAYFIELD_EDITOR` into a nested graph (`PLAYFIELD_NEW_DETAILS` start, `PLAYFIELD_NEW_AREA`) that uses them, and make `playFieldDetailsViewModel` read the id as nullable with `editable = true` in the editor graph (design Decision 3). Drop the placeholder for this route. Verify `./gradlew assembleDebug` succeeds and that `PlaceholderScreen` is no longer referenced for the editor.
 
 ## 5. Integration
 
-- [ ] 5.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and confirm it is green.
+- [x] 5.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and confirm it is green.
 - [ ] 5.2 On a device or emulator signed in to the backend:
   - Tap the create button on the Private tab and confirm the empty "New playfield" form and the area hint.
   - Draw a 4-point area, type an eligible name, check Public and Save. Confirm the Private tab lists the new playfield with a Public badge.

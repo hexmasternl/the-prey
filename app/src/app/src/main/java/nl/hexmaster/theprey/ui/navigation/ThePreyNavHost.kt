@@ -13,6 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,7 +22,6 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import nl.hexmaster.theprey.BuildConfig
-import nl.hexmaster.theprey.R
 import nl.hexmaster.theprey.auth.ProfileSettings
 import nl.hexmaster.theprey.auth.SessionController
 import nl.hexmaster.theprey.auth.SessionState
@@ -51,7 +51,6 @@ import nl.hexmaster.theprey.ui.landing.LandingViewModel
 import nl.hexmaster.theprey.ui.mainmenu.MainMenuMessage
 import nl.hexmaster.theprey.ui.mainmenu.MainMenuScreen
 import nl.hexmaster.theprey.ui.mainmenu.MainMenuViewModel
-import nl.hexmaster.theprey.ui.placeholder.PlaceholderScreen
 import nl.hexmaster.theprey.ui.playfields.PlayFieldsScreen
 import nl.hexmaster.theprey.ui.playfields.PlayFieldsViewModel
 import nl.hexmaster.theprey.ui.playfields.area.PlayFieldAreaScreen
@@ -87,8 +86,13 @@ object Routes {
     fun game(gameId: String) = "game/$gameId"
     const val PLAYFIELDS = "playfields"
 
-    /** Creates a new playfield; opened by the create button on the Private tab. */
+    /**
+     * Creates a new playfield; opened by the create button on the Private tab. A nested graph like
+     * [PLAYFIELD], with the details screen in create mode (start) and the area map.
+     */
     const val PLAYFIELD_EDITOR = "playfield_editor"
+    const val PLAYFIELD_NEW_DETAILS = "playfield_new_details"
+    const val PLAYFIELD_NEW_AREA = "playfield_new_area"
 
     /**
      * One playfield, opened from the list: a nested graph holding its details (start) and its area
@@ -272,37 +276,37 @@ fun ThePreyNavHost(
                         },
                     ),
                 ) {
-                    composable(Routes.PLAYFIELD_DETAILS) { entry ->
-                        val graphEntry = remember(entry) { navController.getBackStackEntry(Routes.PLAYFIELD) }
-                        PlayFieldDetailsScreen(
-                            viewModel = playFieldDetailsViewModel(graphEntry, playFieldRepository),
-                            // Save, Cancel and Back leave the whole graph, which discards the draft.
-                            onClose = {
-                                if (navController.currentBackStackEntry == entry) {
-                                    navController.popBackStack(Routes.PLAYFIELD, inclusive = true)
-                                }
-                            },
-                            onOpenArea = {
-                                if (navController.currentBackStackEntry == entry) navController.navigate(Routes.PLAYFIELD_AREA)
-                            },
-                        )
-                    }
-                    composable(Routes.PLAYFIELD_AREA) { entry ->
-                        val graphEntry = remember(entry) { navController.getBackStackEntry(Routes.PLAYFIELD) }
-                        val details = playFieldDetailsViewModel(graphEntry, playFieldRepository)
-                        PlayFieldAreaScreen(
-                            viewModel = viewModel {
-                                val draft = details.uiState.value
-                                PlayFieldAreaViewModel(draft.points, draft.editable, createSavedStateHandle(), details::applyArea)
-                            },
-                            locationSource = locationSource,
-                            onClose = { if (navController.currentBackStackEntry == entry) navController.popBackStack() },
-                        )
-                    }
+                    playFieldDetailsDestination(
+                        route = Routes.PLAYFIELD_DETAILS,
+                        graphRoute = Routes.PLAYFIELD,
+                        areaRoute = Routes.PLAYFIELD_AREA,
+                        navController = navController,
+                        repository = playFieldRepository,
+                    )
+                    playFieldAreaDestination(
+                        route = Routes.PLAYFIELD_AREA,
+                        graphRoute = Routes.PLAYFIELD,
+                        navController = navController,
+                        repository = playFieldRepository,
+                        locationSource = locationSource,
+                    )
                 }
-                // Placeholder until the playfield editor exists.
-                composable(Routes.PLAYFIELD_EDITOR) {
-                    PlaceholderScreen(R.string.playfield_editor_title, onBack = { navController.popBackStack() })
+                // The same two screens in create mode: no playfield id, so nothing is downloaded and Save creates.
+                navigation(route = Routes.PLAYFIELD_EDITOR, startDestination = Routes.PLAYFIELD_NEW_DETAILS) {
+                    playFieldDetailsDestination(
+                        route = Routes.PLAYFIELD_NEW_DETAILS,
+                        graphRoute = Routes.PLAYFIELD_EDITOR,
+                        areaRoute = Routes.PLAYFIELD_NEW_AREA,
+                        navController = navController,
+                        repository = playFieldRepository,
+                    )
+                    playFieldAreaDestination(
+                        route = Routes.PLAYFIELD_NEW_AREA,
+                        graphRoute = Routes.PLAYFIELD_EDITOR,
+                        navController = navController,
+                        repository = playFieldRepository,
+                        locationSource = locationSource,
+                    )
                 }
                 // Scoped to this entry: every open starts on Private with nothing selected.
                 composable(Routes.PLAYFIELD_SELECT) {
@@ -349,9 +353,56 @@ private fun NavController.returnToMainMenu(message: MainMenuMessage?) {
 }
 
 /**
+ * The details screen of the playfield graph [graphRoute] (edit or create). Save, Cancel and Back
+ * leave the whole graph, which discards the draft.
+ */
+private fun NavGraphBuilder.playFieldDetailsDestination(
+    route: String,
+    graphRoute: String,
+    areaRoute: String,
+    navController: NavController,
+    repository: PlayFieldRepository,
+) {
+    composable(route) { entry ->
+        val graphEntry = remember(entry) { navController.getBackStackEntry(graphRoute) }
+        PlayFieldDetailsScreen(
+            viewModel = playFieldDetailsViewModel(graphEntry, repository),
+            onClose = {
+                if (navController.currentBackStackEntry == entry) navController.popBackStack(graphRoute, inclusive = true)
+            },
+            onOpenArea = {
+                if (navController.currentBackStackEntry == entry) navController.navigate(areaRoute)
+            },
+        )
+    }
+}
+
+/** The area map of the playfield graph [graphRoute]; its Save hands the points to the details draft. */
+private fun NavGraphBuilder.playFieldAreaDestination(
+    route: String,
+    graphRoute: String,
+    navController: NavController,
+    repository: PlayFieldRepository,
+    locationSource: LocationSource,
+) {
+    composable(route) { entry ->
+        val graphEntry = remember(entry) { navController.getBackStackEntry(graphRoute) }
+        val details = playFieldDetailsViewModel(graphEntry, repository)
+        PlayFieldAreaScreen(
+            viewModel = viewModel {
+                val draft = details.uiState.value
+                PlayFieldAreaViewModel(draft.points, draft.editable, createSavedStateHandle(), details::applyArea)
+            },
+            locationSource = locationSource,
+            onClose = { if (navController.currentBackStackEntry == entry) navController.popBackStack() },
+        )
+    }
+}
+
+/**
  * The playfield's details view model, scoped to its nested graph [graphEntry]: the details and the
  * area screen get the same instance, and it reads the playfield id and editability from the
- * graph's arguments.
+ * graph's arguments. The editor graph has no id: create mode, always editable.
  */
 @Composable
 private fun playFieldDetailsViewModel(
@@ -359,9 +410,10 @@ private fun playFieldDetailsViewModel(
     repository: PlayFieldRepository,
 ): PlayFieldDetailsViewModel = viewModel(viewModelStoreOwner = graphEntry) {
     val handle = createSavedStateHandle()
+    val playFieldId = handle.get<String>(Routes.PLAYFIELD_ID)
     PlayFieldDetailsViewModel(
-        playFieldId = handle.get<String>(Routes.PLAYFIELD_ID).orEmpty(),
-        editable = handle.get<Boolean>(Routes.PLAYFIELD_EDITABLE) ?: false,
+        playFieldId = playFieldId,
+        editable = playFieldId == null || (handle.get<Boolean>(Routes.PLAYFIELD_EDITABLE) ?: false),
         repository = repository,
         savedStateHandle = handle,
     )
