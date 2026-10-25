@@ -142,6 +142,8 @@ fun MainMenuContent(
                     RunningLightText(
                         text = uiState.playerName.uppercase(),
                         style = MaterialTheme.typography.titleMedium.copy(letterSpacing = 3.sp),
+                        // Dim at rest so the green sweep stands out.
+                        color = ThePreyTheme.colors.textGhost,
                         animate = animate,
                     )
                     Spacer(Modifier.height(12.dp))
