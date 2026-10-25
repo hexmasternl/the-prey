@@ -13,14 +13,14 @@
 
 ## 3. Settings model and view model
 
-- [ ] 3.1 Implement `ui/games/create/GameSettings.kt` (the `GameSetting` enum with options and defaults, plus `GameSettings.with`/`isEnabled` and the final-ping clamp). Verify with unit tests for:
+- [x] 3.1 Implement `ui/games/create/GameSettings.kt` (the `GameSetting` enum with options and defaults, plus `GameSettings.with`/`isEnabled` and the final-ping clamp). Verify with unit tests for:
   - defaults (30/5/10/3/1);
   - ignoring out-of-range values;
   - final ping 3 disabled when ping is 2;
   - clamping 3 → 2 when ping is lowered to 2;
   - keeping 1 when ping is lowered to 2;
   - every option combination allowed by `isEnabled` satisfying the server's `GameConfiguration` rules (mirrored in the test).
-- [ ] 3.2 Implement `CreateGameViewModel` and `CreateGameUiState`:
+- [x] 3.2 Implement `CreateGameViewModel` and `CreateGameUiState`:
   - selection, setting changes, `canCreate`, `create()` with a guard against a second submit, display name from `ProfileStore` (callsign, falling back to displayName), a one-shot `Created` event, and `failed` with retry;
   - `SavedStateHandle` persistence of the playfield, the settings and `pickerLaunched`.
 
