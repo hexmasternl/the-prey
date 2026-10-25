@@ -20,6 +20,8 @@ import nl.hexmaster.theprey.data.game.GameRepository
 import nl.hexmaster.theprey.data.game.GameStateService
 import nl.hexmaster.theprey.data.game.GamesApi
 import nl.hexmaster.theprey.data.game.realtime.WebPubSubClient
+import nl.hexmaster.theprey.data.hints.DataStoreHintsStore
+import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.language.AppCompatLocaleSource
 import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.language.LocaleAppLanguage
@@ -54,6 +56,7 @@ private val Context.profileDataStore by preferencesDataStore(name = "profile")
 private val Context.locationConsentDataStore by preferencesDataStore(name = "location_consent")
 private val Context.trackingDataStore by preferencesDataStore(name = "tracking")
 private val Context.pendingInviteDataStore by preferencesDataStore(name = "pending_invite")
+private val Context.hintsDataStore by preferencesDataStore(name = "hints")
 
 /** Hand-wired app-wide dependencies. Created once by [ThePreyApplication]. */
 class AppContainer(context: Context) {
@@ -111,6 +114,9 @@ class AppContainer(context: Context) {
 
     /** The game invitation received last (link tapped), kept across the sign-in round trip until it is joined. */
     val pendingInviteStore: PendingInviteStore = DataStoreInviteStore(context.pendingInviteDataStore)
+
+    /** Device-local: which first-time tours were seen; survives sign-out, reset from Settings. */
+    val hintsStore: HintsStore = DataStoreHintsStore(context.hintsDataStore)
 
     private val gamesApi = retrofit.create(GamesApi::class.java)
 

@@ -4,8 +4,8 @@ Prerequisite: `app-playfield-edit-area-allow-delete` is implemented (the delete 
 
 ## 1. Hint storage
 
-- [ ] 1.1 Add `data/hints/HintsStore.kt` (`Hint` enum: `PlayFieldArea`, `PreyHud`, `HunterHud`; interface with `seen(hint)`, `markSeen(hint)`, `resetAll()`) and `DataStoreHintsStore` (one boolean key per hint; reads `catch` to false, `markSeen` swallows `IOException`, `resetAll` rethrows); verify with `HintsStoreTest` cases: all not seen by default, marking one leaves the others unseen, `resetAll` clears all three, a failing read yields not seen, a failing `markSeen` does not throw
-- [ ] 1.2 Create the `hints` DataStore in `AppContainer` (exposed as `hintsStore`, documented as device-local) and exclude `hints.preferences_pb` in `res/xml/backup_rules.xml` and `res/xml/data_extraction_rules.xml` next to the existing exclusions; verify `./gradlew assembleDebug` passes
+- [x] 1.1 Add `data/hints/HintsStore.kt` (`Hint` enum: `PlayFieldArea`, `PreyHud`, `HunterHud`; interface with `seen(hint)`, `markSeen(hint)`, `resetAll()`) and `DataStoreHintsStore` (one boolean key per hint; reads `catch` to false, `markSeen` swallows `IOException`, `resetAll` rethrows); verify with `HintsStoreTest` cases: all not seen by default, marking one leaves the others unseen, `resetAll` clears all three, a failing read yields not seen, a failing `markSeen` does not throw
+- [x] 1.2 Create the `hints` DataStore in `AppContainer` (exposed as `hintsStore`, documented as device-local) and exclude `hints.preferences_pb` in `res/xml/backup_rules.xml` and `res/xml/data_extraction_rules.xml` next to the existing exclusions; verify `./gradlew assembleDebug` passes
 
 ## 2. Tour component
 
