@@ -51,6 +51,17 @@ sealed interface GameSession {
     data class Gone(val reason: GoneReason) : GameSession
 }
 
+/** The Game State Service as screens use it; see [GameStateService]. */
+interface GameSessions {
+    fun session(gameId: String): StateFlow<GameSession>
+
+    fun replaceGame(gameId: String, game: GameDto)
+
+    fun resync(gameId: String)
+
+    fun close(gameId: String)
+}
+
 /**
  * The app's single source of truth for a game (docs/api/realtime.md): one snapshot, one Web PubSub
  * socket, versioned deltas on top, and a full snapshot every 3 minutes, on every (re)connect, on a
@@ -69,13 +80,13 @@ class GameStateService(
     private val onGameEnded: (gameId: String) -> Unit,
     private val scope: CoroutineScope,
     private val reducer: GameStateReducer = GameStateReducer(),
-) {
+) : GameSessions {
     private var sessionGameId: String? = null
     private var sessionFlow: StateFlow<GameSession>? = null
     private var running: LiveSession? = null
 
     /** The live state of [gameId]. Asking for another game ends the previous game's session. */
-    fun session(gameId: String): StateFlow<GameSession> {
+    override fun session(gameId: String): StateFlow<GameSession> {
         sessionFlow?.takeIf { sessionGameId.equals(gameId, ignoreCase = true) }?.let { return it }
         running?.close()
         val shared = flow {
@@ -96,17 +107,17 @@ class GameStateService(
     }
 
     /** Swaps in the game a command returned; keeps the `seq` baseline. */
-    fun replaceGame(gameId: String, game: GameDto) {
+    override fun replaceGame(gameId: String, game: GameDto) {
         running?.takeIf { it.gameId.equals(gameId, ignoreCase = true) }?.send(Input.Replace(game))
     }
 
     /** Pulls a fresh snapshot, e.g. after a failed command or as a retry after a failed first load. */
-    fun resync(gameId: String) {
+    override fun resync(gameId: String) {
         running?.takeIf { it.gameId.equals(gameId, ignoreCase = true) }?.send(Input.Resync)
     }
 
     /** Ends [gameId]'s session now (e.g. after leaving): the socket closes and the next [session] starts fresh. */
-    fun close(gameId: String) {
+    override fun close(gameId: String) {
         if (!sessionGameId.equals(gameId, ignoreCase = true)) return
         running?.close()
         running = null
