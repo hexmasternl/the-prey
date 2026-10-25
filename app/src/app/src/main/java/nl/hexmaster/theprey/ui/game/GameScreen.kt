@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -23,8 +24,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import nl.hexmaster.theprey.R
+import nl.hexmaster.theprey.data.hints.Hint
+import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.ui.components.rememberReducedMotion
+import nl.hexmaster.theprey.ui.components.tour.LocalTourTargets
+import nl.hexmaster.theprey.ui.components.tour.TourOverlay
+import nl.hexmaster.theprey.ui.components.tour.TourTargets
+import nl.hexmaster.theprey.ui.components.tour.rememberHint
 import nl.hexmaster.theprey.ui.game.hud.common.HudRole
 import nl.hexmaster.theprey.ui.game.hud.common.hudRoleFor
 import nl.hexmaster.theprey.ui.game.map.GameMap
@@ -33,6 +40,8 @@ import nl.hexmaster.theprey.ui.game.map.MarkerStyle
 import nl.hexmaster.theprey.ui.game.result.GameResult
 import nl.hexmaster.theprey.ui.game.result.GameResultDialog
 import nl.hexmaster.theprey.ui.game.result.GameResultKind
+import nl.hexmaster.theprey.ui.game.tour.HunterTourSteps
+import nl.hexmaster.theprey.ui.game.tour.PreyTourSteps
 import nl.hexmaster.theprey.ui.playfields.MessageState
 import nl.hexmaster.theprey.ui.theme.ThePreyTheme
 import java.time.Instant
@@ -46,7 +55,8 @@ typealias GameHud = @Composable (state: ActiveGameUi.Ready) -> Unit
  * which is shown on every entry (not again after a rotation). Back returns to the main menu
  * without leaving the game ([onExit] with null); the game ending does so with its reason. A game
  * played out with a decided result shows the result dialog instead, whose button and Back go to the
- * menu with [GameExit.Dismissed].
+ * menu with [GameExit.Dismissed]. With [hints], the first time the player sees their role's HUD
+ * (after the safety warning) a one-time tour of its panels runs on top.
  */
 @Composable
 fun GameScreen(
@@ -55,10 +65,15 @@ fun GameScreen(
     modifier: Modifier = Modifier,
     preyHud: GameHud = {},
     hunterHud: GameHud = {},
+    hints: HintsStore? = null,
 ) {
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
     var warningAcknowledged by rememberSaveable { mutableStateOf(false) }
     val currentOnExit by rememberUpdatedState(onExit)
+    val tourTargets = remember { TourTargets() }
+    val hudRole = (ui as? ActiveGameUi.Ready)?.let { hudRoleFor(it.game) } ?: HudRole.None
+    val preyTour = rememberHint(hints, Hint.PreyHud, ready = warningAcknowledged && hudRole == HudRole.Prey)
+    val hunterTour = rememberHint(hints, Hint.HunterHud, ready = warningAcknowledged && hudRole == HudRole.Hunter)
 
     LaunchedEffect(ui) {
         (ui as? ActiveGameUi.Exit)?.let { currentOnExit(it.reason) }
@@ -67,13 +82,20 @@ fun GameScreen(
     // Over a result, Back dismisses it like its button.
     BackHandler { currentOnExit(if (ui is ActiveGameUi.Result) GameExit.Dismissed else null) }
 
-    GameContent(
-        ui = ui,
-        onRetry = viewModel::retry,
-        preyHud = preyHud,
-        hunterHud = hunterHud,
-        modifier = modifier,
-    )
+    // The HUD (in its slot) registers the targets; the tour above it reads them.
+    CompositionLocalProvider(LocalTourTargets provides tourTargets) {
+        GameContent(
+            ui = ui,
+            onRetry = viewModel::retry,
+            preyHud = preyHud,
+            hunterHud = hunterHud,
+            modifier = modifier,
+        )
+        when {
+            preyTour.show -> TourOverlay(steps = PreyTourSteps, onFinish = { preyTour.finish() })
+            hunterTour.show -> TourOverlay(steps = HunterTourSteps, onFinish = { hunterTour.finish() })
+        }
+    }
     when {
         ui is ActiveGameUi.Result -> GameResultDialog(
             result = (ui as ActiveGameUi.Result).result,
@@ -170,6 +192,16 @@ private fun LoadingPreview() {
     ThePreyTheme {
         GameContent(ui = ActiveGameUi.Loading, onRetry = {}, preyHud = {}, hunterHud = {}, reducedMotion = true)
         SafetyWarningDialog(onAcknowledge = {})
+    }
+}
+
+/** The hunter tour's first step over the screen; no HUD is laid out here, so the card is centred. */
+@Preview(name = "Hunter tour")
+@Composable
+private fun HunterTourPreview() {
+    ThePreyTheme {
+        GameContent(ui = ActiveGameUi.Loading, onRetry = {}, preyHud = {}, hunterHud = {}, reducedMotion = true)
+        TourOverlay(steps = HunterTourSteps, onFinish = {}, targets = TourTargets(), reducedMotion = true)
     }
 }
 
