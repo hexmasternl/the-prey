@@ -21,10 +21,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.doOnLayout
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import nl.hexmaster.theprey.data.location.GeoPosition
+import nl.hexmaster.theprey.ui.components.MapViewLifecycle
+import nl.hexmaster.theprey.ui.components.fallbackMapStyle
 import nl.hexmaster.theprey.ui.theme.ThePreyTheme
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -43,7 +42,6 @@ import org.maplibre.geojson.Feature
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.Point
 import org.maplibre.geojson.Polygon
-import java.util.Locale
 
 /**
  * OpenFreeMap's default (Liberty) style: full-colour OpenStreetMap vector tiles, free and without
@@ -102,7 +100,6 @@ fun PlayFieldMap(
     val context = LocalContext.current
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
     val colors = MapColors(
         signal = ThePreyTheme.colors.signal.toArgb(),
         selected = ThePreyTheme.colors.hunter.toArgb(),
@@ -145,27 +142,7 @@ fun PlayFieldMap(
     val padEnd = with(density) { contentPadding.calculateRightPadding(layoutDirection).roundToPx() }
     val padBottom = with(density) { contentPadding.calculateBottomPadding().roundToPx() }
 
-    // Forward the screen's lifecycle; the MapView leaks or crashes when an event is missed.
-    DisposableEffect(lifecycle, mapView) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_CREATE -> mapView.onCreate(null)
-                Lifecycle.Event.ON_START -> mapView.onStart()
-                Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                Lifecycle.Event.ON_STOP -> mapView.onStop()
-                else -> Unit // ON_DESTROY: handled once, in onDispose.
-            }
-        }
-        lifecycle.addObserver(observer)
-        onDispose {
-            lifecycle.removeObserver(observer)
-            val state = lifecycle.currentState
-            if (state.isAtLeast(Lifecycle.State.RESUMED)) mapView.onPause()
-            if (state.isAtLeast(Lifecycle.State.STARTED)) mapView.onStop()
-            mapView.onDestroy()
-        }
-    }
+    MapViewLifecycle(mapView)
 
     DisposableEffect(mapView) {
         var fallbackApplied = false
@@ -177,7 +154,7 @@ fun PlayFieldMap(
         val onFailed = MapView.OnDidFailLoadingMapListener {
             if (!fallbackApplied) {
                 fallbackApplied = true
-                map?.setStyle(Style.Builder().fromJson(fallbackStyle(colors.keyline)), onStyleLoaded)
+                map?.setStyle(Style.Builder().fromJson(fallbackMapStyle(colors.keyline)), onStyleLoaded)
             }
         }
         mapView.addOnDidFailLoadingMapListener(onFailed)
@@ -354,12 +331,6 @@ private fun pointFeatures(points: List<GeoPosition>, selectedIndex: Int?): Featu
             Feature.fromGeometry(position.toPoint()).apply { addBooleanProperty(SELECTED, index == selectedIndex) }
         },
     )
-
-/** A style with only a background in [backgroundArgb]. */
-private fun fallbackStyle(backgroundArgb: Int): String {
-    val hex = String.format(Locale.ROOT, "#%06X", backgroundArgb and 0xFFFFFF)
-    return """{"version":8,"sources":{},"layers":[{"id":"background","type":"background","paint":{"background-color":"$hex"}}]}"""
-}
 
 private fun GeoPosition.toLatLng(): LatLng = LatLng(latitude, longitude)
 
