@@ -138,19 +138,25 @@ fun MainMenuContent(
                         onSignOut = onSignOut,
                         onQuit = onQuit,
                     )
-                    Spacer(Modifier.height(28.dp))
-                    RunningLightText(
-                        text = uiState.playerName.uppercase(),
-                        style = MaterialTheme.typography.titleMedium.copy(letterSpacing = 3.sp),
-                        // Dim at rest so the green sweep stands out.
-                        color = ThePreyTheme.colors.textGhost,
-                        animate = animate,
-                    )
-                    Spacer(Modifier.height(12.dp))
+                    PlayerName(uiState.playerName, animate)
                 }
             }
         }
     }
+}
+
+/** The player's display name with its running-light sweep, centred under the actions. */
+@Composable
+private fun PlayerName(name: String, animate: Boolean) {
+    Spacer(Modifier.height(28.dp))
+    RunningLightText(
+        text = name.uppercase(),
+        style = MaterialTheme.typography.titleMedium.copy(letterSpacing = 3.sp),
+        // Dim at rest so the green sweep stands out.
+        color = ThePreyTheme.colors.textGhost,
+        animate = animate,
+    )
+    Spacer(Modifier.height(12.dp))
 }
 
 @Composable
