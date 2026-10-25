@@ -9,10 +9,10 @@
 
 ## 2. Pure game-view logic
 
-- [ ] 2.1 Add `ActiveGameState.from(snapshot, myUserId)` with `role` (Hunter/Prey/None), `phase` (Starting/Playing), the area and the participant list (design Decision 2). Verify unit tests for the hunter, a prey, a non-participant, `Started` vs `InProgress`, and an empty playfield polygon.
-- [ ] 2.2 Add `DelaySeed` and `StartDelay.remaining` / `format` (design Decision 5). Verify unit tests for `03:20` at the seed, one second later, rounding up below a whole second, zero at and after the end, a null or past `hunterMayMoveAt` giving no seed, and a device clock two minutes ahead.
-- [ ] 2.3 Add `MarkerStyle.of(viewer, target, isHunter, nowServer)` implementing the table in design Decision 7, reusing `isPenaltyActive` from `ui/game/hud/common/` when it exists (otherwise create it there). Verify one unit test per table row, plus an expired `penaltyEndsAt` (no pulse) and a participant without a location (not drawn).
-- [ ] 2.4 Add the pure `RecenterTimer` (`Following`/`Free`, `onGesture`, `shouldRecenter`, 5 000 ms). Verify unit tests with a fake clock: no re-center at 4 999 ms, re-center at 5 000 ms, a second gesture at 4 s pushes the re-center to 9 s, and back to `Following` after a re-center.
+- [x] 2.1 Add `ActiveGameState.from(snapshot, myUserId)` with `role` (Hunter/Prey/None), `phase` (Starting/Playing), the area and the participant list (design Decision 2). Verify unit tests for the hunter, a prey, a non-participant, `Started` vs `InProgress`, and an empty playfield polygon.
+- [x] 2.2 Add `DelaySeed` and `StartDelay.remaining` / `format` (design Decision 5). Verify unit tests for `03:20` at the seed, one second later, rounding up below a whole second, zero at and after the end, a null or past `hunterMayMoveAt` giving no seed, and a device clock two minutes ahead.
+- [x] 2.3 Add `MarkerStyle.of(viewer, target, isHunter, nowServer)` implementing the table in design Decision 7, reusing `isPenaltyActive` from `ui/game/hud/common/` when it exists (otherwise create it there). Verify one unit test per table row, plus an expired `penaltyEndsAt` (no pulse) and a participant without a location (not drawn).
+- [x] 2.4 Add the pure `RecenterTimer` (`Following`/`Free`, `onGesture`, `shouldRecenter`, 5 000 ms). Verify unit tests with a fake clock: no re-center at 4 999 ms, re-center at 5 000 ms, a second gesture at 4 s pushes the re-center to 9 s, and back to `Following` after a re-center.
 
 ## 3. Strings and assets
 
