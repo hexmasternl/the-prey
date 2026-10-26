@@ -10,7 +10,7 @@
 - [x] 2.1 Extend `SettingsUiState` with `keepScreenOn`, inject the store into `SettingsViewModel`, collect its flow and add `onKeepScreenOnChange(Boolean)`; verify with new cases in `SettingsViewModelTest` (initial value from the store, toggle writes through, a stored change updates the state) using a hand-written fake store
 - [ ] 2.2 Add `DisplaySection` to `SettingsContent` between Language and Location: section title, a toggleable row with label + themed Material 3 `Switch`, and the battery note; update the previews; verify the previews render and the row toggles with TalkBack (whole row is the toggle target) — **auto: needs human:** preview render and TalkBack check need Android Studio and a device; code builds and lints
 - [x] 2.3 Add `settings_section_display`, `settings_keep_screen_on` and `settings_keep_screen_on_body` to `res/values/strings.xml` and `res/values-nl/strings.xml` following the `the-prey-multilingual` skill; verify `./gradlew lintDebug` reports no missing translations
-- [ ] 2.4 Pass `appContainer.displayPreferencesStore` to `SettingsViewModel` in `ThePreyNavHost`; verify the switch persists across an app restart on a device or emulator
+- [ ] 2.4 Pass `appContainer.displayPreferencesStore` to `SettingsViewModel` in `ThePreyNavHost`; verify the switch persists across an app restart on a device or emulator — **auto: needs human:** wiring done in 2.1; persistence across restart needs a device or emulator
 
 ## 3. Game screen holds the display
 
