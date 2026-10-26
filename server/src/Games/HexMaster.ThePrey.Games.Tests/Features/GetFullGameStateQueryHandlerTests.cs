@@ -173,4 +173,21 @@ public sealed class GetFullGameStateQueryHandlerTests
         Assert.Equal(string.Empty, result.PlayfieldName);
         Assert.Empty(result.PlayfieldCoordinates);
     }
+
+    // ---------- boundary penalties ----------
+
+    [Fact]
+    public async Task Handle_ShouldReportBoundaryPenaltiesEnabled_WhenGameWasCreatedWithThemDisabled()
+    {
+        var config = GameFaker.ValidConfiguration(enablePreyBoundaryPenalties: false, enableHunterBoundaryPenalty: false);
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, configuration: config);
+        SetupGame(game);
+
+        var result = await Sut(Start.AddMinutes(1)).Handle(
+            new GetFullGameStateQuery(game.Id, hunterId), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.True(result.Game.Configuration.EnablePreyBoundaryPenalties);
+        Assert.True(result.Game.Configuration.EnableHunterBoundaryPenalty);
+    }
 }

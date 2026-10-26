@@ -224,8 +224,8 @@ internal static class GameMappings
             configuration.FinalStageDuration,
             configuration.DefaultLocationInterval,
             configuration.FinalLocationInterval,
-            configuration.EnablePreyBoundaryPenalties,
-            configuration.EnableHunterBoundaryPenalty);
+            true, // boundary penalties always apply; the stored flags are ignored
+            true);
 
     internal static GameExportDto ToExportDto(this Game game) =>
         new(

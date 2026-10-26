@@ -8,7 +8,7 @@
 
 ## 2. Server: report flags as enabled and expose the penalty end time
 
-- [ ] 2.1 In `GameMappings.cs`, make `GameConfiguration.ToDto()` return `true` for both penalty flags. Verify with a mapping unit test that a game created with both flags `false` maps to `true` / `true`.
+- [x] 2.1 In `GameMappings.cs`, make `GameConfiguration.ToDto()` return `true` for both penalty flags. Verify with a mapping unit test that a game created with both flags `false` maps to `true` / `true`.
 - [ ] 2.2 Add `DateTimeOffset? PenaltyEndsAt = null` as the last parameter of `ParticipantDto` (`Abstractions/DataTransferObjects/ParticipantDto.cs`) and fill it in `GameMappings.ToDto(GameParticipant, now)` from `participant.ActivePenaltyEndsAt(now)`. Verify with unit tests in `Tests/Features/ToStatusDtoMappingTests.cs` (or a sibling mapping test): an active penalty yields its latest end time, and an expired or absent penalty yields null. Check that `participant-changed` and `/gamestate` use this mapping.
 - [ ] 2.3 Update `docs/api/endpoints.md` (`ParticipantDto` example gains `penaltyEndsAt`, and the note on the flags says they are ignored and always `true`) and `docs/api/realtime.md` (`participant-changed` payload lists `penaltyEndsAt`). Verify that the docs match the DTOs (`the-prey-api-contract-sync`).
 - [ ] 2.4 Run `dotnet test server/src/Games/HexMaster.ThePrey.Games.Tests/` and `dotnet build server/src/the-prey.slnx`. Both pass.
