@@ -59,3 +59,7 @@ The Prey. If at least one Prey is still in play when the timer hits zero, the Pr
 {{< qa q="Can the Game Creator play too?" >}}
 Yes. In the lobby the Game Creator can make themselves the Hunter or stay as Prey. Leaving the lobby as Game Creator cancels the game for everyone.
 {{< /qa >}}
+
+{{< qa q="Why does the app say \"Update required\"?" >}}
+Your version of the app is no longer supported. Tap **Update** to open The Prey in Google Play and install the latest version. If you are in a lobby or a running game, you finish it first: the message appears once you leave it.
+{{< /qa >}}
