@@ -139,6 +139,35 @@ class GameStateReducerTest {
     }
 
     @Test
+    fun reduce_ShouldKeepSnapshotPenaltyEnd_WhenLocationsUpdate() {
+        val penalized = state.copy(
+            game = state.game.copy(
+                participants = listOf(
+                    state.game.participants[0],
+                    state.game.participants[1].copy(hasActivePenalty = true, penaltyEndsAt = "2026-08-31T11:44:00+00:00"),
+                ),
+            ),
+        )
+        val data = """{"locations":[{"userId":"me","role":"Prey","latitude":52.2,"longitude":5.2,"state":"Active"}]}"""
+
+        val mine = reducer.reduce(penalized, null, me, envelope(RealtimeProtocol.MessageTypes.LOCATIONS_UPDATED, data))
+            .applied().state.game.participants[1]
+
+        assertTrue(mine.hasActivePenalty)
+        assertEquals("2026-08-31T11:44:00+00:00", mine.penaltyEndsAt)
+    }
+
+    @Test
+    fun reduce_ShouldAdoptPenaltyEnd_WhenParticipantChangedCarriesIt() {
+        val data = """{"userId":"me","displayName":"Me","isReady":true,"state":"Active","lastKnownLocation":null,
+            "hasActivePenalty":true,"penaltyEndsAt":"2026-08-31T11:44:00+00:00"}"""
+
+        val mine = reduce(envelope(RealtimeProtocol.MessageTypes.PARTICIPANT_CHANGED, data)).applied().state.game.participants[1]
+
+        assertEquals("2026-08-31T11:44:00+00:00", mine.penaltyEndsAt)
+    }
+
+    @Test
     fun reduce_ShouldApplyPreyEvents_WhenPreyIsPenalizedClearedAndTagged() {
         val penalized = reduce(
             envelope(
