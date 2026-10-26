@@ -14,7 +14,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.hexmaster.theprey.auth.SessionState
 import nl.hexmaster.theprey.deeplink.parseJoinLink
@@ -25,6 +29,8 @@ import nl.hexmaster.theprey.ui.splash.LaunchSequenceGate
 import nl.hexmaster.theprey.ui.splash.LaunchTimeline
 import nl.hexmaster.theprey.ui.theme.ThePreyTheme
 import nl.hexmaster.theprey.ui.tracking.TrackingRequest
+import nl.hexmaster.theprey.ui.update.UpdateGate
+import kotlin.time.Duration.Companion.minutes
 
 /** AppCompatActivity (not ComponentActivity) so the per-app language from Settings works below Android 13. */
 class MainActivity : AppCompatActivity() {
@@ -80,23 +86,36 @@ class MainActivity : AppCompatActivity() {
                             },
                         )
                     } else {
-                        ThePreyNavHost(
-                            session = session,
-                            locationSource = container.locationSource,
-                            locationConsentStore = container.locationConsentStore,
-                            gameRepository = container.gameRepository,
-                            playFieldRepository = container.playFieldRepository,
-                            profileStore = container.profileStore,
-                            gameSessions = container.gameStateService,
-                            headingSource = container.headingSource,
-                            profileSettings = session,
-                            appLanguage = container.appLanguage,
-                            pendingInviteStore = container.pendingInviteStore,
-                            hintsStore = container.hintsStore,
-                            trackingStarter = container.trackingStarter,
-                            trackingRequest = trackingRequest,
-                        )
+                        val navController = rememberNavController()
+                        UpdateGate(gate = container.appVersionGate, navController = navController) {
+                            ThePreyNavHost(
+                                session = session,
+                                locationSource = container.locationSource,
+                                locationConsentStore = container.locationConsentStore,
+                                gameRepository = container.gameRepository,
+                                playFieldRepository = container.playFieldRepository,
+                                profileStore = container.profileStore,
+                                gameSessions = container.gameStateService,
+                                headingSource = container.headingSource,
+                                profileSettings = session,
+                                appLanguage = container.appLanguage,
+                                pendingInviteStore = container.pendingInviteStore,
+                                hintsStore = container.hintsStore,
+                                trackingStarter = container.trackingStarter,
+                                trackingRequest = trackingRequest,
+                                navController = navController,
+                            )
+                        }
                     }
+                }
+            }
+        }
+        // The version check: on start, on every return to the foreground and every 10 minutes while visible.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (true) {
+                    container.appVersionGate.check()
+                    delay(VERSION_CHECK_INTERVAL)
                 }
             }
         }
@@ -126,5 +145,7 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         /** Matches windowSplashScreenAnimationDuration in Theme.ThePrey.Starting. */
         const val SPLASH_ICON_ANIMATION_MS = 800L
+
+        val VERSION_CHECK_INTERVAL = 10.minutes
     }
 }
