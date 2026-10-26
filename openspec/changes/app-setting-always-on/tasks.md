@@ -25,4 +25,4 @@
 
 ## 5. Integration check
 
-- [ ] 5.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and verify it passes
+- [x] 5.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and verify it passes
