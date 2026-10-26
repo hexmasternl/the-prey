@@ -19,11 +19,11 @@
 
 ## 4. Navigation and manifest
 
-- [ ] 4.1 Add `Routes.GAME = "game/{gameId}"` with a placeholder screen titled "Resume Game" and pass `onResumeGame = { navController.navigate("game/$it") }` to `MainMenuScreen`; verify the existing navigation tests pass and Back from the placeholder returns to the menu _(code done; device check pending)_
+- [ ] 4.1 Add `Routes.GAME = "game/{gameId}"` with a placeholder screen titled "Resume Game" and pass `onResumeGame = { navController.navigate("game/$it") }` to `MainMenuScreen`; verify the existing navigation tests pass and Back from the placeholder returns to the menu _(code done; device check pending)_ — **auto: needs human:** needs a real device or emulator
 - [x] 4.2 Add `ACCESS_BACKGROUND_LOCATION` to `AndroidManifest.xml`; verify it appears in the merged debug manifest
 - [x] 4.3 Update `openspec/changes/app-location-service/proposal.md` (and its design if it repeats it) to say background location is declared by this change instead of "No `ACCESS_BACKGROUND_LOCATION`"; verify `openspec validate app-location-service` still passes
 
 ## 5. End-to-end verification
 
-- [ ] 5.1 On an Android 13+ emulator signed in against the dev backend, walk every scenario in `specs/main-menu-play-action/spec.md`: grey while checking, location denied, "While using the app" only, approximate only, Open settings → grant "Allow all the time" → return, revoke → return, no active game → green Play Now, active game (start one via the API) → red Resume Game opening the game route, airplane mode → check error → Retry, return from Playfields re-checks; repeat the error and label checks with the device in Dutch _(code done; device check pending)_
-- [ ] 5.2 On an Android 9 (API 28) emulator verify that a fine-location grant alone enables the button (background implied) _(code done; device check pending)_
+- [ ] 5.1 On an Android 13+ emulator signed in against the dev backend, walk every scenario in `specs/main-menu-play-action/spec.md`: grey while checking, location denied, "While using the app" only, approximate only, Open settings → grant "Allow all the time" → return, revoke → return, no active game → green Play Now, active game (start one via the API) → red Resume Game opening the game route, airplane mode → check error → Retry, return from Playfields re-checks; repeat the error and label checks with the device in Dutch _(code done; device check pending)_ — **auto: needs human:** needs a real device or emulator
+- [ ] 5.2 On an Android 9 (API 28) emulator verify that a fine-location grant alone enables the button (background implied) _(code done; device check pending)_ — **auto: needs human:** needs a real device or emulator
