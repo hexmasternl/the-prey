@@ -26,6 +26,7 @@ import nl.hexmaster.theprey.BuildConfig
 import nl.hexmaster.theprey.auth.ProfileSettings
 import nl.hexmaster.theprey.auth.SessionController
 import nl.hexmaster.theprey.auth.SessionState
+import nl.hexmaster.theprey.data.display.DisplayPreferencesStore
 import nl.hexmaster.theprey.data.game.GameRepository
 import nl.hexmaster.theprey.data.game.GameSessions
 import nl.hexmaster.theprey.data.hints.HintsStore
@@ -155,6 +156,7 @@ fun ThePreyNavHost(
     appLanguage: AppLanguage,
     pendingInviteStore: PendingInviteStore,
     hintsStore: HintsStore,
+    displayPreferencesStore: DisplayPreferencesStore,
     modifier: Modifier = Modifier,
     trackingStarter: TrackingStarter? = null,
     trackingRequest: TrackingRequest? = null,
@@ -360,7 +362,9 @@ fun ThePreyNavHost(
                 }
                 composable(Routes.SETTINGS) {
                     SettingsScreen(
-                        viewModel = viewModel { SettingsViewModel(session, profileSettings, appLanguage, hintsStore) },
+                        viewModel = viewModel {
+                            SettingsViewModel(session, profileSettings, appLanguage, hintsStore, displayPreferencesStore)
+                        },
                         consentStore = locationConsentStore,
                         onBack = { navController.popBackStack() },
                     )

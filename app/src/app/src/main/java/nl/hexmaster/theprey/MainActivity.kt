@@ -101,6 +101,7 @@ class MainActivity : AppCompatActivity() {
                                 appLanguage = container.appLanguage,
                                 pendingInviteStore = container.pendingInviteStore,
                                 hintsStore = container.hintsStore,
+                                displayPreferencesStore = container.displayPreferencesStore,
                                 trackingStarter = container.trackingStarter,
                                 trackingRequest = trackingRequest,
                                 navController = navController,

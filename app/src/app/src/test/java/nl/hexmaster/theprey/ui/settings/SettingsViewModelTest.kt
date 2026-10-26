@@ -16,6 +16,7 @@ import nl.hexmaster.theprey.auth.ProfileSettings
 import nl.hexmaster.theprey.auth.SessionState
 import nl.hexmaster.theprey.auth.SettingsResult
 import nl.hexmaster.theprey.auth.aProfile
+import nl.hexmaster.theprey.data.display.DisplayPreferencesStore
 import nl.hexmaster.theprey.data.hints.Hint
 import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.language.AppLanguage
@@ -94,7 +95,20 @@ class SettingsViewModelTest {
 
     private val hints = FakeHintsStore(seen = Hint.entries.toSet())
 
-    private fun viewModel() = SettingsViewModel(session, settings, language, hints)
+    /** The stored choice in memory; [failWrite] leaves it unchanged like a failing disk (the real store logs and swallows). */
+    private class FakeDisplayPreferencesStore(stored: Boolean = false, var failWrite: Boolean = false) :
+        DisplayPreferencesStore {
+        val current = MutableStateFlow(stored)
+        override val keepScreenOnInGame: Flow<Boolean> = current
+
+        override suspend fun setKeepScreenOnInGame(enabled: Boolean) {
+            if (!failWrite) current.value = enabled
+        }
+    }
+
+    private val display = FakeDisplayPreferencesStore()
+
+    private fun viewModel() = SettingsViewModel(session, settings, language, hints, display)
 
     @Test
     fun uiState_ShouldShowTheCurrentCallsign_WhenOpened() {
@@ -327,5 +341,57 @@ class SettingsViewModelTest {
 
         assertEquals(Hint.entries.toSet(), hints.current.value)
         assertEquals(listOf(HintsResetMessage.Failed), messages)
+    }
+
+    // ---- Keep screen on ----
+
+    @Test
+    fun uiState_ShouldShowKeepScreenOnOff_WhenNothingIsStored() {
+        val sut = viewModel()
+
+        assertFalse(sut.uiState.value.keepScreenOn)
+    }
+
+    @Test
+    fun uiState_ShouldShowTheStoredKeepScreenOn_WhenOpened() {
+        display.current.value = true
+
+        val sut = viewModel()
+
+        assertTrue(sut.uiState.value.keepScreenOn)
+    }
+
+    @Test
+    fun onKeepScreenOnChange_ShouldStoreTheChoice_WhenToggled() {
+        val sut = viewModel()
+
+        sut.onKeepScreenOnChange(true)
+
+        assertTrue(display.current.value)
+        assertTrue(sut.uiState.value.keepScreenOn)
+
+        sut.onKeepScreenOnChange(false)
+
+        assertFalse(display.current.value)
+        assertFalse(sut.uiState.value.keepScreenOn)
+    }
+
+    @Test
+    fun uiState_ShouldFollowTheStore_WhenTheStoredValueChanges() {
+        val sut = viewModel()
+
+        display.current.value = true
+
+        assertTrue(sut.uiState.value.keepScreenOn)
+    }
+
+    @Test
+    fun onKeepScreenOnChange_ShouldKeepTheStoredValue_WhenTheWriteFails() {
+        display.failWrite = true
+        val sut = viewModel()
+
+        sut.onKeepScreenOnChange(true)
+
+        assertFalse(sut.uiState.value.keepScreenOn)
     }
 }
