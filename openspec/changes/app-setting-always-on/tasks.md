@@ -2,7 +2,7 @@
 
 ## 1. Display preferences store
 
-- [ ] 1.1 Add `data/display/DisplayPreferencesStore.kt` (interface + `DataStoreDisplayPreferencesStore`, key `keep_screen_on_in_game`, default `false`, `IOException` on read → `false`, failing write logged) and verify with a new `DisplayPreferencesStoreTest` (default off, set on/off round-trip, unreadable store → off) under `app/src/app/src/test/.../data/display/`
+- [x] 1.1 Add `data/display/DisplayPreferencesStore.kt` (interface + `DataStoreDisplayPreferencesStore`, key `keep_screen_on_in_game`, default `false`, `IOException` on read → `false`, failing write logged) and verify with a new `DisplayPreferencesStoreTest` (default off, set on/off round-trip, unreadable store → off) under `app/src/app/src/test/.../data/display/`
 - [ ] 1.2 Register the `display_preferences` Preferences DataStore and `displayPreferencesStore` in `AppContainer`, and add the file to the comments/exclusions in `res/xml/backup_rules.xml` and `res/xml/data_extraction_rules.xml`; verify `./gradlew assembleDebug` succeeds
 
 ## 2. Settings: Display section
