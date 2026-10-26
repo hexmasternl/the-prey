@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Prey — Play Store feature graphic</title>
+<!-- 1024×500 Play Store feature graphic. Render with:
+     npx playwright screenshot --viewport-size=1024,500 --wait-for-timeout=1000 "designs/store/feature-graphic.html?lang=en" designs/store/feature-graphic-en.png -->
+<style>
+  @font-face { font-family: 'Special Elite'; src: url('../SpecialElite-Regular.ttf') format('truetype'); }
+  @font-face { font-family: 'PT Mono'; src: url('../PTMono-Regular.ttf') format('truetype'); }
+  :root {
+    --tp-void: #0C0E0C; --tp-base: #181B17; --tp-surface: #23271F; --tp-line: #39402F;
+    --tp-signal: #64FF00; --tp-signal-dim: #3F9E00; --tp-signal-deep: #1F4D00;
+    --tp-hunter: #FF2F1F; --tp-text: #DCF6D2; --tp-text-soft: #8C9A83;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1024px; height: 500px; overflow: hidden; background: var(--tp-base); }
+  .banner {
+    position: relative; width: 1024px; height: 500px; overflow: hidden;
+    background:
+      radial-gradient(circle at 812px 250px, rgba(100,255,0,.10) 0, rgba(100,255,0,0) 330px),
+      linear-gradient(90deg, var(--tp-base) 0, var(--tp-base) 100%);
+  }
+  /* faint field grid, fading out towards the copy */
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(57,64,47,.45) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,64,47,.45) 1px, transparent 1px);
+    background-size: 40px 40px; background-position: -6px 10px;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 34%, #000 70%);
+            mask-image: linear-gradient(90deg, transparent 0, transparent 34%, #000 70%);
+  }
+  .radar { position: absolute; left: 812px; top: 250px; width: 0; height: 0; }
+  .radar svg { position: absolute; left: -240px; top: -240px; overflow: visible; }
+  .copy { position: absolute; left: 64px; top: 0; height: 500px; display: flex; flex-direction: column; justify-content: center; }
+  .eyebrow {
+    font-family: 'PT Mono', monospace; font-size: 15px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--tp-signal-dim); display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+  }
+  .eyebrow::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--tp-signal); box-shadow: 0 0 10px rgba(100,255,0,.6); }
+  h1 {
+    font-family: 'Special Elite', monospace; font-weight: 400; font-size: 100px; line-height: 1;
+    letter-spacing: 4px; color: var(--tp-text); white-space: nowrap;
+  }
+  h1 span { color: var(--tp-signal); }
+  .tagline {
+    margin-top: 22px; font-family: 'PT Mono', monospace; font-size: 19px; letter-spacing: 7px;
+    color: var(--tp-text-soft); white-space: nowrap;
+  }
+  .lead {
+    margin-top: 30px; padding-left: 16px; border-left: 3px solid var(--tp-signal);
+    font-family: 'PT Mono', monospace; font-size: 21px; line-height: 1.45; color: var(--tp-text); max-width: 440px;
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="grid"></div>
+
+  <div class="radar">
+    <svg width="480" height="480" viewBox="-240 -240 480 480">
+      <defs>
+        <radialGradient id="disc" r="0.5">
+          <stop offset="0" stop-color="#0C0E0C"/>
+          <stop offset="1" stop-color="#0C0E0C" stop-opacity=".92"/>
+        </radialGradient>
+        <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#64FF00" stop-opacity="0"/>
+          <stop offset="1" stop-color="#64FF00" stop-opacity=".22"/>
+        </linearGradient>
+        <filter id="blipGlow" x="-200%" y="-200%" width="500%" height="500%">
+          <feGaussianBlur stdDeviation="5"/>
+        </filter>
+      </defs>
+      <!-- disc -->
+      <circle r="218" fill="url(#disc)" stroke="#39402F" stroke-width="1.5"/>
+      <!-- rings every 25% + axes, Signal Deep -->
+      <g fill="none" stroke="#1F4D00" stroke-width="1.5">
+        <circle r="54.5"/><circle r="109"/><circle r="163.5"/><circle r="218"/>
+        <path d="M-218 0H218M0 -218V218"/>
+      </g>
+      <!-- sweep wedge (static frame of the 3.4s sweep), trailing edge fades -->
+      <g transform="rotate(-38)">
+        <path d="M0 0 L218 0 A218 218 0 0 0 167 -140 Z" fill="url(#sweep)" transform="rotate(0)"/>
+        <path d="M0 0 L218 0" stroke="#64FF00" stroke-opacity=".55" stroke-width="2"/>
+      </g>
+      <!-- blips: prey green, hunter red, with ping rings -->
+      <g>
+        <circle cx="128" cy="-118" r="22" fill="none" stroke="#64FF00" stroke-opacity=".35" stroke-width="1.5"/>
+        <circle cx="128" cy="-118" r="9" fill="#64FF00" filter="url(#blipGlow)" opacity=".8"/>
+        <circle cx="128" cy="-118" r="5.5" fill="#64FF00"/>
+
+        <circle cx="-150" cy="96" r="9" fill="#FF2F1F" filter="url(#blipGlow)" opacity=".8"/>
+        <circle cx="-150" cy="96" r="5.5" fill="#FF2F1F"/>
+
+        <circle cx="96" cy="160" r="9" fill="#FF2F1F" filter="url(#blipGlow)" opacity=".7"/>
+        <circle cx="96" cy="160" r="5.5" fill="#FF2F1F"/>
+
+        <circle cx="-120" cy="-150" r="5" fill="#5A6553"/>
+      </g>
+      <!-- the mark, centred (from designs/logo/the-prey-mark.svg) -->
+      <svg x="-136" y="-136" width="272" height="272" viewBox="64 64 384 384">
+        <circle cx="256" cy="256" r="182" fill="#0C0E0C"/>
+        <g fill="none" stroke="#64FF00" stroke-width="18" stroke-linecap="round">
+          <path d="M419 296.6A168 168 0 0 1 296.6 419M215.4 419A168 168 0 0 1 93 296.6M93 215.4A168 168 0 0 1 215.4 93M296.6 93A168 168 0 0 1 419 215.4"/>
+          <path d="M256 74v40M256 398v40M74 256h40M398 256h40"/>
+        </g>
+        <path d="M168 150L216 196H296L344 150L356 248L256 354L156 248Z" fill="#FF2F1F"/>
+        <path d="M256 196H296L344 150L356 248L256 354Z" fill="#0C0E0C" opacity=".2"/>
+        <path d="M182 176L208 198L186 218Z M330 176L304 198L326 218Z" fill="#0C0E0C" opacity=".4"/>
+        <path d="M198 240L238 258L208 264Z M314 240L274 258L304 264Z" fill="#0C0E0C"/>
+        <path d="M242 324H270L256 342Z" fill="#0C0E0C"/>
+        <circle cx="256" cy="256" r="8" fill="#64FF00"/>
+      </svg>
+    </svg>
+  </div>
+
+  <div class="copy">
+    <div class="eyebrow" data-i18n="eyebrow">GPS manhunt</div>
+    <h1>THE <span>PREY</span></h1>
+    <div class="tagline">STAY HIDDEN · HUNT SMART</div>
+    <p class="lead" data-i18n="lead">Real-world hide and seek. Your city is the playfield.</p>
+  </div>
+</div>
+<script>
+  const t = {
+    en: { eyebrow: 'GPS manhunt', lead: 'Real-world hide and seek. Your city is the playfield.' },
+    nl: { eyebrow: 'GPS-klopjacht', lead: 'Verstoppertje in de echte wereld. Jouw stad is het speelveld.' }
+  };
+  const lang = new URLSearchParams(location.search).get('lang') === 'nl' ? 'nl' : 'en';
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t[lang][el.dataset.i18n]);
+</script>
+</body>
+</html>
