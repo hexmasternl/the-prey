@@ -25,7 +25,7 @@
 
 - [x] 4.1 Add `AuthInterceptor` that attaches `Authorization: Bearer <access token>` from `CredentialsStore`, and wire it into the OkHttp client used by Retrofit; verify with a unit test using a fake `Interceptor.Chain` that the header is present
 - [x] 4.2 Add `TokenAuthenticator` that on `401` force-refreshes once and retries, and calls `SessionManager.onSessionLost()` when renewal is rejected or the retry is still `401`; network-caused renewal failures propagate as `IOException` and keep the session; verify unit tests for retry-succeeds, still-401, revoked refresh token and offline renewal
-- [ ] 4.3 Ensure no token or `Authorization` header is logged (no OkHttp body/header logging in release; redact `Authorization` in debug); verify by inspecting logcat during a debug sign-in _(code done: no HTTP logging interceptor, no token in any log call; logcat check pending a device sign-in)_
+- [ ] 4.3 Ensure no token or `Authorization` header is logged (no OkHttp body/header logging in release; redact `Authorization` in debug); verify by inspecting logcat during a debug sign-in _(code done: no HTTP logging interceptor, no token in any log call; logcat check pending a device sign-in)_ — **auto: needs human:** needs a real device or emulator
 
 ## 5. Landing page and main menu UI
 
@@ -36,12 +36,12 @@
 
 ## 6. Launch routing and navigation
 
-- [ ] 6.1 Add Navigation Compose `NavHost` in `MainActivity` with `landing` and `mainMenu` destinations; call `sessionManager.restore()` at startup and keep the system splash on screen while `SessionState.Unknown`; choose the start destination from the restored state (after the `app-splash-screen` launch sequence when present); verify on a device that a signed-in cold start never shows the landing page _(code done; device check pending)_
-- [ ] 6.2 Observe session state in the root composable: on `SignedIn` navigate to `mainMenu` and on `SignedOut` navigate to `landing`, both with `popUpTo(0) { inclusive = true }`; verify on a device that Back from the main menu (and from the landing page after sign-out) exits the app _(code done; device check pending)_
+- [ ] 6.1 Add Navigation Compose `NavHost` in `MainActivity` with `landing` and `mainMenu` destinations; call `sessionManager.restore()` at startup and keep the system splash on screen while `SessionState.Unknown`; choose the start destination from the restored state (after the `app-splash-screen` launch sequence when present); verify on a device that a signed-in cold start never shows the landing page _(code done; device check pending)_ — **auto: needs human:** needs a real device or emulator
+- [ ] 6.2 Observe session state in the root composable: on `SignedIn` navigate to `mainMenu` and on `SignedOut` navigate to `landing`, both with `popUpTo(0) { inclusive = true }`; verify on a device that Back from the main menu (and from the landing page after sign-out) exits the app _(code done; device check pending)_ — **auto: needs human:** needs a real device or emulator
 - [x] 6.3 Unit-test the pure start-destination function (`SessionState` → route) for `SignedIn`, `SignedOut` and expired-session cases
 
 ## 7. End-to-end verification
 
 - [x] 7.1 Run `./gradlew lintDebug testDebugUnitTest assembleDebug` from `app/src` and verify all pass
-- [ ] 7.2 On a device against the real API: first sign-in creates the user (`POST /users` 201), main menu greets the player; kill and relaunch → main menu directly; airplane mode relaunch → main menu with cached profile; sign out → landing page and next sign-in asks for credentials again _(manual device run pending)_
-- [ ] 7.3 Revoke the refresh token for the test user in Auth0 (or delete the device grant), relaunch and trigger an API call; verify the app returns to the landing page without a "connection" error _(manual Auth0 + device check pending)_
+- [ ] 7.2 On a device against the real API: first sign-in creates the user (`POST /users` 201), main menu greets the player; kill and relaunch → main menu directly; airplane mode relaunch → main menu with cached profile; sign out → landing page and next sign-in asks for credentials again _(manual device run pending)_ — **auto: needs human:** needs a real device or emulator
+- [ ] 7.3 Revoke the refresh token for the test user in Auth0 (or delete the device grant), relaunch and trigger an API call; verify the app returns to the landing page without a "connection" error _(manual Auth0 + device check pending)_ — **auto: needs human:** needs a real device or emulator

@@ -21,10 +21,10 @@
 
 ## 4. HUD composables
 
-- [ ] 4.1 Build `ui/game/hud/prey/RolePill` (green "Prey", red alternating while a penalty is active, 1000 ms ticker that runs with reduced motion); verify with a `@Preview` for both states and the unit-tested `penaltyLabelAt`. _(code and previews done; preview render and on-device tap check pending)_
-- [ ] 4.2 Build `ProximityPill` using `ProximityBand` colours from `ThePreyTheme.colors` (`prey`, `caution`, `alert`, `textGhost`); verify with a `@Preview` showing all four bands. _(code and previews done; preview render and on-device tap check pending)_
-- [ ] 4.3 Build `PreyHudPanel`: equal-size game-time and hunter-distance tiles (`weight(1f)` + `IntrinsicSize.Max`), full-width next-broadcast tile with progress bar and seconds, full-width arrow row (48 dp min, accessible expand/collapse description), `rememberSaveable` expanded state starting expanded, `AnimatedVisibility` that switches instantly with reduced motion; verify with expanded and collapsed `@Preview`s and a check that tapping the arrow switches state. _(code and previews done; preview render and on-device tap check pending)_
-- [ ] 4.4 Build `PreyHud` placing the role pill top-left, proximity pill top-right and the panel at the bottom with system-bar insets, driven by a 1-second ticker over `PreyHudState`; verify with a full-screen `@Preview` in English and Dutch locales. _(code and previews done; preview render and on-device tap check pending)_
+- [ ] 4.1 Build `ui/game/hud/prey/RolePill` (green "Prey", red alternating while a penalty is active, 1000 ms ticker that runs with reduced motion); verify with a `@Preview` for both states and the unit-tested `penaltyLabelAt`. _(code and previews done; preview render and on-device tap check pending)_ — **auto: needs human:** needs a real device or emulator
+- [ ] 4.2 Build `ProximityPill` using `ProximityBand` colours from `ThePreyTheme.colors` (`prey`, `caution`, `alert`, `textGhost`); verify with a `@Preview` showing all four bands. _(code and previews done; preview render and on-device tap check pending)_ — **auto: needs human:** needs a real device or emulator
+- [ ] 4.3 Build `PreyHudPanel`: equal-size game-time and hunter-distance tiles (`weight(1f)` + `IntrinsicSize.Max`), full-width next-broadcast tile with progress bar and seconds, full-width arrow row (48 dp min, accessible expand/collapse description), `rememberSaveable` expanded state starting expanded, `AnimatedVisibility` that switches instantly with reduced motion; verify with expanded and collapsed `@Preview`s and a check that tapping the arrow switches state. _(code and previews done; preview render and on-device tap check pending)_ — **auto: needs human:** needs a real device or emulator
+- [ ] 4.4 Build `PreyHud` placing the role pill top-left, proximity pill top-right and the panel at the bottom with system-bar insets, driven by a 1-second ticker over `PreyHudState`; verify with a full-screen `@Preview` in English and Dutch locales. _(code and previews done; preview render and on-device tap check pending)_ — **auto: needs human:** needs a real device or emulator
 
 ## 5. Game route wiring
 
@@ -35,4 +35,4 @@
 ## 6. Integration check
 
 - [x] 6.1 Run `./gradlew lintDebug testDebugUnitTest assembleDebug` from `app/src` and verify all pass.
-- [ ] 6.2 On a device or emulator in an `InProgress` game as a prey, verify: pills in the right corners, penalty alternation (with animations on and off), band colours at mocked distances, expand/collapse, and Dutch text with the device set to Dutch.
+- [ ] 6.2 On a device or emulator in an `InProgress` game as a prey, verify: pills in the right corners, penalty alternation (with animations on and off), band colours at mocked distances, expand/collapse, and Dutch text with the device set to Dutch. — **auto: needs human:** needs a real device or emulator

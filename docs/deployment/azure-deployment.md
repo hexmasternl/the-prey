@@ -7,11 +7,19 @@ The Prey backend is deployed to Azure Container Apps using independent GitHub Ac
 ## Workflow Layout
 
 ```
-.github/workflows/
-├── landing-zone.yml   # Shared infrastructure (deploy first)
-├── games.yml          # Games API + PostgreSQL + Container Apps Job
-├── users.yml          # Users API + Table Storage
-└── playfields.yml     # PlayFields API + Table Storage
+.github/
+├── actions/create-release/  # The only step that creates tags + GitHub releases (v<semVer>)
+└── workflows/
+    ├── version.yml          # Reusable: the only place GitVersion runs
+    ├── landing-zone.yml     # Shared infrastructure (deploy first)
+    ├── games.yml            # Games API + PostgreSQL
+    ├── users.yml            # Users API + Table Storage
+    ├── playfields.yml       # PlayFields API + Table Storage
+    ├── notifications.yml    # Notifications API
+    ├── deploy-website.yml   # Static Web App (theprey.nl)
+    ├── android-release.yml  # Android app → Play internal testing track
+    ├── android-promote.yml  # Internal → production; raises Games:MinimumAppVersion when required
+    └── pr-update-label.yml  # Requires update:optional / update:required on PRs into main
 ```
 
 Each service workflow is independently triggered via path filters — a change to `server/src/Games/**` only runs `games.yml`, not the other workflows. Shared code paths (`server/src/Core/**`, `server/src/Shared/**`, `server/src/Aspire/ThePrey.Aspire.ServiceDefaults/**`) trigger all three service workflows.
@@ -66,6 +74,12 @@ Docker builds and Azure deployments are skipped on PRs (`if: github.event_name !
 ## Versioning
 
 All services use a single `GitVersion.yml` at the repository root in **Mainline/ContinuousDeployment** mode. The semantic version advances whenever any pipeline runs on `main`. The deployed version of a service only advances when that service's own pipeline is triggered — so services that didn't change retain their last deployed version tag.
+
+Every workflow takes its version from `.github/workflows/version.yml`. After a successful deploy on `main`, each service workflow calls `.github/actions/create-release`, which creates the tag and GitHub release `v<semVer>` unless it already exists (backend services and the app share one version line).
+
+## Minimum App Version
+
+`Games:MinimumAppVersion` in the landing-zone App Configuration store is the minimum Android app version the Games version gate (`POST /games/version-checker`) accepts. `games.yml` does **not** write it. `android-promote.yml` sets it to the promoted version through `server/infrastructure/games/modules/games-app-config.bicep` when a promotion includes a pull request labelled `update:required`, after the `play-production` environment approval. The APIs refresh App Configuration key-values every 5 minutes, so a change applies without a restart. To roll back, lower or clear the key (the same module or the portal).
 
 ## Image Tag Rollback
 

@@ -23,15 +23,15 @@
 
 ## 5. HUD composables
 
-- [ ] 5.1 Build `HunterRolePill` and `GameClockPill` (band colours from `ThePreyTheme.colors`: `prey`, `alert`, `hunter`); verify `@Preview`s for Normal, Low, Critical and Penalty. _(code and previews done; preview render check in Android Studio pending)_
-- [ ] 5.2 Build `HunterSummaryGrid` with four equal tiles (`weight(1f)` + `IntrinsicSize.Max`) and the dash for unknown distance; verify a `@Preview` with long Dutch labels keeps the tiles equal. _(code and previews done; preview render check in Android Studio pending)_
-- [ ] 5.3 Build `TagFab` (red `ExtendedFloatingActionButton`, target icon, "Tag", disabled with the locked accessibility description); verify enabled and disabled `@Preview`s. _(code and previews done; preview render check in Android Studio pending)_
-- [ ] 5.4 Build `HunterHud` placing the pills top-left/top-right and the FAB above the grid on the right with system-bar insets, driven by a 1-second ticker over `HunterHudState`; verify a full-screen `@Preview` in English and Dutch. _(code and previews done; preview render check in Android Studio pending)_
+- [ ] 5.1 Build `HunterRolePill` and `GameClockPill` (band colours from `ThePreyTheme.colors`: `prey`, `alert`, `hunter`); verify `@Preview`s for Normal, Low, Critical and Penalty. _(code and previews done; preview render check in Android Studio pending)_ — **auto: needs human:** visual check of the preview in Android Studio
+- [ ] 5.2 Build `HunterSummaryGrid` with four equal tiles (`weight(1f)` + `IntrinsicSize.Max`) and the dash for unknown distance; verify a `@Preview` with long Dutch labels keeps the tiles equal. _(code and previews done; preview render check in Android Studio pending)_ — **auto: needs human:** visual check of the preview in Android Studio
+- [ ] 5.3 Build `TagFab` (red `ExtendedFloatingActionButton`, target icon, "Tag", disabled with the locked accessibility description); verify enabled and disabled `@Preview`s. _(code and previews done; preview render check in Android Studio pending)_ — **auto: needs human:** visual check of the preview in Android Studio
+- [ ] 5.4 Build `HunterHud` placing the pills top-left/top-right and the FAB above the grid on the right with system-bar insets, driven by a 1-second ticker over `HunterHudState`; verify a full-screen `@Preview` in English and Dutch. _(code and previews done; preview render check in Android Studio pending)_ — **auto: needs human:** visual check of the preview in Android Studio
 
 ## 6. Tag sheet
 
 - [x] 6.1 Build `TagSheetViewModel` with the `TagSheetState` machine and one-shot events (design Decision 5); verify unit tests with a fake repository for: loading → candidates, empty, load failure + retry, confirm disabled without selection, no second request while submitting, 204 → `Tagged` event, 409 → `NoLongerTaggable` + reload, network failure keeps the selection.
-- [ ] 6.2 Build the `TagSheet` `ModalBottomSheet`: candidates sorted by distance as single-select rows (callsign + meters, 48 dp), refresh action, red confirm button, loading/empty/error states; verify `@Preview`s for each state. _(code and previews done; preview render check in Android Studio pending)_
+- [ ] 6.2 Build the `TagSheet` `ModalBottomSheet`: candidates sorted by distance as single-select rows (callsign + meters, 48 dp), refresh action, red confirm button, loading/empty/error states; verify `@Preview`s for each state. _(code and previews done; preview render check in Android Studio pending)_ — **auto: needs human:** visual check of the preview in Android Studio
 - [x] 6.3 Wire the FAB to open the sheet, show the "{callsign} tagged" snackbar on success and trigger one snapshot refresh of the HUD input source; verify a unit test that a `Tagged` event requests exactly one refresh. _(The one refresh is `GameSessions.resync`, asserted in `TagSheetViewModelTest`.)_
 
 ## 7. Game route wiring
@@ -42,4 +42,4 @@
 ## 8. Integration check
 
 - [x] 8.1 Run `./gradlew lintDebug testDebugUnitTest assembleDebug` from `app/src` and verify all pass.
-- [ ] 8.2 On a device or emulator as the hunter of an `InProgress` game, verify: pills in the right corners, clock colours at mocked 11/10/5 minutes and with a hunter penalty, the four tiles, the Tag button locked during the start delay and unlocking on time, a successful tag within 50 m, a refused tag after the prey walks away, and Dutch text.
+- [ ] 8.2 On a device or emulator as the hunter of an `InProgress` game, verify: pills in the right corners, clock colours at mocked 11/10/5 minutes and with a hunter penalty, the four tiles, the Tag button locked during the start delay and unlocking on time, a successful tag within 50 m, a refused tag after the prey walks away, and Dutch text. — **auto: needs human:** needs a real device or emulator

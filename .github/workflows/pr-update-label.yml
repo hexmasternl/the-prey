@@ -1,0 +1,28 @@
+name: Update policy label
+
+# Every pull request into main declares whether its release forces players to update the app:
+# exactly one of the labels update:optional / update:required. The labels are read when an app
+# version is promoted to production (android-promote.yml). Make this a required check on main.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled, unlabeled, edited]
+
+permissions: {}
+
+jobs:
+  check:
+    name: Update policy label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require exactly one update label
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          COUNT=$(jq '[.[] | select(. == "update:optional" or . == "update:required")] | length' <<< "$LABELS")
+          if [ "$COUNT" -ne 1 ]; then
+            echo "::error::Add exactly one of the labels update:optional or update:required (found $COUNT)."
+            exit 1
+          fi
+          echo "Update policy: $(jq -r '.[] | select(startswith("update:"))' <<< "$LABELS")"

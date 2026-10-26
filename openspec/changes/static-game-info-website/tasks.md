@@ -70,17 +70,17 @@
 
 ## 8. Verification and Polish
 
-- [ ] 8.1 Verify language switcher on every page links correctly to the same page in the other language
-- [ ] 8.2 Verify signal green (`#64FF00`) is used only for actionable/live-data elements — not decorative
-- [ ] 8.3 Verify hunter red (`#FF2F1F`) appears only on hunter-role content and warning elements
-- [ ] 8.4 Verify all headings use Special Elite and all body text uses PT Mono
-- [ ] 8.5 Test responsive layout at 320px, 768px, and 1280px viewport widths
-- [ ] 8.6 Add `translationPending: true` to any content page not yet fully translated and confirm banner renders
+- [x] 8.1 Verify language switcher on every page links correctly to the same page in the other language
+- [ ] 8.2 Verify signal green (`#64FF00`) is used only for actionable/live-data elements — not decorative — **auto: needs human:** judging which uses of green are decorative is a visual design review
+- [ ] 8.3 Verify hunter red (`#FF2F1F`) appears only on hunter-role content and warning elements — **auto: needs human:** visual design review of every red element
+- [x] 8.4 Verify all headings use Special Elite and all body text uses PT Mono
+- [ ] 8.5 Test responsive layout at 320px, 768px, and 1280px viewport widths — **auto: needs human:** visual check in a browser at three widths
+- [x] 8.6 Add `translationPending: true` to any content page not yet fully translated and confirm banner renders
 
 ## 9. GitHub Actions Deployment
 
 - [x] 9.1 Create `.github/workflows/deploy-website.yml` triggered on push to `main` with path filter `website/**`
 - [x] 9.2 Add build step using `peaceiris/actions-hugo` with version pinned to match `website/.hugo-version`
 - [x] 9.3 Add deploy step publishing `website/public/` to the `gh-pages` branch using `peaceiris/actions-gh-pages`
-- [ ] 9.4 Enable GitHub Pages on the repository pointing to the `gh-pages` branch
-- [ ] 9.5 Verify a test push triggers the workflow and the site is accessible at the GitHub Pages URL
+- [ ] 9.4 Enable GitHub Pages on the repository pointing to the `gh-pages` branch — **auto: needs human:** repository setting; note `deploy-website.yml` now deploys to an Azure Static Web App (theprey.nl), so GitHub Pages may be obsolete
+- [ ] 9.5 Verify a test push triggers the workflow and the site is accessible at the GitHub Pages URL — **auto: needs human:** needs a live push and run; see 9.4 (the site deploys to an Azure Static Web App now)

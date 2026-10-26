@@ -14,6 +14,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -157,13 +158,13 @@ fun ThePreyNavHost(
     modifier: Modifier = Modifier,
     trackingStarter: TrackingStarter? = null,
     trackingRequest: TrackingRequest? = null,
+    navController: NavHostController = rememberNavController(),
 ) {
     val state by session.state.collectAsStateWithLifecycle()
     val hasPendingInvite by pendingInviteStore.pending.collectAsStateWithLifecycle(initialValue = false)
     // Nothing to show yet: the system splash stays up until the session is known.
     val target = routeFor(state) ?: return
 
-    val navController = rememberNavController()
     val startDestination = remember { target }
 
     val currentEntry by navController.currentBackStackEntryAsState()

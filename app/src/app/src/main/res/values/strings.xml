@@ -413,4 +413,9 @@
     <string name="settings_hints_reset">Show hints again</string>
     <string name="settings_hints_reset_done">Hints will show again the next time.</string>
     <string name="settings_hints_reset_failed">Hints could not be reset. Try again.</string>
+
+    <!-- Update gate -->
+    <string name="update_required_title">Update required</string>
+    <string name="update_required_body">This version of The Prey is no longer supported. Install the latest version from the Play Store to keep playing.</string>
+    <string name="update_required_action">Update</string>
 </resources>

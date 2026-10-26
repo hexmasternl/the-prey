@@ -1,0 +1,196 @@
+name: Android Promote
+
+# Promotes an app version that android-release.yml put on the Play internal testing track to
+# production. When any pull request merged into main since the last promotion carries the label
+# update:required, Games:MinimumAppVersion is raised to the promoted version, but only after the
+# play-production environment approves that the release is live in the store. See CLAUDE.md "App releases".
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version on the internal track to promote, e.g. 1.4.4 (tag v1.4.4 must exist)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-promote
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      versionCode: ${{ steps.version.outputs.versionCode }}
+      sha: ${{ steps.version.outputs.sha }}
+      required: ${{ steps.policy.outputs.required }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check the version
+        id: version
+        env:
+          VERSION: ${{ inputs.version }}
+          VERSION_CODE_OFFSET: ${{ vars.VERSION_CODE_OFFSET || '0' }}
+        run: |
+          if ! [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "::error::Version '$VERSION' is not a plain major.minor.patch version."
+            exit 1
+          fi
+          MAJOR=${BASH_REMATCH[1]} MINOR=${BASH_REMATCH[2]} PATCH=${BASH_REMATCH[3]}
+          if ! SHA=$(git rev-parse --verify --quiet "refs/tags/v$VERSION^{commit}"); then
+            echo "::error::Tag v$VERSION does not exist; only versions published by android-release.yml can be promoted."
+            exit 1
+          fi
+          LAST=$(git tag --list 'app-production-v*' | sed 's/^app-production-v//' | sort -V | tail -n 1)
+          if [ -n "$LAST" ] && [ "$(printf '%s\n%s\n' "$LAST" "$VERSION" | sort -V | tail -n 1)" != "$VERSION" -o "$LAST" = "$VERSION" ]; then
+            echo "::error::Version $VERSION is not higher than $LAST, the last version promoted to production."
+            exit 1
+          fi
+          # Same formula as android-release.yml, so this is the code that is on the internal track.
+          VERSION_CODE=$(( MAJOR * 1000000 + MINOR * 1000 + PATCH + VERSION_CODE_OFFSET ))
+          {
+            echo "versionCode=$VERSION_CODE"
+            echo "sha=$SHA"
+            echo "last=$LAST"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Promote \`$VERSION\` to production"
+            echo "- versionCode: \`$VERSION_CODE\`"
+            echo "- commit: \`$SHA\`"
+            echo "- last promoted version: \`${LAST:-none}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Required when any pull request merged into main since the last promotion is labelled
+      # update:required; unlabelled pull requests count as optional. First promotion: only the
+      # pull request(s) of the promoted commit count.
+      - name: Decide the update policy
+        id: policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ steps.version.outputs.sha }}
+          LAST: ${{ steps.version.outputs.last }}
+        run: |
+          if [ -n "$LAST" ]; then
+            BASE_SHA=$(git rev-parse "refs/tags/app-production-v$LAST^{commit}")
+            COMMITS=$(git log --first-parent --format=%H "$BASE_SHA..$HEAD_SHA")
+          else
+            COMMITS=$HEAD_SHA
+          fi
+          : > prs.tsv
+          for SHA in $COMMITS; do
+            gh api "repos/$REPO/commits/$SHA/pulls" --jq \
+              '.[] | select(.merged_at != null and .base.ref == "main")
+                   | [.number, .title, ([.labels[].name | select(startswith("update:"))] | join(" "))] | @tsv' >> prs.tsv
+          done
+          sort -u -n -k1,1 prs.tsv -o prs.tsv
+          if cut -f3 prs.tsv | grep -qw 'update:required'; then REQUIRED=true; else REQUIRED=false; fi
+          echo "required=$REQUIRED" >> "$GITHUB_OUTPUT"
+          {
+            echo ""
+            echo "| PR | Title | Update label |"
+            echo "| --- | --- | --- |"
+            while IFS=$'\t' read -r NUMBER TITLE LABEL; do
+              echo "| #$NUMBER | ${TITLE//|/\\|} | ${LABEL:-none (optional)} |"
+            done < prs.tsv
+            echo ""
+            if [ "$REQUIRED" = true ]; then
+              echo "**Policy: required update.** After approval, Games:MinimumAppVersion becomes the promoted version."
+            else
+              echo "**Policy: optional update.** Games:MinimumAppVersion stays as it is."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat prs.tsv
+          echo "Required update: $REQUIRED"
+
+  promote:
+    name: Promote to production
+    runs-on: ubuntu-latest
+    needs: plan
+    permissions:
+      contents: write # push the app-production-v<version> tag
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install fastlane
+        run: gem install fastlane --version 2.240.1 --no-document
+
+      # Fails when the versionCode is not on the internal track: nothing is promoted then.
+      - name: Promote the internal release to production
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          VERSION_CODE: ${{ needs.plan.outputs.versionCode }}
+        run: |
+          KEY_FILE="$RUNNER_TEMP/play-service-account.json"
+          printf '%s' "$PLAY_SERVICE_ACCOUNT_JSON" > "$KEY_FILE"
+          fastlane supply \
+            --package_name nl.hexmaster.theprey \
+            --json_key "$KEY_FILE" \
+            --track internal \
+            --track_promote_to production \
+            --version_code "$VERSION_CODE" \
+            --release_status completed \
+            --track_promote_release_status completed \
+            --skip_upload_apk true \
+            --skip_upload_aab true \
+            --skip_upload_metadata true \
+            --skip_upload_changelogs true \
+            --skip_upload_images true \
+            --skip_upload_screenshots true
+          rm -f "$KEY_FILE"
+
+      - name: Record the promoted version
+        env:
+          VERSION: ${{ inputs.version }}
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          git tag "app-production-v$VERSION" "$SHA"
+          git push origin "refs/tags/app-production-v$VERSION"
+          echo "Promoted \`$VERSION\` to production; tagged \`app-production-v$VERSION\`." >> "$GITHUB_STEP_SUMMARY"
+
+  # Approve the play-production environment only once the Play Console shows the production
+  # release as Available: blocking players before the store serves the new version strands them.
+  enforce:
+    name: Raise the minimum app version
+    runs-on: ubuntu-latest
+    needs: [plan, promote]
+    if: needs.plan.outputs.required == 'true'
+    environment: play-production
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Log in to Azure
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_PROD_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_PROD_TENANTID }}
+          subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
+
+      # Promoted versions only go up (plan job), so the minimum never goes down.
+      - name: Set Games:MinimumAppVersion
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          az deployment group create \
+            --name theprey-min-app-version \
+            --resource-group rg-theprey-landing-prod \
+            --template-file server/infrastructure/games/modules/games-app-config.bicep \
+            --parameters appConfigName=theprey-lz-ac-gp53pncm minimumAppVersion="$VERSION"
+          echo "Games:MinimumAppVersion is now \`$VERSION\`; older apps show the update message outside a game within about 15 minutes." >> "$GITHUB_STEP_SUMMARY"
