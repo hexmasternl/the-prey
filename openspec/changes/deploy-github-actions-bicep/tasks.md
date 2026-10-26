@@ -11,7 +11,7 @@
 - [x] 2.1 Create `server/infrastructure/landing-zone/modules/` — log-analytics, app-insights, container-apps-environment, key-vault, app-configuration, storage-queues Bicep modules (latest stable API versions)
 - [x] 2.2 Create `server/infrastructure/landing-zone/main.bicep` — subscription scope, creates `rg-theprey-landing-prod`, composes the modules, exposes outputs for service templates
 - [x] 2.3 Create `.github/workflows/landing-zone.yml` — OIDC login (`AZURE_PROD_*` secrets, `id-token: write`), `bicep build` + `what-if` on PR, `az deployment sub create` on push to `main` / dispatch
-- [ ] 2.4 Run the landing zone workflow (manual dispatch) and verify all shared resources deploy
+- [ ] 2.4 Run the landing zone workflow (manual dispatch) and verify all shared resources deploy — **auto: needs human:** needs a live GitHub Actions run against Azure
 
 ## 3. Games service
 
@@ -19,14 +19,14 @@
 - [x] 3.2 Create `server/infrastructure/games/main.bicep` — subscription scope, `rg-theprey-games-prod`: PostgreSQL Flexible Server (`Standard_B1ms`, 32 GiB, no HA) + `games` database, admin password as secure param stored in landing-zone Key Vault
 - [x] 3.3 Add the Games API container app and Container Apps Job (manual trigger, configurable image/command) to `server/infrastructure/games/main.bicep`, wiring the Postgres connection string as a Container Apps secret
 - [x] 3.4 Create `.github/workflows/games.yml` — path-filtered triggers (Games + shared code + `server/infrastructure/games/**`), GitVersion job, `dotnet test` for Games.Tests, docker build/push `theprey/games-api:<semVer>`, OIDC deploy with concurrency group
-- [ ] 3.5 Run the Games workflow end-to-end and verify Postgres, API, and job are deployed and the API responds on its ACA FQDN
+- [ ] 3.5 Run the Games workflow end-to-end and verify Postgres, API, and job are deployed and the API responds on its ACA FQDN — **auto: needs human:** needs a live GitHub Actions run against Azure
 
 ## 4. Users service
 
 - [x] 4.1 Create `server/src/Users/HexMaster.ThePrey.Users.Api/Dockerfile` and verify it builds locally
 - [x] 4.2 Create `server/infrastructure/users/main.bicep` — subscription scope, `rg-theprey-users-prod`: Users API container app + table-storage account with managed-identity role assignment (via shared modules)
 - [x] 4.3 Create `.github/workflows/users.yml` — path-filtered triggers (Users + shared code + `server/infrastructure/users/**`), GitVersion, `dotnet test` for Users.Tests, docker build/push `theprey/users-api:<semVer>`, OIDC deploy
-- [ ] 4.4 Run the Users workflow end-to-end and verify the API and storage account are deployed
+- [ ] 4.4 Run the Users workflow end-to-end and verify the API and storage account are deployed — **auto: needs human:** needs a live GitHub Actions run against Azure
 
 ## 5. PlayFields service
 
