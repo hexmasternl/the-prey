@@ -8,7 +8,8 @@ You are running unattended. Nobody will answer questions or approve plans. Imple
 - Server work: consult the `hexmaster-coding-guidelines` MCP documents named in `CLAUDE.md` before writing code. CQRS without MediatR, Minimal APIs, OpenTelemetry in every handler, xUnit + Moq + Bogus.
 - App and website text: every string lands in English **and** Dutch in the same change.
 - Never ask the user anything (no `AskUserQuestion`, no plan mode). Make the reasonable decision the artifacts point to, and record it (see "Decisions").
-- Never push, open pull requests, deploy, publish to Play, create GitHub releases, touch Azure/Auth0/Play Console, or change secrets. Never commit `key.properties`, keystores, `.env` files or credentials.
+- Follow the `the-prey-git-workflow` skill for branches: one `run/<yyyy-MM-dd>-<slug>` branch in its own worktree under `../the-prey-worktrees/`, branched from an up-to-date `development`. The only push allowed is that run branch, and the only PR allowed is one PR from it into `development` (see "Finish").
+- Never push or commit to `main` or `development`, open a PR into `main`, merge any PR, deploy, publish to Play, create GitHub releases, touch Azure/Auth0/Play Console, or change secrets. Never commit `key.properties`, keystores, `.env` files or credentials.
 - Never rewrite history (`reset --hard`, `rebase`, `push --force`, `checkout --` on others' work). Never use `--no-verify`.
 - Stay inside the change's scope. No drive-by refactors.
 
@@ -66,4 +67,11 @@ Update `auto/log.md` when a change is finished and commit it on its own (`chore(
 
 ## Finish
 
-Stop when every change is done, partial (only "needs human" tasks left) or blocked. End with a short summary: changes archived, changes left with human tasks (and which), changes blocked (and why), and the final `openspec list` output. Report failures as they are; don't call anything done that you did not verify.
+Stop when every change is done, partial (only "needs human" tasks left) or blocked. Then:
+
+1. Make sure the worktree is clean and every commit is on the run branch.
+2. `git push -u origin run/<identifier>` (never `--force`).
+3. `gh pr create --base development --head run/<identifier> --title "feat: autonomous run <identifier>"` with a body that has one section per change: summary, tasks done, tasks left for a human (and why), how it was verified, decisions worth reviewing, and any Play Store or infrastructure note. List skipped or blocked changes with the reason. End the body with the attribution line from the session instructions.
+4. If the push or PR fails, report the error and stop; don't retry with other flags.
+
+End with a short summary: the PR URL, changes archived, changes left with human tasks (and which), changes blocked (and why), and the final `openspec list` output. Report failures as they are; don't call anything done that you did not verify.
