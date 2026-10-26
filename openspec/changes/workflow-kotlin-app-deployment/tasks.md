@@ -7,7 +7,7 @@
 
 ## 2. Release notes in the create-release action
 
-- [ ] 2.1 Add an optional `notes-file` input to `.github/actions/create-release/action.yml` (create the action per `workflow-centralized-versioning` task 2 first if it does not exist): non-empty file → `gh release create … --notes-file`, otherwise `--generate-notes`; existing release stays untouched; input passed via `env:`; update the usage comment; verify with `actionlint` and by running the script body locally against an existing tag (skip) and with an empty notes file (falls back to generated notes)
+- [x] 2.1 Add an optional `notes-file` input to `.github/actions/create-release/action.yml` (create the action per `workflow-centralized-versioning` task 2 first if it does not exist): non-empty file → `gh release create … --notes-file`, otherwise `--generate-notes`; existing release stays untouched; input passed via `env:`; update the usage comment; verify with `actionlint` and by running the script body locally against an existing tag (skip) and with an empty notes file (falls back to generated notes)
 
 ## 3. Workflow skeleton and verification
 

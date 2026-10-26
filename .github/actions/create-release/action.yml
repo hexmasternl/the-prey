@@ -9,6 +9,7 @@
 #     - uses: ./.github/actions/create-release
 #       with:
 #         version: ${{ needs.version.outputs.semVer }}
+#         notes-file: release-notes.md   # optional; GitHub's generated notes otherwise
 
 name: Create release
 description: Idempotently creates the tag v<version> and a GitHub release for it.
@@ -25,6 +26,10 @@ inputs:
     description: 'Token for the gh CLI.'
     required: false
     default: ${{ github.token }}
+  notes-file:
+    description: 'Optional file with the release body; when missing or empty, GitHub generates the notes. An existing release is never edited.'
+    required: false
+    default: ''
 
 outputs:
   tag:
@@ -44,6 +49,7 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
         VERSION: ${{ inputs.version }}
         TARGET: ${{ inputs.target }}
+        NOTES_FILE: ${{ inputs.notes-file }}
       run: |
         VERSION="${VERSION#[vV]}"
         if [ -z "$VERSION" ]; then
@@ -60,10 +66,15 @@ runs:
           echo "created=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
+        if [ -n "$NOTES_FILE" ] && [ -s "$NOTES_FILE" ]; then
+          NOTES=(--notes-file "$NOTES_FILE")
+        else
+          NOTES=(--generate-notes)
+        fi
         if gh release create "$TAG" \
             --target "$TARGET" \
             --title "$TAG" \
-            --generate-notes; then
+            "${NOTES[@]}"; then
           echo "Created release $TAG."
           echo "created=true" >> "$GITHUB_OUTPUT"
         elif gh release view "$TAG" >/dev/null 2>&1; then
