@@ -2,8 +2,8 @@
 
 ## 1. Backend: minimum version is runtime-refreshed and no longer reset by infra
 
-- [ ] 1.1 In `server/src/Aspire/ThePrey.Aspire.ServiceDefaults/Extensions.cs` `AddAzureAppConfiguration`, add `.ConfigureRefresh(r => r.RegisterAll().SetRefreshInterval(TimeSpan.FromMinutes(5)))` next to `UseFeatureFlags`, and update the comment (key-values refresh every 5 min via the existing `UseAppConfigurationRefresh` middleware; startup-bound options don't change); verify `dotnet build server/src/the-prey.slnx` succeeds
-- [ ] 1.2 Add a unit test in `HexMaster.ThePrey.Games.Tests/Features/CheckAppVersion/` proving the handler reads the minimum per call (reload an in-memory configuration provider between two calls: minimum `1.0.0` → `UpToDate`, then minimum `2.0.0` → `UpdateRequired` for client `1.5.0`); verify `dotnet test server/src/Games/HexMaster.ThePrey.Games.Tests/` passes
+- [x] 1.1 In `server/src/Aspire/ThePrey.Aspire.ServiceDefaults/Extensions.cs` `AddAzureAppConfiguration`, add `.ConfigureRefresh(r => r.RegisterAll().SetRefreshInterval(TimeSpan.FromMinutes(5)))` next to `UseFeatureFlags`, and update the comment (key-values refresh every 5 min via the existing `UseAppConfigurationRefresh` middleware; startup-bound options don't change); verify `dotnet build server/src/the-prey.slnx` succeeds
+- [x] 1.2 Add a unit test in `HexMaster.ThePrey.Games.Tests/Features/CheckAppVersion/` proving the handler reads the minimum per call (reload an in-memory configuration provider between two calls: minimum `1.0.0` → `UpToDate`, then minimum `2.0.0` → `UpdateRequired` for client `1.5.0`); verify `dotnet test server/src/Games/HexMaster.ThePrey.Games.Tests/` passes
 - [ ] 1.3 Remove the `minimumAppVersion` param and the `gamesAppConfig` module call (and its comment) from `server/infrastructure/games/main.bicep`; make `minimumAppVersion` in `modules/games-app-config.bicep` required (no `1.0.14` default) and update its description to name the promote workflow as the writer; verify `az bicep build` succeeds for both files and `grep -rn minimumAppVersion server/infrastructure/games` only hits the module
 
 ## 2. App: version gate service

@@ -1,5 +1,6 @@
 using HexMaster.ThePrey.Games.Features.CheckAppVersion;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Memory;
 
 namespace HexMaster.ThePrey.Games.Tests.Features.CheckAppVersion;
 
@@ -83,6 +84,28 @@ public sealed class CheckAppVersionQueryHandlerTests
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
             sut.Handle(new CheckAppVersionQuery(version), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReadMinimumPerCall_WhenConfigurationReloads()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [CheckAppVersionQueryHandler.MinimumVersionConfigurationKey] = "1.0.0"
+            })
+            .Build();
+        var sut = new CheckAppVersionQueryHandler(configuration);
+        var query = new CheckAppVersionQuery("1.5.0");
+
+        var before = await sut.Handle(query, CancellationToken.None);
+        configuration.Providers.OfType<MemoryConfigurationProvider>().Single()
+            .Set(CheckAppVersionQueryHandler.MinimumVersionConfigurationKey, "2.0.0");
+        configuration.Reload();
+        var after = await sut.Handle(query, CancellationToken.None);
+
+        Assert.Equal(AppVersionCheckResult.UpToDate, before);
+        Assert.Equal(AppVersionCheckResult.UpdateRequired, after);
     }
 
     [Fact]

@@ -111,7 +111,11 @@ public static class Extensions
                 // within ~15 minutes without a container restart. Refresh is pull-based: the
                 // UseAzureAppConfiguration middleware (wired via UseAppConfigurationRefresh)
                 // triggers a (non-blocking) refresh on incoming requests, honoring this interval.
-                .UseFeatureFlags(ff => ff.SetRefreshInterval(TimeSpan.FromMinutes(15)));
+                .UseFeatureFlags(ff => ff.SetRefreshInterval(TimeSpan.FromMinutes(15)))
+                // Key-values (e.g. Games:MinimumAppVersion) refresh every 5 minutes through the same
+                // middleware, so values read from IConfiguration per request change without a restart.
+                // Options bound once at startup (IOptions<T> rather than IOptionsMonitor<T>) don't change.
+                .ConfigureRefresh(refresh => refresh.RegisterAll().SetRefreshInterval(TimeSpan.FromMinutes(5)));
         });
 
         // Register the refresher services consumed by the UseAzureAppConfiguration middleware.
