@@ -59,6 +59,9 @@ module notificationsApi '../modules/container-app.bicep' = {
     enableDapr: true
     daprAppId: 'hexmaster-theprey-notifications-api'
     minReplicas: 1
+    // One instance only: WebPubSubBroadcaster allocates each game's `seq` from an in-process counter,
+    // and a second replica would interleave the numbers and make clients resync on every message.
+    maxReplicas: 1
   }
 }
 
