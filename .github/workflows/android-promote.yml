@@ -1,0 +1,114 @@
+name: Android Promote
+
+# Promotes an app version that android-release.yml put on the Play internal testing track to
+# production. When any pull request merged into main since the last promotion carries the label
+# update:required, Games:MinimumAppVersion is raised to the promoted version, but only after the
+# play-production environment approves that the release is live in the store. See CLAUDE.md "App releases".
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version on the internal track to promote, e.g. 1.4.4 (tag v1.4.4 must exist)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-promote
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      versionCode: ${{ steps.version.outputs.versionCode }}
+      sha: ${{ steps.version.outputs.sha }}
+      required: ${{ steps.policy.outputs.required }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check the version
+        id: version
+        env:
+          VERSION: ${{ inputs.version }}
+          VERSION_CODE_OFFSET: ${{ vars.VERSION_CODE_OFFSET || '0' }}
+        run: |
+          if ! [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "::error::Version '$VERSION' is not a plain major.minor.patch version."
+            exit 1
+          fi
+          MAJOR=${BASH_REMATCH[1]} MINOR=${BASH_REMATCH[2]} PATCH=${BASH_REMATCH[3]}
+          if ! SHA=$(git rev-parse --verify --quiet "refs/tags/v$VERSION^{commit}"); then
+            echo "::error::Tag v$VERSION does not exist; only versions published by android-release.yml can be promoted."
+            exit 1
+          fi
+          LAST=$(git tag --list 'app-production-v*' | sed 's/^app-production-v//' | sort -V | tail -n 1)
+          if [ -n "$LAST" ] && [ "$(printf '%s\n%s\n' "$LAST" "$VERSION" | sort -V | tail -n 1)" != "$VERSION" -o "$LAST" = "$VERSION" ]; then
+            echo "::error::Version $VERSION is not higher than $LAST, the last version promoted to production."
+            exit 1
+          fi
+          # Same formula as android-release.yml, so this is the code that is on the internal track.
+          VERSION_CODE=$(( MAJOR * 1000000 + MINOR * 1000 + PATCH + VERSION_CODE_OFFSET ))
+          {
+            echo "versionCode=$VERSION_CODE"
+            echo "sha=$SHA"
+            echo "last=$LAST"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Promote \`$VERSION\` to production"
+            echo "- versionCode: \`$VERSION_CODE\`"
+            echo "- commit: \`$SHA\`"
+            echo "- last promoted version: \`${LAST:-none}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Required when any pull request merged into main since the last promotion is labelled
+      # update:required; unlabelled pull requests count as optional. First promotion: only the
+      # pull request(s) of the promoted commit count.
+      - name: Decide the update policy
+        id: policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ steps.version.outputs.sha }}
+          LAST: ${{ steps.version.outputs.last }}
+        run: |
+          if [ -n "$LAST" ]; then
+            BASE_SHA=$(git rev-parse "refs/tags/app-production-v$LAST^{commit}")
+            COMMITS=$(git log --first-parent --format=%H "$BASE_SHA..$HEAD_SHA")
+          else
+            COMMITS=$HEAD_SHA
+          fi
+          : > prs.tsv
+          for SHA in $COMMITS; do
+            gh api "repos/$REPO/commits/$SHA/pulls" --jq \
+              '.[] | select(.merged_at != null and .base.ref == "main")
+                   | [.number, .title, ([.labels[].name | select(startswith("update:"))] | join(" "))] | @tsv' >> prs.tsv
+          done
+          sort -u -n -k1,1 prs.tsv -o prs.tsv
+          if cut -f3 prs.tsv | grep -qw 'update:required'; then REQUIRED=true; else REQUIRED=false; fi
+          echo "required=$REQUIRED" >> "$GITHUB_OUTPUT"
+          {
+            echo ""
+            echo "| PR | Title | Update label |"
+            echo "| --- | --- | --- |"
+            while IFS=$'\t' read -r NUMBER TITLE LABEL; do
+              echo "| #$NUMBER | ${TITLE//|/\\|} | ${LABEL:-none (optional)} |"
+            done < prs.tsv
+            echo ""
+            if [ "$REQUIRED" = true ]; then
+              echo "**Policy: required update.** After approval, Games:MinimumAppVersion becomes the promoted version."
+            else
+              echo "**Policy: optional update.** Games:MinimumAppVersion stays as it is."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat prs.tsv
+          echo "Required update: $REQUIRED"
