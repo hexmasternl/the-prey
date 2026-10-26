@@ -8,7 +8,7 @@
 
 ## 2. ServiceDefaults: one telemetry setup for all services
 
-- [ ] 2.1 In `ThePrey.Aspire.ServiceDefaults.csproj` replace `Azure.Monitor.OpenTelemetry.Exporter` with the latest stable `Azure.Monitor.OpenTelemetry.AspNetCore`; verify `dotnet build server/src/the-prey.slnx` restores and builds
+- [x] 2.1 In `ThePrey.Aspire.ServiceDefaults.csproj` replace `Azure.Monitor.OpenTelemetry.Exporter` with the latest stable `Azure.Monitor.OpenTelemetry.AspNetCore`; verify `dotnet build server/src/the-prey.slnx` restores and builds
 - [ ] 2.2 In `Extensions.cs` add `ConfigureResource` (fallback `service.name` = application name when `OTEL_SERVICE_NAME` is unset, `service.version`, `service.instance.id`), `AddSource("HexMaster.ThePrey.*")` and `AddMeter("HexMaster.ThePrey.*")`, and move the `/health` + `/alive` filter to `services.Configure<AspNetCoreTraceInstrumentationOptions>`; verify the solution builds and comments describe the new behaviour
 - [ ] 2.3 Replace the per-signal Azure Monitor exporters with `UseAzureMonitor()` when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set, with sampling set explicitly to keep all traces (D3), and keep the OTLP exporter path; verify the solution builds and a service started with no connection string starts cleanly
 - [ ] 2.4 Remove the `AddOpenTelemetry()` blocks and unused `OpenTelemetry.*` usings from the Games, PlayFields, Users and Notifications `Program.cs` (keep the `*ObservabilityConstants`); verify `dotnet build server/src/the-prey.slnx` has no new warnings and `dotnet test` passes for all four module test projects
