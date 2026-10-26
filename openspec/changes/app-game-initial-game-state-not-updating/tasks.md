@@ -12,7 +12,7 @@
 
 ## 3. Game screen shows the countdown after the promotion
 
-- [ ] 3.1 Add a `GameViewModelTest` case `uiState_ShouldShowStartDelay_WhenStartedGameIsPromoted`: session emits a `Started` snapshot (phase `Starting`, no delay), then an `InProgress` snapshot with `hunterMayMoveAt` in the future and a new `serverTime`; assert phase `Playing` and a non-null `delay`. Fix `GameViewModel` only if the test shows it does not reseed. Verify the test passes.
+- [x] 3.1 Add a `GameViewModelTest` case `uiState_ShouldShowStartDelay_WhenStartedGameIsPromoted`: session emits a `Started` snapshot (phase `Starting`, no delay), then an `InProgress` snapshot with `hunterMayMoveAt` in the future and a new `serverTime`; assert phase `Playing` and a non-null `delay`. Fix `GameViewModel` only if the test shows it does not reseed. Verify the test passes.
 
 ## 4. Documentation
 
