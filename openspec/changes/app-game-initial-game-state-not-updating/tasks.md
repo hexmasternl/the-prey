@@ -16,7 +16,7 @@
 
 ## 4. Documentation
 
-- [ ] 4.1 Update `docs/api/realtime.md` client rules: a `configuration-changed` that changes the status → full snapshot; resync every 10 s while `Started`, 3 minutes otherwise. Verify the text matches the code constants.
+- [x] 4.1 Update `docs/api/realtime.md` client rules: a `configuration-changed` that changes the status → full snapshot; resync every 10 s while `Started`, 3 minutes otherwise. Verify the text matches the code constants.
 - [ ] 4.2 Update `.claude/skills/the-prey-realtime-communication/SKILL.md` (client rule 4 "Resync") and `references/message-catalog.md` (`configuration-changed` consumer note) with the same rules. Check per `the-prey-docs-sync` that no website page describes the resync cadence (none expected); verify with `grep -rn "resync" website/src/content`.
 
 ## 5. Integration check
