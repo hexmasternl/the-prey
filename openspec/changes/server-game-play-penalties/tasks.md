@@ -27,4 +27,4 @@
 
 ## 5. End-to-end check
 
-- [ ] 5.1 Run locally (`the-prey-local-dev`): create a game from the app, start it, and report a location outside the playfield for a Prey. Within one sweep (≤30 s) the Prey's role pill flashes "Penalty" and the Hunter's penalised-preys tile shows 1. Refresh the game state and confirm both still show it. After 5 minutes both clear without a refresh.
+- [ ] 5.1 Run locally (`the-prey-local-dev`): create a game from the app, start it, and report a location outside the playfield for a Prey. Within one sweep (≤30 s) the Prey's role pill flashes "Penalty" and the Hunter's penalised-preys tile shows 1. Refresh the game state and confirm both still show it. After 5 minutes both clear without a refresh. — **auto: needs human:** needs the local stack, the app on a device or emulator and a 5-minute wait
