@@ -100,6 +100,12 @@ the out-of-order message. A `seq` that is **lower than or equal** to the last ap
 replays past messages; **resync (re-download the full state) is the only heal**, which is why
 every delta below is complete and authoritative for the slice it carries.
 
+`seq` is allocated in memory by `WebPubSubBroadcaster` (one counter per game, starting at 1) in the
+Notifications API. That API therefore runs as a **single instance** (`maxReplicas: 1` in
+`server/infrastructure/notifications/main.bicep`): a second replica would keep its own counters,
+interleave `seq` values for the same game and make every client resync on nearly every message. A
+restart of that instance resets the counters, which clients handle as the resync case above.
+
 ---
 
 ## Message catalog

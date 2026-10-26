@@ -1,4 +1,4 @@
-using Azure.Monitor.OpenTelemetry.Exporter;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -11,8 +11,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ServiceDiscovery;
 using Microsoft.FeatureManagement;
 using OpenTelemetry;
+using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Reflection;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -23,6 +26,14 @@ public static class Extensions
 {
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
+
+    // Every module names its ActivitySource and Meter HexMaster.ThePrey.{Module}; registering the
+    // prefix here exports them all, so no API registers its own source or meter.
+    private const string ProjectTelemetryPrefix = "HexMaster.ThePrey.*";
+
+    // Standard OpenTelemetry setting for the service (role) name. Set per container app in Azure and
+    // per resource by the Aspire AppHost; read by the OpenTelemetry SDK itself.
+    private const string ServiceNameVariable = "OTEL_SERVICE_NAME";
 
     public const string DefaultCorsPolicyName = "DefaultCors";
 
@@ -193,22 +204,42 @@ public static class Extensions
             logging.IncludeScopes = true;
         });
 
+        // Exclude health check requests from tracing. Set on the options rather than in the
+        // AddAspNetCoreInstrumentation call, so it holds whoever registers that instrumentation.
+        builder.Services.Configure<AspNetCoreTraceInstrumentationOptions>(options =>
+            options.Filter = context =>
+                !context.Request.Path.StartsWithSegments(HealthEndpointPath)
+                && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath));
+
         builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource =>
+            {
+                // OTEL_SERVICE_NAME wins when set; without it the role name is the application name
+                // (e.g. HexMaster.ThePrey.Games.Api) instead of "unknown_service".
+                if (string.IsNullOrWhiteSpace(builder.Configuration[ServiceNameVariable]))
+                {
+                    resource.AddService(builder.Environment.ApplicationName, autoGenerateServiceInstanceId: false);
+                }
+
+                // service.instance.id is the replica (cloud_RoleInstance in Application Insights).
+                resource.AddAttributes(
+                [
+                    new("service.version", ServiceVersion()),
+                    new("service.instance.id", Environment.MachineName),
+                ]);
+            })
             .WithMetrics(metrics =>
             {
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation();
+                    .AddRuntimeInstrumentation()
+                    .AddMeter(ProjectTelemetryPrefix);
             })
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddAspNetCoreInstrumentation(tracing =>
-                        // Exclude health check requests from tracing
-                        tracing.Filter = context =>
-                            !context.Request.Path.StartsWithSegments(HealthEndpointPath)
-                            && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
-                    )
+                    .AddSource(ProjectTelemetryPrefix)
+                    .AddAspNetCoreInstrumentation()
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
@@ -219,6 +250,11 @@ public static class Extensions
         return builder;
     }
 
+    // The host's informational version (the release semVer in CI builds).
+    private static string ServiceVersion() =>
+        Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? "unknown";
+
     private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
@@ -228,23 +264,20 @@ public static class Extensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        // In Azure (Container Apps / jobs) telemetry flows to Application Insights via the
-        // Azure Monitor exporter. The connection string is injected as APPLICATIONINSIGHTS_CONNECTION_STRING.
-        // We attach the exporter to the existing OTel pipeline (traces, metrics, logs) rather than using
-        // the AspNetCore distro, so we don't double-register instrumentation already configured above and
-        // so the worker/job (a non-ASP.NET host) is covered too.
+        // In Azure (Container Apps) traces, metrics and logs flow to Application Insights through the
+        // Azure Monitor distro; the container app injects APPLICATIONINSIGHTS_CONNECTION_STRING. Locally
+        // it is absent and only the OTLP exporter (Aspire dashboard) runs. Every host is a WebApplication.
         var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
         if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
         {
-            builder.Services.AddOpenTelemetry()
-                .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter(options =>
-                    options.ConnectionString = appInsightsConnectionString))
-                .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter(options =>
-                    options.ConnectionString = appInsightsConnectionString));
-
-            builder.Logging.AddOpenTelemetry(logging =>
-                logging.AddAzureMonitorLogExporter(options =>
-                    options.ConnectionString = appInsightsConnectionString));
+            builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
+            {
+                options.ConnectionString = appInsightsConnectionString;
+                // Keep every trace: traffic is low and a complete game trace matters more than volume.
+                // The distro's default is rate-limited sampling; lower SamplingRatio here if ingestion grows.
+                options.TracesPerSecond = null;
+                options.SamplingRatio = 1.0F;
+            });
         }
 
         return builder;

@@ -63,3 +63,7 @@ Yes. In the lobby the Game Creator can make themselves the Hunter or stay as Pre
 {{< qa q="Why does the app say \"Update required\"?" >}}
 Your version of the app is no longer supported. Tap **Update** to open The Prey in Google Play and install the latest version. If you are in a lobby or a running game, you finish it first: the message appears once you leave it.
 {{< /qa >}}
+
+{{< qa q="Can my screen stay on during a game?" >}}
+Yes. In **Settings**, under **Display**, turn on **Keep screen on during a game**. Your screen then stays on during the head start and the running game, so the map is ready at every glance. It uses more battery and is off by default. The lobby and the other screens keep your phone's normal screen timeout, and the power button still turns the screen off.
+{{< /qa >}}

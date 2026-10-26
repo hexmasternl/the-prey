@@ -41,6 +41,12 @@ resource acrPullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
   scope: resourceGroup(landingZone.resourceGroup)
 }
 
+// The landing-zone Application Insights instance; its connection string goes to the container app as a secret.
+resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: landingZone.applicationInsights
+  scope: resourceGroup(landingZone.resourceGroup)
+}
+
 // Notifications API container app. Dapr-enabled so its sidecar can subscribe to the 'pubsub'
 // component (Service Bus) registered on the ACA environment by the landing zone, and invoke the
 // Games API for membership checks. The Web PubSub endpoint is read from App Configuration
@@ -56,9 +62,13 @@ module notificationsApi '../modules/container-app.bicep' = {
     acrPullIdentityId: acrPullIdentity.id
     image: notificationsImage
     landingZone: landingZone
+    applicationInsightsConnectionString: appInsights.properties.ConnectionString
     enableDapr: true
     daprAppId: 'hexmaster-theprey-notifications-api'
     minReplicas: 1
+    // One instance only: WebPubSubBroadcaster allocates each game's `seq` from an in-process counter,
+    // and a second replica would interleave the numbers and make clients resync on every message.
+    maxReplicas: 1
   }
 }
 

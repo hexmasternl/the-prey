@@ -11,9 +11,10 @@ keywords: ["get started", "install The Prey", "sign in", "callsign", "location p
 4. On the main menu, tap **Settings**.
 5. Under **Callsign**, type the name other players see during a game: 3 to 30 letters, digits, spaces or `- _ & $ # @`. Tap **Save callsign**.
 6. Under **Language**, pick **English**, **Nederlands** or **System default**.
-7. Under **Location**, tap **Grant location access**. Allow **precise** location, then set it to **Allow all the time**. Approximate location or "only while using the app" is not enough to play.
-8. Allow **notifications** when asked. During a game the tracking notification shows that your position is being shared.
-9. Go back to the main menu. **Play now** turns green when everything is set. Tap it to [create a game]({{< relref "/how-to/create-a-game" >}}), or open an invitation link to [join one]({{< relref "/how-to/join-a-game" >}}).
+7. Under **Display**, turn on **Keep screen on during a game** if you want the map ready at every glance. Your screen then stays on while a game is running, which uses more battery. It is off by default.
+8. Under **Location**, tap **Grant location access**. Allow **precise** location, then set it to **Allow all the time**. Approximate location or "only while using the app" is not enough to play.
+9. Allow **notifications** when asked. During a game the tracking notification shows that your position is being shared.
+10. Go back to the main menu. **Play now** turns green when everything is set. Tap it to [create a game]({{< relref "/how-to/create-a-game" >}}), or open an invitation link to [join one]({{< relref "/how-to/join-a-game" >}}).
 
 {{< screenshot name="main-menu" alt="The Prey main menu with Play now, Playfields, Settings and Sign out" caption="The main menu" >}}
 

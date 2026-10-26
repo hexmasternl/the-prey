@@ -51,11 +51,11 @@ The full resource inventory, names and App Configuration keys are in [references
 Every API `main.bicep` does the same four things — copy `users/main.bicep` (Table Storage) or `games/main.bicep` (Postgres) when adding a module (see `the-prey-new-backend-module`):
 
 1. Create `rg-theprey-{module}-${environmentName}`.
-2. Declare `acaEnv` and `acrPullIdentity` as `existing` in the landing-zone RG.
-3. Call `../modules/container-app.bicep` with `name: 'theprey-{module}-api-${environmentName}'`, image `${registryServer}/theprey/{module}-api:${imageTag}`, `landingZone`, `enableDapr: true`, `daprAppId: 'hexmaster-theprey-{module}-api'`, plus `additionalEnvVars` / `additionalSecrets` for its data store (`ConnectionStrings__users-tables`, `ConnectionStrings__Games` via `secretRef`, …).
+2. Declare `acaEnv`, `acrPullIdentity` and `appInsights` (`Microsoft.Insights/components`, name `landingZone.applicationInsights`) as `existing` in the landing-zone RG.
+3. Call `../modules/container-app.bicep` with `name: 'theprey-{module}-api-${environmentName}'`, image `${registryServer}/theprey/{module}-api:${imageTag}`, `landingZone`, `applicationInsightsConnectionString: appInsights.properties.ConnectionString`, `enableDapr: true`, `daprAppId: 'hexmaster-theprey-{module}-api'`, plus `additionalEnvVars` / `additionalSecrets` for its data store (`ConnectionStrings__users-tables`, `ConnectionStrings__Games` via `secretRef`, …).
 4. Call `../modules/service-access.bicep` scoped to `resourceGroup(landingZone.resourceGroup)` with the app's `principalId`, plus `storage-tables.bicep` if it uses tables (passwordless: the env var is the table **endpoint**, not a connection string).
 
-`container-app.bicep` always injects `APPLICATIONINSIGHTS_CONNECTION_STRING` (secret), `AZURE_APP_CONFIGURATION_ENDPOINT`, `AppConfigurationHostname` and `Cors__AllowedOrigins`; ingress is external on port 8080; 0.25 CPU / 0.5 Gi; HTTP scale rule at 10 concurrent requests. A new public route also needs a rule in `landing-zone/modules/http-route-config.bicep` (path prefix → container app, no rewrite) and the matching YARP route in `AppHost.cs`.
+`container-app.bicep` takes the Application Insights connection string as a required `@secure()` parameter (it does not look the instance up itself) and always injects `APPLICATIONINSIGHTS_CONNECTION_STRING` (secret `appinsights-connection-string`), `OTEL_SERVICE_NAME` (= the container app name, so each API is its own `cloud_RoleName`), `AZURE_APP_CONFIGURATION_ENDPOINT`, `AppConfigurationHostname` and `Cors__AllowedOrigins`; ingress is external on port 8080; 0.25 CPU / 0.5 Gi; HTTP scale rule at 10 concurrent requests. A new public route also needs a rule in `landing-zone/modules/http-route-config.bicep` (path prefix → container app, no rewrite) and the matching YARP route in `AppHost.cs`.
 
 ## App Configuration at runtime
 
