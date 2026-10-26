@@ -137,6 +137,15 @@ dotnet build server/src/the-prey.slnx
 
 ---
 
+## Releases & versioning
+
+- **One version source:** `.github/workflows/version.yml` is the only place GitVersion runs (configured by `GitVersion.yml`). Every workflow that needs a version calls it as a job and reads `needs.version.outputs.*`; never run GitVersion anywhere else.
+- **One release step:** `.github/actions/create-release/action.yml` is the only place that creates tags and GitHub releases. It takes a `version`, creates tag + release `v<semVer>` only when that release does not exist yet, and outputs `tag` and `created`. Callers need a checkout and `permissions: contents: write`. The backend workflows (`games.yml`, `notifications.yml`, `playfields.yml`, `users.yml`) call it after a successful deploy on pushes to `main`.
+- **Shared version line:** backend services and the app share `v<semVer>`; whichever pipeline finishes first on a commit creates the release, the others no-op.
+- **App `versionCode`:** `major * 1000000 + minor * 1000 + patch + VERSION_CODE_OFFSET` from the `version.yml` outputs (`1.1.8` → `1001008`), with `versionName` = `semVer`. Signing and Play publishing need the secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS` and `PLAY_SERVICE_ACCOUNT_JSON`.
+
+---
+
 ## Android App (`app/src`)
 
 - **Stack:** Kotlin + Jetpack Compose (Material 3), single-activity, Gradle Kotlin DSL with a version catalog (`gradle/libs.versions.toml`). AGP 9 with its built-in Kotlin support, so the `kotlin-android` plugin is not applied.

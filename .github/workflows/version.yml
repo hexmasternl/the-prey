@@ -1,7 +1,10 @@
 name: Version
 
 # Reusable workflow: runs GitVersion once and exposes the computed version in
-# several formats, and prints them to the console. Call it as a job:
+# several formats, and prints them to the console. This is the only place in CI
+# where GitVersion runs; every workflow that needs a version calls this one.
+# `major`/`minor`/`patch` also feed the Android app's `versionCode`.
+# Call it as a job:
 #
 #   jobs:
 #     version:

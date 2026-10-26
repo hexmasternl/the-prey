@@ -1,0 +1,75 @@
+# Creates the tag v<version> and a GitHub release for it, unless that release
+# already exists. The only place in CI that creates releases.
+#
+# The action is local, so the calling job needs a checkout, and it needs
+# `permissions: contents: write`:
+#
+#   steps:
+#     - uses: actions/checkout@v6
+#     - uses: ./.github/actions/create-release
+#       with:
+#         version: ${{ needs.version.outputs.semVer }}
+
+name: Create release
+description: Idempotently creates the tag v<version> and a GitHub release for it.
+
+inputs:
+  version:
+    description: 'Version to release, e.g. 1.1.8 or v1.1.8; the tag is always v<version>.'
+    required: true
+  target:
+    description: 'Commit to tag.'
+    required: false
+    default: ${{ github.sha }}
+  token:
+    description: 'Token for the gh CLI.'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  tag:
+    description: 'The release tag, e.g. v1.1.8'
+    value: ${{ steps.release.outputs.tag }}
+  created:
+    description: 'true when this run created the release, false when it already existed'
+    value: ${{ steps.release.outputs.created }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create tag and GitHub release
+      id: release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        VERSION: ${{ inputs.version }}
+        TARGET: ${{ inputs.target }}
+      run: |
+        VERSION="${VERSION#[vV]}"
+        if [ -z "$VERSION" ]; then
+          echo "::error::No version given; nothing to release."
+          exit 1
+        fi
+        TAG="v${VERSION}"
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+        # Single shared version line across services and the app: several workflows
+        # can resolve to the same semVer. Creation is therefore idempotent — first run
+        # wins, the rest no-op.
+        if gh release view "$TAG" >/dev/null 2>&1; then
+          echo "Release $TAG already exists; skipping."
+          echo "created=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        if gh release create "$TAG" \
+            --target "$TARGET" \
+            --title "$TAG" \
+            --generate-notes; then
+          echo "Created release $TAG."
+          echo "created=true" >> "$GITHUB_OUTPUT"
+        elif gh release view "$TAG" >/dev/null 2>&1; then
+          echo "Release $TAG was created concurrently; continuing."
+          echo "created=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "::error::Failed to create release $TAG."
+          exit 1
+        fi
