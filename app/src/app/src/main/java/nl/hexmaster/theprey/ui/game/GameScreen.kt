@@ -22,8 +22,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.isActive
 import nl.hexmaster.theprey.R
+import nl.hexmaster.theprey.data.display.DisplayPreferencesStore
 import nl.hexmaster.theprey.data.hints.Hint
 import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.location.GeoPosition
@@ -56,7 +58,8 @@ typealias GameHud = @Composable (state: ActiveGameUi.Ready) -> Unit
  * without leaving the game ([onExit] with null); the game ending does so with its reason. A game
  * played out with a decided result shows the result dialog instead, whose button and Back go to the
  * menu with [GameExit.Dismissed]. With [hints], the first time the player sees their role's HUD
- * (after the safety warning) a one-time tour of its panels runs on top.
+ * (after the safety warning) a one-time tour of its panels runs on top. With [displayPreferences]
+ * set to keep the screen on, the display stays awake while a game that has not ended is shown.
  */
 @Composable
 fun GameScreen(
@@ -66,8 +69,12 @@ fun GameScreen(
     preyHud: GameHud = {},
     hunterHud: GameHud = {},
     hints: HintsStore? = null,
+    displayPreferences: DisplayPreferencesStore? = null,
 ) {
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
+    val keepScreenOn by remember(displayPreferences) { displayPreferences?.keepScreenOnInGame ?: flowOf(false) }
+        .collectAsStateWithLifecycle(initialValue = false)
+    KeepScreenOn(holdsScreen(ui, keepScreenOn))
     var warningAcknowledged by rememberSaveable { mutableStateOf(false) }
     val currentOnExit by rememberUpdatedState(onExit)
     val tourTargets = remember { TourTargets() }
