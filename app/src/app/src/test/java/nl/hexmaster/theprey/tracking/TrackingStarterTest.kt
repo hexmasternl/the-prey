@@ -1,6 +1,7 @@
 package nl.hexmaster.theprey.tracking
 
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import nl.hexmaster.theprey.data.game.ActiveGameResult
@@ -9,6 +10,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import retrofit2.Response
 
 class TrackingStarterTest {
 
@@ -96,5 +98,32 @@ class TrackingStarterTest {
         setup.launchFailure = null
         assertEquals(TrackingStartResult.Started(GAME), setup.starter.startIfActive(GAME))
         assertEquals(1, setup.launches)
+    }
+
+    // ---- Repeated starts from the game screen (app-game-preys-and-hunter-hidden D2) ----
+
+    @Test
+    fun startIfActive_ShouldKeepTheRunningTrackerWithoutAskingTheServer_WhenStartedAgainForTheSameGame() = runTest {
+        val setup = Setup(this)
+        assertEquals(TrackingStartResult.Started(GAME), setup.starter.startIfActive(GAME))
+        val tracking = setup.harness.controller.state.value
+
+        assertEquals(TrackingStartResult.AlreadyTracking(GAME), setup.starter.startIfActive(GAME))
+
+        assertEquals(1, setup.harness.api.gameStateCalls)
+        assertEquals(tracking, setup.harness.controller.state.value)
+    }
+
+    @Test
+    fun startIfActive_ShouldRefuseAndStartNoService_WhenTrackingStoppedForThatGame() = runTest {
+        val setup = Setup(this)
+        setup.harness.api.record = { Response.success(ack(keepReporting = false)) }
+        setup.starter.startIfActive(GAME)
+        runCurrent()
+        advanceTimeBy(5_001)
+        val launches = setup.launches
+
+        assertEquals(TrackingStartResult.Refused(RefusalReason.StoppedBefore), setup.starter.startIfActive(GAME))
+        assertEquals(launches, setup.launches)
     }
 }
