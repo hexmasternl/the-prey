@@ -21,5 +21,5 @@
 
 ## 5. Integration check
 
-- [ ] 5.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and confirm it passes.
-- [ ] 5.2 End to end (`the-prey-local-dev`): start a game with a hunter delay on two devices/emulators; confirm both show the "game starts soon" spinner, then the countdown (prey: flee, hunter: stay put) within one sweep, without leaving the screen.
+- [x] 5.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and confirm it passes.
+- [ ] 5.2 End to end (`the-prey-local-dev`): start a game with a hunter delay on two devices/emulators; confirm both show the "game starts soon" spinner, then the countdown (prey: flee, hunter: stay put) within one sweep, without leaving the screen. — **auto: needs human:** needs two devices or emulators against a running backend
