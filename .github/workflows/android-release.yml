@@ -226,7 +226,12 @@ jobs:
           } > release-notes.md
           cat release-notes.md
 
+      # Whether Play accepts changesNotSentForReview depends on the Play Console state:
+      # it is refused when changes are sent for review automatically, and required while
+      # the app has changes that must be sent from the console. Try without, then with.
       - name: Publish to Google Play (internal testing)
+        id: play
+        continue-on-error: true
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -235,8 +240,17 @@ jobs:
           track: internal
           status: completed
           whatsNewDirectory: whatsnew
-          # Play refuses to auto-send changes for review while the app has pending
-          # changes (e.g. app content declarations); send them from the Play Console.
+
+      - name: Publish to Google Play (internal testing, changes not sent for review)
+        if: steps.play.outcome == 'failure'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: nl.hexmaster.theprey
+          releaseFiles: app/src/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+          whatsNewDirectory: whatsnew
           changesNotSentForReview: true
 
       # Last step, no `if: always()`: a release is only created after a successful upload.
