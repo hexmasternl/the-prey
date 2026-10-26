@@ -22,7 +22,7 @@
 
 ## 4. Rules, skill and website
 
-- [ ] 4.1 Update the `the-prey-game-rules` skill (`.claude/skills/the-prey-game-rules/SKILL.md`): the configuration table says the flags are ignored and always on, and the Penalties table's Flag column for "Left the playfield" reads "none — always on". Verify by reading it against the code.
+- [x] 4.1 Update the `the-prey-game-rules` skill (`.claude/skills/the-prey-game-rules/SKILL.md`): the configuration table says the flags are ignored and always on, and the Penalties table's Flag column for "Left the playfield" reads "none — always on". Verify by reading it against the code.
 - [ ] 4.2 Update `website/src/content/en/rules/_index.md` and `website/src/content/nl/rules/_index.md` in the same commit (`the-prey-multilingual`, `the-prey-docs-sync`). "Left the playfield" applies in every game, with the "in a game that has boundary penalties on" / "in een spel waarin straffen voor de grens aan staan" clause removed. Correct the penalised-sharing cadence to every sweep (about every 30 seconds) in both languages. Check other EN/NL pages with `git grep -n -i "boundary penalt\|straffen voor de grens" website/src/content`. Verify with `hugo` building `website/src` without errors.
 
 ## 5. End-to-end check

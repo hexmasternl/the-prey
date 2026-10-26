@@ -51,8 +51,8 @@ Durations are **minutes**, intervals are **seconds** on the wire (`GameConfigura
 | `FinalStageDuration` | > 0 and < `GameDuration` | 3, 5, 10 — **10** |
 | `DefaultLocationInterval` | > 0 | 120, 180, 300 s (2, 3, 5 min) — **180** |
 | `FinalLocationInterval` | > 0 and ≤ `DefaultLocationInterval` | 60, 120, 180 s (1, 2, 3 min) — **60** |
-| `EnablePreyBoundaryPenalties` | default `false` | always sent `false` (not offered yet) |
-| `EnableHunterBoundaryPenalty` | default `false` | always sent `false` (not offered yet) |
+| `EnablePreyBoundaryPenalties` | accepted and ignored; always reported `true` | always sent `true` (boundary penalties always apply) |
+| `EnableHunterBoundaryPenalty` | accepted and ignored; always reported `true` | always sent `true` (boundary penalties always apply) |
 
 The server has no defaults and no option lists — only the invariants above. Invalid combinations throw and the endpoint returns a validation problem. Changing a default or option list is an app change (and a website/docs change, see below).
 
@@ -113,9 +113,9 @@ Timeouts apply to Prey only, never to the Hunter. They run in the sweep (step 1)
 | Penalty | Trigger | Length | Flag |
 |---|---|---|---|
 | Moved during head start | Hunter > 25 m from anchor before `HunterMayMoveAt` | until `HunterMayMoveAt` + 10 min | none — always on |
-| Left the playfield | A reading consumed by the sweep is outside the playfield polygon (ray casting); a player without new readings is checked on their last broadcast position | 5 min from detection | `EnablePreyBoundaryPenalties` (Prey) / `EnableHunterBoundaryPenalty` (Hunter) |
+| Left the playfield | A reading consumed by the sweep is outside the playfield polygon (ray casting); a player without new readings is checked on their last broadcast position | 5 min from detection | none — always on (Prey and Hunter) |
 
-Boundary penalties never stack while one is active and are never applied to Tagged/Out players. A playfield with < 3 points never penalises. While penalised, the device is told a 10 s interval and the player is broadcast every sweep. Penalties are announced as `prey-updated` with `penalized` and the reason.
+Boundary penalties apply in every game, whatever the configuration flags say. They never stack while one is active and are never applied to Tagged/Out players. A playfield with < 3 points never penalises. While penalised, the device is told a 10 s interval and the player is broadcast every sweep. Penalties are announced as `prey-updated` with `penalized` and the reason. Every participant DTO carries `penaltyEndsAt` (latest end of the active penalty, null when none).
 
 ## End conditions and outcome
 
@@ -154,8 +154,8 @@ If you introduce a new player-facing term, add it to the glossary in the-prey-mu
 
 ## Known drift (code wins)
 
-- `docs/game-design/*.md` is outdated: 10-min head start / 60-min game, multiple Hunters, a game-creator-drawn boundary not enforced, `HX-4291`-style codes, creator assigns every role by drag. Code: one Hunter, configurable timings, optional boundary penalties, 4-digit codes, players ready up.
-- `openspec/specs/hunter-start-delay` says a 50 m threshold; code uses **25 m**. `openspec/specs/games` ties `EnableHunterBoundaryPenalty` to head-start movement; code uses it for the Hunter leaving the playfield and always applies the head-start penalty.
+- `docs/game-design/*.md` is outdated: 10-min head start / 60-min game, multiple Hunters, a game-creator-drawn boundary not enforced, `HX-4291`-style codes, creator assigns every role by drag. Code: one Hunter, configurable timings, boundary penalties always on, 4-digit codes, players ready up.
+- `openspec/specs/hunter-start-delay` says a 50 m threshold; code uses **25 m**. `openspec/specs/games` ties `EnableHunterBoundaryPenalty` to head-start movement; code ignores both penalty flags, always penalises leaving the playfield and always applies the head-start penalty.
 - `openspec/specs/player-status-tracking` describes a `PlayerStateMonitor` service; that class still exists but is **not registered** — the sweep does the timeouts.
 - `openspec/specs/games` says a new game starts with an empty lobby; the creator actually joins as first participant.
 - The website says a penalised player is shared "every 10 seconds"; broadcasts happen at the 30 s sweep (10 s is only the interval reported to the device).
