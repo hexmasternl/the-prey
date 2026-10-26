@@ -8,12 +8,12 @@
 
 ## 2. Delete FAB on the area screen
 
-- [ ] 2.1 Add `res/drawable/ic_trash.xml` on the design-system 24 px / 2 px round-stroke grid (white stroke, like `ic_add.xml`) and verify it renders in the Android Studio preview _(code and previews done; preview render check pending)_
+- [ ] 2.1 Add `res/drawable/ic_trash.xml` on the design-system 24 px / 2 px round-stroke grid (white stroke, like `ic_add.xml`) and verify it renders in the Android Studio preview _(code and previews done; preview render check pending)_ — **auto: needs human:** visual check of the preview in Android Studio
 - [x] 2.2 Add `playfield_area_delete_point` to `res/values/strings.xml` ("Delete selected point") and `res/values-nl/strings.xml` ("Geselecteerd punt verwijderen") per the `the-prey-multilingual` skill and verify both files contain the key
-- [ ] 2.3 Add a private `DeletePointFab(enabled, onClick)` in `PlayFieldAreaScreen.kt` wrapping M3 `FloatingActionButton`: Hunter container / `onError` content when enabled; `surfaceVariant` / `onSurfaceVariant`, zero elevation, ignored clicks and `semantics { disabled() }` when disabled; verify with enabled and disabled `@Preview`s (en and nl) _(code and previews done; preview render check pending)_
+- [ ] 2.3 Add a private `DeletePointFab(enabled, onClick)` in `PlayFieldAreaScreen.kt` wrapping M3 `FloatingActionButton`: Hunter container / `onError` content when enabled; `surfaceVariant` / `onSurfaceVariant`, zero elevation, ignored clicks and `semantics { disabled() }` when disabled; verify with enabled and disabled `@Preview`s (en and nl) _(code and previews done; preview render check pending)_ — **auto: needs human:** visual check of the preview in Android Studio
 - [x] 2.4 Place the FAB in the root `Box` of `PlayFieldAreaScreen`, aligned bottom-end with bottom padding `chromeHeight + 16.dp`, only when `uiState.editable`, wired to `uiState.canDeleteSelected` and `viewModel::deleteSelected`; verify the attribution stays uncovered and the bottom column height (map content padding) is unchanged
 - [x] 2.5 Run `./gradlew assembleDebug lintDebug` from `app/src` and verify the build and lint pass with no new warnings for the area package
 
 ## 3. Integration check
 
-- [ ] 3.1 On a device or emulator, open an editable playfield's area: verify the FAB is greyed out, turns red when a dot is selected, removes only that dot (polygon redraws, Save disables below 3 points), greys out again, the deletion survives rotation, Cancel restores the original area, and the read-only area from the Public tab shows no FAB _(device check pending)_
+- [ ] 3.1 On a device or emulator, open an editable playfield's area: verify the FAB is greyed out, turns red when a dot is selected, removes only that dot (polygon redraws, Save disables below 3 points), greys out again, the deletion survives rotation, Cancel restores the original area, and the read-only area from the Public tab shows no FAB _(device check pending)_ — **auto: needs human:** needs a real device or emulator
