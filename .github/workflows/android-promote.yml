@@ -161,3 +161,36 @@ jobs:
           git tag "app-production-v$VERSION" "$SHA"
           git push origin "refs/tags/app-production-v$VERSION"
           echo "Promoted \`$VERSION\` to production; tagged \`app-production-v$VERSION\`." >> "$GITHUB_STEP_SUMMARY"
+
+  # Approve the play-production environment only once the Play Console shows the production
+  # release as Available: blocking players before the store serves the new version strands them.
+  enforce:
+    name: Raise the minimum app version
+    runs-on: ubuntu-latest
+    needs: [plan, promote]
+    if: needs.plan.outputs.required == 'true'
+    environment: play-production
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Log in to Azure
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_PROD_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_PROD_TENANTID }}
+          subscription-id: ${{ secrets.AZURE_PROD_SUBSCRIPTION }}
+
+      # Promoted versions only go up (plan job), so the minimum never goes down.
+      - name: Set Games:MinimumAppVersion
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          az deployment group create \
+            --name theprey-min-app-version \
+            --resource-group rg-theprey-landing-prod \
+            --template-file server/infrastructure/games/modules/games-app-config.bicep \
+            --parameters appConfigName=theprey-lz-ac-gp53pncm minimumAppVersion="$VERSION"
+          echo "Games:MinimumAppVersion is now \`$VERSION\`; older apps show the update message outside a game within about 15 minutes." >> "$GITHUB_STEP_SUMMARY"
