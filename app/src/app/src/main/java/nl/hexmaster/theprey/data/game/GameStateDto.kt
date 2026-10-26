@@ -96,8 +96,9 @@ data class ParticipantDto(
     val lastKnownLocation: GpsCoordinateDto? = null,
     val hasActivePenalty: Boolean = false,
     /**
-     * When the active penalty ends (ISO-8601). Not part of the server's `ParticipantDto`: filled in
-     * locally from a `prey-updated` `penalized` message, and null after a snapshot.
+     * When the active penalty ends (ISO-8601). Comes from the snapshot and `participant-changed`
+     * (null when no penalty is active, absent on older servers) and is overwritten by a
+     * `prey-updated` `penalized` message.
      */
     val penaltyEndsAt: String? = null,
 )
