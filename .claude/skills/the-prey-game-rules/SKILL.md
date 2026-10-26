@@ -158,7 +158,6 @@ If you introduce a new player-facing term, add it to the glossary in the-prey-mu
 - `openspec/specs/hunter-start-delay` says a 50 m threshold; code uses **25 m**. `openspec/specs/games` ties `EnableHunterBoundaryPenalty` to head-start movement; code ignores both penalty flags, always penalises leaving the playfield and always applies the head-start penalty.
 - `openspec/specs/player-status-tracking` describes a `PlayerStateMonitor` service; that class still exists but is **not registered** — the sweep does the timeouts.
 - `openspec/specs/games` says a new game starts with an empty lobby; the creator actually joins as first participant.
-- The website says a penalised player is shared "every 10 seconds"; broadcasts happen at the 30 s sweep (10 s is only the interval reported to the device).
 
 ## When the rules change
 
