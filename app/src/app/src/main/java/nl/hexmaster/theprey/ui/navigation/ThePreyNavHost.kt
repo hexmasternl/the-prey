@@ -257,6 +257,7 @@ fun ThePreyNavHost(
                             )
                         },
                         hints = hintsStore,
+                        displayPreferences = displayPreferencesStore,
                         // Back leaves the screen, not the game: Resume game on the menu reopens it.
                         onExit = { reason ->
                             if (navController.currentBackStackEntry == entry) {
