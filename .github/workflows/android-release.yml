@@ -1,0 +1,239 @@
+name: Android Release
+
+# Verifies the Kotlin app (app/src) on every pull request and push to main, and
+# on main publishes a signed bundle to the Play Console internal testing track
+# with bilingual (English + Dutch) release notes, then creates the GitHub
+# release v<semVer>. Promotion to other tracks is a manual Play Console action.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/src/**'
+      - '.github/workflows/android-release.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/src/**'
+      - '.github/workflows/android-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false # never cancel a half-finished upload
+
+env:
+  # Lifts versionCode above a legacy code already in Play; see CLAUDE.md "App releases".
+  VERSION_CODE_OFFSET: "0"
+
+jobs:
+  version:
+    name: Version
+    uses: ./.github/workflows/version.yml
+
+  verify:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Lint and unit tests
+        working-directory: app/src
+        run: ./gradlew lintDebug testDebugUnitTest
+
+      - name: Upload lint and test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reports
+          path: |
+            app/src/app/build/reports/
+            app/src/app/build/test-results/
+          retention-days: 7
+
+  publish:
+    name: Build & Publish
+    runs-on: ubuntu-latest
+    needs: [version, verify]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write # create the tag and GitHub release
+      actions: read   # find the last successful run for the release-notes range
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # build.gradle.kts falls back to versionName 0.1.0 when none is passed, and the
+      # app version gate compares plain major.minor.patch: refuse both cases.
+      - name: Resolve app version
+        id: appversion
+        env:
+          SEMVER: ${{ needs.version.outputs.semVer }}
+          PRERELEASE: ${{ needs.version.outputs.preReleaseTag }}
+          MAJOR: ${{ needs.version.outputs.major }}
+          MINOR: ${{ needs.version.outputs.minor }}
+          PATCH: ${{ needs.version.outputs.patch }}
+        run: |
+          if [ -z "$SEMVER" ]; then
+            echo "::error::GitVersion produced an empty semVer; refusing to ship the fallback version."
+            exit 1
+          fi
+          if [ -n "$PRERELEASE" ]; then
+            echo "::error::Version $SEMVER is a pre-release ($PRERELEASE); only plain major.minor.patch versions are published."
+            exit 1
+          fi
+          VERSION_CODE=$(( MAJOR * 1000000 + MINOR * 1000 + PATCH + VERSION_CODE_OFFSET ))
+          echo "versionName: $SEMVER"
+          echo "versionCode: $VERSION_CODE (offset $VERSION_CODE_OFFSET)"
+          echo "versionName=$SEMVER" >> "$GITHUB_OUTPUT"
+          echo "versionCode=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Android bundle version"
+            echo "- versionName: \`$SEMVER\`"
+            echo "- versionCode: \`$VERSION_CODE\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Restore signing material
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_PASSWORD KEY_ALIAS; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Secret $name is not set; cannot sign the release bundle."
+              exit 1
+            fi
+          done
+          KEYSTORE="$RUNNER_TEMP/theprey-upload.jks"
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
+          {
+            echo "storeFile=$KEYSTORE"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > app/src/key.properties
+
+      - name: Build release bundle
+        working-directory: app/src
+        env:
+          ORG_GRADLE_PROJECT_versionCode: ${{ steps.appversion.outputs.versionCode }}
+          ORG_GRADLE_PROJECT_versionName: ${{ steps.appversion.outputs.versionName }}
+        run: ./gradlew bundleRelease
+
+      # Uploaded before the Play step so the bundle can still be inspected when the upload fails.
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: theprey-aab-${{ steps.appversion.outputs.versionName }}
+          path: app/src/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 3
+
+      # Base = the commit of the last successful publish; the shared v* tags are no use
+      # because backend releases tag that line too. Only commits touching app/src count.
+      - name: Collect app commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BASE=$(gh run list --workflow android-release.yml --branch main --status success \
+            --limit 1 --json headSha --jq '.[0].headSha // empty')
+          if [ -n "$BASE" ] && git merge-base --is-ancestor "$BASE" HEAD; then
+            echo "Release notes cover $BASE..HEAD"
+            RANGE=("$BASE..HEAD")
+          else
+            echo "No usable previous publish; release notes cover the last 30 app commits"
+            RANGE=(-n 30 HEAD)
+          fi
+          git log --format='- %s%n%w(0,2,2)%b' "${RANGE[@]}" -- app/src > commits.txt
+          git log --format='- %s' "${RANGE[@]}" -- app/src > commit-subjects.txt
+          cat commit-subjects.txt
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Write release notes with Copilot
+        continue-on-error: true # the notes step falls back to the commit subjects
+        timeout-minutes: 3
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        run: |
+          npm install -g @github/copilot@1.0.98
+          PROMPT="You write the Google Play \"What's new\" text for The Prey, a location-based multiplayer game for Android.
+          Below are the commit messages of the app changes in this release. Turn them into short, user-facing bullet points
+          (lines starting with \"• \") in English and in Dutch. Only describe changes a player notices; leave out commit
+          hashes, file names, refactorings, build or CI changes and internal jargon, and do not invent anything that is
+          not in the commits. Write the Dutch informally (je/jij). Each text must be at most 500 characters.
+          Answer with only a JSON object, no code fences: {\"en\": \"...\", \"nl\": \"...\"}
+
+          Commits:
+          $(cat commits.txt)"
+          copilot -p "$PROMPT" --silent --available-tools= > copilot.out
+
+      - name: Prepare release notes
+        run: |
+          mkdir -p whatsnew
+          # Play allows 500 characters per language: cut at the last line break that fits.
+          CUT='def cut: if length <= 500 then . else .[0:500] | (if test("\n") then sub("\n[^\n]*\\z"; "") else . end) end;'
+          write_notes() {
+            jq -r "$CUT .en | cut" notes.json > whatsnew/whatsnew-en-US
+            jq -r "$CUT .nl | cut" notes.json > whatsnew/whatsnew-nl-NL
+          }
+          # Copilot sometimes wraps its answer in a code fence; drop the fence lines.
+          if [ -s copilot.out ] \
+              && sed '/^```/d' copilot.out > notes.json \
+              && jq -e '(.en | type == "string" and length > 0) and (.nl | type == "string" and length > 0)' notes.json >/dev/null 2>&1; then
+            echo "Using the release notes written by Copilot."
+          else
+            echo "::warning::Copilot release notes unavailable or invalid; using the commit subjects instead."
+            jq -n --rawfile list commit-subjects.txt \
+              '{en: $list, nl: ("Verbeteringen en bugfixes.\n" + $list)}' > notes.json
+          fi
+          write_notes
+          {
+            echo "## English"
+            echo ""
+            cat whatsnew/whatsnew-en-US
+            echo ""
+            echo "## Nederlands"
+            echo ""
+            cat whatsnew/whatsnew-nl-NL
+          } > release-notes.md
+          cat release-notes.md
+
+      - name: Publish to Google Play (internal testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: nl.hexmaster.theprey
+          releaseFiles: app/src/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+          whatsNewDirectory: whatsnew
+
+      # Last step, no `if: always()`: a release is only created after a successful upload.
+      - name: Create tag and GitHub release
+        uses: ./.github/actions/create-release
+        with:
+          version: ${{ needs.version.outputs.semVer }}
+          notes-file: release-notes.md
