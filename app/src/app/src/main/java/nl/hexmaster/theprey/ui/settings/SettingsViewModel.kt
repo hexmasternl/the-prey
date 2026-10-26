@@ -16,6 +16,7 @@ import nl.hexmaster.theprey.auth.ProfileSettings
 import nl.hexmaster.theprey.auth.SessionController
 import nl.hexmaster.theprey.auth.SessionState
 import nl.hexmaster.theprey.auth.SettingsResult
+import nl.hexmaster.theprey.data.display.DisplayPreferencesStore
 import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.language.AppLanguage
 import nl.hexmaster.theprey.data.language.LanguageChoice
@@ -49,6 +50,8 @@ data class SettingsUiState(
     val language: LanguageChoice = LanguageChoice.System,
     /** The language changed on this phone but could not be sent to the server yet. */
     val languageSyncPending: Boolean = false,
+    /** The game screen keeps the display awake; follows the stored value. */
+    val keepScreenOn: Boolean = false,
 ) {
     val canSave: Boolean get() = check is CallsignCheck.Valid && !saving
 }
@@ -57,13 +60,14 @@ data class SettingsUiState(
  * Callsign and language settings. The callsign is checked as the server does and saved with
  * `PUT /users/settings`; a language change applies on the phone first and is then synced as the
  * player's preferred language, best effort (see design Decision 4). [resetHints] brings the
- * first-time tours back.
+ * first-time tours back; the keep-screen-on choice stays on the phone.
  */
 class SettingsViewModel(
     private val session: SessionController,
     private val profileSettings: ProfileSettings,
     private val appLanguage: AppLanguage,
     private val hints: HintsStore,
+    private val displayPreferences: DisplayPreferencesStore,
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<SettingsUiState>
@@ -98,6 +102,11 @@ class SettingsViewModel(
                         check = validateCallsign(it.callsign, stored.callsign),
                     )
                 }
+            }
+        }
+        viewModelScope.launch {
+            displayPreferences.keepScreenOnInGame.collect { enabled ->
+                _uiState.update { it.copy(keepScreenOn = enabled) }
             }
         }
         // Reconcile a change the server missed: offline, or made in Android 13's system screen.
@@ -167,6 +176,11 @@ class SettingsViewModel(
                 }
             }
         }
+    }
+
+    /** Stores the choice; the switch follows the stored value, so a failed write leaves it as it was. */
+    fun onKeepScreenOnChange(enabled: Boolean) {
+        viewModelScope.launch { displayPreferences.setKeepScreenOnInGame(enabled) }
     }
 
     /** Marks every first-time tour not seen, so each shows again the next time its situation occurs. */

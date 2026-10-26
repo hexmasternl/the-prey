@@ -2,7 +2,9 @@
 
 ## Purpose
 TBD - created by archiving change add-playfields-api. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Play field creation
 
 The system SHALL allow an authenticated player to create a play field by providing a name and an ordered collection of GPS coordinates. The coordinates form a closed polygon where each point connects to the next and the last point connects back to the first. The creating player SHALL become the owner of the play field.
@@ -69,17 +71,22 @@ The system SHALL allow an authenticated player to retrieve a single play field b
 
 ### Requirement: List visible play fields
 
-The system SHALL allow an authenticated player to list the play fields visible to them, which comprises the play fields they own plus all public play fields owned by others.
+The system SHALL allow an authenticated player to list the play fields they own, both private and public. Public play fields owned by other players are not part of this list; they are discovered through the public play-field search.
 
 #### Scenario: List returns owned and public play fields
 
-- **WHEN** an authenticated player requests the list of play fields
-- **THEN** the system returns all play fields owned by the player together with all public play fields owned by other players
+- **WHEN** an authenticated player who owns a private and a public play field requests the list of play fields
+- **THEN** the system returns both of those play fields, and no play fields owned by other players
 
 #### Scenario: List excludes other players' private play fields
 
 - **WHEN** an authenticated player requests the list of play fields and another player owns a private play field
 - **THEN** the returned list does not include that private play field
+
+#### Scenario: List excludes other players' public play fields
+
+- **WHEN** an authenticated player requests the list of play fields and another player owns a public play field
+- **THEN** the returned list does not include that public play field
 
 ### Requirement: Persist play fields in Azure Table Storage
 
@@ -113,4 +120,3 @@ The `PlayField` domain model SHALL expose an `IsInPlayfield` operation that acce
 
 - **WHEN** the play field is a concave (non-convex) polygon and `IsInPlayfield` is called with a coordinate that falls in the concave notch outside the enclosed area
 - **THEN** it returns false
-

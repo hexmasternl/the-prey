@@ -150,10 +150,7 @@ Add `Properties/launchSettings.json` like `Notifications.Api/Properties/launchSe
 ```csharp
 using HexMaster.ThePrey.{Module};
 using HexMaster.ThePrey.{Module}.Api.Endpoints;
-using HexMaster.ThePrey.{Module}.Observability;
 using HexMaster.ThePrey.Users.Integration;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
 using ThePrey.Aspire.ServiceDefaults;
 
@@ -170,11 +167,7 @@ builder.Services.Add{Module}Module();
 // builder.Add{Module}TableStorage();
 builder.Services.AddUserResolver();
 
-// AspNetCore/HttpClient instrumentation + exporters come from AddServiceDefaults;
-// register only this module's activity source and meter here.
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing.AddSource({Module}ObservabilityConstants.ActivitySourceName))
-    .WithMetrics(metrics => metrics.AddMeter({Module}ObservabilityConstants.MeterName));
+// No OpenTelemetry here: AddServiceDefaults registers every HexMaster.ThePrey.* source and meter.
 
 var app = builder.Build();
 

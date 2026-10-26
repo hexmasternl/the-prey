@@ -1,8 +1,5 @@
 using HexMaster.ThePrey.Notifications;
 using HexMaster.ThePrey.Notifications.Api.Endpoints;
-using HexMaster.ThePrey.Notifications.Observability;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
 using ThePrey.Aspire.ServiceDefaults;
 
@@ -25,10 +22,6 @@ builder.Services.AddNotificationsModule();
 
 // AspNetCore/HttpClient/Runtime instrumentation + exporters are configured by AddServiceDefaults;
 // here we only register the Notifications module's own activity source and meter.
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing.AddSource(NotificationsObservabilityConstants.ActivitySourceName))
-    .WithMetrics(metrics => metrics.AddMeter(NotificationsObservabilityConstants.MeterName));
-
 var app = builder.Build();
 
 app.MapDefaultEndpoints();

@@ -17,6 +17,8 @@ import nl.hexmaster.theprey.auth.SessionManager
 import nl.hexmaster.theprey.auth.TokenAuthenticator
 import nl.hexmaster.theprey.data.game.ApiGameRepository
 import nl.hexmaster.theprey.data.game.GameRepository
+import nl.hexmaster.theprey.data.display.DataStoreDisplayPreferencesStore
+import nl.hexmaster.theprey.data.display.DisplayPreferencesStore
 import nl.hexmaster.theprey.data.game.GameStateService
 import nl.hexmaster.theprey.data.game.GamesApi
 import nl.hexmaster.theprey.data.game.realtime.WebPubSubClient
@@ -59,6 +61,7 @@ private val Context.locationConsentDataStore by preferencesDataStore(name = "loc
 private val Context.trackingDataStore by preferencesDataStore(name = "tracking")
 private val Context.pendingInviteDataStore by preferencesDataStore(name = "pending_invite")
 private val Context.hintsDataStore by preferencesDataStore(name = "hints")
+private val Context.displayPreferencesDataStore by preferencesDataStore(name = "display_preferences")
 
 /** Hand-wired app-wide dependencies. Created once by [ThePreyApplication]. */
 class AppContainer(context: Context) {
@@ -119,6 +122,10 @@ class AppContainer(context: Context) {
 
     /** Device-local: which first-time tours were seen; survives sign-out, reset from Settings. */
     val hintsStore: HintsStore = DataStoreHintsStore(context.hintsDataStore)
+
+    /** Device-local: whether the game screen keeps the display awake; survives sign-out, set in Settings. */
+    val displayPreferencesStore: DisplayPreferencesStore =
+        DataStoreDisplayPreferencesStore(context.displayPreferencesDataStore)
 
     private val gamesApi = retrofit.create(GamesApi::class.java)
 

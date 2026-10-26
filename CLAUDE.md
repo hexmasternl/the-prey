@@ -106,6 +106,7 @@ catch (Exception ex)
 - Activity sources live in `{Domain}/Observability/` (e.g., `PlayFieldActivitySource.cs`).
 - Metrics counters and histograms live in `IPlayFieldMetrics` / `PlayFieldMetrics.cs` in the same folder.
 - Use low-cardinality tag values. Never tag with user IDs or free-form strings.
+- Name the source and meter `HexMaster.ThePrey.{Domain}`: ServiceDefaults registers that prefix and exports to the Aspire dashboard locally and Application Insights in Azure. Never add `AddOpenTelemetry()` to a module's `Program.cs`.
 
 ### Unit Tests
 

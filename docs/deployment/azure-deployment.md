@@ -57,6 +57,8 @@ The Entra app registration must have **Contributor** (or scoped) permissions on 
 
 **The landing zone must be deployed before any service.** Service Bicep templates reference the Container Apps environment and App Insights from the landing zone as `existing` resources. If the landing zone is missing, service deployments fail fast with a clear `existing` resource resolution error.
 
+Each service `main.bicep` declares the landing-zone Application Insights instance as `existing` and passes its connection string to `modules/container-app.bicep` (a required `@secure()` parameter). The container app stores it as the secret `appinsights-connection-string` behind `APPLICATIONINSIGHTS_CONNECTION_STRING`, and sets `OTEL_SERVICE_NAME` to the container app name, so every API appears in Application Insights under its own role name (e.g. `theprey-games-api-prod`). ServiceDefaults exports logs, traces and metrics there whenever the connection string is set.
+
 1. **Landing zone** — run `.github/workflows/landing-zone.yml` via `workflow_dispatch`
 2. **Services** — run each of `games.yml`, `users.yml`, `playfields.yml` via `workflow_dispatch` (any order)
 

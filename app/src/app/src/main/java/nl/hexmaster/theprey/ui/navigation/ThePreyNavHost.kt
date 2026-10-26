@@ -26,6 +26,7 @@ import nl.hexmaster.theprey.BuildConfig
 import nl.hexmaster.theprey.auth.ProfileSettings
 import nl.hexmaster.theprey.auth.SessionController
 import nl.hexmaster.theprey.auth.SessionState
+import nl.hexmaster.theprey.data.display.DisplayPreferencesStore
 import nl.hexmaster.theprey.data.game.GameRepository
 import nl.hexmaster.theprey.data.game.GameSessions
 import nl.hexmaster.theprey.data.hints.HintsStore
@@ -68,7 +69,9 @@ import nl.hexmaster.theprey.ui.playfields.select.PlayFieldSelectScreen
 import nl.hexmaster.theprey.ui.playfields.select.PlayFieldSelectViewModel
 import nl.hexmaster.theprey.ui.settings.SettingsScreen
 import nl.hexmaster.theprey.ui.settings.SettingsViewModel
+import nl.hexmaster.theprey.ui.tracking.GameTrackingStart
 import nl.hexmaster.theprey.ui.tracking.TrackingAutoStart
+import nl.hexmaster.theprey.ui.tracking.requestsTracking
 import nl.hexmaster.theprey.ui.tracking.TrackingRequest
 
 object Routes {
@@ -137,7 +140,8 @@ fun routeFor(state: SessionState): String? = when (state) {
  * (main menu and its sub-screens), everyone else on the landing page. Each switch between the two
  * clears the back stack, so Back leaves the app. Signed-in players get the location tracking
  * disclosure on top (see [LocationConsentHost]): once by itself on the main menu, and before game actions.
- * While signed in, in-game location tracking is resumed for a running game (see [TrackingAutoStart]);
+ * While signed in, in-game location tracking is resumed for a running game (see [TrackingAutoStart])
+ * and started when the game screen shows an active game (see [GameTrackingStart]);
  * [trackingRequest] carries a tap on the resume notification. An invitation in [pendingInviteStore]
  * opens the join step as soon as the player is signed in.
  */
@@ -155,6 +159,7 @@ fun ThePreyNavHost(
     appLanguage: AppLanguage,
     pendingInviteStore: PendingInviteStore,
     hintsStore: HintsStore,
+    displayPreferencesStore: DisplayPreferencesStore,
     modifier: Modifier = Modifier,
     trackingStarter: TrackingStarter? = null,
     trackingRequest: TrackingRequest? = null,
@@ -241,10 +246,16 @@ fun ThePreyNavHost(
                 // A new entry per visit: every entry downloads a fresh snapshot and shows the safety warning.
                 composable(Routes.GAME, arguments = listOf(navArgument(Routes.GAME_ID) { type = NavType.StringType })) { entry ->
                     val gameId = entry.arguments?.getString(Routes.GAME_ID).orEmpty()
+                    val gameViewModel = viewModel {
+                        GameViewModel(gameId, gameSessions, profileStore, locationSource, headingSource, SystemClock::elapsedRealtime)
+                    }
+                    if (trackingStarter != null) {
+                        // Every route into the game passes here: start tracking once the game shows as active.
+                        val gameUi by gameViewModel.uiState.collectAsStateWithLifecycle()
+                        GameTrackingStart(trackingStarter, gameId, active = requestsTracking(gameUi))
+                    }
                     GameScreen(
-                        viewModel = viewModel {
-                            GameViewModel(gameId, gameSessions, profileStore, locationSource, headingSource, SystemClock::elapsedRealtime)
-                        },
+                        viewModel = gameViewModel,
                         preyHud = { ready -> PreyHud(ready) },
                         hunterHud = { ready ->
                             HunterHud(
@@ -255,6 +266,7 @@ fun ThePreyNavHost(
                             )
                         },
                         hints = hintsStore,
+                        displayPreferences = displayPreferencesStore,
                         // Back leaves the screen, not the game: Resume game on the menu reopens it.
                         onExit = { reason ->
                             if (navController.currentBackStackEntry == entry) {
@@ -360,7 +372,9 @@ fun ThePreyNavHost(
                 }
                 composable(Routes.SETTINGS) {
                     SettingsScreen(
-                        viewModel = viewModel { SettingsViewModel(session, profileSettings, appLanguage, hintsStore) },
+                        viewModel = viewModel {
+                            SettingsViewModel(session, profileSettings, appLanguage, hintsStore, displayPreferencesStore)
+                        },
                         consentStore = locationConsentStore,
                         onBack = { navController.popBackStack() },
                     )

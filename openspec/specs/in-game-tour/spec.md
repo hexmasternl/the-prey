@@ -2,75 +2,74 @@
 
 ## Purpose
 TBD - created by archiving change in-game-tour. Update Purpose after archive.
-## Requirements
-### Requirement: Prey view shows a one-time time-bar tour
 
-When a player first reaches the in-progress prey view, the app SHALL show a guided tour that
-highlights the time/HUD bar and explains that it can be tapped to expand and collapse. The tour
-SHALL be shown only after the live view is interactive (the start-of-game surroundings warning has
-been acknowledged) so the highlighted control is visible.
+## Requirements
+
+### Requirement: Prey HUD tour explains every panel
+
+When the prey HUD is shown, the safety warning has been acknowledged and the prey HUD tour is not seen, the app SHALL start the prey HUD tour. It SHALL spotlight, in order: the role pill (and that it flashes red "Penalty" during a penalty), the proximity pill and its Safe / Close / Warning / Unknown bands, the game-time tile, the hunter-distance tile, the next-broadcast tile, and the collapse/expand row.
 
 #### Scenario: First time as prey
 
-- **WHEN** a player enters the in-progress prey view for the first time and the surroundings warning has been dismissed
-- **THEN** a tour highlights the time/HUD bar
-- **AND** the tour text explains the bar can be tapped to expand and collapse
+- **WHEN** a player enters the game screen of an in-progress game as a prey for the first time and acknowledges the safety warning
+- **THEN** the prey HUD tour starts and spotlights the role pill
+
+#### Scenario: Prey steps in order
+
+- **WHEN** the player advances through the whole prey HUD tour
+- **THEN** the spotlight moves from the role pill to the proximity pill, the game-time tile, the hunter-distance tile, the next-broadcast tile and finally the collapse/expand row
+
+#### Scenario: Proximity step explains the bands
+
+- **WHEN** the proximity-pill step is shown
+- **THEN** its text explains Safe (250 m or more), Close (100 to 250 m), Warning (under 100 m) and Unknown (no hunter location yet)
+
+#### Scenario: Next-broadcast step
+
+- **WHEN** the next-broadcast step is shown
+- **THEN** its text explains that the countdown shows when the prey's location is next sent to the hunter
+
+#### Scenario: Not before the warning
+
+- **WHEN** the safety warning is still open
+- **THEN** the prey HUD tour has not started
 
 #### Scenario: Dismissing the prey tour
 
 - **WHEN** the player completes or skips the prey tour
 - **THEN** the tour closes and the prey view is fully interactive
 
-### Requirement: Hunter view shows a one-time time-bar and tag-button tour
+### Requirement: Hunter HUD tour explains every panel and the Tag button
 
-When a player first reaches the in-progress hunter view, the app SHALL show a guided tour with two
-steps: first the time/HUD bar (tap to expand and collapse), then the tag button (used to tag a
-nearby prey). The tour SHALL be shown only after the live view is interactive (the surroundings
-warning acknowledged and the head-start delay overlay cleared) so both highlighted controls are
-visible.
+When the hunter HUD is shown, the safety warning has been acknowledged and the hunter HUD tour is not seen, the app SHALL start the hunter HUD tour. It SHALL spotlight, in order: the role pill, the game-clock pill (its colours and "Penalty"), the next location ping, preys in play, closest prey and penalised preys tiles, and last the Tag button, explaining it lists preys in tagging range and only nearby preys (within 50 m) can be tagged.
 
 #### Scenario: First time as hunter
 
-- **WHEN** a player enters the in-progress hunter view for the first time and the warning/delay overlays have cleared
-- **THEN** the tour highlights the time/HUD bar with the tap-to-expand-and-collapse explanation
-- **AND** advancing the tour then highlights the tag button with an explanation that it is used to tag a nearby prey
+- **WHEN** a player enters the game screen of an in-progress game as the hunter for the first time and acknowledges the safety warning
+- **THEN** the hunter HUD tour starts and spotlights the role pill
+
+#### Scenario: Hunter steps in order
+
+- **WHEN** the player advances through the whole hunter HUD tour
+- **THEN** the spotlight moves from the role pill to the game-clock pill, the next location ping tile, the preys-in-play tile, the closest-prey tile, the penalised-preys tile and finally the Tag button
+
+#### Scenario: Closest-prey step explains last known locations
+
+- **WHEN** the closest-prey step is shown
+- **THEN** its text explains the distance is to the prey's last known location, not its live position
+
+#### Scenario: Tag step explains the range
+
+- **WHEN** the Tag button step is shown
+- **THEN** its text explains the button opens the list of preys in range, that only preys within 50 m can be tagged, and that the button is locked during the hunter start delay
+
+#### Scenario: Tour during the start delay
+
+- **WHEN** the hunter acknowledges the safety warning while the start delay is still counting down
+- **THEN** the hunter HUD tour starts over the start-delay countdown and the Tag button step spotlights the locked button
 
 #### Scenario: Advancing through the hunter steps
 
-- **WHEN** the player advances past the time-bar step
-- **THEN** the tag-button step is shown
+- **WHEN** the player advances past a step
+- **THEN** the next step is shown
 - **AND** completing the final step closes the tour
-
-### Requirement: Each role's tour is shown at most once and persists separately
-
-The app SHALL persist, per device, whether the hunter tour and the prey tour have been shown, using
-two separate flags. Once a role's tour has been completed or skipped, that role's tour SHALL NOT be
-shown again. The two flags SHALL be independent so seeing one role's tour does not suppress the
-other's.
-
-#### Scenario: Tour does not repeat
-
-- **WHEN** a player has already completed or skipped the tour for a given role
-- **THEN** entering that role's in-progress view again does not show the tour
-
-#### Scenario: Flags are independent per role
-
-- **WHEN** a player has seen the prey tour but never the hunter tour
-- **THEN** entering the hunter view for the first time still shows the hunter tour
-
-#### Scenario: Skipping still marks the tour seen
-
-- **WHEN** the player skips a role's tour before finishing it
-- **THEN** that role's "seen" flag is set and the tour does not reappear
-
-### Requirement: Tour failure must not block play
-
-A failure to read or write the persisted "seen" flags SHALL NOT block the player from using the
-live view. A read failure SHALL be treated as "not seen" (the tour may show once); a write failure
-SHALL at worst allow the tour to show again on a later session.
-
-#### Scenario: Storage unavailable
-
-- **WHEN** the persisted tour flags cannot be read
-- **THEN** the live view remains fully interactive and the tour is offered as if not yet seen
-

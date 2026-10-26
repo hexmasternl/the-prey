@@ -40,3 +40,27 @@ Dirty tree at start (not mine, left alone except as noted): `auto/` (instruction
 - Decisions: none beyond the annotation; nothing archived (no change has every task checked).
 - Blockers: none
 - Commits: 26, d7f612c..60fc693
+
+# Run 2026-10-26 (2) — branch `run/2026-10-26-openspec-2`, worktree `../the-prey-worktrees/run-2026-10-26-openspec-2`
+
+Start: repo root on `development` (clean, = `origin/development` efb9a95). Three open changes, all at 0 tasks; order by age (proposal commit): app-setting-always-on, app-game-preys-and-hunter-hidden, server-telemetry-with-application-insights. Nothing pushed, no PR (the instructions forbid both; the git-workflow skill's push/PR steps were skipped).
+
+Environment: the worktree has no `local.properties`; Gradle runs with `ANDROID_HOME=D:\Android\SDK`. A `local.properties` in the worktree makes `lintDebug` fail with `PropertyEscape` whatever the escaping, so it was removed again (not a repo issue).
+
+## app-setting-always-on — partial
+- Tasks: 9/12; needs human: 2.2 (preview render + TalkBack), 2.4 (persistence across restart on a device), 3.3 (30 s screen-timeout check on a device)
+- Decisions: the store goes into `ThePreyNavHost`/`MainActivity` already with 2.1, so the new `SettingsViewModel` parameter keeps the build green; 2.4 is left with only its device check. The switch follows the stored value (no optimistic update), so a failed write leaves it as it was (design Decision 3). `KeepScreenOn` and `holdsScreen` live in `ui/game/ScreenHold.kt`. The app has one `GameScreen` destination (`Routes.GAME`, hosting both HUDs); "both game destinations" in 3.3 is read as that one. Website: a Display step in Get started and a FAQ entry (en + nl); the settings screenshot caption is unchanged because the screenshot does not show the Display section yet (retake with the next screenshot round). 4.2: no Play Store change — manifest, dependencies and network calls untouched (`WAKE_LOCK` predates this change, used by tracking); put this in the PR body. `docs/` has no Settings description, so nothing to sync there.
+- Blockers: none
+- Commits: 12, ec10680..3aa8d2e
+
+## app-game-preys-and-hunter-hidden — partial
+- Tasks: 7/12; needs human: 1.1 (diagnosis in the test environment), 4.1–4.4 (multi-device checks)
+- Decisions: the helper is `rememberStartTracking(starter)` in `ui/tracking/TrackingAutoStart.kt` (consent flow, silent toast and resume-notification cancel unchanged); the decision function is `requestsTracking(ActiveGameUi)` in `ui/tracking/GameTrackingStart.kt`: `Ready`, status `Started`/`InProgress`, the player is a participant and not `Tagged`/`Out` (a `Passive` player still asks, so their reports resume). The game route collects the game view model's `uiState` a second time for the effect; the `StateFlow` is shared, so this adds no work. `app-game-active-view` was archived before this run, so 2.5 edited `openspec/changes/archive/2026-10-26-app-game-active-view/design.md`. 3.1 keeps the existing `minReplicas: 1` and adds `maxReplicas: 1`; `az bicep build` passes (the BCP081 warning in `service-access.bicep` predates this change).
+- Blockers: none
+- Commits: 8, 06de3c5..051cf6a
+
+## server-telemetry-with-application-insights — partial
+- Tasks: 8/10; needs human: 2.5 (local AppHost run with signed-in calls and a dashboard check), 3.1 (Application Insights after a deploy from `main`)
+- Decisions: 1.1 and 1.2 are one commit, because the new required `@secure()` parameter breaks every caller until all four pass it (the design's risk note asks for that). The parameter sits with the other params at the top of `container-app.bicep`. `Azure.Monitor.OpenTelemetry.AspNetCore` 1.6.0 (latest stable; needs OpenTelemetry ≥ 1.15, the repo has 1.16). Sampling: `TracesPerSecond = null`, `SamplingRatio = 1.0F` (the distro defaults to rate-limited sampling). `service.version` = entry assembly informational version, `service.instance.id` = `Environment.MachineName`; `service.name` is only set in code when `OTEL_SERVICE_NAME` is absent. The `*.Observability` usings in the four `Program.cs` were removed with the OTel blocks (nothing else used them); the `*ObservabilityConstants` stay. 2.3 was checked by starting the Notifications API with no connection string and with a dummy one: both reached "Application started". 2.6 also updated the `the-prey-new-backend-module` skill (it scaffolded per-module `AddOpenTelemetry()`). Build warnings unchanged (6, all pre-existing: xUnit1051, NU1902 MessagePack); all server tests pass (527).
+- Blockers: none
+- Commits: 7, 393df9f..c4ba153

@@ -413,6 +413,9 @@
     <string name="settings_hints_reset">Show hints again</string>
     <string name="settings_hints_reset_done">Hints will show again the next time.</string>
     <string name="settings_hints_reset_failed">Hints could not be reset. Try again.</string>
+    <string name="settings_section_display">Display</string>
+    <string name="settings_keep_screen_on">Keep screen on during a game</string>
+    <string name="settings_keep_screen_on_body">Your screen stays on while a game is running, so the map is always ready at a glance. This uses more battery.</string>
 
     <!-- Update gate -->
     <string name="update_required_title">Update required</string>

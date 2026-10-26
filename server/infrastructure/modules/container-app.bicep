@@ -49,21 +49,19 @@ param daprAppProtocol string = 'http'
 
 param landingZone object
 
+@secure()
+@description('Connection string of the landing-zone Application Insights instance; stored as a secret behind APPLICATIONINSIGHTS_CONNECTION_STRING')
+param applicationInsightsConnectionString string
+
 resource appConfig 'Microsoft.AppConfiguration/configurationStores@2023-03-01' existing = {
   name: landingZone.appConfig
   scope: resourceGroup(landingZone.resourceGroup)
 }
 
-resource appInsights 'Microsoft.Insights/components@2020-02-02' existing= {
-  name: landingZone.applicationInsights
-  scope: resourceGroup(landingZone.resourceGroup)
-}
-
-
 var baseSecrets = [
   {
     name: 'appinsights-connection-string'
-    value: appInsights.properties.ConnectionString
+    value: applicationInsightsConnectionString
   }
 ]
 
@@ -71,6 +69,11 @@ var baseEnvVars = [
   {
     name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
     secretRef: 'appinsights-connection-string'
+  }
+  {
+    // Telemetry role name (cloud_RoleName in Application Insights): one per container app.
+    name: 'OTEL_SERVICE_NAME'
+    value: name
   }
   {
     name: 'AZURE_APP_CONFIGURATION_ENDPOINT'

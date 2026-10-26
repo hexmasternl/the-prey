@@ -2,11 +2,8 @@ using HexMaster.ThePrey.Games;
 using HexMaster.ThePrey.Games.Api.Endpoints;
 using HexMaster.ThePrey.Games.Api.Integration;
 using HexMaster.ThePrey.Games.Data.Postgres;
-using HexMaster.ThePrey.Games.Observability;
 using HexMaster.ThePrey.Users.Integration;
 using Microsoft.EntityFrameworkCore;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
 using ThePrey.Aspire.ServiceDefaults;
 
@@ -29,14 +26,6 @@ builder.Services.AddGamesModule();
 builder.AddGamesPostgres();
 builder.Services.AddUserResolver();
 builder.Services.AddScoped<IPlayfieldInfoProvider, PlayfieldInfoProvider>();
-
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing
-        .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation()
-        .AddSource(GameObservabilityConstants.ActivitySourceName))
-    .WithMetrics(metrics => metrics
-        .AddMeter(GameObservabilityConstants.MeterName));
 
 var app = builder.Build();
 

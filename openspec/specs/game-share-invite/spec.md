@@ -2,33 +2,39 @@
 
 ## Purpose
 TBD - created by archiving change game-share-joining. Update Purpose after archive.
+
 ## Requirements
-### Requirement: Share button on lobby page
 
-The lobby page SHALL display a share button next to the game code. The button SHALL only be visible when the Web Share API (`navigator.share`) is available on the device. When tapped, the button SHALL invoke the native Web Share API with a pre-composed message. The message SHALL include an invitation text stating the user is invited to join a game on "The Prey", a deep link URL of the form `/games/join?gameId=<id>` (where `<id>` is the game's GUID), and SHALL end with the 8-digit game code. The share action SHALL be available to any player currently viewing the lobby (owner and non-owner alike).
+### Requirement: Share invitation from the lobby
 
-#### Scenario: Share button appears when Web Share API is available
+The lobby screen SHALL show a share button next to the game code for every participant, owner or not. Tapping it SHALL open the Android share sheet with a plain-text message in the app's current language. The message invites the recipient to join a game of "The Prey", contains the public invitation link `https://theprey.nl/games/join/{gameId}/{code}`, and ends with the 4-digit game code.
 
-- **WHEN** a player opens the lobby page on a device where `navigator.share` is defined
-- **THEN** a share button is displayed next to the game code
+#### Scenario: Share button is shown
 
-#### Scenario: Share button is hidden when Web Share API is unavailable
+- **WHEN** a participant opens the lobby screen
+- **THEN** a share button is shown next to the game code
 
-- **WHEN** a player opens the lobby page on a platform where `navigator.share` is not defined
-- **THEN** the share button is not rendered
+#### Scenario: Tapping share opens the share sheet
 
-#### Scenario: Tapping share invokes the native share sheet
+- **WHEN** a participant taps the share button
+- **THEN** the Android share sheet opens with a text message that contains the invitation and the invitation link, and ends with the game code
 
-- **WHEN** a player taps the share button
-- **THEN** the native share sheet opens with a message containing an invitation to join "The Prey", the deep link URL with the game's GUID as the `gameId` query parameter, and the 8-digit game code at the end
+#### Scenario: Share message contains the invitation link
 
-#### Scenario: Share message contains the game GUID in the URL
+- **WHEN** the share sheet is opened for a game with id `3f2b8c1e-0d4a-4c1b-9a7e-2b6f1c9d8e01` and code "4200"
+- **THEN** the shared text contains `https://theprey.nl/games/join/3f2b8c1e-0d4a-4c1b-9a7e-2b6f1c9d8e01/4200`
 
-- **WHEN** the share sheet is opened for a game with id "abc-123" and code "HUNT4200"
-- **THEN** the shared URL is `/games/join?gameId=abc-123` and the message ends with "HUNT4200"
+#### Scenario: Share message ends with the code
+
+- **WHEN** the share sheet is opened for a game with code "4200"
+- **THEN** the shared text ends with "4200"
+
+#### Scenario: Share message follows the app language
+
+- **WHEN** the app language is Dutch and a participant taps share
+- **THEN** the invitation text is in Dutch
 
 #### Scenario: Share button is visible to non-owners
 
-- **WHEN** a player who is not the game owner views the lobby page
-- **THEN** the share button is displayed (sharing is not restricted to the owner)
-
+- **WHEN** a participant who is not the game owner views the lobby screen
+- **THEN** the share button is shown, because sharing is not limited to the owner

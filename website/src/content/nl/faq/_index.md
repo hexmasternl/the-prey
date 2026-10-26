@@ -63,3 +63,7 @@ Ja. In de lobby kan de Spelmaker zichzelf Jager maken of Prooi blijven. Verlaat 
 {{< qa q="Waarom zegt de app \"Update nodig\"?" >}}
 Je versie van de app wordt niet meer ondersteund. Tik op **Updaten** om The Prey in Google Play te openen en installeer de nieuwste versie. Zit je in een lobby of een lopend spel, dan speel je dat eerst uit: de melding verschijnt zodra je het verlaat.
 {{< /qa >}}
+
+{{< qa q="Kan mijn scherm aan blijven tijdens een spel?" >}}
+Ja. Zet in **Instellingen** onder **Scherm** de optie **Scherm aan houden tijdens een spel** aan. Je scherm blijft dan aan tijdens de voorsprong en het lopende spel, zodat de kaart bij elke blik klaarstaat. Dit kost meer batterij en staat standaard uit. De lobby en de andere schermen houden de normale schermtime-out van je telefoon, en met de aan/uit-knop zet je het scherm nog steeds uit.
+{{< /qa >}}
