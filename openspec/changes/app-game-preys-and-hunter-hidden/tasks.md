@@ -15,7 +15,7 @@
 ## 3. Single Notifications replica
 
 - [x] 3.1 Set `maxReplicas: 1` on the Notifications container app in `server/infrastructure/notifications/main.bicep`, with a comment that the per-game `seq` counter is in-process (design D3); verify with `az bicep build --file server/infrastructure/notifications/main.bicep`
-- [ ] 3.2 Add a note to the "Sequence numbers & gap detection" section of `docs/api/realtime.md` that `seq` is allocated in the single Notifications instance, and verify the section still matches `WebPubSubBroadcaster`
+- [x] 3.2 Add a note to the "Sequence numbers & gap detection" section of `docs/api/realtime.md` that `seq` is allocated in the single Notifications instance, and verify the section still matches `WebPubSubBroadcaster`
 
 ## 4. End-to-end verification
 
