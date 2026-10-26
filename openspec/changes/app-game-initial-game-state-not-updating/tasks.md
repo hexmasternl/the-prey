@@ -2,8 +2,8 @@
 
 ## 1. Status transition triggers a snapshot (reducer)
 
-- [ ] 1.1 In `app/src/app/src/main/java/nl/hexmaster/theprey/data/game/realtime/GameStateReducer.kt`, return `Reduction.Resync` from the `CONFIGURATION_CHANGED` branch when the decoded slice's `status` differs (case-insensitively) from the current `game.status`; keep the incremental apply when it is equal. Verify with `./gradlew testDebugUnitTest --tests "nl.hexmaster.theprey.data.game.realtime.GameStateReducerTest"`.
-- [ ] 1.2 Add `GameStateReducerTest` cases: `reduce_ShouldResync_WhenConfigurationChangedPromotesStartedToInProgress`, `reduce_ShouldApplyConfiguration_WhenStatusIsUnchanged` (participants preserved), and adjust any existing test that applied a status change incrementally. Verify the tests pass.
+- [x] 1.1 In `app/src/app/src/main/java/nl/hexmaster/theprey/data/game/realtime/GameStateReducer.kt`, return `Reduction.Resync` from the `CONFIGURATION_CHANGED` branch when the decoded slice's `status` differs (case-insensitively) from the current `game.status`; keep the incremental apply when it is equal. Verify with `./gradlew testDebugUnitTest --tests "nl.hexmaster.theprey.data.game.realtime.GameStateReducerTest"`.
+- [x] 1.2 Add `GameStateReducerTest` cases: `reduce_ShouldResync_WhenConfigurationChangedPromotesStartedToInProgress`, `reduce_ShouldApplyConfiguration_WhenStatusIsUnchanged` (participants preserved), and adjust any existing test that applied a status change incrementally. Verify the tests pass.
 
 ## 2. Short resync interval while Started (service)
 

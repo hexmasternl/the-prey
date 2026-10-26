@@ -60,6 +60,8 @@ class GameStateReducer(private val frames: WebPubSubFrames = WebPubSubFrames()) 
             }
             MessageTypes.CONFIGURATION_CHANGED -> {
                 val slice = frames.payload(envelope, GameDto.serializer()) ?: return Reduction.Resync
+                // A status change alters snapshot-only data (in-progress status, role state, server time).
+                if (!slice.status.equals(game.status, ignoreCase = true)) return Reduction.Resync
                 // The game-level slice replaces everything except the participant list it does not carry.
                 applied(slice.copy(participants = game.participants))
             }
