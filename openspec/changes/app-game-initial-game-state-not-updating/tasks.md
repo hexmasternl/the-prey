@@ -7,7 +7,7 @@
 
 ## 2. Short resync interval while Started (service)
 
-- [ ] 2.1 In `app/src/app/src/main/java/nl/hexmaster/theprey/data/game/GameStateService.kt`, add `STARTING_RESYNC_INTERVAL_MS = 10_000L` and make `scheduleResync()` use it while the live snapshot's game status is `Started`, `RESYNC_INTERVAL_MS` otherwise. Verify with `GameStateServiceTest`.
+- [x] 2.1 In `app/src/app/src/main/java/nl/hexmaster/theprey/data/game/GameStateService.kt`, add `STARTING_RESYNC_INTERVAL_MS = 10_000L` and make `scheduleResync()` use it while the live snapshot's game status is `Started`, `RESYNC_INTERVAL_MS` otherwise. Verify with `GameStateServiceTest`.
 - [ ] 2.2 Add `GameStateServiceTest` cases (virtual time): `session_ShouldLoadSnapshot_WhenConfigurationChangedPromotesGame` (a second `/gamestate` call follows the delta and the state carries `status.hunterMayMoveAt`), `session_ShouldResyncWithinShortInterval_WhenGameIsStarted` (no socket message; promotion seen after 10 s), and `session_ShouldUseThreeMinuteInterval_WhenGameIsInProgress`. Verify the tests pass.
 
 ## 3. Game screen shows the countdown after the promotion

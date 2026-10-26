@@ -86,8 +86,8 @@ interface GameSessions {
 
 /**
  * The app's single source of truth for a game (docs/api/realtime.md): one snapshot, one Web PubSub
- * socket, versioned deltas on top, and a full snapshot every 3 minutes, on every (re)connect, on a
- * `seq` gap and when the server asks. The server leads: a snapshot replaces local state, and a
+ * socket, versioned deltas on top, and a full snapshot every 3 minutes (10 s while the game is
+ * `Started`), on every (re)connect, on a `seq` gap, on a status change and when the server asks. The server leads: a snapshot replaces local state, and a
  * command's response replaces the game ([replaceGame]).
  *
  * A session runs while [session] is collected and stops [STOP_TIMEOUT_MS] after the last collector
@@ -197,9 +197,12 @@ class GameStateService(
             val me = myUserId()
 
             fun scheduleResync() {
+                // A Started game is promoted by the next sweep (≤ 30 s): look sooner, in case its message is missed.
+                val started = (state.value as? GameSession.Live)?.snapshot?.game?.status == GameStatuses.STARTED
+                val interval = if (started) STARTING_RESYNC_INTERVAL_MS else RESYNC_INTERVAL_MS
                 timer?.cancel()
                 timer = launch {
-                    delay(RESYNC_INTERVAL_MS)
+                    delay(interval)
                     send(Input.Timer)
                 }
             }
@@ -334,6 +337,7 @@ class GameStateService(
     companion object {
         const val STOP_TIMEOUT_MS = 5_000L
         const val RESYNC_INTERVAL_MS = 3 * 60 * 1_000L
+        const val STARTING_RESYNC_INTERVAL_MS = 10_000L
         private const val BACKOFF_START_MS = 1_000L
         private const val BACKOFF_MAX_MS = 30_000L
 
