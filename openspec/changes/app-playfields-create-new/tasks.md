@@ -23,7 +23,7 @@
 ## 5. Integration
 
 - [x] 5.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and confirm it is green.
-- [ ] 5.2 On a device or emulator signed in to the backend _(device check pending)_:
+- [ ] 5.2 On a device or emulator signed in to the backend _(device check pending)_: — **auto: needs human:** needs a real device or emulator
   - Tap the create button on the Private tab and confirm the empty "New playfield" form and the area hint.
   - Draw a 4-point area, type an eligible name, check Public and Save. Confirm the Private tab lists the new playfield with a Public badge.
   - Start another create, rotate while on the area screen, then Cancel. Confirm nothing was created and the next create starts empty.
