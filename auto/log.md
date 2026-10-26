@@ -40,3 +40,15 @@ Dirty tree at start (not mine, left alone except as noted): `auto/` (instruction
 - Decisions: none beyond the annotation; nothing archived (no change has every task checked).
 - Blockers: none
 - Commits: 26, d7f612c..60fc693
+
+# Run 2026-10-26 (2) — branch `run/2026-10-26-openspec-2`, worktree `../the-prey-worktrees/run-2026-10-26-openspec-2`
+
+Start: repo root on `development` (clean, = `origin/development` efb9a95). Three open changes, all at 0 tasks; order by age (proposal commit): app-setting-always-on, app-game-preys-and-hunter-hidden, server-telemetry-with-application-insights. Nothing pushed, no PR (the instructions forbid both; the git-workflow skill's push/PR steps were skipped).
+
+Environment: the worktree has no `local.properties`; Gradle runs with `ANDROID_HOME=D:\Android\SDK`. A `local.properties` in the worktree makes `lintDebug` fail with `PropertyEscape` whatever the escaping, so it was removed again (not a repo issue).
+
+## app-setting-always-on — partial
+- Tasks: 9/12; needs human: 2.2 (preview render + TalkBack), 2.4 (persistence across restart on a device), 3.3 (30 s screen-timeout check on a device)
+- Decisions: the store goes into `ThePreyNavHost`/`MainActivity` already with 2.1, so the new `SettingsViewModel` parameter keeps the build green; 2.4 is left with only its device check. The switch follows the stored value (no optimistic update), so a failed write leaves it as it was (design Decision 3). `KeepScreenOn` and `holdsScreen` live in `ui/game/ScreenHold.kt`. The app has one `GameScreen` destination (`Routes.GAME`, hosting both HUDs); "both game destinations" in 3.3 is read as that one. Website: a Display step in Get started and a FAQ entry (en + nl); the settings screenshot caption is unchanged because the screenshot does not show the Display section yet (retake with the next screenshot round). 4.2: no Play Store change — manifest, dependencies and network calls untouched (`WAKE_LOCK` predates this change, used by tracking); put this in the PR body. `docs/` has no Settings description, so nothing to sync there.
+- Blockers: none
+- Commits: 13, ec10680..3aa8d2e
