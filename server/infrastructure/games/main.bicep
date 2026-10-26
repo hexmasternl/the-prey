@@ -54,6 +54,12 @@ resource acrPullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-
   scope: resourceGroup(landingZone.resourceGroup)
 }
 
+// The landing-zone Application Insights instance; its connection string goes to the container app as a secret.
+resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: landingZone.applicationInsights
+  scope: resourceGroup(landingZone.resourceGroup)
+}
+
 // Games API container app
 module gamesApi '../modules/container-app.bicep' = {
   name: 'gamesApi'
@@ -66,6 +72,7 @@ module gamesApi '../modules/container-app.bicep' = {
     acrPullIdentityId: acrPullIdentity.id
     image: gamesImage
     landingZone: landingZone
+    applicationInsightsConnectionString: appInsights.properties.ConnectionString
     enableDapr: true
     daprAppId: 'hexmaster-theprey-games-api'
     minReplicas: 1
