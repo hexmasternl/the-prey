@@ -150,12 +150,20 @@ dotnet build server/src/the-prey.slnx
 
 - **Stack:** Kotlin + Jetpack Compose (Material 3), single-activity, Gradle Kotlin DSL with a version catalog (`gradle/libs.versions.toml`). AGP 9 with its built-in Kotlin support, so the `kotlin-android` plugin is not applied.
 - **Application id:** `nl.hexmaster.theprey`. This is the id of the previously published app, so releases update the existing Play Store listing. Do not change it.
-- **Versioning:** `versionCode`/`versionName` come from Gradle properties (`ORG_GRADLE_PROJECT_versionCode` / `_versionName` in CI). Play rejects any upload whose `versionCode` is not higher than the last published one.
+- **Versioning:** `versionCode`/`versionName` come from Gradle properties (`ORG_GRADLE_PROJECT_versionCode` / `_versionName` in CI); see "App releases" below. Play rejects any upload whose `versionCode` is not higher than the last published one.
 - **Release signing:** configured only when `app/src/key.properties` exists (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`). Never commit it or a keystore.
 - **Theme:** `ui/theme/` holds the design-system tokens (`Color.kt`), fonts (`Type.kt`: Special Elite for headings/numbers, PT Mono for body/labels) and `ThePreyTheme`. Screens read colors through `MaterialTheme.colorScheme` or `ThePreyTheme.colors`, never hard-coded values. See the `the-prey-design-system` skill.
 - **Logo & splash:** `res/drawable/ic_prey_mark.xml` is the one mark vector (108 dp adaptive-icon grid, mark in the central 66 dp) shared by the launcher icon, the system splash (`avd_splash_mark.xml`, 800 ms, set in `Theme.ThePrey.Starting`) and Compose (`ui/components/PreyMark`, which sizes it by the visible mark). On a cold start `ui/splash/LaunchSequence` continues from the splash's last frame and then crossfades into the session-routed nav host; all timing lives in the pure `LaunchTimeline` (constants + `frameAt`, unit-tested), and `LaunchSequenceGate` keeps it to once per process.
 - **Strings:** all user-facing text lives in `res/values/strings.xml` with Dutch in `res/values-nl/strings.xml`. Every text change in the app **and** the website must land in both English and Dutch — follow the `the-prey-multilingual` skill.
 - **Realtime:** follow the `the-prey-realtime-communication` skill and `docs/api/realtime.md`: state changes go over HTTP only, and live updates arrive on one Web PubSub socket owned by a single game-state service.
+
+### App releases
+
+- **Workflow:** `.github/workflows/android-release.yml`. Pull requests and pushes to `main` touching `app/src/**` run `./gradlew lintDebug testDebugUnitTest`; pushes to `main` (and manual runs on `main`) then build, sign and publish.
+- **Internal track only:** the bundle goes to the Play Console **internal testing** track for `nl.hexmaster.theprey` as a completed release. Promotion to other tracks is a manual Play Console action, never a new build.
+- **Version:** `versionName` = `semVer` from `version.yml` (the run fails on an empty or pre-release version); `versionCode = major * 1000000 + minor * 1000 + patch + VERSION_CODE_OFFSET`, where `VERSION_CODE_OFFSET` lifts the line above a legacy code already in Play.
+- **Release notes:** the Copilot CLI turns the `app/src` commits since the last successful run into English and Dutch "What's new" texts (`whatsnew/whatsnew-en-US`, `whatsnew/whatsnew-nl-NL`, max 500 characters each, cut at a line break). When Copilot fails, the commit subjects are used (Dutch prefixed with "Verbeteringen en bugfixes.") and the run shows a warning. The same texts form the body of the GitHub release `v<semVer>`, created by `.github/actions/create-release` after the Play upload.
+- **Secrets:** `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS` (upload key), `PLAY_SERVICE_ACCOUNT_JSON` (service account with release rights) and `COPILOT_GITHUB_TOKEN` (fine-grained PAT with the Copilot Requests permission).
 
 ---
 

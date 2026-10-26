@@ -33,9 +33,9 @@
 
 ## 7. Documentation
 
-- [ ] 7.1 Add an "App releases" section to `CLAUDE.md` (Android App part): workflow path, internal-track-only, `versionCode` formula + `VERSION_CODE_OFFSET`, Copilot bilingual notes + fallback, required secrets incl. `COPILOT_GITHUB_TOKEN`; update the `Versioning` bullet to point at it; verify the section names the same file paths and secret names as the workflow
+- [x] 7.1 Add an "App releases" section to `CLAUDE.md` (Android App part): workflow path, internal-track-only, `versionCode` formula + `VERSION_CODE_OFFSET`, Copilot bilingual notes + fallback, required secrets incl. `COPILOT_GITHUB_TOKEN`; update the `Versioning` bullet to point at it; verify the section names the same file paths and secret names as the workflow
 
 ## 8. Integration
 
-- [ ] 8.1 Configure the secrets and Play Console (service account release rights, internal testers list), read the highest `versionCode` in Play and set `VERSION_CODE_OFFSET` if needed; open a PR with the workflow and confirm only `version` and `verify` run
-- [ ] 8.2 After merge, run the workflow via `workflow_dispatch` on `main` and confirm: the bundle is on the internal testing track with the expected `versionName`/`versionCode`, the English and Dutch "What's new" texts are shown in the Play Console, and the GitHub release `v<semVer>` exists with both languages in its body (or was left as is because a backend run created it)
+- [ ] 8.1 Configure the secrets and Play Console (service account release rights, internal testers list), read the highest `versionCode` in Play and set `VERSION_CODE_OFFSET` if needed; open a PR with the workflow and confirm only `version` and `verify` run — **auto: needs human:** GitHub secrets, Play Console rights and the live versionCode need the account owner, and opening a PR is out of scope here
+- [ ] 8.2 After merge, run the workflow via `workflow_dispatch` on `main` and confirm: the bundle is on the internal testing track with the expected `versionName`/`versionCode`, the English and Dutch "What's new" texts are shown in the Play Console, and the GitHub release `v<semVer>` exists with both languages in its body (or was left as is because a backend run created it) — **auto: needs human:** needs a merge to `main` and a real publish to Google Play
