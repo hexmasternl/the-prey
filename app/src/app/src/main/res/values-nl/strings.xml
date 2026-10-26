@@ -387,4 +387,9 @@
     <string name="settings_hints_reset">Hints opnieuw tonen</string>
     <string name="settings_hints_reset_done">De hints worden de volgende keer weer getoond.</string>
     <string name="settings_hints_reset_failed">De hints konden niet worden teruggezet. Probeer het opnieuw.</string>
+
+    <!-- Update gate -->
+    <string name="update_required_title">Update nodig</string>
+    <string name="update_required_body">Deze versie van The Prey wordt niet meer ondersteund. Installeer de nieuwste versie uit de Play Store om verder te spelen.</string>
+    <string name="update_required_action">Updaten</string>
 </resources>
