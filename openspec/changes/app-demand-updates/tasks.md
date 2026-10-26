@@ -22,8 +22,8 @@
 
 ## 4. CI: update-policy label check
 
-- [ ] 4.1 Create labels `update:optional` and `update:required` with `gh label create` (descriptions: "Release does not force an app update" / "Release forces all players outside a game to update the app"); verify `gh label list` shows both
-- [ ] 4.2 Add `.github/workflows/pr-update-label.yml` per design decision 1 (`pull_request` to `main`, types incl. `labeled`/`unlabeled`, `permissions: {}`, labels via `env:`, fails unless exactly one label); verify with `actionlint` and by opening a draft PR: no label → fails, one → passes, both → fails
+- [ ] 4.1 Create labels `update:optional` and `update:required` with `gh label create` (descriptions: "Release does not force an app update" / "Release forces all players outside a game to update the app"); verify `gh label list` shows both — **auto: needs human:** creates labels in the GitHub repository (an outward change this run does not make)
+- [ ] 4.2 Add `.github/workflows/pr-update-label.yml` per design decision 1 (`pull_request` to `main`, types incl. `labeled`/`unlabeled`, `permissions: {}`, labels via `env:`, fails unless exactly one label); verify with `actionlint` and by opening a draft PR: no label → fails, one → passes, both → fails _(workflow added; actionlint green; the label script passes for one label and fails for none, unrelated only, and both)_ — **auto: needs human:** the draft-PR check needs a pushed branch and a pull request
 
 ## 5. CI: promote to production and enforce the minimum
 
