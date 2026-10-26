@@ -51,4 +51,10 @@ Environment: the worktree has no `local.properties`; Gradle runs with `ANDROID_H
 - Tasks: 9/12; needs human: 2.2 (preview render + TalkBack), 2.4 (persistence across restart on a device), 3.3 (30 s screen-timeout check on a device)
 - Decisions: the store goes into `ThePreyNavHost`/`MainActivity` already with 2.1, so the new `SettingsViewModel` parameter keeps the build green; 2.4 is left with only its device check. The switch follows the stored value (no optimistic update), so a failed write leaves it as it was (design Decision 3). `KeepScreenOn` and `holdsScreen` live in `ui/game/ScreenHold.kt`. The app has one `GameScreen` destination (`Routes.GAME`, hosting both HUDs); "both game destinations" in 3.3 is read as that one. Website: a Display step in Get started and a FAQ entry (en + nl); the settings screenshot caption is unchanged because the screenshot does not show the Display section yet (retake with the next screenshot round). 4.2: no Play Store change — manifest, dependencies and network calls untouched (`WAKE_LOCK` predates this change, used by tracking); put this in the PR body. `docs/` has no Settings description, so nothing to sync there.
 - Blockers: none
-- Commits: 13, ec10680..3aa8d2e
+- Commits: 12, ec10680..3aa8d2e
+
+## app-game-preys-and-hunter-hidden — partial
+- Tasks: 7/12; needs human: 1.1 (diagnosis in the test environment), 4.1–4.4 (multi-device checks)
+- Decisions: the helper is `rememberStartTracking(starter)` in `ui/tracking/TrackingAutoStart.kt` (consent flow, silent toast and resume-notification cancel unchanged); the decision function is `requestsTracking(ActiveGameUi)` in `ui/tracking/GameTrackingStart.kt`: `Ready`, status `Started`/`InProgress`, the player is a participant and not `Tagged`/`Out` (a `Passive` player still asks, so their reports resume). The game route collects the game view model's `uiState` a second time for the effect; the `StateFlow` is shared, so this adds no work. `app-game-active-view` was archived before this run, so 2.5 edited `openspec/changes/archive/2026-10-26-app-game-active-view/design.md`. 3.1 keeps the existing `minReplicas: 1` and adds `maxReplicas: 1`; `az bicep build` passes (the BCP081 warning in `service-access.bicep` predates this change).
+- Blockers: none
+- Commits: 8, 06de3c5..051cf6a
