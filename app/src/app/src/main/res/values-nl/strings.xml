@@ -387,6 +387,9 @@
     <string name="settings_hints_reset">Hints opnieuw tonen</string>
     <string name="settings_hints_reset_done">De hints worden de volgende keer weer getoond.</string>
     <string name="settings_hints_reset_failed">De hints konden niet worden teruggezet. Probeer het opnieuw.</string>
+    <string name="settings_section_display">Scherm</string>
+    <string name="settings_keep_screen_on">Scherm aan houden tijdens een spel</string>
+    <string name="settings_keep_screen_on_body">Je scherm blijft aan zolang een spel loopt, zodat de kaart altijd in één oogopslag klaarstaat. Dit kost meer batterij.</string>
 
     <!-- Update gate -->
     <string name="update_required_title">Update nodig</string>
