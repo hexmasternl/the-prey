@@ -120,14 +120,16 @@ All payloads are camelCase. Roles are the strings `"Hunter"` / `"Prey"`; partici
 A participant entered the lobby. `data` is a full participant.
 ```json
 { "userId": "…", "displayName": "…", "profilePictureUrl": "…",
-  "isReady": false, "state": "Active", "lastKnownLocation": null, "hasActivePenalty": false }
+  "isReady": false, "state": "Active", "lastKnownLocation": null, "hasActivePenalty": false,
+  "penaltyEndsAt": null }
 ```
 
 #### `participant-changed`
 A participant's ready flag, callsign, state, or penalty changed (also used for in-game
 `Active`/`Passive`/`Out` transitions). `data` is a **full participant** (same shape as
 `participant-joined`) — the client replaces that participant entry wholesale, so no field is
-lost.
+lost. `penaltyEndsAt` is the latest end of the participant's active penalty (`null` when none is
+active).
 
 A settings change (`PUT /games/{id}/config`) resets every non-owner ready flag. Because
 `configuration-changed` carries no participants, the server follows it with **one
