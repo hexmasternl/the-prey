@@ -24,3 +24,19 @@ Dirty tree at start (not mine, left alone except as noted): `auto/` (instruction
 - Decisions: `GET /games/active` only returns `Started`/`InProgress` games (server `GameRepository.cs`), not lobbies, so the design's lobby exemption could not come from that call; the app exempts the `LOBBY` route as well as `GAME` (design.md updated). At app start the gate waits for the restored session before deciding, so a signed-in player is never blocked as "signed out". The version check loop runs from `MainActivity` (`lifecycleScope` + `repeatOnLifecycle(STARTED)`), the overlay lives in `ui/update/UpdateGate`, which also hides the screens underneath from accessibility services. fastlane pinned at 2.240.1 (option names checked against its source); `--track_promote_release_status completed` added. The promote workflow tags `app-production-v<version>`. Docs synced: `docs/deployment/azure-deployment.md` and a FAQ entry (en + nl).
 - Blockers: none
 - Commits: 17, 03bba2c..571847b
+
+### Branch note (later)
+- During the run the repo root was switched to `development` and the local `main` was reset to a single skills commit (08506c0), so the run's early commits no longer sit on `main`. All work of this run is on `run/2026-10-26-openspec`.
+
+## static-game-info-website — partial
+- Tasks: 55/60; needs human: 8.2, 8.3, 8.5 (visual reviews), 9.4, 9.5 (GitHub Pages; the site now deploys to an Azure Static Web App, so these look obsolete)
+- Decisions: 8.1 checked by script over the built site (36 pages, every switcher link points at the same page in the other language). 8.4 checked in `assets/css/main.css` (headings on `--font-display`, body on `--font-body`, no other font-family, no h5/h6 in the output). 8.6: no page is untranslated (`become-a-tester` and `_index` are front-matter-driven and translated); the banner was confirmed by building with `translationPending: true` on `nl/rules` temporarily (file restored, not committed).
+- Blockers: none
+- Commits: 1, 9a27913
+
+## The other 26 open changes — partial (human checks only)
+- add-started-game-state, app-game-active-view, app-game-create-new, app-game-first-time-experience, app-game-hud-hunter, app-game-hud-prey, app-game-lobby-view, app-game-result-view, app-game-select-playfield, app-game-share-friends, app-landing-page, app-lobby-overview, app-location-foreground-service-warning, app-location-service, app-main-menu, app-main-menu-landscape, app-playfield-details-page, app-playfield-edit-area-allow-delete, app-playfields-create-new, app-playfields-list, app-play-now-button-behavior, app-settings-screen, app-splash-screen, deploy-github-actions-bicep, game-state-realtime-communication-protocol, website-update-to-kotlin-app
+- Tasks: every open task needs a device or emulator, an Android Studio preview render, a running backend with several clients, a live Azure/GitHub run, the Play Console upload key (app-game-share-friends 1.3) or emulator screenshots (website-update-to-kotlin-app 3.2). Each line now carries `— **auto: needs human:** <reason>`. The code they cover builds and passes `assembleDebug lintDebug testDebugUnitTest`, the server build and tests, and `hugo --minify` on this branch.
+- Decisions: none beyond the annotation; nothing archived (no change has every task checked).
+- Blockers: none
+- Commits: 26, d7f612c..60fc693
