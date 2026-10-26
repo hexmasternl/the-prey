@@ -9,7 +9,7 @@
 ## 2. App: version gate service
 
 - [x] 2.1 Add `data/version/VersionApi.kt` (Retrofit `POST games/version-checker`, `@Serializable` body with `@SerialName("current-version")`, returns `Response<Unit>`) and `data/version/AppVersionGate.kt` with `GateState { Open, Deferred, Blocked }`, a pure `decide(...)` function per design decision 7, a `Mutex`-guarded `suspend fun check()`, and `debug` builds never leaving `Open`; wire it in `AppContainer` with `BuildConfig.VERSION_NAME`, `BuildConfig.DEBUG`, the session manager and `GameRepository`; verify `./gradlew assembleDebug` from `app/src`
-- [ ] 2.2 Unit-test `AppVersionGate` with fakes: `204` → Open; `409` + signed out → Blocked; `409` + `Active` → Deferred; `409` + `None` → Blocked; `409` + `Failed` → Deferred; `400`/`404`/`500`/IOException → Open; Blocked then `204` → Open; debug → Open on `409`; verify `./gradlew testDebugUnitTest` passes
+- [x] 2.2 Unit-test `AppVersionGate` with fakes: `204` → Open; `409` + signed out → Blocked; `409` + `Active` → Deferred; `409` + `None` → Blocked; `409` + `Failed` → Deferred; `400`/`404`/`500`/IOException → Open; Blocked then `204` → Open; debug → Open on `409`; verify `./gradlew testDebugUnitTest` passes
 
 ## 3. App: update-required UI and triggers
 
