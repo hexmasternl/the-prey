@@ -55,6 +55,7 @@ class HunterHudStateTest {
     private fun ready(
         preys: List<ParticipantDto>,
         hunterPenalty: Boolean = false,
+        hunterPenaltyEndsAt: String? = null,
         own: GeoPosition? = this.own,
         hunterMayMoveAt: String? = null,
         lastPing: Long? = null,
@@ -64,7 +65,7 @@ class HunterHudStateTest {
                 id = "g",
                 status = GameStatuses.IN_PROGRESS,
                 configuration = GameConfigurationDto(60),
-                participants = listOf(ParticipantDto("me", PlayerStates.ACTIVE, hasActivePenalty = hunterPenalty)) + preys,
+                participants = listOf(ParticipantDto("me", PlayerStates.ACTIVE, hasActivePenalty = hunterPenalty, penaltyEndsAt = hunterPenaltyEndsAt)) + preys,
                 hunterUserId = "me",
             ),
             serverTime = "2026-08-31T11:40:00Z",
@@ -139,6 +140,21 @@ class HunterHudStateTest {
 
         assertTrue(state.hunterPenaltyActive)
         assertEquals(ClockBand.Penalty, state.clockBand(1_000))
+    }
+
+    @Test
+    fun from_ShouldHonourSnapshotPenaltyEnds_WhenEndTimesAreKnown() {
+        val preys = listOf(
+            prey("a", penalty = true, endsAt = "2026-08-31T11:44:00Z"),
+            prey("b", penalty = true, endsAt = "2026-08-31T11:40:00Z"),
+        )
+
+        val running = HunterHudState.from(ready(preys, hunterPenalty = true, hunterPenaltyEndsAt = "2026-08-31T11:44:00Z"), now)
+        val expired = HunterHudState.from(ready(preys, hunterPenalty = true, hunterPenaltyEndsAt = "2026-08-31T11:39:00Z"), now)
+
+        assertEquals(1, running.penalisedPreys)
+        assertTrue(running.hunterPenaltyActive)
+        assertFalse(expired.hunterPenaltyActive)
     }
 
     // ---- countdowns ----

@@ -17,7 +17,7 @@
 
 - [x] 3.1 In `app/src/app/src/main/java/nl/hexmaster/theprey/data/game/GameStateDto.kt`, update the KDoc of `ParticipantStateDto.penaltyEndsAt`: it now comes from the server snapshot and is overwritten by `prey-updated`. Add a `GameStateDtoTest` case that decodes `penaltyEndsAt` from a `/gamestate` body and one where it is absent, which gives null for older servers. Verify with `./gradlew testDebugUnitTest`.
 - [x] 3.2 Check that `GameStateReducer` and the snapshot adoption in `GameStateService` keep the snapshot's `penaltyEndsAt`, with no reset to null. Add or adjust a `GameStateServiceTest` / `GameStateReducerTest` case. Verify with `./gradlew testDebugUnitTest`.
-- [ ] 3.3 Add HUD state tests: in `PreyHudStateTest` and `HunterHudStateTest`, a snapshot participant with `hasActivePenalty = true` and a future `penaltyEndsAt` is penalised, and one whose `penaltyEndsAt` has passed is not. Verify with `./gradlew testDebugUnitTest`.
+- [x] 3.3 Add HUD state tests: in `PreyHudStateTest` and `HunterHudStateTest`, a snapshot participant with `hasActivePenalty = true` and a future `penaltyEndsAt` is penalised, and one whose `penaltyEndsAt` has passed is not. Verify with `./gradlew testDebugUnitTest`.
 - [ ] 3.4 In `data/game/CreateGame.kt`, send `enablePreyBoundaryPenalties = true` and `enableHunterBoundaryPenalty = true` and replace the "not offered yet" comment. Update `CreateGameRepositoryTest` to assert both are `true`. Verify with `./gradlew lintDebug testDebugUnitTest` from `app/src`.
 
 ## 4. Rules, skill and website
