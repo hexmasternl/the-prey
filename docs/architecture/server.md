@@ -112,6 +112,16 @@ LocationHistory
 
 ---
 
+## Telemetry
+
+`ThePrey.Aspire.ServiceDefaults` owns all telemetry; every API gets it from `builder.AddServiceDefaults()`:
+
+- **Sources and meters:** registered by the prefix `HexMaster.ThePrey.*`. A module only names its `ActivitySource` and `Meter` `HexMaster.ThePrey.{Module}` (in `{Module}/Observability/`); its `Program.cs` registers no OpenTelemetry itself.
+- **Instrumentation:** ASP.NET Core, HttpClient and runtime metrics; requests to `/health` and `/alive` produce no spans.
+- **Identity:** `service.name` comes from `OTEL_SERVICE_NAME` (the container app name in Azure, the resource name under the Aspire AppHost), falling back to the application name; `service.version` and `service.instance.id` (the replica) are added.
+- **Azure:** when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set (injected by `container-app.bicep` from the landing-zone Application Insights), logs, traces and metrics go to Application Insights through the Azure Monitor distro (`UseAzureMonitor`), keeping all traces (`SamplingRatio = 1`).
+- **Local:** the OTLP exporter sends everything to the Aspire dashboard when `OTEL_EXPORTER_OTLP_ENDPOINT` is set.
+
 ## Configuration
 
 | Setting | Default | Description |

@@ -70,7 +70,7 @@ Add `public const string {Module}Api = "hexmaster-theprey-{module}-api";` under 
 3. `builder.AddDefaultAuthentication();` — **mandatory**, right after the defaults
 4. `builder.AddDefaultCors();`
 5. `builder.Services.Add{Module}Module();`, the data adapter, `builder.Services.AddUserResolver();`
-6. `builder.Services.AddOpenTelemetry().WithTracing(t => t.AddSource({Module}ObservabilityConstants.ActivitySourceName)).WithMetrics(m => m.AddMeter({Module}ObservabilityConstants.MeterName));`
+6. No OpenTelemetry code: `AddServiceDefaults()` registers every `HexMaster.ThePrey.*` source and meter, so name the module's `ActivitySource` and `Meter` `HexMaster.ThePrey.{Module}`.
 7. `app.MapDefaultEndpoints();` → dev-only `MapOpenApi()` + `MapScalarApiReference()` → `UseHttpsRedirection()` → `UseAppConfigurationRefresh()` → `UseDefaultCors()` → (`UseCloudEvents()` if it subscribes) → **`UseAuthentication()` → `UseAuthorization()`** → `Map{Module}Endpoints()` (and `MapSubscribeHandler()` for pub/sub).
 
 Every public endpoint group gets `.RequireAuthorization()`; Dapr subscription routes are `.AllowAnonymous()`; internal service-invocation routes use a `DaprApiTokenEndpointFilter` (copy from `PlayFields.Api/Endpoints/`).
