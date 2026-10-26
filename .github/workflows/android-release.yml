@@ -108,7 +108,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # No Gradle cache for the release build: a restored publish cache once held the
+      # dependency metadata without the jars, and the build failed on "Could not find *.jar".
       - uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-disabled: true
 
       - name: Restore signing material
         env:
@@ -231,6 +235,9 @@ jobs:
           track: internal
           status: completed
           whatsNewDirectory: whatsnew
+          # Play refuses to auto-send changes for review while the app has pending
+          # changes (e.g. app content declarations); send them from the Play Console.
+          changesNotSentForReview: true
 
       # Last step, no `if: always()`: a release is only created after a successful upload.
       - name: Create tag and GitHub release
