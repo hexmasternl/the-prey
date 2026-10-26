@@ -268,5 +268,6 @@ internal static class GameMappings
             participant.IsReady,
             participant.State.ToString(),
             participant.Location is { } loc ? new GpsCoordinateDto(loc.Latitude, loc.Longitude) : null,
-            participant.HasActivePenalty(now));
+            participant.HasActivePenalty(now),
+            participant.ActivePenaltyEndsAt(now));
 }

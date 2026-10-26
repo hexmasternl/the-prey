@@ -190,4 +190,38 @@ public sealed class GetFullGameStateQueryHandlerTests
         Assert.True(result.Game.Configuration.EnablePreyBoundaryPenalties);
         Assert.True(result.Game.Configuration.EnableHunterBoundaryPenalty);
     }
+
+    // Participant mapping reads the wall clock, so penalties are relative to now.
+    [Fact]
+    public async Task Handle_ShouldExposeLatestPenaltyEnd_WhenParticipantHasActivePenalty()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start, playerCount: 3);
+        var endsAt = DateTimeOffset.UtcNow.AddMinutes(5);
+        game.ApplyPenalty(preyIds[0], endsAt.AddMinutes(-2));
+        game.ApplyPenalty(preyIds[0], endsAt);
+        SetupGame(game);
+
+        var result = await Sut(Start.AddMinutes(1)).Handle(
+            new GetFullGameStateQuery(game.Id, hunterId), CancellationToken.None);
+
+        var prey = result!.Game.Participants.Single(p => p.UserId == preyIds[0]);
+        Assert.True(prey.HasActivePenalty);
+        Assert.Equal(endsAt, prey.PenaltyEndsAt);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldExposeNoPenaltyEnd_WhenPenaltyExpiredOrAbsent()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out var preyIds, Start, playerCount: 3);
+        game.ApplyPenalty(preyIds[0], DateTimeOffset.UtcNow.AddMinutes(-1));
+        SetupGame(game);
+
+        var result = await Sut(Start.AddMinutes(1)).Handle(
+            new GetFullGameStateQuery(game.Id, hunterId), CancellationToken.None);
+
+        var expired = result!.Game.Participants.Single(p => p.UserId == preyIds[0]);
+        Assert.False(expired.HasActivePenalty);
+        Assert.Null(expired.PenaltyEndsAt);
+        Assert.Null(result.Game.Participants.Single(p => p.UserId == preyIds[1]).PenaltyEndsAt);
+    }
 }
