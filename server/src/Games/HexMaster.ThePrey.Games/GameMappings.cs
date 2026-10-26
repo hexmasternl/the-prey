@@ -224,8 +224,8 @@ internal static class GameMappings
             configuration.FinalStageDuration,
             configuration.DefaultLocationInterval,
             configuration.FinalLocationInterval,
-            configuration.EnablePreyBoundaryPenalties,
-            configuration.EnableHunterBoundaryPenalty);
+            true, // boundary penalties always apply; the stored flags are ignored
+            true);
 
     internal static GameExportDto ToExportDto(this Game game) =>
         new(
@@ -268,5 +268,6 @@ internal static class GameMappings
             participant.IsReady,
             participant.State.ToString(),
             participant.Location is { } loc ? new GpsCoordinateDto(loc.Latitude, loc.Longitude) : null,
-            participant.HasActivePenalty(now));
+            participant.HasActivePenalty(now),
+            participant.ActivePenaltyEndsAt(now));
 }

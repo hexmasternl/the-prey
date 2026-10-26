@@ -22,9 +22,11 @@ public sealed record GameConfiguration
     public int FinalLocationInterval { get; private init; }
 
     /// <summary>Enables a penalty for preys that leave the play-field boundary.</summary>
+    /// <remarks>Stored as sent and ignored: boundary penalties always apply.</remarks>
     public bool EnablePreyBoundaryPenalties { get; private init; }
 
     /// <summary>Enables a penalty for hunters that leave the play-field boundary.</summary>
+    /// <remarks>Stored as sent and ignored: boundary penalties always apply.</remarks>
     public bool EnableHunterBoundaryPenalty { get; private init; }
 
     private GameConfiguration() { }

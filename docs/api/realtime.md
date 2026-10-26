@@ -120,14 +120,16 @@ All payloads are camelCase. Roles are the strings `"Hunter"` / `"Prey"`; partici
 A participant entered the lobby. `data` is a full participant.
 ```json
 { "userId": "…", "displayName": "…", "profilePictureUrl": "…",
-  "isReady": false, "state": "Active", "lastKnownLocation": null, "hasActivePenalty": false }
+  "isReady": false, "state": "Active", "lastKnownLocation": null, "hasActivePenalty": false,
+  "penaltyEndsAt": null }
 ```
 
 #### `participant-changed`
 A participant's ready flag, callsign, state, or penalty changed (also used for in-game
 `Active`/`Passive`/`Out` transitions). `data` is a **full participant** (same shape as
 `participant-joined`) — the client replaces that participant entry wholesale, so no field is
-lost.
+lost. `penaltyEndsAt` is the latest end of the participant's active penalty (`null` when none is
+active).
 
 A settings change (`PUT /games/{id}/config`) resets every non-owner ready flag. Because
 `configuration-changed` carries no participants, the server follows it with **one
@@ -155,7 +157,11 @@ ownership locally from `ownerUserId`.
   "outcome": "None", "completedAt": null
 }
 ```
-The client merges these game-level fields onto its state and **preserves its participant list**.
+When the status is unchanged, the client merges these game-level fields onto its state and
+**preserves its participant list**. When the status differs from the local one (e.g. `Started →
+InProgress`), the client re-downloads the full snapshot instead: a status change alters
+snapshot-only data (the in-progress `status` with `hunterMayMoveAt`, `roleState`, `serverTime`)
+that this slice does not carry.
 
 ### Gameplay messages
 
@@ -218,8 +224,10 @@ page, and HUD all read from it and never poll the server or keep their own copy.
    (participant / configuration / locations / prey / ended) onto an **immutable** state that is
    swapped atomically. Merges are additive: applying a delta never drops a field the delta does
    not mention.
-4. **Resync (re-download the full snapshot)** on: every **3 minutes**, every (re)connect, a
-   `seq` gap/regression, a `resync-requested` message, or an unsupported `v`.
+4. **Resync (re-download the full snapshot)** on: every **3 minutes** (every **10 seconds** while
+   the game is `Started`, so the sweep's promotion to `InProgress` shows within about one sweep
+   even if its message is missed), every (re)connect, a `configuration-changed` that changes the
+   game status, a `seq` gap/regression, a `resync-requested` message, or an unsupported `v`.
 5. **Notify** subscribers on every change; subscribers are isolated (one throwing does not
    starve others).
 6. **Fail safe** — transient token/fetch failures retry with bounded backoff; a terminal `403`
@@ -282,8 +290,8 @@ the client sends, the server mutates and persists it, and the resulting broadcas
   the server last said wins.
 - A client's own action is reflected from the **command's HTTP response**, not from waiting for the
   broadcast that action produces.
-- The periodic resync (every 3 minutes) is what guarantees the client cannot drift indefinitely from
-  the server, no matter what the socket did or did not deliver.
+- The periodic resync (every 3 minutes; 10 seconds while `Started`) is what guarantees the client
+  cannot drift indefinitely from the server, no matter what the socket did or did not deliver.
 - Leaving is a state change like any other: it goes through `POST /games/{id}/leave` before the
   client tears down local state. A client that just navigates away leaves the server still counting
   that player as a lobby member.

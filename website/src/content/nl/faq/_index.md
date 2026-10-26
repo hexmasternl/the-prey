@@ -33,7 +33,7 @@ De Jager tikt op **Taggen** en krijgt een lijst met de prooien binnen 50 meter. 
 {{< /qa >}}
 
 {{< qa q="Ziet de Jager mij live?" >}}
-Nee. De Jager ziet elke prooi op zijn laatste ping: standaard elke 3 minuten, in de eindfase elke minuut. Tijdens een straf wordt je positie elke 10 seconden gedeeld.
+Nee. De Jager ziet elke prooi op zijn laatste ping: standaard elke 3 minuten, in de eindfase elke minuut. Tijdens een straf wordt je positie ongeveer elke 30 seconden gedeeld.
 {{< /qa >}}
 
 {{< qa q="Wat is een speelveld?" >}}
@@ -41,7 +41,7 @@ Het gebied waarin een spel wordt gespeeld, getekend als een omtrek van minstens 
 {{< /qa >}}
 
 {{< qa q="Mag ik het speelveld verlaten?" >}}
-Blijf binnen. In een spel waarin straffen voor de grens aan staan, krijg je bij het verlaten van het speelveld 5 minuten straf, waarin je positie elke 10 seconden wordt gedeeld.
+Blijf binnen. Bij het verlaten van het speelveld krijg je 5 minuten straf, waarin je positie ongeveer elke 30 seconden wordt gedeeld.
 {{< /qa >}}
 
 {{< qa q="Wat als mijn locatie stopt?" >}}

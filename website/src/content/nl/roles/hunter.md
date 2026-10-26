@@ -27,7 +27,7 @@ De posities van de Prooi staan al op je kaart, dus gebruik het wachten om je eer
 - **Volgende ping**: seconden tot de volgende posities van de Prooi binnenkomen.
 - **Prooien in het spel**: prooien die nog meedoen, van het totaal.
 - **Dichtstbijzijnde prooi**: de afstand tot de laatst bekende locatie van de dichtstbijzijnde prooi, niet zijn live positie.
-- **Prooien met straf**: hoeveel prooien nu straf hebben. De positie van een prooi met straf komt elke 10 seconden binnen.
+- **Prooien met straf**: hoeveel prooien nu straf hebben. De positie van een prooi met straf komt ongeveer elke 30 seconden binnen.
 
 Markeringen van prooien op je kaart staan op de positie van hun laatste ping. Ze zijn waarschijnlijk al verder. Dicht het gat snel.
 

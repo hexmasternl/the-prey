@@ -33,7 +33,7 @@ The Hunter taps **Tag** and gets a list of the Prey within 50 meters. The server
 {{< /qa >}}
 
 {{< qa q="Does the Hunter see me live?" >}}
-No. The Hunter sees each Prey at their last ping: every 3 minutes by default, every minute in the final stage. During a penalty your position is shared every 10 seconds.
+No. The Hunter sees each Prey at their last ping: every 3 minutes by default, every minute in the final stage. During a penalty your position is shared about every 30 seconds.
 {{< /qa >}}
 
 {{< qa q="What is a playfield?" >}}
@@ -41,7 +41,7 @@ The area a game is played in, drawn as an outline of at least three points on th
 {{< /qa >}}
 
 {{< qa q="Can I leave the playfield?" >}}
-Stay inside. In a game with boundary penalties on, leaving the playfield gives you a 5-minute penalty, during which your position is shared every 10 seconds.
+Stay inside. Leaving the playfield gives you a 5-minute penalty, during which your position is shared about every 30 seconds.
 {{< /qa >}}
 
 {{< qa q="What if my location stops?" >}}

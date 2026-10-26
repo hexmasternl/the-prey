@@ -59,9 +59,9 @@ Een getagde prooi doet niet meer mee aan de jacht en kijkt de rest van het spel 
 | Straf | Wanneer | Duur |
 |---|---|---|
 | Jager bewoog tijdens de voorsprong | De Jager beweegt meer dan 25 meter van zijn startpositie voordat de voorsprong voorbij is. | 10 minuten |
-| Speelveld verlaten | Een speler is buiten het speelveld, in een spel waarin straffen voor de grens aan staan. | 5 minuten |
+| Speelveld verlaten | Een speler is buiten het speelveld. | 5 minuten |
 
-Zolang een straf loopt, wordt de positie van de speler elke 10 seconden gedeeld in plaats van met de normale ping, dus een prooi met straf kan zich nergens verstoppen. Beide HUD's laten het zien: bij de Prooi knippert het rollabel **Straf**, en de Jager ziet hoeveel prooien straf hebben.
+Zolang een straf loopt, wordt de positie van de speler ongeveer elke 30 seconden gedeeld in plaats van met de normale ping, dus een prooi met straf kan zich nergens verstoppen. Beide HUD's laten het zien: bij de Prooi knippert het rollabel **Straf**, en de Jager ziet hoeveel prooien straf hebben.
 
 ---
 

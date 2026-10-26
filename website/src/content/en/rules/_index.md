@@ -59,9 +59,9 @@ A tagged Prey is out of the hunt and watches the rest of the game as a spectator
 | Penalty | When | Length |
 |---|---|---|
 | Hunter moved during the head start | The Hunter moves more than 25 meters from their start position before the head start ends. | 10 minutes |
-| Left the playfield | A player is outside the playfield, in a game that has boundary penalties on. | 5 minutes |
+| Left the playfield | A player is outside the playfield. | 5 minutes |
 
-While a penalty runs, the player's position is shared every 10 seconds instead of at the normal ping, so a penalised Prey has nowhere to hide. Both HUDs show it: a Prey's role pill flashes **Penalty**, and the Hunter sees how many Prey are penalised.
+While a penalty runs, the player's position is shared about every 30 seconds instead of at the normal ping, so a penalised Prey has nowhere to hide. Both HUDs show it: a Prey's role pill flashes **Penalty**, and the Hunter sees how many Prey are penalised.
 
 ---
 

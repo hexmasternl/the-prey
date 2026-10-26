@@ -77,20 +77,34 @@ class GameStateReducerTest {
     // ---- configuration ----
 
     @Test
-    fun reduce_ShouldMergeGameSliceAndKeepParticipants_WhenConfigurationChanges() {
-        val slice = """{"id":"g1","gameCode":"4291","ownerUserId":"owner","status":"Ready",
-            "configuration":{"gameDuration":60,"hunterDelayTime":3,"finalStageDuration":5,
-              "defaultLocationInterval":120,"finalLocationInterval":60,
-              "enablePreyBoundaryPenalties":false,"enableHunterBoundaryPenalty":false},
-            "hunterUserId":"me","preys":["owner"],"outcome":"None"}"""
+    fun reduce_ShouldApplyConfiguration_WhenStatusIsUnchanged() {
+        val game = reduce(envelope(RealtimeProtocol.MessageTypes.CONFIGURATION_CHANGED, slice("Lobby"))).applied().state.game
 
-        val game = reduce(envelope(RealtimeProtocol.MessageTypes.CONFIGURATION_CHANGED, slice)).applied().state.game
-
-        assertEquals(GameStatuses.READY, game.status)
+        assertEquals(GameStatuses.LOBBY, game.status)
         assertEquals(60, game.configuration.gameDuration)
         assertEquals(me, game.hunterUserId)
         assertEquals(state.game.participants, game.participants)
     }
+
+    @Test
+    fun reduce_ShouldResync_WhenConfigurationChangedPromotesStartedToInProgress() {
+        val started = state.copy(game = state.game.copy(status = GameStatuses.STARTED))
+
+        val result = reducer.reduce(started, null, me, envelope(RealtimeProtocol.MessageTypes.CONFIGURATION_CHANGED, slice("InProgress")))
+
+        assertEquals(Reduction.Resync, result)
+    }
+
+    @Test
+    fun reduce_ShouldResync_WhenConfigurationChangedMovesLobbyToReady() {
+        assertEquals(Reduction.Resync, reduce(envelope(RealtimeProtocol.MessageTypes.CONFIGURATION_CHANGED, slice("Ready"))))
+    }
+
+    private fun slice(status: String) = """{"id":"g1","gameCode":"4291","ownerUserId":"owner","status":"$status",
+        "configuration":{"gameDuration":60,"hunterDelayTime":3,"finalStageDuration":5,
+          "defaultLocationInterval":120,"finalLocationInterval":60,
+          "enablePreyBoundaryPenalties":false,"enableHunterBoundaryPenalty":false},
+        "hunterUserId":"me","preys":["owner"],"outcome":"None"}"""
 
     // ---- game end ----
 
@@ -122,6 +136,35 @@ class GameStateReducerTest {
 
         assertEquals(GpsCoordinateDto(52.1, 5.1), participants[0].lastKnownLocation)
         assertEquals(state.game.participants[1], participants[1])
+    }
+
+    @Test
+    fun reduce_ShouldKeepSnapshotPenaltyEnd_WhenLocationsUpdate() {
+        val penalized = state.copy(
+            game = state.game.copy(
+                participants = listOf(
+                    state.game.participants[0],
+                    state.game.participants[1].copy(hasActivePenalty = true, penaltyEndsAt = "2026-08-31T11:44:00+00:00"),
+                ),
+            ),
+        )
+        val data = """{"locations":[{"userId":"me","role":"Prey","latitude":52.2,"longitude":5.2,"state":"Active"}]}"""
+
+        val mine = reducer.reduce(penalized, null, me, envelope(RealtimeProtocol.MessageTypes.LOCATIONS_UPDATED, data))
+            .applied().state.game.participants[1]
+
+        assertTrue(mine.hasActivePenalty)
+        assertEquals("2026-08-31T11:44:00+00:00", mine.penaltyEndsAt)
+    }
+
+    @Test
+    fun reduce_ShouldAdoptPenaltyEnd_WhenParticipantChangedCarriesIt() {
+        val data = """{"userId":"me","displayName":"Me","isReady":true,"state":"Active","lastKnownLocation":null,
+            "hasActivePenalty":true,"penaltyEndsAt":"2026-08-31T11:44:00+00:00"}"""
+
+        val mine = reduce(envelope(RealtimeProtocol.MessageTypes.PARTICIPANT_CHANGED, data)).applied().state.game.participants[1]
+
+        assertEquals("2026-08-31T11:44:00+00:00", mine.penaltyEndsAt)
     }
 
     @Test

@@ -227,6 +227,27 @@ class GameViewModelTest {
     }
 
     @Test
+    fun uiState_ShouldShowStartDelay_WhenStartedGameIsPromoted() = runTest {
+        val started = snapshot.copy(game = snapshot.game.copy(status = GameStatuses.STARTED), status = null)
+        sessions.state.value = GameSession.Live(started, lastSeq = null, connection = ConnectionState.Connected)
+        val sut = viewModel()
+        assertEquals(GamePhase.Starting, sut.ready().game.phase)
+        assertNull(sut.ready().delay)
+
+        now = 30_000
+        sessions.state.value = GameSession.Live(
+            snapshot.copy(serverTime = "2026-08-31T11:40:30+00:00"),
+            lastSeq = null,
+            connection = ConnectionState.Connected,
+        )
+
+        assertEquals(GamePhase.Playing, sut.ready().game.phase)
+        val delay = sut.ready().delay!!
+        assertEquals(170_000L, delay.remainingMillis)
+        assertEquals(30_000L, delay.seededAtElapsed)
+    }
+
+    @Test
     fun uiState_ShouldRecordPingTime_WhenALocationsBatchIsApplied() = runTest {
         val sut = viewModel()
         assertNull(sut.ready().lastPingAtElapsed)

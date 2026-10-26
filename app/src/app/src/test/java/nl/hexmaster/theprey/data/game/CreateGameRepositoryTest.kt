@@ -53,7 +53,7 @@ class CreateGameRepositoryTest {
     }
 
     @Test
-    fun createGame_ShouldSendIntervalsInSecondsAndPenaltiesOff_WhenCreating() = runTest {
+    fun createGame_ShouldSendIntervalsInSecondsAndPenaltiesOn_WhenCreating() = runTest {
         val api = FakeGamesApi { Response.success(201, created) }
 
         ApiGameRepository(api).createGame(newGame)
@@ -67,8 +67,8 @@ class CreateGameRepositoryTest {
                 finalStageDuration = 10,
                 defaultLocationInterval = 180,
                 finalLocationInterval = 60,
-                enablePreyBoundaryPenalties = false,
-                enableHunterBoundaryPenalty = false,
+                enablePreyBoundaryPenalties = true,
+                enableHunterBoundaryPenalty = true,
             ),
             api.requests.single(),
         )

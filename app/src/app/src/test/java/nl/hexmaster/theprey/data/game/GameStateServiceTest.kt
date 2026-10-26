@@ -154,6 +154,76 @@ class GameStateServiceTest {
         assertEquals(before + 2, games.snapshots)
     }
 
+    private val startedState = FullGameStateDto(game.copy(status = GameStatuses.STARTED), "2026-08-31T11:40:00+00:00")
+    private val inProgressState = FullGameStateDto(
+        game.copy(status = GameStatuses.IN_PROGRESS),
+        "2026-08-31T11:40:30+00:00",
+        status = GameStatusDto(gameDurationLeft = 1_800, hunterMayMoveAt = "2026-08-31T11:45:27+00:00"),
+    )
+
+    private fun configurationChanged(seq: Long, status: String) = envelope(
+        RealtimeProtocol.MessageTypes.CONFIGURATION_CHANGED,
+        seq,
+        """{"id":"g1","status":"$status","configuration":{"gameDuration":30},"ownerUserId":"owner"}""",
+    )
+
+    @Test
+    fun session_ShouldLoadSnapshot_WhenConfigurationChangedPromotesGame() = runTest {
+        games.snapshot = { SnapshotResult.Ok(startedState) }
+        val sut = service()
+        val (seen, _) = observe(sut)
+        connection.emit(RealtimeEvent.Joined)
+        val before = games.snapshots
+        games.snapshot = { SnapshotResult.Ok(inProgressState) }
+
+        connection.emit(RealtimeEvent.Message(configurationChanged(1, GameStatuses.IN_PROGRESS)))
+
+        val live = seen.last() as GameSession.Live
+        assertEquals(before + 1, games.snapshots)
+        assertEquals(GameStatuses.IN_PROGRESS, live.snapshot.game.status)
+        assertEquals("2026-08-31T11:45:27+00:00", live.snapshot.status?.hunterMayMoveAt)
+        assertEquals(null, live.lastSeq)
+    }
+
+    @Test
+    fun session_ShouldResyncWithinShortInterval_WhenGameIsStarted() = runTest {
+        games.snapshot = { SnapshotResult.Ok(startedState) }
+        val sut = service()
+        val (seen, _) = observe(sut)
+        connection.emit(RealtimeEvent.Joined)
+        val before = games.snapshots
+        games.snapshot = { SnapshotResult.Ok(inProgressState) }
+
+        advanceTimeBy(GameStateService.STARTING_RESYNC_INTERVAL_MS - 1)
+        runCurrent()
+        assertEquals(before, games.snapshots)
+
+        advanceTimeBy(2)
+        runCurrent()
+        assertEquals(before + 1, games.snapshots)
+        assertEquals(GameStatuses.IN_PROGRESS, (seen.last() as GameSession.Live).snapshot.game.status)
+    }
+
+    @Test
+    fun session_ShouldUseThreeMinuteInterval_WhenGameIsInProgress() = runTest {
+        games.snapshot = { SnapshotResult.Ok(startedState) }
+        val sut = service()
+        observe(sut)
+        connection.emit(RealtimeEvent.Joined)
+        games.snapshot = { SnapshotResult.Ok(inProgressState) }
+        advanceTimeBy(GameStateService.STARTING_RESYNC_INTERVAL_MS)
+        runCurrent()
+        val before = games.snapshots
+
+        advanceTimeBy(GameStateService.RESYNC_INTERVAL_MS - 1)
+        runCurrent()
+        assertEquals(before, games.snapshots)
+
+        advanceTimeBy(2)
+        runCurrent()
+        assertEquals(before + 1, games.snapshots)
+    }
+
     @Test
     fun session_ShouldReconnectWithBackoffAndResync_WhenSocketDrops() = runTest {
         val sut = service()

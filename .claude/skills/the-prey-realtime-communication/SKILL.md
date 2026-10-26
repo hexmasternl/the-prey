@@ -68,7 +68,7 @@ Both buses produce identical envelopes; `ILobbyEventBus` is used by lobby-phase 
 1. **Snapshot on start**: exactly one `GET /games/{id}/gamestate`. Never compose `/games/{id}` + `/status` + `/state`.
 2. **One socket**: `WebPubSubClient` fetches a fresh token URL on every attempt, opens it with subprotocol `json.webpubsub.azure.v1`, sends `joinGroup` (`ackId` 1); an ack error `Duplicate` also counts as joined.
 3. **Sequencing**: after every snapshot `lastSeq` is `null`; the first message sets the baseline. After that any `seq != lastSeq + 1` (gap, repeat or regression) → `Reduction.Resync`. The server never replays — resync is the only heal.
-4. **Resync** (full snapshot) on: every 3 minutes (`RESYNC_INTERVAL_MS`), every (re)join, a seq gap/regression, `resync-requested`, an unsupported `v`, or a payload that does not decode for its type.
+4. **Resync** (full snapshot) on: every 3 minutes (`RESYNC_INTERVAL_MS`; every 10 s, `STARTING_RESYNC_INTERVAL_MS`, while the game is `Started`), every (re)join, a `configuration-changed` whose status differs from the local one (it cannot carry the in-progress `status`, `roleState` or `serverTime`), a seq gap/regression, `resync-requested`, an unsupported `v`, or a payload that does not decode for its type.
 5. **Unknown `type`** under the same `v` is skipped but advances `seq` (forward compatible). **Another `gameId`** is ignored.
 6. **Reconnect** with backoff 1 s → 2 s → … → 30 s (`backoffMillis`), reset by a successful join. A `403`/`404` on the token or snapshot is terminal: `GameSession.Gone(Removed)`, no reconnect.
 7. **Own commands**: apply the HTTP response with `replaceGame(gameId, game)`; after a `204` tag, call `resync(gameId)`. Do not wait for the broadcast.
