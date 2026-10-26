@@ -24,6 +24,16 @@ When ready to implement, run /opsx:apply
 
 **Steps**
 
+0. **Put the repo root on `development`** (git workflow, see the `the-prey-git-workflow` skill)
+
+   Proposals are committed directly to `development` in the repo root, never on `main` and never in a feature worktree.
+   ```bash
+   git fetch origin
+   git switch development    # if it doesn't exist: track origin/development, or create it from origin/main and push it
+   git pull --ff-only
+   ```
+   If the working tree has uncommitted changes that are not yours, stop and ask the user instead of stashing or discarding them.
+
 1. **If no clear input provided, ask what they want to build**
 
    Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
@@ -84,11 +94,22 @@ When ready to implement, run /opsx:apply
    openspec status --change "<name>"
    ```
 
+6. **Commit and push to `development`**
+
+   Stage only the new change's files and push straight to `development` (no branch, no PR):
+   ```bash
+   git add openspec/changes/<name>/
+   git commit -m "docs(openspec): propose <name>"
+   git push
+   ```
+   End the commit message with the attribution trailer from the session instructions.
+
 **Output**
 
 After completing all artifacts, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions
+- Commit pushed to `development`
 - What's ready: "All artifacts created! Ready for implementation."
 - Prompt: "Run `/opsx:apply` or ask me to implement to start working on the tasks."
 
@@ -108,3 +129,4 @@ After completing all artifacts, summarize:
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, ask if user wants to continue it or create a new one
 - Verify each artifact file exists after writing before proceeding to next
+- Never commit or push to `main`; proposals go to `development` in the repo root and are pushed automatically

@@ -11,6 +11,17 @@ Archive a completed change in the experimental workflow.
 
 **Steps**
 
+0. **Put the repo root on `development`** (git workflow, see the `the-prey-git-workflow` skill)
+
+   Archives are committed directly to `development` in the repo root, never on `main` and never in a feature/run worktree. If you are in a worktree, switch to the repo root (the first entry of `git worktree list`).
+   ```bash
+   git fetch origin
+   git switch development && git pull --ff-only
+   ```
+   If the working tree has uncommitted changes that are not yours, stop and ask the user.
+
+   **Once the change is selected (step 1), check its implementation is merged.** The change's code must already be in `development` through its feature or run PR. Signs that it isn't: `tasks.md` on `development` still has unchecked tasks, `gh pr list --base development --state open --search "<name>"` returns a PR, or `git branch -r --no-merged origin/development` lists `origin/features/<name>`. If it isn't merged, tell the user and ask before archiving.
+
 1. **If no change name provided, prompt for selection**
 
    Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
@@ -78,6 +89,18 @@ Archive a completed change in the experimental workflow.
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
 
+5a. **Commit and push to `development`**
+
+   Stage the archived change and any synced specs, then push straight to `development` (no branch, no PR):
+   ```bash
+   git add openspec/
+   git commit -m "docs(openspec): archive <name>"
+   git push
+   ```
+   End the commit message with the attribution trailer from the session instructions. Check `git status` shows nothing outside `openspec/` staged.
+
+   Then, if the change's PR is merged and its worktree is clean, remove the worktree and branch (see the `the-prey-git-workflow` skill, *Cleanup*); ask first if it has uncommitted or unpushed work.
+
 6. **Display summary**
 
    Show archive completion summary including:
@@ -95,6 +118,7 @@ Archive a completed change in the experimental workflow.
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Committed:** pushed to `development`
 **Specs:** ✓ Synced to main specs
 
 All artifacts complete. All tasks complete.
@@ -108,6 +132,7 @@ All artifacts complete. All tasks complete.
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Committed:** pushed to `development`
 **Specs:** No delta specs
 
 All artifacts complete. All tasks complete.
@@ -121,6 +146,7 @@ All artifacts complete. All tasks complete.
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Committed:** pushed to `development`
 **Specs:** Sync skipped (user chose to skip)
 
 **Warnings:**
@@ -155,3 +181,5 @@ Target archive directory already exists.
 - Show clear summary of what happened
 - If sync is requested, use the Skill tool to invoke `openspec-sync-specs` (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
+- Never commit or push to `main`; archives go to `development` in the repo root and are pushed automatically
+- Don't archive a change whose implementation isn't merged into `development` without the user's confirmation
