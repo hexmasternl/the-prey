@@ -25,10 +25,6 @@ concurrency:
   group: android-release-${{ github.ref }}
   cancel-in-progress: false # never cancel a half-finished upload
 
-env:
-  # Lifts versionCode above a legacy code already in Play; see CLAUDE.md "App releases".
-  VERSION_CODE_OFFSET: "0"
-
 jobs:
   version:
     name: Version
@@ -84,6 +80,9 @@ jobs:
           MAJOR: ${{ needs.version.outputs.major }}
           MINOR: ${{ needs.version.outputs.minor }}
           PATCH: ${{ needs.version.outputs.patch }}
+          # Repository variable, shared with android-promote.yml so both compute the same code.
+          # Lifts versionCode above a legacy code already in Play; see CLAUDE.md "App releases".
+          VERSION_CODE_OFFSET: ${{ vars.VERSION_CODE_OFFSET || '0' }}
         run: |
           if [ -z "$SEMVER" ]; then
             echo "::error::GitVersion produced an empty semVer; refusing to ship the fallback version."

@@ -9,14 +9,14 @@
 ## 2. Disclosure UI and permission wiring
 
 - [x] 2.1 Add the English disclosure strings (title, body covering every statement in the spec's *Disclosure content* requirement, Continue, Not now, privacy link, settings-variant title/body/button) to `res/values/strings.xml` and the Dutch translations to `res/values-nl/strings.xml`, following the `the-prey-multilingual` skill; verify `./gradlew lintDebug` reports no missing translations
-- [ ] 2.2 Build the `LocationDisclosureDialog` composable (non-dismissible `Dialog`, design-system styling via `the-prey-design-system` skill, both variants, privacy link to theprey.nl/privacy or /nl/privacy by locale) with `@Preview`s for both variants; verify the previews render in Android Studio _(code done; device check pending)_
+- [ ] 2.2 Build the `LocationDisclosureDialog` composable (non-dismissible `Dialog`, design-system styling via `the-prey-design-system` skill, both variants, privacy link to theprey.nl/privacy or /nl/privacy by locale) with `@Preview`s for both variants; verify the previews render in Android Studio _(code done; device check pending)_ — **auto: needs human:** needs a real device or emulator
 - [x] 2.3 Build `LocationConsentHost`: checks permission on start and every `ON_RESUME`, runs the `RequestMultiplePermissions` launcher for fine + coarse, then `POST_NOTIFICATIONS` on API 33+, opens app settings for the `OpenSettings` effect, and provides `requireLocation` plus the granted state through a `CompositionLocal`; verify `./gradlew assembleDebug` succeeds
 - [x] 2.4 Add `POST_NOTIFICATIONS` to `AndroidManifest.xml` and verify it appears in the merged manifest of `assembleDebug`
 
 ## 3. Integration with navigation and main menu
 
 - [x] 3.1 Wrap the signed-in content in `ThePreyNavHost` with `LocationConsentHost` so the disclosure only appears for `SessionState.SignedIn`; verify the existing `routeFor` tests still pass with `./gradlew testDebugUnitTest`
-- [ ] 3.2 Make `MainMenuScreen` feed the host's granted state into `MainMenuViewModel.onLocationPermissionResult` instead of checking or requesting permission itself; verify on a device that the readout shows "No signal" until permission is granted and the position right after granting _(code done; device check pending)_
+- [ ] 3.2 Make `MainMenuScreen` feed the host's granted state into `MainMenuViewModel.onLocationPermissionResult` instead of checking or requesting permission itself; verify on a device that the readout shows "No signal" until permission is granted and the position right after granting _(code done; device check pending)_ — **auto: needs human:** needs a real device or emulator
 
 ## 4. Website and store texts
 
@@ -25,5 +25,5 @@
 
 ## 5. End-to-end verification
 
-- [ ] 5.1 On an Android 13+ device or emulator, walk every scenario in `specs/location-tracking-consent/spec.md` (fresh install, Back/outside tap, Continue + allow, Not now then restart, deny twice then settings, revoke in settings then resume, sign out/in, reinstall), in English and Dutch; verify each outcome matches the spec _(code done; device check pending)_
-- [ ] 5.2 Repeat the fresh-install and Continue scenarios on an Android 12 (API 31/32) emulator and verify no notification prompt appears and the approximate-only grant shows the settings variant _(code done; device check pending)_
+- [ ] 5.1 On an Android 13+ device or emulator, walk every scenario in `specs/location-tracking-consent/spec.md` (fresh install, Back/outside tap, Continue + allow, Not now then restart, deny twice then settings, revoke in settings then resume, sign out/in, reinstall), in English and Dutch; verify each outcome matches the spec _(code done; device check pending)_ — **auto: needs human:** needs a real device or emulator
+- [ ] 5.2 Repeat the fresh-install and Continue scenarios on an Android 12 (API 31/32) emulator and verify no notification prompt appears and the approximate-only grant shows the settings variant _(code done; device check pending)_ — **auto: needs human:** needs a real device or emulator

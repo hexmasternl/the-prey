@@ -1,8 +1,8 @@
 @description('Name of the existing App Configuration store (provisioned by the landing zone) to write Games settings into')
 param appConfigName string
 
-@description('Minimum supported client app version for the Games version gate. Clients below this receive a 409 from POST /games/version-checker and are told to update.')
-param minimumAppVersion string = '1.0.14'
+@description('Minimum supported client app version for the Games version gate. Clients below this receive a 409 from POST /games/version-checker and are told to update. Written by the android-promote.yml workflow on a required promotion (or by an operator); the Games infrastructure deployment no longer writes it.')
+param minimumAppVersion string
 
 // Existing shared App Configuration store provisioned by the landing zone. Referenced (never
 // re-created) so this module only adds the Games key-values to it.

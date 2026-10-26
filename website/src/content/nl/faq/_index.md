@@ -59,3 +59,7 @@ De Prooi. Is er nog minstens één prooi in het spel als de timer nul bereikt, d
 {{< qa q="Kan de Spelmaker ook meespelen?" >}}
 Ja. In de lobby kan de Spelmaker zichzelf Jager maken of Prooi blijven. Verlaat de Spelmaker de lobby, dan wordt het spel voor iedereen geannuleerd.
 {{< /qa >}}
+
+{{< qa q="Waarom zegt de app \"Update nodig\"?" >}}
+Je versie van de app wordt niet meer ondersteund. Tik op **Updaten** om The Prey in Google Play te openen en installeer de nieuwste versie. Zit je in een lobby of een lopend spel, dan speel je dat eerst uit: de melding verschijnt zodra je het verlaat.
+{{< /qa >}}

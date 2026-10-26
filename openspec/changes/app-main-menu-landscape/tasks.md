@@ -9,6 +9,6 @@
 
 ## 2. Previews and checks
 
-- [ ] 2.1 Add landscape previews (`widthDp = 800, heightDp = 360`): Play now, blocked play with its notice (scrolls), and a Dutch (`locale = "nl"`) variant; verify that they render in Android Studio _(previews added, compile and lint green; render check in Android Studio pending)_
+- [ ] 2.1 Add landscape previews (`widthDp = 800, heightDp = 360`): Play now, blocked play with its notice (scrolls), and a Dutch (`locale = "nl"`) variant; verify that they render in Android Studio _(previews added, compile and lint green; render check in Android Studio pending)_ — **auto: needs human:** visual check of the preview in Android Studio
 - [x] 2.2 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and verify that both pass
-- [ ] 2.3 On a device or emulator, rotate the main menu both ways (also during sign-out and with a play notice shown); verify the spec scenarios: columns, centred name, scrolling, and state kept _(device check pending)_
+- [ ] 2.3 On a device or emulator, rotate the main menu both ways (also during sign-out and with a play notice shown); verify the spec scenarios: columns, centred name, scrolling, and state kept _(device check pending)_ — **auto: needs human:** needs a real device or emulator

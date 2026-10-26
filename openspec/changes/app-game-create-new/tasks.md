@@ -35,7 +35,7 @@
 ## 4. Screen, navigation and strings
 
 - [x] 4.1 Add all `game_create_*` strings, the `game_create_minutes` plurals and `lobby_title` to `values/strings.xml` and `values-nl/strings.xml`, following the `the-prey-multilingual` skill. Verify that `./gradlew lintDebug` reports no missing translations.
-- [ ] 4.2 Build `CreateGameScreen`: _(code and previews done; preview render check in Android Studio pending)_
+- [ ] 4.2 Build `CreateGameScreen`: _(code and previews done; preview render check in Android Studio pending)_ — **auto: needs human:** visual check of the preview in Android Studio
   - top bar with back, the playfield card, five labelled `SingleChoiceSegmentedButtonRow`s with disabled options from `isEnabled`;
   - bottom bar with the inline error + Retry and a `PrimaryButton` with `busy`;
   - colours via `MaterialTheme.colorScheme` per the `the-prey-design-system` skill.
@@ -46,7 +46,7 @@
 
 ## 5. Integration check
 
-- [ ] 5.1 On a device or emulator against the backend, run `./gradlew lintDebug testDebugUnitTest assembleDebug` and check each of the following:
+- [ ] 5.1 On a device or emulator against the backend, run `./gradlew lintDebug testDebugUnitTest assembleDebug` and check each of the following: — **auto: needs human:** needs a real device or emulator
   - Play now opens the picker, and Cancel returns to the main menu;
   - selecting a playfield shows its name with the defaults selected;
   - with ping 2, final ping 3 is disabled and a selected 3 drops to 2;

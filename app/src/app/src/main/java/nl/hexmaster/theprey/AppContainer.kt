@@ -41,6 +41,8 @@ import nl.hexmaster.theprey.data.sensors.HeadingSource
 import nl.hexmaster.theprey.data.user.DataStoreProfileStore
 import nl.hexmaster.theprey.data.user.ProfileStore
 import nl.hexmaster.theprey.data.user.UserApi
+import nl.hexmaster.theprey.data.version.AppVersionGate
+import nl.hexmaster.theprey.data.version.VersionApi
 import nl.hexmaster.theprey.tracking.DataStoreTrackingSessionStore
 import nl.hexmaster.theprey.tracking.LocationTrackingService
 import nl.hexmaster.theprey.tracking.TrackingController
@@ -122,6 +124,15 @@ class AppContainer(context: Context) {
 
     /** The signed-in player's games; shared by the main menu and the in-game location tracking. */
     val gameRepository: GameRepository = ApiGameRepository(gamesApi)
+
+    /** Whether this version may still be used; the update screen follows its state. */
+    val appVersionGate = AppVersionGate(
+        api = retrofit.create(VersionApi::class.java),
+        currentVersion = BuildConfig.VERSION_NAME,
+        debug = BuildConfig.DEBUG,
+        session = sessionManager.state,
+        games = gameRepository,
+    )
 
     /** The signed-in player's playfields: list own, search public, load, save, delete. */
     val playFieldRepository: PlayFieldRepository =
