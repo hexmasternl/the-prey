@@ -4,7 +4,7 @@
 
 - [x] 1.1 In `server/src/Games/HexMaster.ThePrey.Games/GameEngine/GameSweepProcessor.cs`, remove the `EnableHunterBoundaryPenalty` / `EnablePreyBoundaryPenalties` gate in `ApplyBoundaryPenaltiesAsync` so every participant is checked. Keep the <3-point polygon early return. Verify by building the Games module.
 - [x] 1.2 In `GameSweepProcessorTests`, replace `ProcessAsync_ShouldNotPenalize_WhenBoundaryPenaltiesDisabled` with `ProcessAsync_ShouldPenalizePrey_WhenOutsideBoundaryAndPenaltiesDisabledInConfiguration` and add `ProcessAsync_ShouldPenalizeHunter_WhenOutsideBoundaryAndPenaltiesDisabledInConfiguration`. Both assert a 5-minute penalty and a `prey-updated` `penalized` / `left-playfield` event. Keep the no-stacking, expired-then-outside and Tagged/Out cases green. Verify with `dotnet test server/src/Games/HexMaster.ThePrey.Games.Tests/`.
-- [ ] 1.3 Add XML doc remarks to `GameConfiguration.EnablePreyBoundaryPenalties` / `EnableHunterBoundaryPenalty`, `GameConfigurationDto`, and the two request records in `Requests.cs`: the value is accepted and ignored, and boundary penalties always apply. Verify that the build has no new warnings.
+- [x] 1.3 Add XML doc remarks to `GameConfiguration.EnablePreyBoundaryPenalties` / `EnableHunterBoundaryPenalty`, `GameConfigurationDto`, and the two request records in `Requests.cs`: the value is accepted and ignored, and boundary penalties always apply. Verify that the build has no new warnings.
 
 ## 2. Server: report flags as enabled and expose the penalty end time
 

@@ -2,7 +2,9 @@ namespace HexMaster.ThePrey.Games.Abstractions.DataTransferObjects;
 
 /// <summary>
 /// Create a game. The owner is taken from the authenticated caller and joins the lobby as its
-/// first player under <paramref name="DisplayName"/>.
+/// first player under <paramref name="DisplayName"/>. <paramref name="EnablePreyBoundaryPenalties"/>
+/// and <paramref name="EnableHunterBoundaryPenalty"/> are accepted for older apps and ignored: boundary
+/// penalties always apply.
 /// </summary>
 public sealed record CreateGameRequest(
     Guid PlayfieldId,
@@ -32,7 +34,9 @@ public sealed record RecordLocationRequest(
     DateTimeOffset? RecordedAt = null,
     double? Accuracy = null);
 
-/// <summary>Update game configuration settings. Only the game owner may call this.</summary>
+/// <summary>Update game configuration settings. Only the game owner may call this.
+/// <paramref name="EnablePreyBoundaryPenalties"/> and <paramref name="EnableHunterBoundaryPenalty"/> are accepted
+/// for older apps and ignored: boundary penalties always apply.</summary>
 public sealed record UpdateGameSettingsRequest(
     int GameDuration,
     int HunterDelayTime,
