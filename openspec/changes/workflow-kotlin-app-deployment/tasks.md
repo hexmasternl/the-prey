@@ -11,12 +11,12 @@
 
 ## 3. Workflow skeleton and verification
 
-- [x] 3.1 Add `.github/workflows/android-release.yml` with `push`/`pull_request` on `main` for `app/src/**` + the workflow file, `workflow_dispatch` without inputs, concurrency `android-release-${{ github.ref }}` without cancel, `permissions: contents: read`, `env: VERSION_CODE_OFFSET: "0"`, and the `version` job using `version.yml`; verify with `actionlint`
+- [x] 3.1 Add `.github/workflows/android-release.yml` with `push`/`pull_request` on `main` for `app/src/**` + the workflow file, `workflow_dispatch` without inputs, concurrency `android-release-${{ github.ref }}` without cancel, `permissions: contents: read`, `VERSION_CODE_OFFSET` from the repository variable `vars.VERSION_CODE_OFFSET` (default `0`), and the `version` job using `version.yml`; verify with `actionlint`
 - [x] 3.2 Add the `verify` job: JDK 17 temurin, `gradle/actions/setup-gradle`, `./gradlew lintDebug testDebugUnitTest` in `app/src`, upload lint/test reports on failure; verify the same command passes locally from `app/src`
 
 ## 4. Versioned, signed bundle
 
-- [x] 4.1 Add the `publish` job (`needs: [version, verify]`, only on non-PR runs of `refs/heads/main`, `permissions: contents: write, actions: read`) with a version step that fails on empty `semVer` or non-empty `preReleaseTag`, computes `versionCode = major*1000000 + minor*1000 + patch + VERSION_CODE_OFFSET` and writes both to the step summary; verify the arithmetic in a shell: `1.1.8` → `1001008`, `1.1.120` > `1.1.99`, `1.2.0` > `1.1.120`
+- [x] 4.1 Add the `publish` job (`needs: [version, verify]`, only on non-PR runs of `refs/heads/main`, `permissions: contents: write, actions: read`) with a version step that fails on empty `semVer` or non-empty `preReleaseTag`, computes `versionCode = major*1000000 + minor*1000 + patch + vars.VERSION_CODE_OFFSET` and writes both to the step summary; verify the arithmetic in a shell: `1.1.8` → `1001008`, `1.1.120` > `1.1.99`, `1.2.0` > `1.1.120`
 - [x] 4.2 Add the signing steps: fail when any of `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS` is empty, decode the keystore to `$RUNNER_TEMP`, write `app/src/key.properties` (absolute `storeFile`), all secrets via `env:`; verify by reading the workflow that no `${{ secrets.* }}` appears inside a `run:` block
 - [x] 4.3 Run `./gradlew bundleRelease` with `ORG_GRADLE_PROJECT_versionCode`/`_versionName` and upload `app/build/outputs/bundle/release/app-release.aab` as an artifact (3-day retention, `if-no-files-found: error`); verify locally with a throwaway keystore that `bundletool dump manifest` shows the passed `versionCode`/`versionName`
 
@@ -33,9 +33,9 @@
 
 ## 7. Documentation
 
-- [x] 7.1 Add an "App releases" section to `CLAUDE.md` (Android App part): workflow path, internal-track-only, `versionCode` formula + `VERSION_CODE_OFFSET`, Copilot bilingual notes + fallback, required secrets incl. `COPILOT_GITHUB_TOKEN`; update the `Versioning` bullet to point at it; verify the section names the same file paths and secret names as the workflow
+- [x] 7.1 Add an "App releases" section to `CLAUDE.md` (Android App part): workflow path, internal-track-only, `versionCode` formula + `vars.VERSION_CODE_OFFSET`, Copilot bilingual notes + fallback, required secrets incl. `COPILOT_GITHUB_TOKEN`; update the `Versioning` bullet to point at it; verify the section names the same file paths and secret names as the workflow
 
 ## 8. Integration
 
-- [ ] 8.1 Configure the secrets and Play Console (service account release rights, internal testers list), read the highest `versionCode` in Play and set `VERSION_CODE_OFFSET` if needed; open a PR with the workflow and confirm only `version` and `verify` run — **auto: needs human:** GitHub secrets, Play Console rights and the live versionCode need the account owner, and opening a PR is out of scope here
+- [ ] 8.1 Configure the secrets and Play Console (service account release rights, internal testers list), read the highest `versionCode` in Play and set `vars.VERSION_CODE_OFFSET` if needed; open a PR with the workflow and confirm only `version` and `verify` run — **auto: needs human:** GitHub secrets, Play Console rights and the live versionCode need the account owner, and opening a PR is out of scope here
 - [ ] 8.2 After merge, run the workflow via `workflow_dispatch` on `main` and confirm: the bundle is on the internal testing track with the expected `versionName`/`versionCode`, the English and Dutch "What's new" texts are shown in the Play Console, and the GitHub release `v<semVer>` exists with both languages in its body (or was left as is because a backend run created it) — **auto: needs human:** needs a merge to `main` and a real publish to Google Play

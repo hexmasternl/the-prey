@@ -33,7 +33,7 @@
 Splitting notes or release into their own jobs was rejected: they need the same commit range and the AAB/notes files, and the release must follow the upload in the same run without extra artifact hand-offs.
 
 ### 2. Version guard and versionCode
-`versionName = needs.version.outputs.semVer`; the step fails with `::error::` when it is empty or `preReleaseTag` is non-empty (protects the numeric version gate, and blocks manual runs from a feature branch even though the job is limited to `main`). `versionCode = major*1_000_000 + minor*1_000 + patch + VERSION_CODE_OFFSET` (workflow `env`, default `0`), as decided in `workflow-centralized-versioning`. Both go to the step summary. `run_number` was rejected for the same reasons as there.
+`versionName = needs.version.outputs.semVer`; the step fails with `::error::` when it is empty or `preReleaseTag` is non-empty (protects the numeric version gate, and blocks manual runs from a feature branch even though the job is limited to `main`). `versionCode = major*1_000_000 + minor*1_000 + patch + VERSION_CODE_OFFSET` (repository variable `vars.VERSION_CODE_OFFSET`, default `0` when unset, shared with `android-promote.yml` from `app-demand-updates`), as decided in `workflow-centralized-versioning`. Both go to the step summary. `run_number` was rejected for the same reasons as there.
 
 ### 3. Private release = internal testing track, `status: completed`
 `r0adkll/upload-google-play@v1` with `packageName: nl.hexmaster.theprey`, `track: internal`, `status: completed`, `whatsNewDirectory` pointing at the generated notes. Internal testing is the Play track restricted to an invited testers list, available within minutes and without review — the "private release". `status: draft` was rejected: a draft never reaches testers and needs a manual click every time. A `track` input was rejected: the user wants private releases only; promotion is a Play Console action on an existing release, not a new build.
@@ -58,7 +58,7 @@ That change keeps its sections 1–3 (version.yml comment, create-release action
 
 ## Risks / Trade-offs
 
-- [Play already holds a `versionCode` above the formula, from the Ionic era's `run_number` codes] → Read the highest code in the Play Console before the first run and set `VERSION_CODE_OFFSET`; the guard step logs the code that will be used.
+- [Play already holds a `versionCode` above the formula, from the Ionic era's `run_number` codes] → Read the highest code in the Play Console before the first run and set `vars.VERSION_CODE_OFFSET`; the guard step logs the code that will be used.
 - [Upload key in `KEYSTORE_BASE64` is not the key Play App Signing expects] → Upload fails, nothing is released; replace the secret or reset the upload key in the Play Console.
 - [Copilot CLI flags or auth change between versions] → The CLI version is pinned; the fallback notes keep releases flowing; the warning makes the breakage visible.
 - [Copilot hallucinates features or writes poor Dutch] → It only sees commit messages, is told not to invent anything, and the release goes to internal testers first, where the notes can be corrected in the Play Console before promotion.
@@ -68,11 +68,11 @@ That change keeps its sections 1–3 (version.yml comment, create-release action
 ## Migration Plan
 
 1. Narrow `workflow-centralized-versioning` (decision 7) and add the `notes-file` input to its create-release action.
-2. Configure secrets and Play Console (service account with release rights on the app, internal testers list); set `VERSION_CODE_OFFSET` if needed.
+2. Configure secrets and Play Console (service account with release rights on the app, internal testers list); set the repository variable `vars.VERSION_CODE_OFFSET` if needed.
 3. Merge the workflow through a pull request — the PR run proves `verify` only.
 4. First publish via `workflow_dispatch` on `main`; confirm the internal release, both "What's new" texts and the GitHub release.
 5. Rollback: delete or disable the workflow; Play releases already on the internal track can be halted in the Play Console.
 
 ## Open Questions
 
-- Highest `versionCode` currently in the Play Console for `nl.hexmaster.theprey` — sets `VERSION_CODE_OFFSET`, not the design.
+- Highest `versionCode` currently in the Play Console for `nl.hexmaster.theprey` — sets `vars.VERSION_CODE_OFFSET`, not the design.
