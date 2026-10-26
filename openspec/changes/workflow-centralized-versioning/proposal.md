@@ -9,7 +9,7 @@ The four backend workflows (`games.yml`, `notifications.yml`, `playfields.yml`, 
 - Keep `.github/workflows/version.yml` as the **single** place where GitVersion runs and derives the version from the repo state (`GitVersion.yml`). Every workflow that needs a version calls it; no workflow runs GitVersion itself.
 - Add one reusable composite action, `.github/actions/create-release/action.yml`, that takes a version number as input, checks whether a GitHub release for that version already exists, and creates the tag + release only when it does not. It is idempotent and safe under concurrent runs.
 - Replace the inline "Create tag and GitHub release" script in `games.yml`, `notifications.yml`, `playfields.yml` and `users.yml` with a call to the new action, after the deploy succeeds.
-- Add `.github/workflows/android-release.yml` for the Kotlin app in `app/src`: version from `version.yml`, signed `bundleRelease` with `versionName`/`versionCode` passed as Gradle properties, publish to Google Play (`nl.hexmaster.theprey`), then call the same create-release action.
+- The Android app release workflow (`.github/workflows/android-release.yml`) is owned by `workflow-kotlin-app-deployment`, not by this change.
 
 ## Capabilities
 
@@ -21,8 +21,6 @@ The four backend workflows (`games.yml`, `notifications.yml`, `playfields.yml`, 
 
 ## Impact
 
-- **Files:** `.github/workflows/{games,notifications,playfields,users}.yml` (release job simplified), `.github/workflows/version.yml` (unchanged contract, documentation only), new `.github/actions/create-release/action.yml`, new `.github/workflows/android-release.yml`.
-- **Secrets (app workflow):** `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS`, `PLAY_SERVICE_ACCOUNT_JSON` must exist in the repo (the first four replace the Ionic-era signing secrets if those are still configured).
+- **Files:** `.github/workflows/{games,notifications,playfields,users}.yml` (release job simplified), `.github/workflows/version.yml` (unchanged contract, documentation only), new `.github/actions/create-release/action.yml`.
 - **Version line:** backend services and the app share one version line (`v<semVer>`). Whichever pipeline finishes first on a commit creates the release; the others no-op.
-- **Play Store:** `versionCode` must stay above the last published code; the new workflow needs an offset so its `run_number` starts above it.
 - No runtime code, API or infrastructure changes.

@@ -16,18 +16,6 @@
 - [x] 3.2 Apply the same change to `notifications.yml`, `playfields.yml` and `users.yml`; verify `grep -n "gh release" .github/workflows/*.yml` returns nothing
 - [ ] 3.3 Verify on a real run: push a change to one backend module on `main` and confirm the Tag & Release job logs the tag and `created=true` (new version) or the skip message (existing version) — **auto: needs human:** needs a real push to `main` and a GitHub Actions run (pushing is out of scope here)
 
-## 4. Android app release workflow
-
-- [ ] 4.1 Add `.github/workflows/android-release.yml` with triggers (`push` to `main` on `app/src/**` + the workflow file, `pull_request` on the same paths, `workflow_dispatch` with a `track` choice defaulting to `internal`), concurrency `android-release-${{ github.ref }}` without cancel, and a `version` job using `version.yml`; verify with `actionlint` — **auto:** owned by `workflow-kotlin-app-deployment` (its task 1.2 removes this task here)
-- [ ] 4.2 Add a `test` job: JDK 17 (temurin), Gradle setup, `./gradlew lintDebug testDebugUnitTest` in `app/src`; verify it passes on the pull request run — **auto:** owned by `workflow-kotlin-app-deployment` (its task 1.2 removes this task here)
-- [ ] 4.3 Add the `build-and-publish` job (skipped for `pull_request`, `contents: write`): fail when `semVer` is empty, compute `versionCode = major*1000000 + minor*1000 + patch + VERSION_CODE_OFFSET`, write both to the step summary; verify the arithmetic in a shell for `1.1.8` → `1001008`, `1.1.120` > `1.1.99`, and `1.2.0` > `1.1.120` — **auto:** owned by `workflow-kotlin-app-deployment` (its task 1.2 removes this task here)
-- [ ] 4.4 In the same job: decode `KEYSTORE_BASE64` into `app/src/app/` and write `app/src/key.properties` from `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS`; run `./gradlew bundleRelease` with `ORG_GRADLE_PROJECT_versionCode`/`_versionName`; upload the AAB as an artifact (3-day retention, `if-no-files-found: error`); verify the artifact's AAB has the expected version (`bundletool dump manifest`) — **auto:** owned by `workflow-kotlin-app-deployment` (its task 1.2 removes this task here)
-- [ ] 4.5 Publish with `r0adkll/upload-google-play@v1` (`packageName: nl.hexmaster.theprey`, `track` from input or `internal`, `status: completed`), then call `./.github/actions/create-release` with the same `semVer` as the last step; verify by reading the workflow that the release step has no `if: always()` and follows the upload — **auto:** owned by `workflow-kotlin-app-deployment` (its task 1.2 removes this task here)
-
 ## 5. Documentation
 
 - [x] 5.1 Add a "Releases & versioning" section to `CLAUDE.md` (version from `version.yml` only, releases via the create-release action only, shared `v<semVer>` line, app `versionCode` formula and required secrets); verify the section names the same file paths as the workflows
-
-## 6. Integration
-
-- [ ] 6.1 Configure the app secrets, check the highest `versionCode` in the Play Console and set `VERSION_CODE_OFFSET` if it exceeds the formula; run `android-release.yml` via `workflow_dispatch` on `internal` and confirm the bundle lands in Play and a release `v<semVer>` exists (or was skipped because a backend run created it) — **auto:** owned by `workflow-kotlin-app-deployment` (its task 1.2 removes this task here)

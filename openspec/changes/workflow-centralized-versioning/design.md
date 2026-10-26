@@ -4,7 +4,7 @@
 
 - `.github/workflows/version.yml` already exists as a reusable workflow (`workflow_call`) that runs GitVersion 6.4 against `GitVersion.yml` and exposes `semVer`, `tag`, `majorMinorPatch`, `major`/`minor`/`patch` and more. All four backend workflows call it as their `version` job.
 - Each backend workflow ends with a `release` job (`needs: [version, deploy]`, `if: github.event_name == 'push'`, `contents: write`) holding the same ~20-line `gh release` script. That script is already idempotent and race-tolerant; it is just copied four times.
-- There is no workflow for `app/src`. The deleted Ionic `android-release.yml` (removed in `f9df432`) showed the shape: keystore from `KEYSTORE_BASE64`, `key.properties`, `ORG_GRADLE_PROJECT_versionCode/_versionName`, `r0adkll/upload-google-play`, `PLAY_SERVICE_ACCOUNT_JSON`.
+- There is no workflow for `app/src`; the app release workflow is planned by `workflow-kotlin-app-deployment`, which reuses this change's create-release action.
 - `app/src/app/build.gradle.kts` reads `versionCode`/`versionName` from Gradle properties (fallback `1` / `0.1.0`) and only signs when `app/src/key.properties` exists.
 - GitVersion is in `ContinuousDeployment` mode with an empty label on `main`, so every commit after the last `v*` tag gets the next patch version; the tag the release step creates is what moves the line forward.
 
@@ -43,29 +43,16 @@ Callers need a checkout (the action is local) and `permissions: contents: write`
 ### 3. Backend workflows: swap the script, keep the job
 The `release` job in `games.yml`, `notifications.yml`, `playfields.yml` and `users.yml` keeps its `needs: [version, deploy]` and `if: github.event_name == 'push'`; its script step becomes `uses: ./.github/actions/create-release` with `version: ${{ needs.version.outputs.semVer }}`. The path filters stay as they are: a change to the action or to `version.yml` alone does not trigger a deploy, same as today.
 
-### 4. New `android-release.yml` for the Kotlin app
-- **Triggers:** `push` to `main` on `app/src/**` and the workflow file; `workflow_dispatch` with a `track` choice (`internal`, `alpha`, `beta`, `production`, default `internal`). No `pull_request` deploy; a `pull_request` trigger runs only `lintDebug testDebugUnitTest`.
-- **Jobs:** `version` (uses `version.yml`) → `test` (`./gradlew lintDebug testDebugUnitTest` in `app/src`) → `build-and-publish` (JDK 17 per `build.gradle.kts`, decode keystore, write `key.properties`, `./gradlew bundleRelease`, upload artifact with 3-day retention, `r0adkll/upload-google-play@v1` with `packageName: nl.hexmaster.theprey`, then the create-release action). The release step is the last step of the publish job so it only runs after a successful upload; the job gets `contents: write`.
-- **Concurrency:** `android-release-${{ github.ref }}`, `cancel-in-progress: false`.
-
-### 5. `versionCode` from the version, not `run_number`
-`versionCode = major * 1_000_000 + minor * 1_000 + patch` (e.g. `1.1.8` → `1001008`), computed in a step from `needs.version.outputs.major/minor/patch`. It is deterministic per version, survives workflow renames and re-runs, and leaves room for 999 patches per minor. Alternative `run_number` resets if the workflow file is re-created and says nothing about the version; it was rejected. Rebuilding the same version yields the same code and Play rejects it, which is the right outcome — the version must move first. A `VERSION_CODE_OFFSET` env (default `0`) is added to the result so the line can be lifted above a legacy code if Play already holds a higher one.
-
 ## Risks / Trade-offs
 
 - [Shared version line: a backend release on commit X tags `v1.1.8`; an app release triggered later on the same commit X gets `1.1.8` too and its release step no-ops] → Intended: the release already marks that commit; the app build carries the same version.
 - [Two pipelines on different commits race for the same semVer (one runs before the other's tag lands)] → The second `gh release create` fails because the tag exists on another commit; the action re-checks, finds the release, and succeeds. The second build ships with the same version number as the first. Accepted; matches today's behaviour.
-- [Play already holds a `versionCode` above `1001008`] → Set `VERSION_CODE_OFFSET`; verified on the first run (see Migration).
-- [Missing signing/Play secrets make the first app run fail] → Fails before upload; no release is created. Secrets listed in proposal Impact.
-- [`r0adkll/upload-google-play` requires the app to have had a manual first upload] → The listing already exists (same application id as the earlier app).
 
 ## Migration Plan
 
 1. Add the composite action and switch the four backend workflows; a push touching one backend module proves the action on a real run (expect `created=true` or `false` depending on the tag state).
-2. Configure the app secrets, check the highest `versionCode` in Play Console and set `VERSION_CODE_OFFSET` if needed.
-3. Add `android-release.yml`; first run via `workflow_dispatch` on the `internal` track.
-4. Rollback: revert the commit; the old inline script is self-contained.
+2. Rollback: revert the commit; the old inline script is self-contained.
 
 ## Open Questions
 
-- What is the highest `versionCode` currently in the Play Console for `nl.hexmaster.theprey`? Determines `VERSION_CODE_OFFSET`; does not change the design.
+- None.
