@@ -156,7 +156,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           BASE=$(gh run list --workflow android-release.yml --branch main --status success \
-            --limit 1 --json headSha --jq '.[0].headSha // empty')
+            --limit 1 --json headSha --jq '.[0].headSha // empty' || true)
           if [ -n "$BASE" ] && git merge-base --is-ancestor "$BASE" HEAD; then
             echo "Release notes cover $BASE..HEAD"
             RANGE=("$BASE..HEAD")
@@ -196,8 +196,8 @@ jobs:
           # Play allows 500 characters per language: cut at the last line break that fits.
           CUT='def cut: if length <= 500 then . else .[0:500] | (if test("\n") then sub("\n[^\n]*\\z"; "") else . end) end;'
           write_notes() {
-            jq -r "$CUT .en | cut" notes.json > whatsnew/whatsnew-en-US
-            jq -r "$CUT .nl | cut" notes.json > whatsnew/whatsnew-nl-NL
+            jq -j "$CUT .en | cut" notes.json > whatsnew/whatsnew-en-US
+            jq -j "$CUT .nl | cut" notes.json > whatsnew/whatsnew-nl-NL
           }
           # Copilot sometimes wraps its answer in a code fence; drop the fence lines.
           if [ -s copilot.out ] \
@@ -215,9 +215,11 @@ jobs:
             echo ""
             cat whatsnew/whatsnew-en-US
             echo ""
+            echo ""
             echo "## Nederlands"
             echo ""
             cat whatsnew/whatsnew-nl-NL
+            echo ""
           } > release-notes.md
           cat release-notes.md
 
