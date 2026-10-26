@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -42,6 +43,8 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -167,6 +170,7 @@ fun SettingsScreen(
             onCallsignChange = viewModel::onCallsignChange,
             onSave = viewModel::onSave,
             onLanguageSelected = viewModel::onLanguageSelected,
+            onKeepScreenOnChange = viewModel::onKeepScreenOnChange,
             onPrivacyPolicy = { uriHandler.openUri(privacyUrl) },
             onGrant = {
                 when (location.step) {
@@ -202,6 +206,7 @@ fun SettingsContent(
     onLanguageSelected: (LanguageChoice) -> Unit,
     onPrivacyPolicy: () -> Unit,
     onGrant: () -> Unit,
+    onKeepScreenOnChange: (Boolean) -> Unit = {},
     onResetHints: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -238,6 +243,7 @@ fun SettingsContent(
             Column(Modifier.widthIn(max = 560.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(32.dp)) {
                 CallsignSection(uiState, onCallsignChange, onSave)
                 LanguageSection(uiState, onLanguageSelected)
+                DisplaySection(uiState.keepScreenOn, onKeepScreenOnChange)
                 LocationSection(location, onPrivacyPolicy, onGrant)
                 HintsSection(onResetHints)
             }
@@ -406,6 +412,48 @@ private fun LanguageSection(uiState: SettingsUiState, onLanguageSelected: (Langu
     }
 }
 
+/** Keeps the display awake on the game screen; the whole row is the toggle target. */
+@Composable
+private fun DisplaySection(keepScreenOn: Boolean, onKeepScreenOnChange: (Boolean) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionTitle(stringResource(R.string.settings_section_display))
+        SectionCard {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .toggleable(value = keepScreenOn, onValueChange = onKeepScreenOnChange, role = Role.Switch),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_keep_screen_on),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(16.dp))
+                Switch(
+                    checked = keepScreenOn,
+                    onCheckedChange = null,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                    ),
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.settings_keep_screen_on_body),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
 /** Brings the one-time tours back: they show again the next time their screen comes up. */
 @Composable
 private fun HintsSection(onResetHints: () -> Unit) {
@@ -566,6 +614,18 @@ private fun SettingsDefaultPreview() {
 @Composable
 private fun SettingsDefaultDutchPreview() {
     SettingsPreview(previewState.copy(language = LanguageChoice.Dutch), offLocation)
+}
+
+@Preview(name = "Keep screen on", widthDp = 360, heightDp = 1600)
+@Composable
+private fun SettingsKeepScreenOnPreview() {
+    SettingsPreview(previewState.copy(keepScreenOn = true), offLocation)
+}
+
+@Preview(name = "Keep screen on (nl)", locale = "nl", widthDp = 360, heightDp = 1600)
+@Composable
+private fun SettingsKeepScreenOnDutchPreview() {
+    SettingsPreview(previewState.copy(language = LanguageChoice.Dutch, keepScreenOn = true), offLocation)
 }
 
 @Preview(name = "Saving", widthDp = 360, heightDp = 1600)
