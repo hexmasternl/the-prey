@@ -20,7 +20,7 @@
 **Non-Goals:**
 - HUD content (pills, tiles, Tag FAB, tag sheet). That belongs to the HUD changes.
 - An outcome or results screen after the game ends.
-- Starting or stopping location tracking. `TrackingAutoStart` and the tracking service already own that. This screen only reads device fixes for display.
+- Running location tracking. `TrackingAutoStart` (app start, resume notification) and the tracking service own it; the game route only asks for a start through `GameTrackingStart` when the screen shows an active game (change `app-game-preys-and-hunter-hidden`). This screen only reads device fixes for display.
 - Map rotation that follows the heading ("heading-up"), and offline map tiles.
 - Server changes.
 

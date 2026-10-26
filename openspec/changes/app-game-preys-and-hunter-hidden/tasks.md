@@ -10,7 +10,7 @@
 - [x] 2.2 Add `GameTrackingStart(starter, gameId, active)` in `ui/tracking/` (design D1): a `LaunchedEffect(gameId, active)` that calls `starter.startIfActive(gameId)` through the helper only when `active` is true; add a pure decision function (`ActiveGameUi` → whether this game screen should request tracking: `Ready`, phase `Starting`/`Playing`, my participant not `Tagged`/`Out`) with unit tests for each case (loading, error, exit, result, tagged/out prey, active hunter, active prey, spectator)
 - [x] 2.3 Wire `GameTrackingStart` into the `Routes.GAME` destination in `ThePreyNavHost` (inside the `LocationConsentHost`, fed from the game view model's `uiState`), and verify with `./gradlew assembleDebug lintDebug`
 - [x] 2.4 Add a `TrackingStarter` / `TrackingController` unit test showing a second `startIfActive(gameId)` for the same game returns `AlreadyTracking` without a `/gamestate` read, and a start for a stopped game returns `Refused(StoppedBefore)` (design D2); verify with `./gradlew testDebugUnitTest`
-- [ ] 2.5 Update `openspec/changes/app-game-active-view/design.md`'s Non-Goal line about tracking, so it points to `GameTrackingStart` instead of saying `TrackingAutoStart` owns it; verify by reading that no doc still claims tracking starts only on app launch
+- [x] 2.5 Update `openspec/changes/app-game-active-view/design.md`'s Non-Goal line about tracking, so it points to `GameTrackingStart` instead of saying `TrackingAutoStart` owns it; verify by reading that no doc still claims tracking starts only on app launch — auto: the change was archived meanwhile; updated `openspec/changes/archive/2026-10-26-app-game-active-view/design.md`. No spec, doc or website page claims tracking starts only on app launch
 
 ## 3. Single Notifications replica
 
