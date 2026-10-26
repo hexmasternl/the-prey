@@ -44,6 +44,7 @@ android {
         buildConfigField("String", "AUTH0_AUDIENCE", "\"$auth0Audience\"")
         buildConfigField("String", "AUTH0_SCHEME", "\"$auth0Scheme\"")
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "PLAY_STORE_URL", "\"https://play.google.com/store/apps/details?id=$applicationId\"")
         manifestPlaceholders["auth0Domain"] = auth0Domain
         manifestPlaceholders["auth0Scheme"] = auth0Scheme
     }

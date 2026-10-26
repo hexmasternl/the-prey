@@ -13,7 +13,7 @@
 
 ## 3. App: update-required UI and triggers
 
-- [ ] 3.1 Add `buildConfigField` `PLAY_STORE_URL` (`https://play.google.com/store/apps/details?id=` + `applicationId`) in `app/src/app/build.gradle.kts` and an `openPlayStore(context)` helper that tries `market://details?id=…` and falls back to the https URL on `ActivityNotFoundException`; verify `./gradlew assembleDebug`
+- [x] 3.1 Add `buildConfigField` `PLAY_STORE_URL` (`https://play.google.com/store/apps/details?id=` + `applicationId`) in `app/src/app/build.gradle.kts` and an `openPlayStore(context)` helper that tries `market://details?id=…` and falls back to the https URL on `ActivityNotFoundException`; verify `./gradlew assembleDebug`
 - [ ] 3.2 Add strings `update_required_title`, `update_required_body`, `update_required_action` to `res/values/strings.xml` and `res/values-nl/strings.xml` (informal Dutch, following the `the-prey-multilingual` skill); verify `./gradlew lintDebug` reports no missing translations
 - [ ] 3.3 Add `ui/update/UpdateRequiredScreen.kt`: full-screen panel with `PreyMark`, title, body and primary **Update** button using `ThePreyTheme` tokens and the design-system button (follow the `the-prey-design-system` skill), consumes all input, `BackHandler` finishes the activity; add a `@Preview`; verify the preview renders in both themes
 - [ ] 3.4 Wrap the nav host (where `ThePreyNavHost` is shown after the launch sequence) with the gate: show `UpdateRequiredScreen` on top when the state is `Blocked` and the current route is not `GAME`; run `check()` in a `repeatOnLifecycle(STARTED)` loop with a 10-minute delay; call `check()` when the route leaves `LOBBY`/`GAME` while `Deferred`; verify `./gradlew lintDebug testDebugUnitTest` passes
