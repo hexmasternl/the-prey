@@ -132,6 +132,9 @@ All three superseded reads remain available and unchanged, so existing clients k
 player under `displayName`. `400` (validation problem) when the configuration breaks a rule: every value
 positive, `hunterDelayTime` and `finalStageDuration` shorter than `gameDuration`, and
 `finalLocationInterval <= defaultLocationInterval`. The penalty flags and `profilePictureUrl` are optional.
+The penalty flags are accepted for older apps and ignored: boundary penalties apply in every game, and
+every `GameConfigurationDto` reports both as `true`. Each participant carries `hasActivePenalty` and
+`penaltyEndsAt` (the latest end of the active penalty, `null` when none is active).
 
 ### `POST /games` — Response
 
@@ -143,8 +146,8 @@ positive, `hunterDelayTime` and `finalStageDuration` shorter than `gameDuration`
   "gameCode": "4291",
   "status": "Lobby",
   "ownerUserId": "...",
-  "configuration": { "gameDuration": 60, "hunterDelayTime": 5, "finalStageDuration": 10, "defaultLocationInterval": 180, "finalLocationInterval": 60, "enablePreyBoundaryPenalties": false, "enableHunterBoundaryPenalty": false },
-  "participants": [ { "userId": "...", "displayName": "Fox", "isReady": false, "state": "Active" } ]
+  "configuration": { "gameDuration": 60, "hunterDelayTime": 5, "finalStageDuration": 10, "defaultLocationInterval": 180, "finalLocationInterval": 60, "enablePreyBoundaryPenalties": true, "enableHunterBoundaryPenalty": true },
+  "participants": [ { "userId": "...", "displayName": "Fox", "isReady": false, "state": "Active", "hasActivePenalty": false, "penaltyEndsAt": null } ]
 }
 ```
 

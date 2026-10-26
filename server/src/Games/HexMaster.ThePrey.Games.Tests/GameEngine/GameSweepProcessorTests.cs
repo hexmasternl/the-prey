@@ -48,6 +48,11 @@ public sealed class GameSweepProcessorTests
     private void SetupGame(Game game) =>
         _games.Setup(r => r.GetByIdAsync(game.Id, It.IsAny<CancellationToken>())).ReturnsAsync(game);
 
+    // A polygon with fewer than 3 points skips the boundary check.
+    private void WithoutPlayfieldBoundary() =>
+        _boundary.Setup(b => b.GetPolygonAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
     [Fact]
     public async Task ProcessAsync_ShouldReturnNone_WhenGameIsNotInProgress()
     {
@@ -167,9 +172,9 @@ public sealed class GameSweepProcessorTests
 
         var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
 
-        Assert.Equal(0, result.Penalties);
+        Assert.Equal(1, result.Penalties); // the hunter, also outside the square
         _publisher.Verify(p => p.PublishAsync(
-            It.Is<GameNotificationIntegrationEvent>(e => e.Name == RealtimeProtocol.MessageTypes.PreyUpdated),
+            It.Is<GameNotificationIntegrationEvent>(e => IsPenaltyFor(e, preyIds[0])),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -215,15 +220,39 @@ public sealed class GameSweepProcessorTests
     }
 
     [Fact]
-    public async Task ProcessAsync_ShouldNotPenalize_WhenBoundaryPenaltiesDisabled()
+    public async Task ProcessAsync_ShouldPenalizePrey_WhenOutsideBoundaryAndPenaltiesDisabledInConfiguration()
     {
-        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3); // penalties off by default
+        var game = GameFaker.StartedGame(out _, out var preyIds, Start, playerCount: 3); // flags off by default
         game.RecordLocation(preyIds[0], GpsCoordinate.Create(5, 5), Start.AddSeconds(5));
         SetupGame(game);
 
-        var result = await _sut.ProcessAsync(game.Id, Start.AddSeconds(30), CancellationToken.None);
+        var now = Start.AddSeconds(30);
+        var result = await _sut.ProcessAsync(game.Id, now, CancellationToken.None);
 
-        Assert.Equal(0, result.Penalties);
+        Assert.Equal(1, result.Penalties);
+        var prey = game.Participants.Single(p => p.UserId == preyIds[0]);
+        Assert.Equal(now.AddMinutes(Game.PenaltyDurationMinutes), prey.ActivePenaltyEndsAt(now));
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => IsBoundaryPenaltyFor(e, preyIds[0])),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_ShouldPenalizeHunter_WhenOutsideBoundaryAndPenaltiesDisabledInConfiguration()
+    {
+        var game = GameFaker.StartedGame(out var hunterId, out _, Start, playerCount: 3); // flags off by default
+        game.RecordLocation(hunterId, GpsCoordinate.Create(5, 5), Start.AddSeconds(5));
+        SetupGame(game);
+
+        var now = Start.AddSeconds(30);
+        var result = await _sut.ProcessAsync(game.Id, now, CancellationToken.None);
+
+        Assert.Equal(1, result.Penalties);
+        var hunter = game.Participants.Single(p => p.UserId == hunterId);
+        Assert.Equal(now.AddMinutes(Game.PenaltyDurationMinutes), hunter.ActivePenaltyEndsAt(now));
+        _publisher.Verify(p => p.PublishAsync(
+            It.Is<GameNotificationIntegrationEvent>(e => IsBoundaryPenaltyFor(e, hunterId)),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -337,6 +366,7 @@ public sealed class GameSweepProcessorTests
         game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Start.AddMinutes(1));
         game.RecordLocation(hunterId, GpsCoordinate.Create(52.101, 5.1), Start.AddMinutes(2));
         SetupGame(game);
+        WithoutPlayfieldBoundary(); // the head-start readings lie outside the test square
 
         // Sweep during the delay.
         var now = Start.AddMinutes(3);
@@ -368,6 +398,7 @@ public sealed class GameSweepProcessorTests
         game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Start.AddMinutes(1));
         game.RecordLocation(hunterId, GpsCoordinate.Create(52.101, 5.1), mayMoveAt.AddSeconds(-5)); // still head-start
         SetupGame(game);
+        WithoutPlayfieldBoundary(); // the head-start readings lie outside the test square
 
         // Sweep arrives 30s after HunterMayMoveAt.
         var now = mayMoveAt.AddSeconds(30);
@@ -388,6 +419,7 @@ public sealed class GameSweepProcessorTests
         game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Start.AddMinutes(1));
         game.RecordLocation(hunterId, GpsCoordinate.Create(52.101, 5.1), Start.AddMinutes(2));
         SetupGame(game);
+        WithoutPlayfieldBoundary(); // the head-start readings lie outside the test square
 
         // First sweep applies the penalty.
         var first = await _sut.ProcessAsync(game.Id, Start.AddMinutes(3), CancellationToken.None);
@@ -411,6 +443,7 @@ public sealed class GameSweepProcessorTests
         game.RecordLocation(hunterId, GpsCoordinate.Create(52.1, 5.1), Start.AddMinutes(1));
         game.RecordLocation(hunterId, GpsCoordinate.Create(52.1002, 5.1), Start.AddMinutes(2));
         SetupGame(game);
+        WithoutPlayfieldBoundary(); // the head-start readings lie outside the test square
 
         var result = await _sut.ProcessAsync(game.Id, Start.AddMinutes(3), CancellationToken.None);
 
@@ -606,6 +639,9 @@ public sealed class GameSweepProcessorTests
         e.Name == RealtimeProtocol.MessageTypes.PreyUpdated
         && ((PreyUpdatedDto)e.Payload).UserId == userId
         && ((PreyUpdatedDto)e.Payload).Event == RealtimeProtocol.PreyEvents.Penalized;
+
+    private static bool IsBoundaryPenaltyFor(GameNotificationIntegrationEvent e, Guid userId) =>
+        IsPenaltyFor(e, userId) && ((PreyUpdatedDto)e.Payload).Reason == "left-playfield";
 
     private static bool IsHeadStartPenalty(GameNotificationIntegrationEvent e) =>
         e.Name == RealtimeProtocol.MessageTypes.PreyUpdated

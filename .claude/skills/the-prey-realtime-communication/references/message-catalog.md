@@ -29,7 +29,7 @@ Every message is `{ "v": 1, "type": "<type>", "gameId": "<guid>", "seq": <n>, "d
 - **data**: `GameConfigurationChangedDto` — `{ id, gameCode, playfieldId, ownerUserId, status, configuration, hunterUserId, preys, startedAt, createdAt, endsAt, cleanUpAfter, outcome, completedAt }`. No `participants`, no `isOwnerPlayer` / `isReadyToStart`.
 - **Carries every status transition** (`Lobby → Ready → Started → InProgress → Completed`), hunter designation, playfield and timing.
 - **Producers**: `JoinGameCommandHandler`, `SetReadyCommandHandler`, `LeaveGameCommandHandler`, `RemoveLobbyPlayerCommandHandler` (each only when `IsReadyToStart` flipped, i.e. `Lobby ↔ Ready`), `SetHunterCommandHandler` (lobby designation and in-progress hand-over), `UpdateGameSettingsCommandHandler`, `StartGameCommandHandler` (`Started`), `GameSweepProcessor` step 0 (`Started → InProgress`).
-- **Client**: decoded as the Kotlin `GameDto` and copied over the game, **keeping the local participant list**. Because it decodes into `GameDto`, any new non-defaulted Kotlin `GameDto` property must also be present in this payload, or every `configuration-changed` turns into a resync.
+- **Client**: when its `status` differs (case-insensitively) from the local game status, `Reduction.Resync` → full snapshot (the transition changes snapshot-only data: in-progress `status` incl. `hunterMayMoveAt`, `roleState`, `serverTime`). Otherwise decoded as the Kotlin `GameDto` and copied over the game, **keeping the local participant list**. Because it decodes into `GameDto`, any new non-defaulted Kotlin `GameDto` property must also be present in this payload, or every `configuration-changed` turns into a resync.
 
 ## Gameplay
 
@@ -68,6 +68,7 @@ Every message is `{ "v": 1, "type": "<type>", "gameId": "<guid>", "seq": <n>, "d
 | `seq` not `lastSeq + 1` (when both known) | `Resync` |
 | First message after a snapshot (`lastSeq == null`) | applied; sets the baseline |
 | `data` does not decode for its `type` | `Resync` |
+| `configuration-changed` with a status other than the local one | `Resync` |
 | Unknown `type` | state unchanged, `seq` advanced |
 
 ## Removed / superseded names

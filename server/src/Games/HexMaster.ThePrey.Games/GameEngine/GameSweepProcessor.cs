@@ -170,15 +170,9 @@ public sealed class GameSweepProcessor : IGameSweepProcessor
         var newCoordinates = sweeps.ToDictionary(s => s.UserId, s => s.NewCoordinates);
         var penalties = 0;
 
+        // Boundary penalties always apply to Prey and Hunter; the configuration flags are ignored.
         foreach (var participant in game.Participants)
         {
-            var isHunter = game.HunterUserId == participant.UserId;
-            var enabled = isHunter
-                ? game.Configuration.EnableHunterBoundaryPenalty
-                : game.Configuration.EnablePreyBoundaryPenalties;
-            if (!enabled)
-                continue;
-
             // Assess every reading consumed this sweep; a participant without new readings is
             // assessed on their last-known position, so a player who stops reporting while outside
             // does not evade the penalty.

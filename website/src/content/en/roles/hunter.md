@@ -27,7 +27,7 @@ Prey positions already appear on your map, so use the wait to pick your first ta
 - **Next ping**: seconds until the next Prey positions arrive.
 - **Preys in play**: Prey still in the game, out of the total.
 - **Closest prey**: the distance to the nearest Prey's last known location, not their live position.
-- **Penalised preys**: how many Prey have a penalty right now. A penalised Prey's position comes in every 10 seconds.
+- **Penalised preys**: how many Prey have a penalty right now. A penalised Prey's position comes in about every 30 seconds.
 
 Prey markers on your map sit at the position of their last ping. They have probably moved since. Close the gap fast.
 

@@ -220,4 +220,25 @@ class GameStateDtoTest {
         assertNull(state.status)
         assertNull(state.roleState)
     }
+
+    @Test
+    fun fullGameStateDto_ShouldReadPenaltyEndsAt_WhenSnapshotParticipantIsPenalized() {
+        val payload = inProgress("null", "null").replace(
+            "\"hasActivePenalty\":true}",
+            "\"hasActivePenalty\":true,\"penaltyEndsAt\":\"2026-08-31T11:44:00+00:00\"}",
+        )
+
+        val prey = json.decodeFromString(FullGameStateDto.serializer(), payload).game.participants[1]
+
+        assertTrue(prey.hasActivePenalty)
+        assertEquals("2026-08-31T11:44:00+00:00", prey.penaltyEndsAt)
+    }
+
+    @Test
+    fun fullGameStateDto_ShouldHaveNoPenaltyEnd_WhenOlderServerOmitsIt() {
+        val prey = json.decodeFromString(FullGameStateDto.serializer(), inProgress("null", "null")).game.participants[1]
+
+        assertTrue(prey.hasActivePenalty)
+        assertNull(prey.penaltyEndsAt)
+    }
 }

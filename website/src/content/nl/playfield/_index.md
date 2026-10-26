@@ -61,7 +61,7 @@ Bij 3 of meer punten verschijnt het gebied als groene vorm. **Opslaan** heeft mi
 
 ## Het Speelveld Verlaten
 
-Blijf binnen de omtrek. In een spel waarin straffen voor de grens aan staan, krijgt een speler buiten het speelveld 5 minuten straf: zolang die duurt, wordt zijn positie elke 10 seconden gedeeld. Zie de [Regels]({{< relref "/rules" >}}) voor alle straffen.
+Blijf binnen de omtrek. Een speler buiten het speelveld krijgt 5 minuten straf: zolang die duurt, wordt zijn positie ongeveer elke 30 seconden gedeeld. Zie de [Regels]({{< relref "/rules" >}}) voor alle straffen.
 
 ---
 

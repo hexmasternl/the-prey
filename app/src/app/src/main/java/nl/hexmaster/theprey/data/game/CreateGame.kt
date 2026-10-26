@@ -49,7 +49,7 @@ fun NewGame.toRequest(): CreateGameRequest = CreateGameRequest(
     finalStageDuration = finalStage,
     defaultLocationInterval = pingInterval * SECONDS_PER_MINUTE,
     finalLocationInterval = finalPingInterval * SECONDS_PER_MINUTE,
-    // Boundary penalties are not offered yet; sent explicitly so the request reads complete.
-    enablePreyBoundaryPenalties = false,
-    enableHunterBoundaryPenalty = false,
+    // The server always applies boundary penalties and ignores these; sent as true so the request reads truthfully.
+    enablePreyBoundaryPenalties = true,
+    enableHunterBoundaryPenalty = true,
 )

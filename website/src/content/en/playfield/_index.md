@@ -61,7 +61,7 @@ With 3 or more points the area shows as a green shape. **Save** needs at least 3
 
 ## Leaving the Playfield
 
-Stay inside the outline. In a game with boundary penalties on, a player outside the playfield gets a 5-minute penalty: their position is shared every 10 seconds for as long as it lasts. See the [Rules]({{< relref "/rules" >}}) for every penalty.
+Stay inside the outline. A player outside the playfield gets a 5-minute penalty: their position is shared about every 30 seconds for as long as it lasts. See the [Rules]({{< relref "/rules" >}}) for every penalty.
 
 ---
 

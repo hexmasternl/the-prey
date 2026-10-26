@@ -137,4 +137,10 @@ class PreyHudStateTest {
         assertFalse(PreyHudState.from(ready(myPenalty = true, myPenaltyEndsAt = "2026-08-31T11:39:00Z"), now).penaltyActive)
         assertFalse(PreyHudState.from(ready(myPenalty = false), now).penaltyActive)
     }
+
+    @Test
+    fun from_ShouldReportPenaltyUntilItsEnd_WhenSnapshotCarriesTheEndTime() {
+        assertTrue(PreyHudState.from(ready(myPenalty = true, myPenaltyEndsAt = "2026-08-31T11:44:00Z"), now).penaltyActive)
+        assertFalse(PreyHudState.from(ready(myPenalty = true, myPenaltyEndsAt = "2026-08-31T11:40:00Z"), now).penaltyActive)
+    }
 }
