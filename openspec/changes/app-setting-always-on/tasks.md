@@ -20,7 +20,7 @@
 
 ## 4. Website and docs
 
-- [ ] 4.1 Mention the Display setting in `website/src/content/en/how-to/get-started.md` and `website/src/content/nl/how-to/get-started.md` (Settings description and screenshot caption) and add a FAQ entry "Can my screen stay on during a game?" in `content/en/faq/_index.md` and `content/nl/faq/_index.md`, following the `the-prey-website-content` and `the-prey-docs-sync` skills; verify `hugo --source website/src` builds without errors
+- [x] 4.1 Mention the Display setting in `website/src/content/en/how-to/get-started.md` and `website/src/content/nl/how-to/get-started.md` (Settings description and screenshot caption) and add a FAQ entry "Can my screen stay on during a game?" in `content/en/faq/_index.md` and `content/nl/faq/_index.md`, following the `the-prey-website-content` and `the-prey-docs-sync` skills; verify `hugo --source website/src` builds without errors
 - [ ] 4.2 Confirm no Play Store declaration changes are needed (no new permission, no new collected data) per the `the-prey-play-store` skill and note it in the PR description
 
 ## 5. Integration check
