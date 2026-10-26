@@ -14,7 +14,7 @@
 
 ## 3. Game screen holds the display
 
-- [ ] 3.1 Add the pure `holdsScreen(ui: ActiveGameUi, enabled: Boolean)` rule in `ui/game/` and verify with a `HoldsScreenTest` covering `Ready` (Starting and Playing) → true, `Loading` / `Error` / `Exit` / `Result` → false, and disabled → false
+- [x] 3.1 Add the pure `holdsScreen(ui: ActiveGameUi, enabled: Boolean)` rule in `ui/game/` and verify with a `HoldsScreenTest` covering `Ready` (Starting and Playing) → true, `Loading` / `Error` / `Exit` / `Result` → false, and disabled → false
 - [ ] 3.2 Add a `KeepScreenOn(enabled)` composable (sets `LocalView.current.keepScreenOn`, resets to `false` in `onDispose`) and call it from `GameScreen` with an optional `displayPreferences: DisplayPreferencesStore? = null` collected via `collectAsStateWithLifecycle(false)`; verify existing `GameScreen` previews/tests still compile and run (`./gradlew testDebugUnitTest`)
 - [ ] 3.3 Pass the store to both `GameScreen` destinations in `ThePreyNavHost`; verify on a device with a 30 s screen timeout: setting on → display stays on during the head start and running game; setting off → it times out; the result dialog, lobby and main menu time out normally; power button still turns the screen off
 
