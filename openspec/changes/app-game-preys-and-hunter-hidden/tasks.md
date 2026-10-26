@@ -19,7 +19,7 @@
 
 ## 4. End-to-end verification
 
-- [ ] 4.1 On two (preferably three) devices against the test environment, create a game, join, and start it **without** restarting any app: confirm the tracking notification appears on every device within 5 s of the game screen opening, the hunter's map shows every prey, and each prey's map shows the hunter and the other preys, all moving as people walk
-- [ ] 4.2 Leave the game screen with Back and reopen it via "Resume game": confirm no second tracking notification or duplicate posts (one post per 5 s per device in the logs), and markers still update
-- [ ] 4.3 On a device with precise location revoked, start a game: confirm the consent flow appears over the game screen (alongside the safety warning), granting starts tracking, and declining shows the "you will appear silent" message and starts nothing
-- [ ] 4.4 Tag a prey: confirm its tracking stops, re-entering the game screen does not restart it, and the other players see it greyed out
+- [ ] 4.1 On two (preferably three) devices against the test environment, create a game, join, and start it **without** restarting any app: confirm the tracking notification appears on every device within 5 s of the game screen opening, the hunter's map shows every prey, and each prey's map shows the hunter and the other preys, all moving as people walk — **auto: needs human:** needs several devices against the test environment
+- [ ] 4.2 Leave the game screen with Back and reopen it via "Resume game": confirm no second tracking notification or duplicate posts (one post per 5 s per device in the logs), and markers still update — **auto: needs human:** needs several devices against the test environment
+- [ ] 4.3 On a device with precise location revoked, start a game: confirm the consent flow appears over the game screen (alongside the safety warning), granting starts tracking, and declining shows the "you will appear silent" message and starts nothing — **auto: needs human:** needs several devices against the test environment
+- [ ] 4.4 Tag a prey: confirm its tracking stops, re-entering the game screen does not restart it, and the other players see it greyed out — **auto: needs human:** needs several devices against the test environment
