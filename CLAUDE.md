@@ -161,10 +161,20 @@ dotnet build server/src/the-prey.slnx
 ### App releases
 
 - **Workflow:** `.github/workflows/android-release.yml`. Pull requests and pushes to `main` touching `app/src/**` run `./gradlew lintDebug testDebugUnitTest`; pushes to `main` (and manual runs on `main`) then build, sign and publish.
-- **Internal track only:** the bundle goes to the Play Console **internal testing** track for `nl.hexmaster.theprey` as a completed release. Promotion to other tracks is a manual Play Console action, never a new build.
+- **Internal track only:** the bundle goes to the Play Console **internal testing** track for `nl.hexmaster.theprey` as a completed release. Promotion is never a new build (see *Update policy and promotion* below).
 - **Version:** `versionName` = `semVer` from `version.yml` (the run fails on an empty or pre-release version); `versionCode = major * 1000000 + minor * 1000 + patch + VERSION_CODE_OFFSET`, where the repository variable `VERSION_CODE_OFFSET` (`vars.VERSION_CODE_OFFSET`, default `0`) lifts the line above a legacy code already in Play.
 - **Release notes:** the Copilot CLI turns the `app/src` commits since the last successful run into English and Dutch "What's new" texts (`whatsnew/whatsnew-en-US`, `whatsnew/whatsnew-nl-NL`, max 500 characters each, cut at a line break). When Copilot fails, the commit subjects are used (Dutch prefixed with "Verbeteringen en bugfixes.") and the run shows a warning. The same texts form the body of the GitHub release `v<semVer>`, created by `.github/actions/create-release` after the Play upload.
 - **Secrets:** `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS` (upload key), `PLAY_SERVICE_ACCOUNT_JSON` (service account with release rights) and `COPILOT_GITHUB_TOKEN` (fine-grained PAT with the Copilot Requests permission).
+
+### Update policy and promotion
+
+- **Label every release PR:** each pull request into `main` (normally `development` → `main`) carries exactly one of `update:optional` or `update:required`; `.github/workflows/pr-update-label.yml` fails otherwise and is a required check on `main`. `update:required` means players outside a game must update once this release reaches production.
+- **Internal publish never forces:** `android-release.yml` ignores the labels; `Games:MinimumAppVersion` only changes at promotion.
+- **Promote:** run `.github/workflows/android-promote.yml` with input `version` (`x.y.z`, tag `v<version>` must exist and be higher than the last `app-production-v*` tag). It promotes that build from the internal track to production with fastlane and tags `app-production-v<version>`.
+- **Policy over all PRs since the last promotion:** a required promotion is one where any PR merged into `main` (first-parent) since the last `app-production-v*` tag is labelled `update:required`; unlabelled PRs count as optional. The run summary lists the PRs and the decision.
+- **Enforce:** for a required promotion the `enforce` job waits for the `play-production` environment. Approve it only once the Play Console shows the production release as Available; it then deploys `server/infrastructure/games/modules/games-app-config.bicep` with `minimumAppVersion` = the promoted version. Promoted versions only go up, so the minimum never goes down. The Games infrastructure deploy no longer writes the key.
+- **Shared offset:** both workflows read the repository variable `VERSION_CODE_OFFSET`, so they compute the same `versionCode`.
+- **Rollback:** lower or clear `Games:MinimumAppVersion` (same Bicep module, or the portal); the APIs refresh key-values every 5 minutes and open apps re-check every 10.
 
 ---
 
