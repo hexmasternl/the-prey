@@ -73,6 +73,9 @@ class PreyHudStateTest {
         serverDistance: Int? = 300,
         myPenalty: Boolean = false,
         myPenaltyEndsAt: String? = null,
+        nextPing: Int = 18,
+        interval: Int = 30,
+        lastOwnBroadcastAt: Long? = null,
     ): ActiveGameUi.Ready {
         val snapshot = FullGameStateDto(
             game = GameDto(
@@ -86,7 +89,7 @@ class PreyHudStateTest {
                 hunterUserId = "h",
             ),
             serverTime = "2026-08-31T11:40:00Z",
-            status = GameStatusDto(gameDurationLeft = 754, nextPingDuration = 18, currentPingInterval = 30),
+            status = GameStatusDto(gameDurationLeft = 754, nextPingDuration = nextPing, currentPingInterval = interval),
             roleState = RoleStateDto(hunterDistanceMeters = serverDistance),
         )
         return ActiveGameUi.Ready(
@@ -96,6 +99,7 @@ class PreyHudStateTest {
             heading = 0f,
             clock = ServerClock(now, seededAtElapsed = 7_000),
             delay = null,
+            lastOwnBroadcastAtElapsed = lastOwnBroadcastAt,
         )
     }
 
@@ -142,5 +146,86 @@ class PreyHudStateTest {
     fun from_ShouldReportPenaltyUntilItsEnd_WhenSnapshotCarriesTheEndTime() {
         assertTrue(PreyHudState.from(ready(myPenalty = true, myPenaltyEndsAt = "2026-08-31T11:44:00Z"), now).penaltyActive)
         assertFalse(PreyHudState.from(ready(myPenalty = true, myPenaltyEndsAt = "2026-08-31T11:40:00Z"), now).penaltyActive)
+    }
+
+    // ---- next-broadcast restarts ----
+
+    @Test
+    fun from_ShouldWaitAtZero_WhenNoOwnBroadcastArrives() {
+        val state = PreyHudState.from(ready(nextPing = 18, interval = 30), now)
+
+        assertEquals(0, state.nextBroadcast.secondsLeft(60_000))
+    }
+
+    @Test
+    fun from_ShouldRestartAtTheFullInterval_WhenOwnBroadcastArrivesAtZero() {
+        // Seeded at 7 s with 18 s left: 0 s from 25 s on; the broadcast lands at 40 s.
+        val state = PreyHudState.from(ready(nextPing = 18, interval = 180, lastOwnBroadcastAt = 40_000), now)
+
+        assertEquals(180, state.nextBroadcast.secondsLeft(40_000))
+        assertEquals(179, state.nextBroadcast.secondsLeft(41_000))
+        assertEquals(180, state.broadcastIntervalSeconds)
+    }
+
+    @Test
+    fun from_ShouldRestartAtTheFullInterval_WhenOwnBroadcastArrivesBeforeZero() {
+        val state = PreyHudState.from(ready(nextPing = 60, interval = 60, lastOwnBroadcastAt = 63_000), now)
+
+        assertEquals(60, state.nextBroadcast.secondsLeft(63_000))
+        assertEquals(60, state.broadcastIntervalSeconds)
+    }
+
+    @Test
+    fun from_ShouldKeepCounting_WhenNoOwnBroadcastWasRecorded() {
+        // A batch naming only other players leaves lastOwnBroadcastAt null.
+        val state = PreyHudState.from(ready(nextPing = 120, interval = 180), now)
+
+        assertEquals(90, state.nextBroadcast.secondsLeft(37_000))
+    }
+
+    @Test
+    fun from_ShouldSeedFromSnapshot_WhenSnapshotFollowsABroadcast() {
+        // A new snapshot clears lastOwnBroadcastAt in the view model.
+        val state = PreyHudState.from(ready(nextPing = 120, interval = 180, lastOwnBroadcastAt = null), now)
+
+        assertEquals(120, state.nextBroadcast.secondsLeft(7_000))
+    }
+
+    @Test
+    fun from_ShouldRestartAtThirtySeconds_WhenPenalisedPreyIsBroadcast() {
+        val state = PreyHudState.from(
+            ready(myPenalty = true, nextPing = 10, interval = 10, lastOwnBroadcastAt = 20_000),
+            now,
+        )
+
+        assertEquals(30, state.nextBroadcast.secondsLeft(20_000))
+        assertEquals(30, state.broadcastIntervalSeconds)
+    }
+
+    @Test
+    fun from_ShouldUseTheBroadcastInterval_WhenPenaltyHasEnded() {
+        val state = PreyHudState.from(
+            ready(myPenalty = true, myPenaltyEndsAt = "2026-08-31T11:39:00Z", interval = 180, lastOwnBroadcastAt = 20_000),
+            now,
+        )
+
+        assertEquals(180, state.nextBroadcast.secondsLeft(20_000))
+        assertEquals(180, state.broadcastIntervalSeconds)
+    }
+
+    @Test
+    fun from_ShouldRestartAtThirtySeconds_WhenIntervalIsZero() {
+        val state = PreyHudState.from(ready(nextPing = 15, interval = 0, lastOwnBroadcastAt = 20_000), now)
+
+        assertEquals(30, state.nextBroadcast.secondsLeft(20_000))
+        assertEquals(30, state.broadcastIntervalSeconds)
+    }
+
+    @Test
+    fun from_ShouldKeepServerIntervalForTheBar_WhenSeededFromSnapshotWithZeroInterval() {
+        val state = PreyHudState.from(ready(nextPing = 15, interval = 0), now)
+
+        assertEquals(0, state.broadcastIntervalSeconds)
+        assertEquals(15, state.nextBroadcast.secondsLeft(7_000))
     }
 }

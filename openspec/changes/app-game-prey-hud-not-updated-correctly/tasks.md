@@ -11,7 +11,7 @@
 
 ## 3. Prey HUD restart rule
 
-- [ ] 3.1 Add `PENALISED_BROADCAST_INTERVAL_SECONDS = 30` to `ui/game/hud/common/HudTime.kt` and apply the restart rule from design.md decision 3 in `ui/game/hud/prey/PreyHudState.kt`; verify with `PreyHudStateTest` cases for every scenario in `specs/game-hud-prey/spec.md` (snapshot seed, restart at 0 s and mid-countdown, other-player batch, snapshot after a restart, penalised 30 s, penalty ended, 0 interval fallback)
+- [x] 3.1 Add `PENALISED_BROADCAST_INTERVAL_SECONDS = 30` to `ui/game/hud/common/HudTime.kt` and apply the restart rule from design.md decision 3 in `ui/game/hud/prey/PreyHudState.kt`; verify with `PreyHudStateTest` cases for every scenario in `specs/game-hud-prey/spec.md` (snapshot seed, restart at 0 s and mid-countdown, other-player batch, snapshot after a restart, penalised 30 s, penalty ended, 0 interval fallback)
 - [ ] 3.2 Update the "Next broadcast bar" row in `docs/api/realtime.md` (HUD mapping table) to say it restarts from the broadcast interval (30 s while penalised) at each `locations-updated` batch that includes the prey; verify the row matches the code
 - [ ] 3.3 Confirm the website needs no text change: `website/src/content/{en,nl}/roles/prey.md` and `how-to/understand-your-role.md` already describe the countdown as the time until the prey's position is sent again
 
