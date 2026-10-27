@@ -65,11 +65,12 @@
          privacy page on theprey.nl and docs/play-store/location-disclosure.md. -->
     <string name="location_consent_eyebrow">Location tracking</string>
     <string name="location_consent_title">The Prey uses your location</string>
-    <string name="location_consent_body">The Prey collects your device\'s precise location, but only while you are in an active game.</string>
+    <string name="location_consent_body">The Prey tracks your device\'s precise location only while you are in an active game.</string>
     <string name="location_consent_point_background">Collection continues while the app is closed or not in use, in the background, or while the screen is off.</string>
     <string name="location_consent_point_notification">Tracking runs as a foreground service, with a persistent notification for as long as it runs.</string>
     <string name="location_consent_point_stop">Tracking stops as soon as the game ends or you leave it.</string>
     <string name="location_consent_point_purpose">The game needs your position to show players to the Hunter and to check that you stay inside the playfield.</string>
+    <string name="location_consent_point_near_me">When you use Near me on the public playfields, the app sends your approximate position once to find nearby playfields. It is not stored.</string>
     <string name="location_consent_privacy">Read the privacy statement</string>
     <string name="location_consent_continue">Continue</string>
     <string name="location_consent_not_now">Not now</string>

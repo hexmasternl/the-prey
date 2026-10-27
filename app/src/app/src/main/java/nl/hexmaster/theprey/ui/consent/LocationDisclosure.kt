@@ -57,6 +57,7 @@ fun LocationDisclosure(
             DisclosurePoint(R.string.location_consent_point_notification, textColor, bulletColor)
             DisclosurePoint(R.string.location_consent_point_stop, textColor, bulletColor)
             DisclosurePoint(R.string.location_consent_point_purpose, textColor, bulletColor)
+            DisclosurePoint(R.string.location_consent_point_near_me, textColor, bulletColor)
         }
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onPrivacyPolicy, modifier = Modifier.height(48.dp)) {
