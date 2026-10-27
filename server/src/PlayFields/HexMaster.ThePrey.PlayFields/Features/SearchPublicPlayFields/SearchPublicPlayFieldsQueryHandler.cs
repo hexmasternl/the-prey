@@ -49,16 +49,21 @@ public sealed class SearchPublicPlayFieldsQueryHandler
                     nameof(query.SearchText));
             }
 
+            var mode = origin is null ? SearchModes.Name : searchText is null ? SearchModes.Near : SearchModes.Both;
+            var radiusKm = ClampRadiusKm(query.RadiusKm);
+            // Low-cardinality only: never the raw query text, coordinates or user ids.
+            activity?.SetTag("playfield.search.mode", mode);
+            if (origin is not null) activity?.SetTag("playfield.search.radius_km", (int)radiusKm);
+
             var playFields = await _playFields.SearchPublicAsync(searchText, ct);
 
             var results = origin is null
                 ? playFields.Select(p => p.ToSummaryDto()).ToList()
-                : Nearby(playFields, origin, ClampRadiusKm(query.RadiusKm));
+                : Nearby(playFields, origin, radiusKm);
 
-            _metrics.RecordPublicPlayFieldSearch();
-            _logger.LogInformation("Public play-field search returned {ResultCount} results", results.Count);
+            _metrics.RecordPublicPlayFieldSearch(mode);
+            _logger.LogInformation("Public play-field search ({SearchMode}) returned {ResultCount} results", mode, results.Count);
 
-            // Low-cardinality only: the result count, never the raw query text, coordinates or user ids.
             activity?.SetTag("playfield.search.result_count", results.Count);
 
             return results;
@@ -69,6 +74,14 @@ public sealed class SearchPublicPlayFieldsQueryHandler
             activity?.AddException(ex);
             throw;
         }
+    }
+
+    /// <summary>The telemetry values for <c>playfield.search.mode</c>.</summary>
+    internal static class SearchModes
+    {
+        internal const string Name = "name";
+        internal const string Near = "near";
+        internal const string Both = "both";
     }
 
     /// <summary>The radius actually used: out-of-range values are clamped, not rejected.</summary>

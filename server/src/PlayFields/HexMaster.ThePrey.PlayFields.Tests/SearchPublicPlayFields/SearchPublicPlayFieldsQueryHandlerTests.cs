@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HexMaster.ThePrey.PlayFields.DomainModels;
 using HexMaster.ThePrey.PlayFields.Features.SearchPublicPlayFields;
 using HexMaster.ThePrey.PlayFields.Observability;
@@ -40,7 +41,7 @@ public sealed class SearchPublicPlayFieldsQueryHandlerTests
         Assert.Contains(result, s => s.Id == first.Id);
         Assert.Contains(result, s => s.Id == second.Id);
         _mockRepository.Verify(r => r.SearchPublicAsync("park", It.IsAny<CancellationToken>()), Times.Once);
-        _mockMetrics.Verify(m => m.RecordPublicPlayFieldSearch(), Times.Once);
+        _mockMetrics.Verify(m => m.RecordPublicPlayFieldSearch("name"), Times.Once);
     }
 
     [Fact]
@@ -79,7 +80,7 @@ public sealed class SearchPublicPlayFieldsQueryHandlerTests
             () => _handler.Handle(new SearchPublicPlayFieldsQuery(searchText!), CancellationToken.None));
 
         _mockRepository.Verify(r => r.SearchPublicAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-        _mockMetrics.Verify(m => m.RecordPublicPlayFieldSearch(), Times.Never);
+        _mockMetrics.Verify(m => m.RecordPublicPlayFieldSearch(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -225,5 +226,48 @@ public sealed class SearchPublicPlayFieldsQueryHandlerTests
             () => _handler.Handle(new SearchPublicPlayFieldsQuery("ab", Origin), CancellationToken.None));
 
         _mockRepository.Verify(r => r.SearchPublicAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    // ---- telemetry ----
+
+    [Theory]
+    [InlineData("park", false, "name")]
+    [InlineData(null, true, "near")]
+    [InlineData("park", true, "both")]
+    public async Task Handle_ShouldRecordTheSearchMode_WhenSearchCompletes(string? searchText, bool withOrigin, string expectedMode)
+    {
+        _mockRepository
+            .Setup(r => r.SearchPublicAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<PlayField>());
+
+        await _handler.Handle(new SearchPublicPlayFieldsQuery(searchText, withOrigin ? Origin : null), CancellationToken.None);
+
+        _mockMetrics.Verify(m => m.RecordPublicPlayFieldSearch(expectedMode), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldTagModeCountAndRadiusButNoPosition_WhenSearchingNearAPosition()
+    {
+        var activities = new List<Activity>();
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == PlayFieldObservabilityConstants.ActivitySourceName,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activities.Add,
+        };
+        ActivitySource.AddActivityListener(listener);
+        RepositoryReturns("park", NorthOfOrigin(1, "NL, Amsterdam, Park East"));
+
+        await _handler.Handle(new SearchPublicPlayFieldsQuery("park", Origin, 500), CancellationToken.None);
+
+        var activity = Assert.Single(activities, a => a.OperationName == "SearchPublicPlayFields");
+        var tags = activity.TagObjects.ToDictionary(t => t.Key, t => t.Value);
+        Assert.Equal("both", tags["playfield.search.mode"]);
+        Assert.Equal(100, tags["playfield.search.radius_km"]);
+        Assert.Equal(1, tags["playfield.search.result_count"]);
+        // Exactly these three: no coordinates and no search text.
+        Assert.Equal(
+            ["playfield.search.mode", "playfield.search.radius_km", "playfield.search.result_count"],
+            tags.Keys.Order());
     }
 }
