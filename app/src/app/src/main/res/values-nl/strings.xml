@@ -61,6 +61,9 @@
     <string name="location_consent_settings_title">Locatie staat uit voor The Prey</string>
     <string name="location_consent_settings_body">The Prey heeft je precieze locatie nodig om te spelen. Open de instellingen, ga naar Rechten en sta precieze locatie toe.</string>
     <string name="location_consent_settings_open">Instellingen openen</string>
+    <string name="location_consent_all_the_time_title">Nog één stap: altijd toestaan</string>
+    <string name="location_consent_all_the_time_body">Locatie mag nu alleen als de app in gebruik is. Om te spelen heeft The Prey die altijd nodig, zodat de volging doorgaat terwijl het scherm uit staat of de app op de achtergrond draait.</string>
+    <string name="location_consent_all_the_time_steps">Ga in de instellingen die openen naar Rechten, dan Locatie, en kies \"Altijd toestaan\".</string>
 
     <!-- Settings screen -->
     <string name="settings_title">Instellingen</string>

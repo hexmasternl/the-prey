@@ -76,6 +76,9 @@
     <string name="location_consent_settings_title">Location is off for The Prey</string>
     <string name="location_consent_settings_body">The Prey needs precise location to play. Open the settings, go to Permissions and allow precise location.</string>
     <string name="location_consent_settings_open">Open settings</string>
+    <string name="location_consent_all_the_time_title">One more step: allow all the time</string>
+    <string name="location_consent_all_the_time_body">Location is now allowed only while the app is in use. To play, The Prey needs it all the time, so tracking continues while the screen is off or the app is in the background.</string>
+    <string name="location_consent_all_the_time_steps">In the settings that open, go to Permissions, then Location, and pick \"Allow all the time\".</string>
 
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
