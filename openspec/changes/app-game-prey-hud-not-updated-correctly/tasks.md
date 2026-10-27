@@ -17,5 +17,5 @@
 
 ## 4. Integration check
 
-- [ ] 4.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and verify it passes
-- [ ] 4.2 In a local or test game as prey, watch the next-broadcast tile across at least two regular broadcasts and one penalty; verify it restarts at each own broadcast without leaving the game screen
+- [x] 4.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and verify it passes
+- [ ] 4.2 In a local or test game as prey, watch the next-broadcast tile across at least two regular broadcasts and one penalty; verify it restarts at each own broadcast without leaving the game screen — **auto: needs human:** requires playing a live game as prey on a device to watch the tile across broadcasts and a penalty
