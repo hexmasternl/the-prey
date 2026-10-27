@@ -109,6 +109,9 @@
     <string name="settings_notifications_allowed">Allowed</string>
     <string name="settings_notifications_off">Off</string>
     <string name="settings_location_grant">Grant location access</string>
+    <string name="settings_location_why">Why The Prey uses your location</string>
+    <string name="settings_location_why_expanded">Expanded</string>
+    <string name="settings_location_why_collapsed">Collapsed</string>
     <string name="settings_location_instruction_precise">Location is off for The Prey. In the settings that open, go to Permissions, then Location, and allow precise location.</string>
     <string name="settings_location_instruction_all_the_time">To play, pick \"Allow all the time\". In the settings that open, go to Permissions, then Location.</string>
     <string name="settings_location_granted">Location is allowed all the time. Tracking can run during a game.</string>

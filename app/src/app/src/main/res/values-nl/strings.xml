@@ -90,6 +90,9 @@
     <string name="settings_notifications_allowed">Toegestaan</string>
     <string name="settings_notifications_off">Uit</string>
     <string name="settings_location_grant">Locatietoegang geven</string>
+    <string name="settings_location_why">Waarom The Prey je locatie gebruikt</string>
+    <string name="settings_location_why_expanded">Uitgeklapt</string>
+    <string name="settings_location_why_collapsed">Ingeklapt</string>
     <string name="settings_location_instruction_precise">Locatie staat uit voor The Prey. Ga in de instellingen die openen naar Rechten, dan Locatie, en sta precieze locatie toe.</string>
     <string name="settings_location_instruction_all_the_time">Kies \"Altijd toestaan\" om te spelen. Ga in de instellingen die openen naar Rechten, dan Locatie.</string>
     <string name="settings_location_granted">Locatie is altijd toegestaan. De volging kan tijdens een spel lopen.</string>
