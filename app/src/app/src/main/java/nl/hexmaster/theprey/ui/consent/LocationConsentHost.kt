@@ -27,7 +27,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import nl.hexmaster.theprey.data.location.LocationAccess
 import nl.hexmaster.theprey.data.location.LocationConsentStore
+import nl.hexmaster.theprey.data.location.readLocationAccess
 
 /** The location consent as seen by screens below [LocationConsentHost]. */
 @Stable
@@ -98,6 +100,7 @@ fun LocationConsentHost(
             coarseGranted = grants[COARSE] == true || context.has(COARSE),
             canAskAgain = activity.canAsk(),
             notificationsGranted = context.notificationsGranted(),
+            backgroundGranted = context.hasAllTheTime(),
         )
     }
 
@@ -110,6 +113,7 @@ fun LocationConsentHost(
             granted = context.has(FINE),
             canAsk = activity.canAsk(),
             approximate = context.has(COARSE),
+            backgroundGranted = context.hasAllTheTime(),
         )
     }
     LaunchedEffect(viewModel) {
@@ -136,6 +140,7 @@ fun LocationConsentHost(
             ConsentUiState.Hidden -> null
             ConsentUiState.Disclosure -> DisclosureVariant.Disclosure
             ConsentUiState.OpenSettings -> DisclosureVariant.OpenSettings
+            ConsentUiState.AllTheTime -> DisclosureVariant.AllTheTime
         }
         if (variant != null) {
             LocationDisclosureDialog(
@@ -150,6 +155,9 @@ fun LocationConsentHost(
 
 private fun Context.has(permission: String): Boolean =
     ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+
+/** Location is allowed "all the time" (below API 29 a fine grant already is). */
+private fun Context.hasAllTheTime(): Boolean = readLocationAccess(this) == LocationAccess.Granted
 
 private fun Context.notificationsGranted(): Boolean =
     Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || has(Manifest.permission.POST_NOTIFICATIONS)
