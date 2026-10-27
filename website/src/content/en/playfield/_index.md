@@ -1,7 +1,7 @@
 ---
 title: "Playfield"
-description: "Playfields in The Prey: the Private and Public tabs, drawing the area point by point, the area editor, making a playfield public, and choosing one for a game."
-keywords: ["playfield", "game area", "draw playfield", "area editor", "public playfield", "GPS boundary", "The Prey playfield"]
+description: "Playfields in The Prey: the Private and Public tabs, finding public playfields near you, drawing the area point by point, the area editor, making a playfield public, and choosing one for a game."
+keywords: ["playfield", "game area", "draw playfield", "area editor", "public playfield", "playfields near me", "GPS boundary", "The Prey playfield"]
 ---
 
 ## What Is a Playfield?
@@ -19,7 +19,7 @@ You draw playfields in advance and reuse them as often as you like. When you cre
 Open **Playfields** from the main menu. The screen has two tabs:
 
 - **Private**: the playfields you made. Tap one to open it. Swipe a playfield to reveal **Delete**.
-- **Public**: playfields other players shared. Type at least 3 characters to search. Public playfields open read-only.
+- **Public**: playfields other players shared. Type at least 3 characters to search, or tap **Near me** to list the public playfields within 25 km of you, nearest first, each with its distance. Typing 3 or more characters while Near me is on searches nearby playfields by name. Near me uses your current location once (approximate location is enough) and sends it rounded to about 1 km; it never asks for a permission itself, so without location access it tells you to allow it in Settings. Public playfields open read-only.
 
 ---
 

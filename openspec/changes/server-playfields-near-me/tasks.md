@@ -26,7 +26,7 @@
 
 ## 4. Website and docs
 
-- [ ] 4.1 Describe Near me on `website/src/content/{en,nl}/playfield/_index.md` and in the how-to for creating a game (`how-to/create-a-game.md`, EN + NL), following `the-prey-docs-sync` and `the-prey-website-content`; verify with `hugo server` in both languages
+- [x] 4.1 Describe Near me on `website/src/content/{en,nl}/playfield/_index.md` and in the how-to for creating a game (`how-to/create-a-game.md`, EN + NL), following `the-prey-docs-sync` and `the-prey-website-content`; verify with `hugo server` in both languages
 
 ## 5. Integration check
 
