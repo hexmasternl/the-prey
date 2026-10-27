@@ -504,8 +504,6 @@ private fun LocationSection(location: LocationSectionState, onPrivacyPolicy: () 
                 )
             }
         }
-        // Always visible, whatever the permission state: the prominent disclosure.
-        DisclosurePanel(onPrivacyPolicy)
         val instruction = when (location.step) {
             GrantStep.OpenSettingsForPrecise -> R.string.settings_location_instruction_precise
             GrantStep.OpenSettingsForAllTheTime -> R.string.settings_location_instruction_all_the_time
@@ -521,6 +519,8 @@ private fun LocationSection(location: LocationSectionState, onPrivacyPolicy: () 
         if (location.step != GrantStep.None) {
             SecondaryButton(text = stringResource(R.string.settings_location_grant), onClick = onGrant, height = 48.dp)
         }
+        // Always visible, whatever the permission state.
+        DisclosurePanel(onPrivacyPolicy)
     }
 }
 
