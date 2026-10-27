@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.filter
 import nl.hexmaster.theprey.R
+import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.ui.theme.ThePreyTheme
 
 /**
@@ -82,6 +83,7 @@ fun PlayFieldsScreen(
         onCancelDelete = viewModel::cancelDelete,
         onConfirmDelete = viewModel::confirmDelete,
         onQueryChange = viewModel::onQueryChange,
+        onToggleNearMe = viewModel::toggleNearMe,
         modifier = modifier,
     )
 }
@@ -101,6 +103,7 @@ private fun PlayFieldsContent(
     onCancelDelete: () -> Unit,
     onConfirmDelete: () -> Unit,
     onQueryChange: (String) -> Unit,
+    onToggleNearMe: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // At most one Private row shows its Delete button; the view model does not need to know.
@@ -169,7 +172,9 @@ private fun PlayFieldsContent(
                 PlayFieldsTab.Public -> PublicTab(
                     query = uiState.query,
                     search = uiState.search,
+                    nearMe = uiState.nearMe,
                     onQueryChange = onQueryChange,
+                    onToggleNearMe = onToggleNearMe,
                     onOpen = { onOpen(it, false) },
                 )
             }
@@ -249,12 +254,15 @@ private fun PrivateTab(
 private fun PublicTab(
     query: String,
     search: SearchState,
+    nearMe: NearMeState,
     onQueryChange: (String) -> Unit,
+    onToggleNearMe: () -> Unit,
     onOpen: (id: String) -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
         PlayFieldSearchField(query = query, onQueryChange = onQueryChange)
-        PublicSearchState(search) { items ->
+        NearMeFilter(nearMe, onToggleNearMe)
+        PublicSearchState(search, nearMe) { items ->
             LazyColumn(Modifier.fillMaxSize()) {
                 items(items, key = { it.id }) { item ->
                     // Public playfields can never be removed here, not even the player's own.
@@ -325,6 +333,7 @@ private fun ContentPreview(uiState: PlayFieldsUiState) {
             onCancelDelete = {},
             onConfirmDelete = {},
             onQueryChange = {},
+            onToggleNearMe = {},
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }
@@ -364,6 +373,36 @@ private fun PublicResultsPreview() = ContentPreview(
         selectedTab = PlayFieldsTab.Public,
         query = "park",
         search = SearchState.Results(previewItems.take(1)),
+    ),
+)
+
+@Preview(name = "Near me results")
+@Composable
+private fun NearMeResultsPreview() = ContentPreview(
+    PlayFieldsUiState(
+        selectedTab = PlayFieldsTab.Public,
+        nearMe = NearMeState.On(GeoPosition(52.36, 4.87)),
+        search = SearchState.Results(previewItems.mapIndexed { i, item -> item.copy(distanceMeters = 850 + i * 1_400) }),
+    ),
+)
+
+@Preview(name = "Near me results (Dutch)", locale = "nl")
+@Composable
+private fun NearMeResultsDutchPreview() = NearMeResultsPreview()
+
+@Preview(name = "Near me without permission")
+@Composable
+private fun NearMeNoPermissionPreview() = ContentPreview(
+    PlayFieldsUiState(selectedTab = PlayFieldsTab.Public, nearMe = NearMeState.NoPermission),
+)
+
+@Preview(name = "Near me: nothing nearby (Dutch)", locale = "nl")
+@Composable
+private fun NearMeNoneDutchPreview() = ContentPreview(
+    PlayFieldsUiState(
+        selectedTab = PlayFieldsTab.Public,
+        nearMe = NearMeState.On(GeoPosition(52.36, 4.87)),
+        search = SearchState.Results(emptyList()),
     ),
 )
 

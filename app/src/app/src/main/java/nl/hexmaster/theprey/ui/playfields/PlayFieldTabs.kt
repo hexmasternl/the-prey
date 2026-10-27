@@ -1,9 +1,13 @@
 package nl.hexmaster.theprey.ui.playfields
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -23,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import nl.hexmaster.theprey.R
+import nl.hexmaster.theprey.ui.theme.ThePreyTheme
 
 // Building blocks shared by the playfields list and the playfield selection screen.
 
@@ -116,15 +121,72 @@ internal fun OwnPlayFieldsState(
     }
 }
 
-/** The public search's hint, searching, error and no-results states; [content] draws the results. */
+/**
+ * The Near me filter chip below the search field, with a line that says why it is off (no
+ * permission, no fix) or that it is still locating. It never asks for a permission.
+ */
 @Composable
-internal fun PublicSearchState(search: SearchState, content: @Composable (List<PlayFieldItem>) -> Unit) {
+internal fun NearMeFilter(nearMe: NearMeState, onToggle: () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 4.dp)) {
+        FilterChip(
+            selected = nearMe.isOn,
+            onClick = onToggle,
+            label = { Text(stringResource(R.string.playfields_near_me)) },
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_target),
+                    contentDescription = null,
+                    modifier = Modifier.size(FilterChipDefaults.IconSize),
+                )
+            },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+                selectedLabelColor = MaterialTheme.colorScheme.primary,
+                selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        )
+        val message = when (nearMe) {
+            NearMeState.Locating -> R.string.playfields_near_me_locating
+            NearMeState.NoPermission -> R.string.playfields_near_me_no_permission
+            NearMeState.NoFix -> R.string.playfields_near_me_no_fix
+            NearMeState.Off, is NearMeState.On -> null
+        }
+        if (message != null) {
+            Text(
+                text = stringResource(message),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (nearMe == NearMeState.Locating) {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    ThePreyTheme.colors.caution
+                },
+            )
+        }
+    }
+}
+
+/**
+ * The public search's hint, searching, error and no-results states; [content] draws the results.
+ * With [nearMe] on, an empty result says nothing was found nearby.
+ */
+@Composable
+internal fun PublicSearchState(
+    search: SearchState,
+    nearMe: NearMeState = NearMeState.Off,
+    content: @Composable (List<PlayFieldItem>) -> Unit,
+) {
     when (search) {
         SearchState.Idle -> MessageState(text = stringResource(R.string.playfields_search_hint))
         SearchState.Searching -> MessageState(text = null, loading = true)
         SearchState.Error -> MessageState(text = stringResource(R.string.playfields_search_error))
         is SearchState.Results -> if (search.items.isEmpty()) {
-            MessageState(text = stringResource(R.string.playfields_no_results))
+            MessageState(
+                text = stringResource(
+                    if (nearMe is NearMeState.On) R.string.playfields_near_me_none else R.string.playfields_no_results,
+                ),
+            )
         } else {
             content(search.items)
         }
