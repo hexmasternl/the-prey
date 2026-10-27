@@ -15,9 +15,17 @@ interface PlayFieldApi {
     @GET("playfields")
     suspend fun listMine(): Response<List<PlayFieldSummaryDto>>
 
-    /** 200 with the public playfields matching [query]; 400 when the trimmed query is shorter than 3. */
+    /**
+     * 200 with the public playfields matching [query], or with [latitude]/[longitude] those within
+     * 25 km of that position, nearest first with `distanceMeters`; null parameters are left out.
+     * 400 for a query shorter than 3, neither a query nor a position, or an invalid position.
+     */
     @GET("playfields/public")
-    suspend fun searchPublic(@Query("q") query: String): Response<List<PlayFieldSummaryDto>>
+    suspend fun searchPublic(
+        @Query("q") query: String?,
+        @Query("lat") latitude: Double? = null,
+        @Query("lon") longitude: Double? = null,
+    ): Response<List<PlayFieldSummaryDto>>
 
     /** 200 with the playfield; 404 when it does not exist, or is private and owned by someone else. */
     @GET("playfields/{id}")

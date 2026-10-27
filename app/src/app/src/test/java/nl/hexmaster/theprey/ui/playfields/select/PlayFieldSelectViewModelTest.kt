@@ -3,6 +3,10 @@ package nl.hexmaster.theprey.ui.playfields.select
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import nl.hexmaster.theprey.data.location.GeoPosition
+import nl.hexmaster.theprey.data.location.LocationSource
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
@@ -10,6 +14,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.theprey.ui.playfields.ListState
+import nl.hexmaster.theprey.ui.playfields.NearMeState
 import nl.hexmaster.theprey.ui.playfields.PlayFieldItem
 import nl.hexmaster.theprey.ui.playfields.PlayFieldsTab
 import nl.hexmaster.theprey.ui.playfields.SEARCH_DEBOUNCE_MS
@@ -157,5 +162,48 @@ class PlayFieldSelectViewModelTest {
         // Tapping the same playfield on the other tab deselects it.
         sut.toggle(result)
         assertNull(sut.uiState.value.selected)
+    }
+
+    // ---- Near me ----
+
+    private val fixes = MutableSharedFlow<GeoPosition>()
+    private val location = object : LocationSource {
+        override fun positions(): Flow<GeoPosition> = fixes
+    }
+    private val fix = GeoPosition(52.358, 4.868)
+
+    private fun nearMeViewModel(handle: SavedStateHandle = SavedStateHandle()) =
+        PlayFieldSelectViewModel(repository, handle, location, hasLocationAccess = { true })
+
+    @Test
+    fun toggleNearMe_ShouldBeRestored_WhenRecreatedAfterRotation() = runTest {
+        val handle = SavedStateHandle()
+        val first = nearMeViewModel(handle)
+        first.toggleNearMe()
+        fixes.emit(fix)
+        assertEquals(NearMeState.On(fix), first.uiState.value.nearMe)
+
+        val restored = nearMeViewModel(handle)
+        runCurrent()
+        assertEquals(NearMeState.Locating, restored.uiState.value.nearMe)
+        fixes.emit(fix)
+        advanceTimeBy(SEARCH_DEBOUNCE_MS + 1)
+
+        assertEquals(NearMeState.On(fix), restored.uiState.value.nearMe)
+        assertEquals(fix, repository.origins.last())
+    }
+
+    @Test
+    fun toggleNearMe_ShouldKeepTheSelection_WhenSwitchedOnAndOff() = runTest {
+        repository.mineAnswer = { Result.success(listOf(playFieldDto("a"))) }
+        val sut = nearMeViewModel()
+        sut.toggle(sut.mine().single())
+
+        sut.toggleNearMe()
+        fixes.emit(fix)
+        sut.toggleNearMe()
+
+        assertEquals("a", sut.uiState.value.selected?.id)
+        assertEquals(NearMeState.Off, sut.uiState.value.nearMe)
     }
 }

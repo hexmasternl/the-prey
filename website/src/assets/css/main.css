@@ -271,13 +271,26 @@ tr:last-child td { border-bottom: none; }
 /* ---- SCREENSHOT (in-app reference images on docs pages) ---- */
 .screenshot { margin: 26px 0; text-align: center; }
 .screenshot img {
-  max-width: 270px;
+  max-width: 220px;
   width: 100%;
   height: auto;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   box-shadow: var(--e-2);
 }
+.screenshot-link {
+  display: inline-block;
+  max-width: 220px;
+  width: 100%;
+  border-radius: var(--r-md);
+  cursor: zoom-in;
+  transition: transform .2s ease;
+}
+.screenshot-link img { display: block; }
+.screenshot-link:hover { transform: translateY(-2px); }
+.screenshot-link:hover img { border-color: var(--accent-muted); }
+.screenshot-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .screenshot-link { transition: none; } .screenshot-link:hover { transform: none; } }
 .screenshot figcaption {
   margin-top: 10px;
   font-family: var(--font-display);
@@ -286,6 +299,49 @@ tr:last-child td { border-bottom: none; }
   color: var(--fg-muted);
   text-transform: uppercase;
 }
+
+/* ---- LIGHTBOX (full-size screenshot) ---- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-4);
+  background: rgba(0, 0, 0, .85);
+  cursor: zoom-out;
+  animation: lightbox-in .18s ease-out;
+}
+.lightbox[hidden] { display: none; }
+.lightbox-img {
+  max-width: 100%;
+  max-height: calc(100vh - 2 * var(--s-4));
+  max-height: calc(100dvh - 2 * var(--s-4));
+  width: auto;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--e-2);
+}
+.lightbox-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  background: var(--bg-card);
+  color: var(--fg);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+.lightbox-close:hover, .lightbox-close:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+body.lightbox-open { overflow: hidden; }
+@keyframes lightbox-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lightbox { animation: none; } }
 
 /* ---- EYEBROW ---- */
 .eyebrow {

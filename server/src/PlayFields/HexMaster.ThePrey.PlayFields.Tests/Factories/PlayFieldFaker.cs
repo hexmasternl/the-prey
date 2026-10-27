@@ -39,4 +39,26 @@ internal static class PlayFieldFaker
             points ?? SquarePoints(),
             isPublic);
     }
+
+    /// <summary>Kilometres per degree of latitude, to place play fields a given distance north of a point.</summary>
+    internal const double KilometresPerDegreeLatitude = 111.195;
+
+    /// <summary>A public play field whose centre lies <paramref name="kilometresNorth"/> north of the given point.</summary>
+    internal static PlayField CreatePublicNorthOf(
+        double originLat,
+        double originLon,
+        double kilometresNorth,
+        string? name = null)
+    {
+        const double size = 0.002;
+        var centerLat = originLat + kilometresNorth / KilometresPerDegreeLatitude;
+        return CreateValid(
+            name: name ?? EligiblePublicName,
+            isPublic: true,
+            points: SquarePoints(centerLat - size / 2, originLon - size / 2, size));
+    }
+
+    /// <summary>A stored public play field from before centres were computed: no points, no centre.</summary>
+    internal static PlayField CreatePublicWithoutCenter() =>
+        PlayField.Rehydrate(_faker.Random.Guid(), EligiblePublicName, _faker.Random.Guid(), true, [], DateTimeOffset.UtcNow);
 }

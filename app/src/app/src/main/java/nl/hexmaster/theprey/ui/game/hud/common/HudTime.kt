@@ -17,6 +17,9 @@ data class HudCountdown(val seedSeconds: Int, val seededAtElapsed: Long) {
 /** The broadcast interval used when the server reports none. */
 const val FALLBACK_BROADCAST_INTERVAL_SECONDS = 30
 
+/** How often a penalised player's location is broadcast: once per server sweep. */
+const val PENALISED_BROADCAST_INTERVAL_SECONDS = 30
+
 /** Fill of the next-broadcast bar: [secondsLeft] over [intervalSeconds] (30 s when 0), clamped to 0..1. */
 fun broadcastProgress(secondsLeft: Int, intervalSeconds: Int): Float {
     val interval = if (intervalSeconds > 0) intervalSeconds else FALLBACK_BROADCAST_INTERVAL_SECONDS

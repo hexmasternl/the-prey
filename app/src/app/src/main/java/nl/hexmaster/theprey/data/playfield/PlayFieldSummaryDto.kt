@@ -11,7 +11,7 @@ data class GpsCoordinateDto(
 
 /**
  * A playfield in a list (`PlayFieldSummaryDto`): returned by `GET /playfields` (own playfields)
- * and `GET /playfields/public?q=` (public search).
+ * and `GET /playfields/public` (public search).
  */
 @Serializable
 data class PlayFieldSummaryDto(
@@ -22,4 +22,6 @@ data class PlayFieldSummaryDto(
     /** ISO-8601 with offset (`DateTimeOffset`); parsed in the UI layer. */
     val lastUpdatedOn: String,
     val centerCoordinates: GpsCoordinateDto? = null,
+    /** Metres from the searched position to the centre; only set by a public search with a position. */
+    val distanceMeters: Int? = null,
 )

@@ -52,4 +52,23 @@ class PlayFieldSummaryDtoTest {
 
         assertNull(json.decodeFromString(PlayFieldSummaryDto.serializer(), payload).centerCoordinates)
     }
+
+    @Test
+    fun decode_ShouldReadDistance_WhenNearMeSearchSendsIt() {
+        val payload = """
+            {"id":"a","name":"Park","ownerId":"o","isPublic":true,"lastUpdatedOn":"2026-10-21T08:00:00Z",
+             "centerCoordinates":{"latitude":52.358,"longitude":4.8686},"distanceMeters":1250}
+        """.trimIndent()
+
+        assertEquals(1250, json.decodeFromString(PlayFieldSummaryDto.serializer(), payload).distanceMeters)
+    }
+
+    @Test
+    fun decode_ShouldDefaultDistanceToNull_WhenFieldIsAbsentOrNull() {
+        val absent = """{"id":"a","name":"Park","ownerId":"o","isPublic":false,"lastUpdatedOn":"2026-10-21T08:00:00Z"}"""
+        val explicitNull = """{"id":"a","name":"Park","ownerId":"o","isPublic":false,"lastUpdatedOn":"2026-10-21T08:00:00Z","distanceMeters":null}"""
+
+        assertNull(json.decodeFromString(PlayFieldSummaryDto.serializer(), absent).distanceMeters)
+        assertNull(json.decodeFromString(PlayFieldSummaryDto.serializer(), explicitNull).distanceMeters)
+    }
 }

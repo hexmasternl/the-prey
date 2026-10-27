@@ -22,6 +22,7 @@ The Prey wordt vanuit Nederland beheerd en is bereikbaar via **theprey.nl**. Voo
 |---|---|---|
 | Accountgegevens | Naam of bijnaam, e-mailadres, authenticatie-identificatie | Om je account aan te maken en te beveiligen |
 | Locatiegegevens | GPS-coördinaten tijdens een actief spel | Kern van het spel: het volgen van Prooi en de Jager |
+| Geschatte positie (In de buurt) | Je positie, afgerond op ongeveer 1 km, één keer verstuurd als je In de buurt gebruikt | Om openbare speelvelden in je buurt te tonen; wordt niet opgeslagen |
 | Spelgegevens | Speelvelden die je maakt, spellen die je speelt, rollen, tags, resultaten | Om spellen te draaien en terug te kijken |
 | Technische gegevens | Apparaattype, app-versie, diagnostische logs | Om de dienst te beheren, beveiligen en verbeteren |
 
@@ -37,6 +38,7 @@ Locatie is het hart van The Prey en verdient daarom een aparte vermelding:
 - Locaties worden uitsluitend met andere spelers gedeeld volgens de spelregels (zo worden Prooi-posities gedurende het hele spel aan de Jager getoond).
 - Zodra een spel eindigt, stopt het delen van live locaties en wordt elke tijdens het spel verzamelde GPS-locatie binnen 48 uur permanent van onze servers verwijderd.
 - Buiten een actief spel volgen we jouw locatie niet, ook niet op de achtergrond.
+- Als je **In de buurt** gebruikt bij de openbare speelvelden, stuurt de app **één keer** je **geschatte positie** (afgerond op ongeveer 1 km) om speelvelden in de buurt te vinden. Die wordt alleen gebruikt om die zoekopdracht te beantwoorden: hij wordt **niet opgeslagen**, gelogd of gedeeld.
 
 ---
 
@@ -44,13 +46,14 @@ Locatie is het hart van The Prey en verdient daarom een aparte vermelding:
 
 Voordat de app om toestemming voor je locatie vraagt, toont hij een melding die uitlegt hoe de locatievolging werkt. Kort samengevat:
 
-- The Prey verzamelt de **precieze locatie** van je apparaat, maar **alleen terwijl je in een actief spel zit**.
+- The Prey volgt de **precieze locatie** van je apparaat **alleen terwijl je in een actief spel zit**.
 - Dat gaat door terwijl de app gesloten is of niet wordt gebruikt, op de achtergrond, of terwijl het scherm uit staat, zodat het spel blijft werken als je telefoon in je zak zit.
 - De volging draait als **voorgrondservice**, met een **vaste melding** zolang die loopt.
 - De volging **stopt zodra het spel eindigt of je het spel verlaat**.
 - Het spel heeft je positie nodig om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft.
+- Als je **In de buurt** gebruikt bij de openbare speelvelden, stuurt de app één keer je geschatte positie om speelvelden in de buurt te vinden. Die wordt niet opgeslagen.
 
-Buiten een spel toont het hoofdmenu je huidige coördinaten alleen op je eigen scherm; ze worden niet naar onze servers gestuurd.
+Buiten een spel toont het hoofdmenu je huidige coördinaten alleen op je eigen scherm; ze worden niet naar onze servers gestuurd. De enige uitzondering is In de buurt, en alleen als je erop tikt: dan wordt één keer een positie gestuurd die is afgerond op ongeveer 1 km, en die wordt niet opgeslagen.
 
 Het hoofdmenu toont deze melding maar één keer uit zichzelf op je telefoon. Je kunt kiezen voor **Niet nu** en de menu's gewoon blijven gebruiken. Voor het starten van of meedoen aan een spel is je precieze locatie nodig, dus dan toont de app de melding opnieuw. Je kunt locatietoegang ook later geven via het scherm Instellingen in de app, dat dezelfde melding toont. Je kunt de toestemming altijd intrekken in de instellingen van je telefoon. Vanaf Android 13 vraagt de app ook om meldingen te mogen tonen, zodat de melding over de volging kan verschijnen.
 

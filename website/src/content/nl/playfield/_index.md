@@ -1,7 +1,7 @@
 ---
 title: "Speelveld"
-description: "Speelvelden in The Prey: de tabbladen Privé en Openbaar, het gebied punt voor punt tekenen, de gebiedseditor, een speelveld openbaar maken en er een kiezen voor een spel."
-keywords: ["speelveld", "speelgebied", "speelveld tekenen", "gebiedseditor", "openbaar speelveld", "GPS-grens", "The Prey speelveld"]
+description: "Speelvelden in The Prey: de tabbladen Privé en Openbaar, openbare speelvelden in je buurt vinden, het gebied punt voor punt tekenen, de gebiedseditor, een speelveld openbaar maken en er een kiezen voor een spel."
+keywords: ["speelveld", "speelgebied", "speelveld tekenen", "gebiedseditor", "openbaar speelveld", "speelvelden in de buurt", "GPS-grens", "The Prey speelveld"]
 ---
 
 ## Wat Is een Speelveld?
@@ -19,7 +19,7 @@ Je tekent speelvelden van tevoren en gebruikt ze zo vaak als je wilt. Als je een
 Open **Speelvelden** vanuit het hoofdmenu. Het scherm heeft twee tabbladen:
 
 - **Privé**: de speelvelden die jij hebt gemaakt. Tik op een speelveld om het te openen. Veeg een speelveld opzij om **Verwijderen** te zien.
-- **Openbaar**: speelvelden die andere spelers delen. Typ minstens 3 tekens om te zoeken. Openbare speelvelden open je alleen om te bekijken.
+- **Openbaar**: speelvelden die andere spelers delen. Typ minstens 3 tekens om te zoeken, of tik op **In de buurt** voor de openbare speelvelden binnen 25 km van je, de dichtstbijzijnde eerst, elk met de afstand erbij. Typ je 3 of meer tekens terwijl In de buurt aan staat, dan zoek je de speelvelden in de buurt op naam. In de buurt gebruikt één keer je huidige locatie (een geschatte locatie is genoeg) en stuurt die afgerond op ongeveer 1 km; het vraagt zelf nooit om toestemming, dus zonder locatietoegang zegt het dat je die in Instellingen kunt geven. Openbare speelvelden open je alleen om te bekijken.
 
 ---
 

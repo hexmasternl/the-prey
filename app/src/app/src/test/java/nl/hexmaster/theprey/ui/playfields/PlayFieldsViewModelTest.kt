@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.data.playfield.CreateOutcome
 import nl.hexmaster.theprey.data.playfield.CreatePlayFieldRequest
 import nl.hexmaster.theprey.data.playfield.DeleteOutcome
@@ -49,7 +50,7 @@ class PlayFieldsViewModelTest {
             return CompletableDeferred<Result<List<PlayFieldSummaryDto>>>().also { mineCalls += it }.await()
         }
 
-        override suspend fun searchPublic(query: String): Result<List<PlayFieldSummaryDto>> {
+        override suspend fun searchPublic(query: String, origin: GeoPosition?): Result<List<PlayFieldSummaryDto>> {
             searches += query
             return CompletableDeferred<Result<List<PlayFieldSummaryDto>>>().also { searchCalls += it }.await()
         }

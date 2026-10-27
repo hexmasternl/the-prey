@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import nl.hexmaster.theprey.data.location.LocationSource
 import nl.hexmaster.theprey.data.playfield.DeleteOutcome
 import nl.hexmaster.theprey.data.playfield.PlayFieldRepository
 
@@ -25,6 +26,7 @@ data class PlayFieldsUiState(
     val pendingDelete: PlayFieldItem? = null,
     val query: String = "",
     val search: SearchState = SearchState.Idle,
+    val nearMe: NearMeState = NearMeState.Off,
 )
 
 /** Reads a saved [PlayFieldsTab] name, falling back to Private. */
@@ -34,11 +36,14 @@ internal fun SavedStateHandle.tab(key: String): PlayFieldsTab =
 /**
  * The playfields list: own playfields with delete, and the debounced public search. Scoped to
  * the Playfields back-stack entry, so every open from the main menu starts on the Private tab;
- * the tab and the search text survive a configuration change through [savedStateHandle].
+ * the tab, the search text and the Near me switch survive a configuration change through
+ * [savedStateHandle]. Near me reads [locationSource] only when switched on.
  */
 class PlayFieldsViewModel(
     private val repository: PlayFieldRepository,
     private val savedStateHandle: SavedStateHandle,
+    locationSource: LocationSource = NoLocationSource,
+    hasLocationAccess: () -> Boolean = { false },
 ) : ViewModel() {
 
     private val mine = OwnPlayFields(repository, viewModelScope)
@@ -46,6 +51,9 @@ class PlayFieldsViewModel(
         repository,
         viewModelScope,
         initialQuery = savedStateHandle.get<String>(KEY_QUERY).orEmpty(),
+        locationSource = locationSource,
+        hasLocationAccess = hasLocationAccess,
+        initialNearMe = savedStateHandle.get<Boolean>(KEY_NEAR_ME) ?: false,
     )
 
     private val _uiState = MutableStateFlow(
@@ -62,6 +70,7 @@ class PlayFieldsViewModel(
         viewModelScope.launch { mine.state.collect { list -> _uiState.update { it.copy(mine = list) } } }
         viewModelScope.launch { publicSearch.query.collect { text -> _uiState.update { it.copy(query = text) } } }
         viewModelScope.launch { publicSearch.state.collect { search -> _uiState.update { it.copy(search = search) } } }
+        viewModelScope.launch { publicSearch.nearMe.collect { nearMe -> _uiState.update { it.copy(nearMe = nearMe) } } }
         refreshMine()
     }
 
@@ -104,8 +113,15 @@ class PlayFieldsViewModel(
         publicSearch.onQueryChange(text)
     }
 
+    /** Switches Near me on or off; see [PublicPlayFieldSearch.toggleNearMe]. */
+    fun toggleNearMe() {
+        publicSearch.toggleNearMe()
+        savedStateHandle[KEY_NEAR_ME] = publicSearch.nearMe.value.isOn
+    }
+
     private companion object {
         const val KEY_TAB = "playfields_tab"
         const val KEY_QUERY = "playfields_query"
+        const val KEY_NEAR_ME = "playfields_near_me"
     }
 }

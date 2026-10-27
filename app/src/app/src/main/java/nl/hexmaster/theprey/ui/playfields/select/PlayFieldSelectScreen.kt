@@ -38,6 +38,7 @@ import nl.hexmaster.theprey.ui.playfields.ListState
 import nl.hexmaster.theprey.ui.playfields.OwnPlayFieldsState
 import nl.hexmaster.theprey.ui.playfields.PlayFieldItem
 import nl.hexmaster.theprey.ui.playfields.PlayFieldRow
+import nl.hexmaster.theprey.ui.playfields.NearMeFilter
 import nl.hexmaster.theprey.ui.playfields.PlayFieldSearchField
 import nl.hexmaster.theprey.ui.playfields.PlayFieldTabRow
 import nl.hexmaster.theprey.ui.playfields.PlayFieldsTab
@@ -67,6 +68,7 @@ fun PlayFieldSelectScreen(
         onSelectTab = viewModel::selectTab,
         onRetry = viewModel::retry,
         onQueryChange = viewModel::onQueryChange,
+        onToggleNearMe = viewModel::toggleNearMe,
         onToggle = viewModel::toggle,
         modifier = modifier,
     )
@@ -81,6 +83,7 @@ private fun PlayFieldSelectContent(
     onSelectTab: (PlayFieldsTab) -> Unit,
     onRetry: () -> Unit,
     onQueryChange: (String) -> Unit,
+    onToggleNearMe: () -> Unit = {},
     onToggle: (PlayFieldItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -123,7 +126,8 @@ private fun PlayFieldSelectContent(
                 ) { items -> SelectableList(items, selectedId, onToggle) }
                 PlayFieldsTab.Public -> Column(Modifier.fillMaxSize()) {
                     PlayFieldSearchField(query = uiState.query, onQueryChange = onQueryChange)
-                    PublicSearchState(uiState.search) { items -> SelectableList(items, selectedId, onToggle) }
+                    NearMeFilter(uiState.nearMe, onToggleNearMe)
+                    PublicSearchState(uiState.search, uiState.nearMe) { items -> SelectableList(items, selectedId, onToggle) }
                 }
             }
         }

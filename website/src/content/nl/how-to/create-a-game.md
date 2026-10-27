@@ -6,7 +6,7 @@ keywords: ["spel aanmaken", "spel starten", "spelers uitnodigen", "jager kiezen"
 ---
 
 1. Tik in het hoofdmenu op **Nu spelen**. Is de knop grijs, volg dan de melding eronder: de app heeft precieze locatie nodig die op "Altijd toestaan" staat.
-2. Tik op **Kies een speelveld**. Kies er een van jezelf op het tabblad **Privé**, of zoek op het tabblad **Openbaar**, en tik op **Kiezen**. Nog geen speelveld? [Teken er eerst een]({{< relref "/how-to/draw-a-playfield" >}}).
+2. Tik op **Kies een speelveld**. Kies er een van jezelf op het tabblad **Privé**, of zoek op het tabblad **Openbaar** (tik op **In de buurt** voor de openbare speelvelden om je heen), en tik op **Kiezen**. Nog geen speelveld? [Teken er eerst een]({{< relref "/how-to/draw-a-playfield" >}}).
 3. Stel het spel in: **Speelduur**, **Vertraging jager**, **Eindfase**, **Locatie-ping** en **Ping in eindfase**. De standaardwaarden geven een spel van 30 minuten met 5 minuten voorsprong.
 4. Tik op **Spel aanmaken**. De lobby opent met de **Spelcode**.
 5. Tik op het deel-icoon naast de spelcode en stuur de uitnodigingslink naar de andere spelers. Zij tikken erop om mee te doen.

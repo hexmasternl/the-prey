@@ -56,4 +56,18 @@ class PlayFieldItemTest {
     fun toItem_ShouldHaveNoDate_WhenDateDoesNotParse() {
         assertNull(dto(lastUpdatedOn = "yesterday").toItem().lastUpdated)
     }
+
+    @Test
+    fun toItem_ShouldComputeDistanceOnTheDevice_WhenGivenTheOwnFix() {
+        // 0.01° north is about 1112 m.
+        val item = dto(center = GpsCoordinateDto(52.01, 5.0)).copy(distanceMeters = 5_000).toItem(from = GeoPosition(52.0, 5.0))
+
+        assertEquals(1_112, item.distanceMeters)
+    }
+
+    @Test
+    fun toItem_ShouldUseServerDistance_WhenNoOwnFixIsGiven() {
+        assertEquals(5_000, dto(center = GpsCoordinateDto(52.01, 5.0)).copy(distanceMeters = 5_000).toItem().distanceMeters)
+        assertNull(dto(center = GpsCoordinateDto(52.01, 5.0)).toItem().distanceMeters)
+    }
 }

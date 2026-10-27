@@ -101,6 +101,10 @@ Archive a completed change in the experimental workflow.
 
    Then, if the change's PR is merged and its worktree is clean, remove the worktree and branch (see the `the-prey-git-workflow` skill, *Cleanup*); ask first if it has uncommitted or unpushed work.
 
+5b. **Close the linked GitHub issue** (see the `the-prey-openspec-github-sync` skill, *Sync* step 3)
+
+   If `proposal.md` has a `> GitHub issue:` line and that issue is open, set its managed block's `Status` to `archived` with the archive path, then close it with `--reason completed` and a comment naming the archived change. No back-link line means there's nothing to do.
+
 6. **Display summary**
 
    Show archive completion summary including:

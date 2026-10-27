@@ -2,7 +2,9 @@ package nl.hexmaster.theprey.ui.game.hud.prey
 
 import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.ui.game.ActiveGameUi
+import nl.hexmaster.theprey.ui.game.hud.common.FALLBACK_BROADCAST_INTERVAL_SECONDS
 import nl.hexmaster.theprey.ui.game.hud.common.HudCountdown
+import nl.hexmaster.theprey.ui.game.hud.common.PENALISED_BROADCAST_INTERVAL_SECONDS
 import nl.hexmaster.theprey.ui.game.hud.common.isPenaltyActive
 import nl.hexmaster.theprey.ui.game.hud.common.nearestMeters
 import java.time.Instant
@@ -58,6 +60,10 @@ data class PreyHudState(
          * Derives the HUD from the game screen's state at server time [serverNow]. The hunter
          * distance is recomputed from the device fix and the hunters' last known locations when
          * both are known (they move with live updates); otherwise the snapshot's server value is used.
+         *
+         * The next-broadcast countdown is seeded from the snapshot and starts over at the full
+         * interval at every broadcast of the prey's own location; while penalised that interval is
+         * the sweep cadence, the moment a penalised prey is actually broadcast.
          */
         fun from(ready: ActiveGameUi.Ready, serverNow: Instant): PreyHudState {
             val snapshot = ready.snapshot
@@ -66,12 +72,21 @@ data class PreyHudState(
             val local = closestHunterMeters(ready.own, hunters)
             val seededAt = ready.clock?.seededAtElapsed ?: 0L
             val status = snapshot.status
+            val penaltyActive = me != null && isPenaltyActive(me.hasActivePenalty, me.penaltyEndsAt, serverNow)
+            val serverInterval = status?.currentPingInterval ?: 0
+            val interval = when {
+                penaltyActive -> PENALISED_BROADCAST_INTERVAL_SECONDS
+                serverInterval > 0 -> serverInterval
+                else -> FALLBACK_BROADCAST_INTERVAL_SECONDS
+            }
+            val lastOwnBroadcast = ready.lastOwnBroadcastAtElapsed
             return PreyHudState(
-                penaltyActive = me != null && isPenaltyActive(me.hasActivePenalty, me.penaltyEndsAt, serverNow),
+                penaltyActive = penaltyActive,
                 hunterDistanceMeters = local ?: snapshot.roleState?.hunterDistanceMeters,
                 gameTime = HudCountdown(status?.gameDurationLeft ?: 0, seededAt),
-                nextBroadcast = HudCountdown(status?.nextPingDuration ?: 0, seededAt),
-                broadcastIntervalSeconds = status?.currentPingInterval ?: 0,
+                nextBroadcast = lastOwnBroadcast?.let { HudCountdown(interval, it) }
+                    ?: HudCountdown(status?.nextPingDuration ?: 0, seededAt),
+                broadcastIntervalSeconds = if (lastOwnBroadcast != null || penaltyActive) interval else serverInterval,
             )
         }
     }
