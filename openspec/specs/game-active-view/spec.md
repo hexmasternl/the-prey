@@ -103,6 +103,11 @@ While the game's status is `Started` and it is not yet `InProgress`, the screen 
 - **WHEN** the game's status changes from `Started` to `InProgress`
 - **THEN** the "game is starting" message disappears
 
+#### Scenario: Countdown follows the promotion without re-entry
+
+- **WHEN** the screen shows a `Started` game with a hunter delay and the server sweep promotes it to `InProgress`
+- **THEN** the "game is starting" message is replaced by the start-delay countdown, measured from the promoted game's `hunterMayMoveAt`, without the player leaving or re-entering the screen
+
 ### Requirement: Start-delay countdown during the hunter delay
 
 While the current time is before the game's `hunterMayMoveAt`, the screen SHALL show a countdown centered over the map, as minutes and seconds, to `hunterMayMoveAt`. It SHALL tick down every second without a server request, measured against the server clock of the latest state. It SHALL disappear at zero. When `hunterMayMoveAt` is unknown or already past, no countdown SHALL be shown.
