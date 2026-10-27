@@ -66,9 +66,9 @@ Body is Markdown. Use `##` headings (the page header renders the `h1`), Markdown
 | Shortcode | Usage |
 |---|---|
 | `qa` | FAQ accordion: `{{< qa q="How does tagging work?" >}}Markdown answer{{< /qa >}}` — only in `faq/_index.md` |
-| `screenshot` | `{{< screenshot name="lobby" alt="…" caption="…" >}}` renders `static/images/screens/<lang>/<name>.webp` with real width/height and lazy loading. Same `name` in the EN and NL twin, translated `alt`/`caption`. A missing file renders nothing and logs `WARN screenshot …` |
+| `screenshot` | `{{< screenshot name="lobby" alt="…" caption="…" >}}` renders the thumbnail `static/images/screens/<lang>/<name>-thumb.webp` (lazy, real width/height, shown at most 220 px wide) linked to the full-size `<name>.webp`; `main.js` opens the link in the lightbox (`#lightbox` in `baseof.html`, black translucent overlay, Esc/click closes), and without JS the link just opens the image. Same `name` in the EN and NL twin, translated `alt`/`caption`. A missing file renders nothing and logs `WARN screenshot …` |
 
-Names in use: `area-editor`, `create-game`, `game-result`, `hunter-hud`, `lobby`, `main-menu`, `playfield-details`, `playfields-list`, `prey-hud`, `settings`, `tag-sheet`. **None of the `.webp` captures exist yet**, so every build currently warns. Adding them: capture the Android app in English and in Dutch, convert to WebP offline (CI Hugo is non-extended, so no image processing at build time), keep a consistent phone width, and save as `static/images/screens/en/<name>.webp` and `static/images/screens/nl/<name>.webp`. The old PNGs in `static/images/screens/*.png` and `designs/screens/` are unused legacy captures.
+Names in use: `area-editor`, `create-game`, `game-result`, `hunter-hud`, `lobby`, `main-menu`, `playfield-details`, `playfields-list`, `prey-hud`, `settings`, `tag-sheet`. Captured so far (emulator, 2026-10-27): `main-menu`, `playfields-list`, `playfield-details`, `area-editor`, `settings`, `create-game`. Still missing, so the build warns for them: `lobby`, `prey-hud`, `hunter-hud`, `tag-sheet`, `game-result` (they need a real multi-player game). Adding one: capture the Android app in English and in Dutch (`adb shell cmd locale set-app-locales nl.hexmaster.theprey --locales nl`, reset with `--locales ""`), crop off the status and gesture bars, convert to WebP offline (CI Hugo is non-extended, so no image processing at build time) as `<name>.webp` 760 px wide and `<name>-thumb.webp` 540 px wide, and save both in `static/images/screens/en/` and `static/images/screens/nl/`. The old PNGs in `static/images/screens/*.png` and `designs/screens/` are unused legacy captures.
 
 ## Adding things
 
@@ -125,7 +125,7 @@ Local Hugo may be newer than CI's `0.124.0`: avoid template functions newer than
 - [ ] Only template-backed front matter fields; `weight` on new how-to guides.
 - [ ] New template text via `i18n` keys in both YAML files; links via `relLangURL` / `relref`.
 - [ ] Styling uses tokens and existing components; works at phone width and without JS.
-- [ ] Screenshots as `static/images/screens/{en,nl}/<name>.webp` with translated `alt`.
+- [ ] Screenshots as `static/images/screens/{en,nl}/<name>.webp` plus `<name>-thumb.webp`, with translated `alt`.
 - [ ] Game facts (durations, 50 m, penalties, player counts) match the-prey-game-rules.
 - [ ] `hugo --gc --minify` builds clean; `public/` and `resources/` not committed.
 - [ ] `assetlinks.json`, `games/join`, `privacy` redirect and `staticwebapp.config.json` untouched unless intended.

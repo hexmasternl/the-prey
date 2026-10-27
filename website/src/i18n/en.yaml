@@ -19,3 +19,6 @@ footer_copy: "END OF TRANSMISSION"
 footer_become_tester: "Become a Tester"
 footer_privacy: "Privacy"
 footer_account_removal: "Account Removal"
+
+screenshot_enlarge: "Enlarge screenshot"
+screenshot_close: "Close"

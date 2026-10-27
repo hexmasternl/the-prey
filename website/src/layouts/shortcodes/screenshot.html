@@ -1,19 +1,25 @@
 {{- /*
   An app screenshot in the page's language:
   {{< screenshot name="area-editor" alt="…" caption="…" >}} renders
-  static/images/screens/{lang}/area-editor.webp, so the English and Dutch twins of a page share the
-  same call and each shows the app in its own language. A missing capture renders nothing and logs a
-  build warning, so `hugo` output must be free of "screenshot" warnings before a release.
+  static/images/screens/{lang}/area-editor-thumb.webp as a small image that links to the full-size
+  static/images/screens/{lang}/area-editor.webp; main.js opens that link in the lightbox. The English
+  and Dutch twins of a page share the same call and each shows the app in its own language. A missing
+  capture renders nothing and logs a build warning, so `hugo` output must be free of "screenshot"
+  warnings before a release.
 */ -}}
 {{- $name := .Get "name" -}}
 {{- $path := printf "images/screens/%s/%s.webp" .Page.Language.Lang $name -}}
+{{- $thumb := printf "images/screens/%s/%s-thumb.webp" .Page.Language.Lang $name -}}
 {{- $file := printf "static/%s" $path -}}
-{{- if not (fileExists $file) -}}
-  {{- warnf "screenshot %q: %s does not exist (%s)" $name $file .Position -}}
+{{- $thumbFile := printf "static/%s" $thumb -}}
+{{- if not (and (fileExists $file) (fileExists $thumbFile)) -}}
+  {{- warnf "screenshot %q: %s or its -thumb does not exist (%s)" $name $file .Position -}}
 {{- else -}}
-{{- $img := imageConfig $file -}}
+{{- $img := imageConfig $thumbFile -}}
 <figure class="screenshot">
-  <img src="{{ $path | relURL }}" alt="{{ .Get "alt" }}" width="{{ $img.Width }}" height="{{ $img.Height }}" loading="lazy" decoding="async">
+  <a class="screenshot-link" href="{{ $path | relURL }}" data-lightbox aria-label="{{ i18n "screenshot_enlarge" }}: {{ .Get "alt" }}">
+    <img src="{{ $thumb | relURL }}" alt="{{ .Get "alt" }}" width="{{ $img.Width }}" height="{{ $img.Height }}" loading="lazy" decoding="async">
+  </a>
   {{ with .Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end }}
 </figure>
 {{- end -}}

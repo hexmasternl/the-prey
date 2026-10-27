@@ -35,6 +35,49 @@
     });
   })();
 
+  /* ---- screenshot lightbox ---- */
+  // Without JS the thumbnail link simply opens the full-size image.
+  (function () {
+    var box = document.getElementById("lightbox");
+    if (!box) { return; }
+    var img = box.querySelector(".lightbox-img");
+    var closeBtn = box.querySelector(".lightbox-close");
+    var opener = null;
+
+    function open(link) {
+      var thumb = link.querySelector("img");
+      opener = link;
+      img.src = link.getAttribute("href");
+      img.alt = thumb ? thumb.alt : "";
+      box.hidden = false;
+      document.body.classList.add("lightbox-open");
+      closeBtn.focus();
+    }
+
+    function close() {
+      if (box.hidden) { return; }
+      box.hidden = true;
+      img.removeAttribute("src");
+      document.body.classList.remove("lightbox-open");
+      if (opener) { opener.focus(); opener = null; }
+    }
+
+    document.addEventListener("click", function (e) {
+      var link = e.target.closest("a[data-lightbox]");
+      if (!link || e.ctrlKey || e.metaKey || e.shiftKey) { return; }
+      e.preventDefault();
+      open(link);
+    });
+
+    // Any click on the overlay, the image or the close button closes it.
+    box.addEventListener("click", close);
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { close(); }
+      else if (e.key === "Tab" && !box.hidden) { e.preventDefault(); closeBtn.focus(); }
+    });
+  })();
+
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function parseCount(raw) {
