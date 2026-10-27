@@ -22,6 +22,7 @@ The Prey is operated from the Netherlands and reachable at **theprey.nl**. For a
 |---|---|---|
 | Account data | Name or nickname, email address, authentication identifier | To create and secure your account |
 | Location data | GPS coordinates while a game is active | Core gameplay: tracking Prey and the Hunter |
+| Approximate position (Near me) | Your position rounded to about 1 km, sent once when you use Near me | To list public playfields near you; not stored |
 | Game data | Playfields you create, games you join, roles, tags, results | To run and replay games |
 | Technical data | Device type, app version, diagnostic logs | To operate, secure, and improve the service |
 
@@ -37,6 +38,7 @@ Location is the heart of The Prey, so it deserves special mention:
 - Locations are shared with other players strictly according to the game rules (for example, Prey positions are broadcast to the Hunter throughout the game).
 - When a game ends, live location sharing stops, and every GPS location collected during the game is permanently deleted from our servers within 48 hours.
 - We do not track your location outside of an active game, in the foreground or in the background.
+- When you use **Near me** on the public playfields, the app sends your **approximate position** (rounded to about 1 km) **once**, to find playfields nearby. It is used only to answer that search: it is **not stored**, logged or shared.
 
 ---
 
@@ -44,13 +46,14 @@ Location is the heart of The Prey, so it deserves special mention:
 
 Before the app asks for location permission, it shows a notice that explains how location tracking works. In short:
 
-- The Prey collects your device's **precise location**, but **only while you are in an active game**.
+- The Prey tracks your device's **precise location** **only while you are in an active game**.
 - Collection continues while the app is closed or not in use, in the background, or while the screen is off, so the game keeps working when your phone is in your pocket.
 - Tracking runs as a **foreground service**, with a **persistent notification** for as long as it runs.
 - Tracking **stops as soon as the game ends or you leave it**.
 - The game needs your position to show players to the Hunter and to check that you stay inside the playfield.
+- When you use **Near me** on the public playfields, the app sends your approximate position once to find nearby playfields. It is not stored.
 
-Outside a game, the main menu only shows your current coordinates on your own screen; they are not sent to our servers.
+Outside a game, the main menu only shows your current coordinates on your own screen; they are not sent to our servers. The only exception is Near me, and only when you tap it: then a position rounded to about 1 km is sent once and not stored.
 
 The main menu shows this notice by itself only once on your phone. You can choose **Not now** and still use the menus. Starting or joining a game requires precise location, so the app shows the notice again at that point, and you can grant location access later on the app's Settings screen, which shows the same notice. You can withdraw the permission at any time in your phone's settings. On Android 13 and later the app also asks for permission to show notifications, so the tracking notification can appear.
 
