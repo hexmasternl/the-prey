@@ -16,7 +16,7 @@
 - [x] 2.2 Extend `PublicPlayFieldSearch` with a near-me state (off, locating, on with fix, unavailable: no permission / no fix) driven by an injected `LocationSource` and location-access reader: one fix with a 10 s timeout, combined with the debounced text, results re-sorted and distances computed on the device; verify with JUnit + coroutines-test using fake location and repository for every scenario in the `app-playfields-list` delta spec
 - [x] 2.3 Wire the near-me state through `PlayFieldsViewModel` and `PlayFieldSelectViewModel` (saved state for the chip, `LocationSource` from `AppContainer` via `ThePreyNavHost`), keeping the selection when Near me changes; verify with view model tests for rotation restore and selection kept
 - [ ] 2.4 Add the "Near me" filter chip, the distance label on `PlayFieldItem` rows (existing `formatDistance`), the updated hint, the no-permission, no-fix and nothing-nearby messages to both Public tabs, using theme tokens only; verify on an emulator with a mock location and with location permission off
-- [ ] 2.5 Add all new strings in `res/values/strings.xml` and `res/values-nl/strings.xml` (`the-prey-multilingual`); verify `./gradlew lintDebug testDebugUnitTest` from `app/src` passes with no missing translations
+- [x] 2.5 Add all new strings in `res/values/strings.xml` and `res/values-nl/strings.xml` (`the-prey-multilingual`); verify `./gradlew lintDebug testDebugUnitTest` from `app/src` passes with no missing translations
 
 ## 3. Privacy and Play Store
 

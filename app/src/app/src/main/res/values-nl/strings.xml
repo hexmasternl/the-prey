@@ -114,7 +114,13 @@
     <string name="playfields_cancel">Annuleren</string>
     <string name="playfields_delete_failed">Speelveld niet verwijderd. Probeer het opnieuw.</string>
     <string name="playfields_search_label">Zoek openbare speelvelden</string>
-    <string name="playfields_search_hint">Typ minstens 3 tekens om te zoeken.</string>
+    <string name="playfields_search_hint">Typ minstens 3 tekens om te zoeken, of tik op In de buurt voor de speelvelden om je heen.</string>
+    <string name="playfields_near_me">In de buurt</string>
+    <string name="playfields_near_me_locating">Je locatie bepalen…</string>
+    <string name="playfields_near_me_no_permission">In de buurt heeft locatietoegang nodig. Je kunt die geven in Instellingen.</string>
+    <string name="playfields_near_me_no_fix">Je locatie kon niet worden bepaald. Zoek in plaats daarvan op naam.</string>
+    <string name="playfields_near_me_none">Geen openbare speelvelden in je buurt gevonden. Probeer op naam te zoeken.</string>
+    <string name="playfields_distance">%1$s hiervandaan</string>
     <string name="playfields_no_results">Geen openbare speelvelden gevonden voor je zoekopdracht.</string>
     <string name="playfields_search_error">Zoeken mislukt. Controleer je verbinding en probeer het opnieuw.</string>
     <string name="playfields_create">Speelveld maken</string>

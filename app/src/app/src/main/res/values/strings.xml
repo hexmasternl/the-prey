@@ -137,7 +137,13 @@
     <string name="playfields_cancel">Cancel</string>
     <string name="playfields_delete_failed">Playfield not deleted. Try again.</string>
     <string name="playfields_search_label">Search public playfields</string>
-    <string name="playfields_search_hint">Type at least 3 characters to search.</string>
+    <string name="playfields_search_hint">Type at least 3 characters to search, or tap Near me to see the playfields around you.</string>
+    <string name="playfields_near_me">Near me</string>
+    <string name="playfields_near_me_locating">Finding your location…</string>
+    <string name="playfields_near_me_no_permission">Near me needs location access. You can allow it in Settings.</string>
+    <string name="playfields_near_me_no_fix">Your location could not be determined. Search by name instead.</string>
+    <string name="playfields_near_me_none">No public playfields found near you. Try searching by name.</string>
+    <string name="playfields_distance">%1$s away</string>
     <string name="playfields_no_results">No public playfields match your search.</string>
     <string name="playfields_search_error">Search failed. Check your connection and try again.</string>
     <string name="playfields_create">Create playfield</string>
