@@ -1,5 +1,7 @@
 # Proposal
 
+> GitHub issue: [#46](https://github.com/hexmasternl/the-prey/issues/46)
+
 ## Why
 
 After the server broadcasts the players' locations, the prey HUD's **next-broadcast** countdown should start over. It often does not: it runs down to `0s` and stays on an empty bar until the next full snapshot (the 3-minute resync, a reconnect, or a re-entry of the game screen) happens to reseed it. The bug looks intermittent because a snapshot sometimes lands close to a broadcast and hides it.
