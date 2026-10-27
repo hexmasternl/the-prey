@@ -105,6 +105,15 @@ Archive a completed change in the experimental workflow.
 
    If `proposal.md` has a `> GitHub issue:` line and that issue is open, set its managed block's `Status` to `archived` with the archive path, then close it with `--reason completed` and a comment naming the archived change. No back-link line means there's nothing to do.
 
+5c. **Move the linked issue to `Done` on the project board**
+
+   If `proposal.md` has a `> GitHub issue: [#<n>](…)` line and that issue is an item on the GitHub project **"The Prey"** (owner `hexmasternl`, number 3), set its `Status` to `Done`, whatever it is now (`Backlog`, `Ready`, `In progress`, `In review`), and whether the issue is open or already closed:
+   ```bash
+   item=$(gh project item-list 3 --owner hexmasternl --format json --limit 1000      --jq '.items[] | select(.content.number == <n> and .content.repository == "hexmasternl/the-prey") | .id')
+   [ -n "$item" ] && gh project item-edit --id "$item" --project-id PVT_kwDOEHaUVM4Bo76G      --field-id PVTSSF_lADOEHaUVM4Bo76GzhnZtxM --single-select-option-id 98236657
+   ```
+   The ids are the project, its `Status` field and the `Done` option; if they're rejected, look them up again as the `the-prey-openspec-github-sync` skill describes (*The project board*). An issue that isn't on the board stays off it. A failing `gh project` call doesn't undo the archive: report it so the user can move the item (a scope error means `! gh auth refresh -s project`).
+
 6. **Display summary**
 
    Show archive completion summary including:
@@ -112,6 +121,7 @@ Archive a completed change in the experimental workflow.
    - Schema that was used
    - Archive location
    - Spec sync status (synced / sync skipped / no delta specs)
+   - The linked issue and its board status (`Done`, not on the board, or the error)
    - Note about any warnings (incomplete artifacts/tasks)
 
 **Output On Success**
@@ -187,3 +197,4 @@ Target archive directory already exists.
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
 - Never commit or push to `main`; archives go to `development` in the repo root and are pushed automatically
 - Don't archive a change whose implementation isn't merged into `development` without the user's confirmation
+- After archiving, the linked issue's item on "The Prey" project is set to `Done`; an issue that isn't on the board is never added
