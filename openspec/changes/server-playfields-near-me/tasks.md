@@ -21,7 +21,7 @@
 ## 3. Privacy and Play Store
 
 - [ ] 3.1 Change `location_consent_body` to the "tracks … only while you are in an active game" wording and add `location_consent_point_near_me` in English and Dutch, shown in the disclosure dialog and the Settings panel; verify both languages on a device and update any disclosure UI tests — **auto: needs human:** strings and the extra disclosure point are in (no disclosure UI tests exist); the on-device check in both languages needs a human
-- [ ] 3.2 Update `docs/play-store/location-disclosure.md` (disclosure table, permission declaration text, Data safety short explanation EN + NL) to match; verify the strings in the doc equal the resource values
+- [x] 3.2 Update `docs/play-store/location-disclosure.md` (disclosure table, permission declaration text, Data safety short explanation EN + NL) to match; verify the strings in the doc equal the resource values
 - [ ] 3.3 Add the near-me use to `website/src/content/en/privacy.md` and `website/src/content/nl/privacy.md` (data table and Location Data section: approximate position, once, on request, not stored); verify with `hugo server` that both pages render
 
 ## 4. Website and docs
