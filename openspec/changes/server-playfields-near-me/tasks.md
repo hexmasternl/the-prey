@@ -8,7 +8,7 @@
 - [x] 1.4 Extend `SearchPublicPlayFieldsQuery` with `GpsCoordinate? Origin` and `RadiusKm` (constants: default 25, min 1, max 100, max results 50) and the handler: validation, radius clamp, centre-distance filter, nearest-first order, cap, `DistanceMeters`; verify with new tests in `Tests/SearchPublicPlayFields/` for name-only (unchanged, null distance), near-only, both, missing centre excluded, radius boundary, clamp, cap of 50 and every validation error (Bogus fakers in `Tests/Factories/`)
 - [x] 1.5 Instrument the handler: `playfield.search.mode` (`name`/`near`/`both`), `result_count`, clamped `radius_km`; change `IPlayFieldMetrics.RecordPublicPlayFieldSearch` to take the mode as a tag; no coordinates or search text in logs or tags; verify with a test on the metrics mock and by reading the log statements
 - [x] 1.6 Extend the `SearchPublicPlayFields` endpoint with optional `lat`, `lon`, `radiusKm` and the 400 rules from the `playfields` delta spec (lat/lon pairing and ranges, `q` length, neither given, blank `q` with a position ignored); verify with endpoint-level tests or a local call through the Aspire gateway (`the-prey-local-dev`) for each row of the design's table
-- [ ] 1.7 Document `GET /playfields/public` (parameters, defaults, ordering, cap, `distanceMeters`, 400 cases, backward compatibility) in `docs/api/endpoints.md`; verify the documented examples match the endpoint's responses
+- [x] 1.7 Document `GET /playfields/public` (parameters, defaults, ordering, cap, `distanceMeters`, 400 cases, backward compatibility) in `docs/api/endpoints.md`; verify the documented examples match the endpoint's responses
 
 ## 2. Android app: Near me
 
