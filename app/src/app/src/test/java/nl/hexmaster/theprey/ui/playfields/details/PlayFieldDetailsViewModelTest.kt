@@ -45,7 +45,7 @@ class PlayFieldDetailsViewModelTest {
 
         override suspend fun listMine(): Result<List<PlayFieldSummaryDto>> = error("Not used")
 
-        override suspend fun searchPublic(query: String): Result<List<PlayFieldSummaryDto>> = error("Not used")
+        override suspend fun searchPublic(query: String, origin: GeoPosition?): Result<List<PlayFieldSummaryDto>> = error("Not used")
 
         override suspend fun get(id: String): LoadOutcome {
             loads += id

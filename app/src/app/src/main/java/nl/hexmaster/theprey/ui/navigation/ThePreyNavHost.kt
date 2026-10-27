@@ -7,6 +7,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,8 +32,10 @@ import nl.hexmaster.theprey.data.game.GameRepository
 import nl.hexmaster.theprey.data.game.GameSessions
 import nl.hexmaster.theprey.data.hints.HintsStore
 import nl.hexmaster.theprey.data.language.AppLanguage
+import nl.hexmaster.theprey.data.location.LocationAccess
 import nl.hexmaster.theprey.data.location.LocationConsentStore
 import nl.hexmaster.theprey.data.location.LocationSource
+import nl.hexmaster.theprey.data.location.readLocationAccess
 import nl.hexmaster.theprey.data.playfield.PlayFieldRepository
 import nl.hexmaster.theprey.data.sensors.HeadingSource
 import nl.hexmaster.theprey.data.user.ProfileStore
@@ -166,6 +169,9 @@ fun ThePreyNavHost(
     navController: NavHostController = rememberNavController(),
 ) {
     val state by session.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    // Near me on the public playfields: approximate location is enough, and it never prompts.
+    val hasLocationAccess = remember(context) { { readLocationAccess(context) != LocationAccess.Missing } }
     val hasPendingInvite by pendingInviteStore.pending.collectAsStateWithLifecycle(initialValue = false)
     // Nothing to show yet: the system splash stays up until the session is known.
     val target = routeFor(state) ?: return
@@ -287,7 +293,9 @@ fun ThePreyNavHost(
                 // Scoped to this entry: leaving to the menu discards it, so the next open starts on Private.
                 composable(Routes.PLAYFIELDS) {
                     PlayFieldsScreen(
-                        viewModel = viewModel { PlayFieldsViewModel(playFieldRepository, createSavedStateHandle()) },
+                        viewModel = viewModel {
+                            PlayFieldsViewModel(playFieldRepository, createSavedStateHandle(), locationSource, hasLocationAccess)
+                        },
                         onBack = { navController.popBackStack() },
                         onCreate = { navController.navigate(Routes.PLAYFIELD_EDITOR) },
                         onOpen = { id, editable -> navController.navigate(Routes.playField(id, editable)) },
@@ -360,7 +368,9 @@ fun ThePreyNavHost(
                 // Scoped to this entry: every open starts on Private with nothing selected.
                 composable(Routes.PLAYFIELD_SELECT) {
                     PlayFieldSelectScreen(
-                        viewModel = viewModel { PlayFieldSelectViewModel(playFieldRepository, createSavedStateHandle()) },
+                        viewModel = viewModel {
+                            PlayFieldSelectViewModel(playFieldRepository, createSavedStateHandle(), locationSource, hasLocationAccess)
+                        },
                         onCancel = { navController.popBackStack() },
                         onSelect = { selection ->
                             navController.previousBackStackEntry?.savedStateHandle?.let {

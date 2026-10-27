@@ -21,7 +21,7 @@ Tap the invitation link the Game Creator shares from the lobby. The app opens, s
 {{< /qa >}}
 
 {{< qa q="Which location permission does the app need?" >}}
-Precise location, set to **Allow all the time**. During a game your position is shared even when the screen is off, through a foreground service with a notification. **Play now** stays grey until the permission is right. Tracking stops when the game ends or you leave it.
+Precise location, set to **Allow all the time**. After you allow precise location, the app shows a step that opens the settings so you can pick **Allow all the time**. During a game your position is shared even when the screen is off, through a foreground service with a notification. **Play now** stays grey until the permission is right. Tracking stops when the game ends or you leave it.
 {{< /qa >}}
 
 {{< qa q="What happens during the head start?" >}}

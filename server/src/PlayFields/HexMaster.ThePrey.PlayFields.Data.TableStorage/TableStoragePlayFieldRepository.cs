@@ -62,19 +62,22 @@ public sealed class TableStoragePlayFieldRepository : IPlayFieldRepository
         await table.DeleteEntityAsync(ownerId.ToString(), id.ToString(), cancellationToken: ct);
     }
 
-    public async Task<IReadOnlyList<PlayField>> SearchPublicAsync(string searchText, CancellationToken ct)
+    public async Task<IReadOnlyList<PlayField>> SearchPublicAsync(string? searchText, CancellationToken ct)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(searchText);
+        if (searchText is not null)
+            ArgumentException.ThrowIfNullOrWhiteSpace(searchText);
 
         var table = await GetTableClientAsync(ct);
 
-        // Table Storage has no 'contains' filter — fetch public play fields and match the
-        // name in memory. Acceptable at current volume; revisit with a search index when needed.
+        // Table Storage has no 'contains' or geo filter — fetch public play fields and match the
+        // name in memory; the near-me search (null text) filters by distance in the handler.
+        // Acceptable at current volume; revisit with a geohash partition/row key or a search
+        // index when public play fields grow.
         var results = new List<PlayField>();
         var publicFields = table.QueryAsync<PlayFieldTableEntity>(e => e.IsPublic, cancellationToken: ct);
         await foreach (var entity in publicFields)
         {
-            if (entity.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            if (searchText is null || entity.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
                 results.Add(ToDomain(entity));
         }
 

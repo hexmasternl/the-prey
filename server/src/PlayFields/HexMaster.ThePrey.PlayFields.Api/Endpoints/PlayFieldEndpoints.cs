@@ -188,18 +188,19 @@ public static class PlayFieldEndpoints
 
     private static async Task<IResult> SearchPublicPlayFields(
         [FromQuery(Name = "q")] string? query,
+        [FromQuery(Name = "lat")] double? latitude,
+        [FromQuery(Name = "lon")] double? longitude,
+        [FromQuery(Name = "radiusKm")] double? radiusKm,
         IQueryHandler<SearchPublicPlayFieldsQuery, IReadOnlyList<PlayFieldSummaryDto>> handler,
         CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < SearchPublicPlayFieldsQuery.MinimumSearchLength)
-            return Results.ValidationProblem(new Dictionary<string, string[]>
-            {
-                ["q"] = [$"The search text must be at least {SearchPublicPlayFieldsQuery.MinimumSearchLength} characters long."]
-            });
+        var search = SearchPublicPlayFieldsQuery.FromRequest(query, latitude, longitude, radiusKm, out var errors);
+        if (search is null)
+            return Results.ValidationProblem(errors);
 
         try
         {
-            var playFields = await handler.Handle(new SearchPublicPlayFieldsQuery(query.Trim()), ct);
+            var playFields = await handler.Handle(search, ct);
             return Results.Ok(playFields);
         }
         catch (ArgumentException ex)

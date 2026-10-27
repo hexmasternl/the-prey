@@ -57,6 +57,8 @@ sealed interface ActiveGameUi {
         val delay: DelaySeed?,
         /** Elapsed realtime of the latest `locations-updated` batch since the snapshot (a location ping); null before one. */
         val lastPingAtElapsed: Long? = null,
+        /** Elapsed realtime of the latest batch since the snapshot that included the player's own location; null before one. */
+        val lastOwnBroadcastAtElapsed: Long? = null,
     ) : ActiveGameUi
 }
 
@@ -92,6 +94,8 @@ class GameViewModel(
     private var delay: DelaySeed? = null
     private var seenBatches = 0
     private var lastPingAt: Long? = null
+    private var seenOwnBatches = 0
+    private var lastOwnBroadcastAt: Long? = null
 
     init {
         refresh()
@@ -136,9 +140,16 @@ class GameViewModel(
                     if (snapshot.serverTime != seededFor?.serverTime) {
                         reseed(snapshot)
                         seenBatches = session.locationBatches
-                    } else if (session.locationBatches != seenBatches) {
-                        seenBatches = session.locationBatches
-                        lastPingAt = elapsed()
+                        seenOwnBatches = session.ownLocationBatches
+                    } else {
+                        if (session.locationBatches != seenBatches) {
+                            seenBatches = session.locationBatches
+                            lastPingAt = elapsed()
+                        }
+                        if (session.ownLocationBatches != seenOwnBatches) {
+                            seenOwnBatches = session.ownLocationBatches
+                            lastOwnBroadcastAt = elapsed()
+                        }
                     }
                     ActiveGameUi.Ready(
                         game = ActiveGameState.from(snapshot, myUserId),
@@ -148,6 +159,7 @@ class GameViewModel(
                         clock = clock,
                         delay = delay,
                         lastPingAtElapsed = lastPingAt,
+                        lastOwnBroadcastAtElapsed = lastOwnBroadcastAt,
                     )
                 }
             }
@@ -161,6 +173,7 @@ class GameViewModel(
         clock = ServerClock.seed(snapshot.serverTime, now)
         delay = StartDelay.seed(snapshot.status?.hunterMayMoveAt, snapshot.serverTime, now)
         lastPingAt = null
+        lastOwnBroadcastAt = null
     }
 
     /** A played-out game with a decided result shows the result; every other ending leaves the screen. */

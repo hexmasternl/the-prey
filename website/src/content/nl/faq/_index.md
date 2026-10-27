@@ -21,7 +21,7 @@ Tik op de uitnodigingslink die de Spelmaker vanuit de lobby deelt. De app opent,
 {{< /qa >}}
 
 {{< qa q="Welke locatietoestemming heeft de app nodig?" >}}
-Precieze locatie, ingesteld op **Altijd toestaan**. Tijdens een spel wordt je positie gedeeld, ook als het scherm uit staat, via een voorgronddienst met een melding. **Nu spelen** blijft grijs tot de toestemming klopt. De volging stopt als het spel afloopt of als je het verlaat.
+Precieze locatie, ingesteld op **Altijd toestaan**. Nadat je precieze locatie hebt toegestaan, toont de app een stap die de instellingen opent, zodat je **Altijd toestaan** kunt kiezen. Tijdens een spel wordt je positie gedeeld, ook als het scherm uit staat, via een voorgronddienst met een melding. **Nu spelen** blijft grijs tot de toestemming klopt. De volging stopt als het spel afloopt of als je het verlaat.
 {{< /qa >}}
 
 {{< qa q="Wat gebeurt er tijdens de voorsprong?" >}}

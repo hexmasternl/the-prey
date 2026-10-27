@@ -1,6 +1,7 @@
 package nl.hexmaster.theprey.ui.playfields
 
 import kotlinx.coroutines.CompletableDeferred
+import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.data.playfield.CreateOutcome
 import nl.hexmaster.theprey.data.playfield.CreatePlayFieldRequest
 import nl.hexmaster.theprey.data.playfield.DeleteOutcome
@@ -18,6 +19,9 @@ class ScriptedPlayFieldRepository : PlayFieldRepository {
     var mineCount = 0
 
     val searches = mutableListOf<String>()
+
+    /** The origin of each search, in the order of [searches]; null for a name-only search. */
+    val origins = mutableListOf<GeoPosition?>()
     val searchCalls = mutableListOf<CompletableDeferred<Result<List<PlayFieldSummaryDto>>>>()
 
     override suspend fun listMine(): Result<List<PlayFieldSummaryDto>> {
@@ -26,8 +30,9 @@ class ScriptedPlayFieldRepository : PlayFieldRepository {
         return CompletableDeferred<Result<List<PlayFieldSummaryDto>>>().also { mineCalls += it }.await()
     }
 
-    override suspend fun searchPublic(query: String): Result<List<PlayFieldSummaryDto>> {
+    override suspend fun searchPublic(query: String, origin: GeoPosition?): Result<List<PlayFieldSummaryDto>> {
         searches += query
+        origins += origin
         return CompletableDeferred<Result<List<PlayFieldSummaryDto>>>().also { searchCalls += it }.await()
     }
 

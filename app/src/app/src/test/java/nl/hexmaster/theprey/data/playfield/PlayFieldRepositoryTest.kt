@@ -3,6 +3,7 @@ package nl.hexmaster.theprey.data.playfield
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
+import nl.hexmaster.theprey.data.location.GeoPosition
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -20,7 +21,8 @@ class PlayFieldRepositoryTest {
         private val upsert: suspend () -> Response<PlayFieldDto> = { error("Not used") },
         private val create: suspend () -> Response<PlayFieldDto> = { error("Not used") },
     ) : PlayFieldApi {
-        val queries = mutableListOf<String>()
+        val queries = mutableListOf<String?>()
+        val positions = mutableListOf<Pair<Double?, Double?>>()
         val deleted = mutableListOf<String>()
         val loaded = mutableListOf<String>()
         val upserts = mutableListOf<Pair<String, UpsertPlayFieldRequest>>()
@@ -28,8 +30,9 @@ class PlayFieldRepositoryTest {
 
         override suspend fun listMine(): Response<List<PlayFieldSummaryDto>> = list()
 
-        override suspend fun searchPublic(query: String): Response<List<PlayFieldSummaryDto>> {
+        override suspend fun searchPublic(query: String?, latitude: Double?, longitude: Double?): Response<List<PlayFieldSummaryDto>> {
             queries += query
+            positions += latitude to longitude
             return list()
         }
 
@@ -111,6 +114,40 @@ class PlayFieldRepositoryTest {
         val result = ApiPlayFieldRepository(FakePlayFieldApi(list = { errorResponse(400) })).searchPublic("vo")
 
         assertEquals(400, (result.exceptionOrNull() as HttpStatusException).code)
+    }
+
+    @Test
+    fun searchPublic_ShouldSendPositionRoundedToTwoDecimals_WhenOriginIsGiven() = runTest {
+        val api = FakePlayFieldApi(list = { Response.success(listOf(vondelpark)) })
+
+        ApiPlayFieldRepository(api).searchPublic("park", GeoPosition(52.35678, 4.86412))
+
+        assertEquals(listOf<String?>("park"), api.queries)
+        assertEquals(listOf<Pair<Double?, Double?>>(52.36 to 4.86), api.positions)
+    }
+
+    @Test
+    fun searchPublic_ShouldLeaveOutQuery_WhenTextIsBlankWithAnOrigin() = runTest {
+        val api = FakePlayFieldApi(list = { Response.success(emptyList()) })
+
+        ApiPlayFieldRepository(api).searchPublic("  ", GeoPosition(52.0, 5.0))
+
+        assertEquals(listOf<String?>(null), api.queries)
+    }
+
+    @Test
+    fun searchPublic_ShouldSendNoPosition_WhenSearchingByNameOnly() = runTest {
+        val api = FakePlayFieldApi(list = { Response.success(emptyList()) })
+
+        ApiPlayFieldRepository(api).searchPublic("vondel")
+
+        assertEquals(listOf<Pair<Double?, Double?>>(null to null), api.positions)
+    }
+
+    @Test
+    fun roundedForSearch_ShouldRoundToTwoDecimals() {
+        assertEquals(GeoPosition(52.37, -4.87), GeoPosition(52.3651, -4.8749).roundedForSearch())
+        assertEquals(GeoPosition(0.0, 180.0), GeoPosition(0.004, 179.999).roundedForSearch())
     }
 
     @Test

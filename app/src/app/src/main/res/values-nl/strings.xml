@@ -50,17 +50,21 @@
     <!-- Melding over locatievolging -->
     <string name="location_consent_eyebrow">Locatievolging</string>
     <string name="location_consent_title">The Prey gebruikt je locatie</string>
-    <string name="location_consent_body">The Prey verzamelt de precieze locatie van je apparaat, maar alleen terwijl je in een actief spel zit.</string>
+    <string name="location_consent_body">The Prey volgt de precieze locatie van je apparaat alleen terwijl je in een actief spel zit.</string>
     <string name="location_consent_point_background">Dat gaat door terwijl de app gesloten is of niet wordt gebruikt, op de achtergrond, of terwijl het scherm uit staat.</string>
     <string name="location_consent_point_notification">De volging draait als voorgrondservice, met een vaste melding zolang die loopt.</string>
     <string name="location_consent_point_stop">De volging stopt zodra het spel eindigt of je het spel verlaat.</string>
     <string name="location_consent_point_purpose">Het spel heeft je positie nodig om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft.</string>
+    <string name="location_consent_point_near_me">Als je In de buurt gebruikt bij de openbare speelvelden, stuurt de app één keer je geschatte positie om speelvelden in de buurt te vinden. Die wordt niet opgeslagen.</string>
     <string name="location_consent_privacy">Lees de privacyverklaring</string>
     <string name="location_consent_continue">Doorgaan</string>
     <string name="location_consent_not_now">Niet nu</string>
     <string name="location_consent_settings_title">Locatie staat uit voor The Prey</string>
     <string name="location_consent_settings_body">The Prey heeft je precieze locatie nodig om te spelen. Open de instellingen, ga naar Rechten en sta precieze locatie toe.</string>
     <string name="location_consent_settings_open">Instellingen openen</string>
+    <string name="location_consent_all_the_time_title">Nog één stap: altijd toestaan</string>
+    <string name="location_consent_all_the_time_body">Locatie mag nu alleen als de app in gebruik is. Om te spelen heeft The Prey die altijd nodig, zodat de volging doorgaat terwijl het scherm uit staat of de app op de achtergrond draait.</string>
+    <string name="location_consent_all_the_time_steps">Ga in de instellingen die openen naar Rechten, dan Locatie, en kies \"Altijd toestaan\".</string>
 
     <!-- Settings screen -->
     <string name="settings_title">Instellingen</string>
@@ -87,6 +91,9 @@
     <string name="settings_notifications_allowed">Toegestaan</string>
     <string name="settings_notifications_off">Uit</string>
     <string name="settings_location_grant">Locatietoegang geven</string>
+    <string name="settings_location_why">Waarom The Prey je locatie gebruikt</string>
+    <string name="settings_location_why_expanded">Uitgeklapt</string>
+    <string name="settings_location_why_collapsed">Ingeklapt</string>
     <string name="settings_location_instruction_precise">Locatie staat uit voor The Prey. Ga in de instellingen die openen naar Rechten, dan Locatie, en sta precieze locatie toe.</string>
     <string name="settings_location_instruction_all_the_time">Kies \"Altijd toestaan\" om te spelen. Ga in de instellingen die openen naar Rechten, dan Locatie.</string>
     <string name="settings_location_granted">Locatie is altijd toegestaan. De volging kan tijdens een spel lopen.</string>
@@ -108,7 +115,13 @@
     <string name="playfields_cancel">Annuleren</string>
     <string name="playfields_delete_failed">Speelveld niet verwijderd. Probeer het opnieuw.</string>
     <string name="playfields_search_label">Zoek openbare speelvelden</string>
-    <string name="playfields_search_hint">Typ minstens 3 tekens om te zoeken.</string>
+    <string name="playfields_search_hint">Typ minstens 3 tekens om te zoeken, of tik op In de buurt voor de speelvelden om je heen.</string>
+    <string name="playfields_near_me">In de buurt</string>
+    <string name="playfields_near_me_locating">Je locatie bepalen…</string>
+    <string name="playfields_near_me_no_permission">In de buurt heeft locatietoegang nodig. Je kunt die geven in Instellingen.</string>
+    <string name="playfields_near_me_no_fix">Je locatie kon niet worden bepaald. Zoek in plaats daarvan op naam.</string>
+    <string name="playfields_near_me_none">Geen openbare speelvelden in je buurt gevonden. Probeer op naam te zoeken.</string>
+    <string name="playfields_distance">%1$s hiervandaan</string>
     <string name="playfields_no_results">Geen openbare speelvelden gevonden voor je zoekopdracht.</string>
     <string name="playfields_search_error">Zoeken mislukt. Controleer je verbinding en probeer het opnieuw.</string>
     <string name="playfields_create">Speelveld maken</string>

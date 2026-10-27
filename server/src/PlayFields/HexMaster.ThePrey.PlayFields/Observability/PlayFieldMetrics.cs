@@ -34,5 +34,6 @@ public class PlayFieldMetrics : IPlayFieldMetrics
 
     public virtual void RecordPlayFieldDeleted() => _playFieldsDeleted.Add(1);
 
-    public virtual void RecordPublicPlayFieldSearch() => _publicPlayFieldSearches.Add(1);
+    public virtual void RecordPublicPlayFieldSearch(string mode) =>
+        _publicPlayFieldSearches.Add(1, new KeyValuePair<string, object?>("playfield.search.mode", mode));
 }

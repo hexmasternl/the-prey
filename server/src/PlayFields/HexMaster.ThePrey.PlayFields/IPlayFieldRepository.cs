@@ -15,6 +15,9 @@ public interface IPlayFieldRepository
 
     Task DeleteAsync(Guid id, Guid ownerId, CancellationToken ct);
 
-    /// <summary>Returns the public play fields whose name contains the search text (case-insensitive).</summary>
-    Task<IReadOnlyList<PlayField>> SearchPublicAsync(string searchText, CancellationToken ct);
+    /// <summary>
+    /// Returns the public play fields whose name contains the search text (case-insensitive), or every
+    /// public play field when <paramref name="searchText"/> is null (the near-me search filters by distance).
+    /// </summary>
+    Task<IReadOnlyList<PlayField>> SearchPublicAsync(string? searchText, CancellationToken ct);
 }

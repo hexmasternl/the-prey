@@ -22,9 +22,47 @@ All endpoints require a valid Bearer token unless noted otherwise.
 |---|---|---|
 | `GET` | `/playfields` | List all playfields for the authenticated player |
 | `POST` | `/playfields` | Create a new playfield |
+| `GET` | `/playfields/public` | Search public playfields by name, near a position, or both (see below) |
 | `GET` | `/playfields/{id}` | Get playfield details |
 | `PUT` | `/playfields/{id}` | Update a playfield name or polygon |
 | `DELETE` | `/playfields/{id}` | Delete a playfield |
+
+### `GET /playfields/public` — public search
+
+| Parameter | Type | Rules |
+|---|---|---|
+| `q` | string, optional | Name filter (case-insensitive contains). At least 3 characters after trimming when given; a blank `q` together with a position means no name filter. |
+| `lat`, `lon` | number, optional | Search position. Both or neither; `lat` −90..90, `lon` −180..180. The app rounds them to 2 decimals (≈ 1 km) before sending. |
+| `radiusKm` | number, optional | Only with a position. Default 25; values outside 1–100 are clamped, not rejected. |
+
+| Input | Result (`200`, array of `PlayFieldSummaryDto`) |
+|---|---|
+| `q` only | Public playfields whose name contains `q`, unordered, no cap, `distanceMeters: null` (unchanged behaviour). |
+| `lat` + `lon` | Public playfields whose **centre** lies within the radius, nearest first, at most 50, `distanceMeters` set (whole metres to the centre). Playfields without a centre are left out. |
+| `q` + `lat` + `lon` | Name matches within the radius, nearest first, at most 50, `distanceMeters` set. |
+| Neither `q` nor a position, `q` shorter than 3, only one of `lat`/`lon`, a coordinate out of range | `400` validation problem keyed on `q`, `lat` or `lon`. |
+
+```http
+GET /playfields/public?lat=52.36&lon=4.87
+```
+
+```json
+[
+  {
+    "id": "8d6f…",
+    "name": "NL, Amsterdam, Vondelpark",
+    "ownerId": "1c2b…",
+    "isPublic": true,
+    "lastUpdatedOn": "2026-10-20T09:12:00+00:00",
+    "centerCoordinates": { "latitude": 52.358, "longitude": 4.868 },
+    "distanceMeters": 283
+  }
+]
+```
+
+`distanceMeters` is new and nullable, so older apps that search by `q` only keep working; `GET /playfields`
+returns it as `null`. The position is used only for that request: it is not stored, logged or used as a
+telemetry tag (traces carry `playfield.search.mode` = `name`, `near` or `both`).
 
 ### `POST /playfields` — Request Body
 

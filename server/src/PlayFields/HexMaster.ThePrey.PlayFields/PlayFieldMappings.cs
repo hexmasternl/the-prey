@@ -15,12 +15,16 @@ internal static class PlayFieldMappings
             playField.LastModifiedOn,
             playField.CenterCoordinates is { } c ? new GpsCoordinateDto(c.Latitude, c.Longitude) : null);
 
-    internal static PlayFieldSummaryDto ToSummaryDto(this PlayField playField) =>
+    internal static PlayFieldSummaryDto ToSummaryDto(this PlayField playField) => playField.ToSummaryDto(null);
+
+    /// <summary>The summary with the distance to a searched position (near-me search only).</summary>
+    internal static PlayFieldSummaryDto ToSummaryDto(this PlayField playField, int? distanceMeters) =>
         new(
             playField.Id,
             playField.Name,
             playField.OwnerId,
             playField.IsPublic,
             playField.LastModifiedOn,
-            playField.CenterCoordinates is { } c ? new GpsCoordinateDto(c.Latitude, c.Longitude) : null);
+            playField.CenterCoordinates is { } c ? new GpsCoordinateDto(c.Latitude, c.Longitude) : null,
+            distanceMeters);
 }

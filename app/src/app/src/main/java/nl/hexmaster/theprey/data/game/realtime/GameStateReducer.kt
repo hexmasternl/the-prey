@@ -114,6 +114,13 @@ class GameStateReducer(private val frames: WebPubSubFrames = WebPubSubFrames()) 
         }
     }
 
+    /** Whether [envelope] is a `locations-updated` batch with an entry for [userId]. */
+    fun locationsInclude(envelope: RealtimeEnvelope, userId: String): Boolean {
+        if (envelope.type != MessageTypes.LOCATIONS_UPDATED) return false
+        val update = frames.payload(envelope, LocationsUpdatedPayload.serializer()) ?: return false
+        return update.locations.any { it.userId.sameAs(userId) }
+    }
+
     private fun List<ParticipantDto>.upsert(participant: ParticipantDto): List<ParticipantDto> =
         if (any { it.userId.sameAs(participant.userId) }) {
             map { if (it.userId.sameAs(participant.userId)) participant else it }

@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nl.hexmaster.theprey.R
+import nl.hexmaster.theprey.ui.game.hud.common.formatDistance
 import nl.hexmaster.theprey.data.location.GeoPosition
 import nl.hexmaster.theprey.ui.components.PrimaryButton
 import nl.hexmaster.theprey.ui.components.formatPosition
@@ -80,6 +81,14 @@ fun PlayFieldRow(item: PlayFieldItem, modifier: Modifier = Modifier, busy: Boole
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
+            item.distanceMeters?.let { meters ->
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.playfields_distance, formatDistance(meters)),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
             item.lastUpdated?.let { date ->
                 Spacer(Modifier.height(4.dp))
                 Text(

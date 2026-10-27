@@ -21,6 +21,9 @@ sealed interface ConsentUiState {
 
     /** The system no longer prompts (or only approximate location is allowed): send the player to settings. */
     data object OpenSettings : ConsentUiState
+
+    /** Precise location was just granted "While using the app": guide the player to "Allow all the time" in settings. */
+    data object AllTheTime : ConsentUiState
 }
 
 /** One-shot Android calls the host makes on the view model's behalf. */
@@ -46,6 +49,9 @@ sealed interface ConsentEffect {
  *
  * Only a fine-location grant counts as [granted]: gameplay needs precise positions. Any grant
  * (fine or coarse) is enough for [canReadLocation], used by the main menu readout.
+ *
+ * A fine grant without background location inside the flow (API 29+) is followed by the
+ * [ConsentUiState.AllTheTime] step; background location is never requested by a prompt.
  *
  * [sdkInt] is `Build.VERSION.SDK_INT`; the notification permission exists from API 33.
  */
@@ -97,6 +103,12 @@ class LocationConsentViewModel(
     /** A system prompt is open; lifecycle checks while it is up must not re-show the dialog. */
     private var awaitingResult = false
 
+    /** The flow granted precise location without background: the "Allow all the time" step is showing. */
+    private var allTheTimeStep = false
+
+    /** The step sent the player to the settings page; the next resume is their return from it. */
+    private var sentToSettings = false
+
     /** A game action waiting for a grant (see [requireLocation]). */
     private var pendingAction: (() -> Unit)? = null
 
@@ -120,6 +132,7 @@ class LocationConsentViewModel(
             pendingAction = null
             pendingDeclined = null
             open = false
+            closeAllTheTimeStep()
         }
         this.signedIn = signedIn
         refresh()
@@ -134,14 +147,25 @@ class LocationConsentViewModel(
     /**
      * The current permission state, checked on start and on every resume.
      * [granted] is the fine-location grant, [canAsk] is `shouldShowRequestPermissionRationale`
-     * for fine location, [approximate] is the coarse-location grant.
+     * for fine location, [approximate] is the coarse-location grant, [backgroundGranted] is
+     * "Allow all the time" (always true below API 29).
      */
-    fun onPermissionChecked(granted: Boolean, canAsk: Boolean, approximate: Boolean = false) {
+    fun onPermissionChecked(
+        granted: Boolean,
+        canAsk: Boolean,
+        approximate: Boolean = false,
+        backgroundGranted: Boolean = true,
+    ) {
         checked = true
         updateGrant(fine = granted, coarse = approximate)
         // The system would show its prompt again, so the settings detour is no longer needed.
         if (canAsk) blocked = false
         if (granted) runPendingAction()
+        // Resumes from the prompts closing keep the step; the return from settings ends it either way.
+        if (allTheTimeStep && (backgroundGranted || sentToSettings)) {
+            closeAllTheTimeStep()
+            open = false
+        }
         refresh()
     }
 
@@ -158,12 +182,14 @@ class LocationConsentViewModel(
     /** Not now (either variant): close without asking. Only a game action opens it again. */
     fun onNotNow() {
         open = false
+        closeAllTheTimeStep()
         declinePendingAction()
         refresh()
     }
 
-    /** The settings variant's button. The dialog stays; the resume check decides what comes next. */
+    /** The settings and "all the time" variants' button. The dialog stays; the resume check decides what comes next. */
     fun onOpenSettings() {
+        if (allTheTimeStep) sentToSettings = true
         _effects.trySend(ConsentEffect.OpenAppSettings)
     }
 
@@ -171,19 +197,23 @@ class LocationConsentViewModel(
      * The answer to the location prompt. [canAskAgain] is `shouldShowRequestPermissionRationale`
      * for fine location right after the answer: false after a denial means the system will not
      * prompt again. [notificationsGranted] is whether POST_NOTIFICATIONS is already granted.
+     * [backgroundGranted] is "Allow all the time" (always true below API 29).
      */
     fun onPermissionResult(
         fineGranted: Boolean,
         coarseGranted: Boolean,
         canAskAgain: Boolean,
         notificationsGranted: Boolean,
+        backgroundGranted: Boolean = true,
     ) {
         awaitingResult = false
         checked = true
         updateGrant(fine = fineGranted, coarse = coarseGranted)
         if (fineGranted) {
             blocked = false
+            // The game action runs on the precise grant; the step only guides the player further.
             runPendingAction()
+            if (open && !backgroundGranted && sdkInt >= BACKGROUND_LOCATION_SDK) allTheTimeStep = true
         } else {
             declinePendingAction()
             blocked = !canAskAgain
@@ -219,6 +249,11 @@ class LocationConsentViewModel(
         approximateOnly = coarse && !fine
     }
 
+    private fun closeAllTheTimeStep() {
+        allTheTimeStep = false
+        sentToSettings = false
+    }
+
     private fun runPendingAction() {
         val action = pendingAction ?: return
         pendingAction = null
@@ -240,7 +275,7 @@ class LocationConsentViewModel(
             _uiState.value = ConsentUiState.Hidden
             return
         }
-        if (_granted.value) open = false
+        if (_granted.value && !allTheTimeStep) open = false
         // The main menu asks by itself once per device, whatever the player then picks.
         if (!open && !_granted.value && onMainMenu && menuPromptShown == false) {
             open = true
@@ -249,6 +284,7 @@ class LocationConsentViewModel(
         }
         _uiState.value = when {
             !open -> ConsentUiState.Hidden
+            allTheTimeStep -> ConsentUiState.AllTheTime
             // Approximate-only after going through this flow: asking again does not help, settings does.
             accepted && (blocked || approximateOnly) -> ConsentUiState.OpenSettings
             else -> ConsentUiState.Disclosure
@@ -258,5 +294,8 @@ class LocationConsentViewModel(
     private companion object {
         /** Build.VERSION_CODES.TIRAMISU: POST_NOTIFICATIONS is a runtime permission from here on. */
         const val NOTIFICATIONS_SDK = 33
+
+        /** Build.VERSION_CODES.Q: background location is a separate permission from here on. */
+        const val BACKGROUND_LOCATION_SDK = 29
     }
 }

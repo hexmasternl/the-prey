@@ -507,4 +507,156 @@ class LocationConsentViewModelTest {
 
         assertEquals(ConsentUiState.OpenSettings, sut.uiState.value)
     }
+
+    // ---- "Allow all the time" step ----
+
+    private fun LocationConsentViewModel.allowWhileInUse() =
+        onPermissionResult(fineGranted = true, coarseGranted = true, canAskAgain = false, notificationsGranted = true, backgroundGranted = false)
+
+    /** The disclosure flow on the main menu, accepted, answered "While using the app". */
+    private fun allowedWhileInUse(sut: LocationConsentViewModel) {
+        signedInWithoutPermission(sut)
+        sut.onContinue()
+        sut.allowWhileInUse()
+    }
+
+    @Test
+    fun uiState_ShouldShowAllTheTime_WhenFineIsGrantedWithoutBackgroundOnApi29() {
+        val sut = consent(sdkInt = 29)
+
+        allowedWhileInUse(sut)
+
+        assertEquals(ConsentUiState.AllTheTime, sut.uiState.value)
+        assertTrue(sut.granted.value)
+    }
+
+    @Test
+    fun uiState_ShouldHide_WhenFineAndBackgroundAreGranted() {
+        val sut = consent()
+        signedInWithoutPermission(sut)
+        sut.onContinue()
+
+        sut.allow()
+
+        assertEquals(ConsentUiState.Hidden, sut.uiState.value)
+    }
+
+    @Test
+    fun uiState_ShouldHide_WhenFineIsGrantedOnApi28() {
+        val sut = consent(sdkInt = 28)
+
+        allowedWhileInUse(sut)
+
+        assertEquals(ConsentUiState.Hidden, sut.uiState.value)
+    }
+
+    @Test
+    fun uiState_ShouldNotShowAllTheTime_WhenLocationIsDenied() {
+        val sut = consent()
+        signedInWithoutPermission(sut)
+        sut.onContinue()
+
+        sut.onPermissionResult(fineGranted = false, coarseGranted = false, canAskAgain = true, notificationsGranted = true, backgroundGranted = false)
+
+        assertEquals(ConsentUiState.Hidden, sut.uiState.value)
+    }
+
+    @Test
+    fun uiState_ShouldKeepAllTheTime_WhenResumedBeforeOpenSettings() {
+        val sut = consent()
+        allowedWhileInUse(sut)
+
+        // The location prompt and then the notification prompt closing both resume the activity.
+        sut.onPermissionChecked(granted = true, canAsk = false, approximate = true, backgroundGranted = false)
+        sut.onPermissionChecked(granted = true, canAsk = false, approximate = true, backgroundGranted = false)
+
+        assertEquals(ConsentUiState.AllTheTime, sut.uiState.value)
+    }
+
+    @Test
+    fun onOpenSettings_ShouldOpenAppSettings_WhenAllTheTimeIsShown() = runTest {
+        val sut = consent()
+        val effects = effectsOf(sut)
+        allowedWhileInUse(sut)
+
+        sut.onOpenSettings()
+
+        assertEquals(ConsentEffect.OpenAppSettings, effects.last())
+        assertEquals(ConsentUiState.AllTheTime, sut.uiState.value)
+    }
+
+    @Test
+    fun uiState_ShouldHide_WhenReturningFromSettingsWithBackground() {
+        val sut = consent()
+        allowedWhileInUse(sut)
+        sut.onOpenSettings()
+
+        sut.onPermissionChecked(granted = true, canAsk = false, approximate = true, backgroundGranted = true)
+
+        assertEquals(ConsentUiState.Hidden, sut.uiState.value)
+    }
+
+    @Test
+    fun uiState_ShouldHide_WhenReturningFromSettingsWithoutBackground() {
+        val sut = consent()
+        allowedWhileInUse(sut)
+        sut.onOpenSettings()
+
+        sut.onPermissionChecked(granted = true, canAsk = false, approximate = true, backgroundGranted = false)
+
+        assertEquals(ConsentUiState.Hidden, sut.uiState.value)
+    }
+
+    @Test
+    fun onNotNow_ShouldHideWithoutOpeningSettings_WhenAllTheTimeIsShown() = runTest {
+        val sut = consent()
+        val effects = effectsOf(sut)
+        allowedWhileInUse(sut)
+
+        sut.onNotNow()
+
+        assertEquals(ConsentUiState.Hidden, sut.uiState.value)
+        assertFalse(effects.contains(ConsentEffect.OpenAppSettings))
+    }
+
+    @Test
+    fun requireLocation_ShouldRunOnTheFineGrant_WhenAllTheTimeFollows() {
+        val sut = consent()
+        signedInWithoutPermission(sut)
+        sut.onNotNow()
+        var runs = 0
+        var declines = 0
+        sut.requireLocation(onDeclined = { declines++ }) { runs++ }
+        sut.onContinue()
+
+        sut.allowWhileInUse()
+        assertEquals(1, runs)
+        assertEquals(ConsentUiState.AllTheTime, sut.uiState.value)
+
+        sut.onNotNow()
+        assertEquals(1, runs)
+        assertEquals(0, declines)
+    }
+
+    @Test
+    fun uiState_ShouldStayHidden_WhenLaterMenuVisitHasForegroundOnly() {
+        val sut = consent(FakeConsentStore(accepted = true, menuPromptShown = true))
+        sut.onSessionChanged(signedIn = true)
+        sut.onMainMenuVisible(true)
+
+        sut.onPermissionChecked(granted = true, canAsk = false, approximate = true, backgroundGranted = false)
+
+        assertEquals(ConsentUiState.Hidden, sut.uiState.value)
+    }
+
+    @Test
+    fun uiState_ShouldHideAllTheTime_WhenSignedOut() {
+        val sut = consent()
+        allowedWhileInUse(sut)
+
+        sut.onSessionChanged(signedIn = false)
+        sut.onSessionChanged(signedIn = true)
+
+        assertEquals(ConsentUiState.Hidden, sut.uiState.value)
+    }
 }

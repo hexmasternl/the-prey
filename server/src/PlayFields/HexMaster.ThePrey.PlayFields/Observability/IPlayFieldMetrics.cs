@@ -6,5 +6,6 @@ public interface IPlayFieldMetrics
 
     void RecordPlayFieldDeleted();
 
-    void RecordPublicPlayFieldSearch();
+    /// <summary>Counts a public search; <paramref name="mode"/> is <c>name</c>, <c>near</c> or <c>both</c> (never coordinates or text).</summary>
+    void RecordPublicPlayFieldSearch(string mode);
 }

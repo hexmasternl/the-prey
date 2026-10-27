@@ -12,7 +12,7 @@ keywords: ["aan de slag", "The Prey installeren", "inloggen", "roepnaam", "locat
 5. Typ onder **Roepnaam** de naam die andere spelers tijdens een spel zien: 3 tot 30 letters, cijfers, spaties of `- _ & $ # @`. Tik op **Roepnaam opslaan**.
 6. Kies onder **Taal** voor **English**, **Nederlands** of **Systeemstandaard**.
 7. Zet onder **Scherm** de optie **Scherm aan houden tijdens een spel** aan als je de kaart bij elke blik klaar wilt hebben. Je scherm blijft dan aan zolang een spel loopt, wat meer batterij kost. Standaard staat dit uit.
-8. Tik onder **Locatie** op **Locatietoegang geven**. Sta **precieze** locatie toe en zet die op **Altijd toestaan**. Locatie bij benadering of "alleen als de app in gebruik is" is niet genoeg om te spelen.
+8. Tik onder **Locatie** op **Locatietoegang geven**. De app laat eerst zien hoe hij je locatie gebruikt; tik op **Doorgaan** en sta **precieze** locatie toe. Android biedt daar alleen "Tijdens gebruik van de app", dus de app toont daarna nog één stap: tik op **Instellingen openen** en zet locatie op **Altijd toestaan**. Locatie bij benadering of "alleen als de app in gebruik is" is niet genoeg om te spelen. Onder de knop opent **Waarom The Prey je locatie gebruikt** de volledige uitleg.
 9. Sta **meldingen** toe als daarom wordt gevraagd. Tijdens een spel laat de melding van de spelvolging zien dat je positie wordt gedeeld.
 10. Ga terug naar het hoofdmenu. **Nu spelen** wordt groen als alles klaar is. Tik erop om [een spel aan te maken]({{< relref "/how-to/create-a-game" >}}), of open een uitnodigingslink om [mee te doen]({{< relref "/how-to/join-a-game" >}}).
 
