@@ -7,9 +7,14 @@ Change all three together.
 
 ## In-app disclosure (reference)
 
-Shown as a modal dialog before any system location prompt (once by itself on the main menu, and before
-starting or joining a game), and as an always-visible warning panel above the Grant location access
-action on the app's Settings screen. Both use the same string resources.
+Shown as a modal dialog before any system location prompt (once by itself on the main menu, before
+starting or joining a game, and when Grant location access on the Settings screen would show the
+prompt). The Settings screen also keeps it as a collapsible warning panel, "Why The Prey uses your
+location", below Grant location access. Both use the same string resources.
+
+On Android 10+ a precise grant without background location inside the dialog's flow is followed by an
+"Allow all the time" step that opens the app's settings page. Background location is never requested
+through a system prompt.
 
 | Key | English | Dutch |
 |---|---|---|
@@ -54,8 +59,9 @@ needing `ACCESS_BACKGROUND_LOCATION`, in the background location declaration).
 1. Install the app and sign in.
 2. The disclosure "The Prey uses your location" appears before any system prompt.
 3. Tap Continue: the system location prompt follows (and on Android 13+ the notification prompt).
-4. Or tap Not now, open Settings from the main menu: the same disclosure is shown above Grant location
-   access, which leads to the system location prompt.
+4. Or tap Not now, open Settings from the main menu and tap Grant location access: the same disclosure
+   dialog appears first, and only Continue leads to the system location prompt. The collapsible panel
+   "Why The Prey uses your location" below the button expands to the same text.
 5. Start or join a game: location tracking starts with a persistent notification and stops when the
    game ends.
 
