@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,9 +53,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -66,6 +69,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
@@ -537,18 +541,31 @@ private fun StatusRow(label: String, value: String, color: Color) {
     }
 }
 
-/** The design system's warning alert: Caution tint and border, alert icon, Special Elite title. */
+/**
+ * The design system's warning alert: Caution tint and border, alert icon. Collapsed by default to
+ * "Why The Prey uses your location"; the header row expands it to the full disclosure. The dialog
+ * shown before the system prompt carries the disclosure, so this panel is reference material.
+ */
 @Composable
-private fun DisclosurePanel(onPrivacyPolicy: () -> Unit) {
+private fun DisclosurePanel(onPrivacyPolicy: () -> Unit, initiallyExpanded: Boolean = false) {
     val caution = ThePreyTheme.colors.caution
+    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    val state = stringResource(if (expanded) R.string.settings_location_why_expanded else R.string.settings_location_why_collapsed)
     Column(
         Modifier
             .fillMaxWidth()
             .background(caution.copy(alpha = 0.12f), PanelShape)
-            .border(1.dp, caution.copy(alpha = 0.4f), PanelShape)
-            .padding(16.dp),
+            .border(1.dp, caution.copy(alpha = 0.4f), PanelShape),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .toggleable(value = expanded, onValueChange = { expanded = it }, role = Role.Button)
+                .semantics { stateDescription = state }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Icon(
                 painter = painterResource(R.drawable.ic_alert),
                 contentDescription = null,
@@ -556,25 +573,28 @@ private fun DisclosurePanel(onPrivacyPolicy: () -> Unit) {
                 modifier = Modifier.size(24.dp),
             )
             Spacer(Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = stringResource(R.string.location_consent_eyebrow).uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 3.sp),
-                    color = caution,
-                )
-                Text(
-                    text = stringResource(R.string.location_consent_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
+            Text(
+                text = stringResource(R.string.settings_location_why),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(12.dp))
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp).rotate(if (expanded) -90f else 90f),
+            )
         }
-        Spacer(Modifier.height(12.dp))
-        LocationDisclosure(
-            onPrivacyPolicy = onPrivacyPolicy,
-            textColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            bulletColor = caution,
-        )
+        AnimatedVisibility(visible = expanded) {
+            LocationDisclosure(
+                onPrivacyPolicy = onPrivacyPolicy,
+                textColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                bulletColor = caution,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            )
+        }
     }
 }
 
@@ -663,6 +683,31 @@ private fun SettingsWhileInUsePreview() {
         LocationSectionState(LocationAccess.ForegroundOnly, notificationsAllowed = true, step = GrantStep.OpenSettingsForAllTheTime),
     )
 }
+
+@Composable
+private fun DisclosurePanelPreview(expanded: Boolean) {
+    ThePreyTheme {
+        Box(Modifier.background(MaterialTheme.colorScheme.background).padding(16.dp)) {
+            DisclosurePanel(onPrivacyPolicy = {}, initiallyExpanded = expanded)
+        }
+    }
+}
+
+@Preview(name = "Disclosure panel collapsed", widthDp = 360)
+@Composable
+private fun DisclosurePanelCollapsedPreview() = DisclosurePanelPreview(expanded = false)
+
+@Preview(name = "Disclosure panel collapsed (nl)", locale = "nl", widthDp = 360)
+@Composable
+private fun DisclosurePanelCollapsedDutchPreview() = DisclosurePanelPreview(expanded = false)
+
+@Preview(name = "Disclosure panel expanded", widthDp = 360)
+@Composable
+private fun DisclosurePanelExpandedPreview() = DisclosurePanelPreview(expanded = true)
+
+@Preview(name = "Disclosure panel expanded (nl)", locale = "nl", widthDp = 360)
+@Composable
+private fun DisclosurePanelExpandedDutchPreview() = DisclosurePanelPreview(expanded = true)
 
 @Preview(name = "All the time", widthDp = 360, heightDp = 1600)
 @Composable
