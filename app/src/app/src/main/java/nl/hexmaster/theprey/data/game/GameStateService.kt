@@ -48,6 +48,8 @@ sealed interface GameSession {
         val connection: ConnectionState,
         /** How many `locations-updated` batches were applied since this session started: each is a location ping. */
         val locationBatches: Int = 0,
+        /** How many of those batches included the current user's own location: each is a broadcast of it. */
+        val ownLocationBatches: Int = 0,
     ) : GameSession
 
     /** The first snapshot could not be loaded; [retryable] when asking again may help. */
@@ -213,8 +215,14 @@ class GameStateService(
                     is SnapshotResult.Ok -> {
                         val game = result.state.game
                         if (game.status == GameStatuses.COMPLETED) return end(result.state).toRefreshResult()
-                        val batches = (state.value as? GameSession.Live)?.locationBatches ?: 0
-                        state.value = GameSession.Live(result.state, lastSeq = null, connection = connected, locationBatches = batches)
+                        val previous = state.value as? GameSession.Live
+                        state.value = GameSession.Live(
+                            result.state,
+                            lastSeq = null,
+                            connection = connected,
+                            locationBatches = previous?.locationBatches ?: 0,
+                            ownLocationBatches = previous?.ownLocationBatches ?: 0,
+                        )
                         scheduleResync()
                         if (socket == null) {
                             socket = launch { reconnecting().collect { send(Input.Socket(it)) } }
@@ -268,10 +276,12 @@ class GameStateService(
                                 when (val reduction = reducer.reduce(live.snapshot, live.lastSeq, me, event.envelope)) {
                                     is Reduction.Applied -> {
                                         val ping = event.envelope.type == RealtimeProtocol.MessageTypes.LOCATIONS_UPDATED
+                                        val own = ping && me != null && reducer.locationsInclude(event.envelope, me)
                                         state.value = live.copy(
                                             snapshot = reduction.state,
                                             lastSeq = reduction.seq,
                                             locationBatches = live.locationBatches + if (ping) 1 else 0,
+                                            ownLocationBatches = live.ownLocationBatches + if (own) 1 else 0,
                                         )
                                         true
                                     }

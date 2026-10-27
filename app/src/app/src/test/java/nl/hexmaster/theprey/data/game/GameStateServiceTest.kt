@@ -493,4 +493,54 @@ class GameStateServiceTest {
 
         assertEquals(1, (seen.last() as GameSession.Live).locationBatches)
     }
+
+    private fun locations(seq: Long, vararg userIds: String) = RealtimeEvent.Message(
+        envelope(
+            RealtimeProtocol.MessageTypes.LOCATIONS_UPDATED,
+            seq,
+            userIds.joinToString(prefix = """{"locations":[""", postfix = "]}") {
+                """{"userId":"$it","role":"Prey","latitude":52.0,"longitude":5.0,"state":"Active"}"""
+            },
+        ),
+    )
+
+    @Test
+    fun session_ShouldCountOwnLocationBatch_WhenBatchIncludesCurrentUser() = runTest {
+        val sut = service()
+        val (seen, _) = observe(sut)
+        connection.emit(RealtimeEvent.Joined)
+
+        connection.emit(locations(1, "other", "ME"))
+
+        val live = seen.last() as GameSession.Live
+        assertEquals(1, live.locationBatches)
+        assertEquals(1, live.ownLocationBatches)
+    }
+
+    @Test
+    fun session_ShouldNotCountOwnLocationBatch_WhenBatchNamesOnlyOthers() = runTest {
+        val sut = service()
+        val (seen, _) = observe(sut)
+        connection.emit(RealtimeEvent.Joined)
+
+        connection.emit(locations(1, "other"))
+
+        val live = seen.last() as GameSession.Live
+        assertEquals(1, live.locationBatches)
+        assertEquals(0, live.ownLocationBatches)
+    }
+
+    @Test
+    fun session_ShouldKeepOwnLocationBatches_WhenSnapshotArrives() = runTest {
+        val sut = service()
+        val (seen, _) = observe(sut)
+        connection.emit(RealtimeEvent.Joined)
+        connection.emit(locations(1, "me"))
+
+        sut.resync("g1")
+
+        val live = seen.last() as GameSession.Live
+        assertEquals(null, live.lastSeq)
+        assertEquals(1, live.ownLocationBatches)
+    }
 }
