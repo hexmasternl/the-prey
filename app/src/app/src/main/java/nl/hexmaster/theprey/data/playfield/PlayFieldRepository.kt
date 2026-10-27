@@ -2,8 +2,18 @@ package nl.hexmaster.theprey.data.playfield
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
+import nl.hexmaster.theprey.data.location.GeoPosition
 import retrofit2.Response
 import java.io.IOException
+import kotlin.math.roundToLong
+
+/** Decimals a near-me search position keeps: about 1 km, so the request does not reveal where the player stands. */
+const val SEARCH_POSITION_DECIMALS = 2
+
+/** This position rounded to [SEARCH_POSITION_DECIMALS] decimals, as sent with a near-me search. */
+fun GeoPosition.roundedForSearch(): GeoPosition = GeoPosition(latitude.roundForSearch(), longitude.roundForSearch())
+
+private fun Double.roundForSearch(): Double = (this * 100).roundToLong() / 100.0
 
 /** Outcome of deleting a playfield. */
 sealed interface DeleteOutcome {
@@ -54,8 +64,12 @@ interface PlayFieldRepository {
     /** The playfields the player owns, private and public. */
     suspend fun listMine(): Result<List<PlayFieldSummaryDto>>
 
-    /** Public playfields matching [query] (at least 3 characters after trimming). */
-    suspend fun searchPublic(query: String): Result<List<PlayFieldSummaryDto>>
+    /**
+     * Public playfields matching [query] (at least 3 characters after trimming), or with [origin]
+     * those near it, nearest first; a blank [query] with an [origin] is a near-me search only.
+     * [origin] is rounded to [SEARCH_POSITION_DECIMALS] decimals before it is sent.
+     */
+    suspend fun searchPublic(query: String, origin: GeoPosition? = null): Result<List<PlayFieldSummaryDto>>
 
     /** The full playfield, including its points. */
     suspend fun get(id: String): LoadOutcome
@@ -78,8 +92,10 @@ class ApiPlayFieldRepository(
     override suspend fun listMine(): Result<List<PlayFieldSummaryDto>> = list { api.listMine() }
 
     // The server loads every public playfield and filters in memory; fine at the current volume.
-    override suspend fun searchPublic(query: String): Result<List<PlayFieldSummaryDto>> =
-        list { api.searchPublic(query) }
+    override suspend fun searchPublic(query: String, origin: GeoPosition?): Result<List<PlayFieldSummaryDto>> {
+        val rounded = origin?.roundedForSearch()
+        return list { api.searchPublic(query.trim().ifEmpty { null }, rounded?.latitude, rounded?.longitude) }
+    }
 
     override suspend fun get(id: String): LoadOutcome = guarded(LoadOutcome.Failed) {
         val response = api.get(id)
