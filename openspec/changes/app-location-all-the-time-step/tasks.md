@@ -8,7 +8,7 @@
 
 ## 2. Dialog and texts
 
-- [ ] 2.1 Add `DisclosureVariant.AllTheTime` to `ui/consent/LocationDisclosureDialog.kt` (title, body, steps text; Open settings + Not now; no privacy link needed) with a preview; verify the preview renders in light and dark — **needs human:** preview check in Android Studio.
+- [ ] 2.1 Add `DisclosureVariant.AllTheTime` to `ui/consent/LocationDisclosureDialog.kt` (title, body, steps text; Open settings + Not now; no privacy link needed) with a preview; verify the preview renders in light and dark — **auto: needs human:** code and light/dark previews are in; the preview render needs a check in Android Studio
 - [x] 2.2 Add `location_consent_all_the_time_title`, `location_consent_all_the_time_body` and `location_consent_all_the_time_steps` to `res/values/strings.xml` and `res/values-nl/strings.xml`, following the `the-prey-multilingual` skill; verify `./gradlew lintDebug` reports no missing translations.
 
 ## 3. Settings screen

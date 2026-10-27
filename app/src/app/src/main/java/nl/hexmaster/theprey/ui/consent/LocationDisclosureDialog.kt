@@ -1,5 +1,6 @@
 package nl.hexmaster.theprey.ui.consent
 
+import android.content.res.Configuration
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -42,6 +43,9 @@ enum class DisclosureVariant {
 
     /** The system no longer prompts: the primary action opens the app's settings page. */
     OpenSettings,
+
+    /** Precise location was granted "While using the app": the primary action opens settings for "Allow all the time". */
+    AllTheTime,
 }
 
 /** `r-lg` from the design system: sheets and dialogs. */
@@ -98,7 +102,7 @@ fun LocationDisclosureContent(
                     .verticalScroll(rememberScrollState())
                     .padding(24.dp),
             ) {
-                val settings = variant == DisclosureVariant.OpenSettings
+                val settings = variant != DisclosureVariant.Disclosure
                 Text(
                     text = stringResource(R.string.location_consent_eyebrow).uppercase(),
                     style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 3.sp),
@@ -107,18 +111,29 @@ fun LocationDisclosureContent(
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = stringResource(
-                        if (settings) R.string.location_consent_settings_title else R.string.location_consent_title,
+                        when (variant) {
+                            DisclosureVariant.Disclosure -> R.string.location_consent_title
+                            DisclosureVariant.OpenSettings -> R.string.location_consent_settings_title
+                            DisclosureVariant.AllTheTime -> R.string.location_consent_all_the_time_title
+                        },
                     ),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(16.dp))
-                if (settings) {
-                    BodyText(R.string.location_consent_settings_body, color = MaterialTheme.colorScheme.onSurface)
-                    Spacer(Modifier.height(16.dp))
+                if (variant == DisclosureVariant.AllTheTime) {
+                    // The player just accepted the full disclosure; this step only says where to go.
+                    BodyText(R.string.location_consent_all_the_time_body, color = MaterialTheme.colorScheme.onSurface)
+                    Spacer(Modifier.height(12.dp))
+                    BodyText(R.string.location_consent_all_the_time_steps)
+                } else {
+                    if (settings) {
+                        BodyText(R.string.location_consent_settings_body, color = MaterialTheme.colorScheme.onSurface)
+                        Spacer(Modifier.height(16.dp))
+                    }
+                    // The full disclosure is part of both variants: settings changes the permission too.
+                    LocationDisclosure(onPrivacyPolicy = onPrivacyPolicy)
                 }
-                // The full disclosure is part of both variants: settings changes the permission too.
-                LocationDisclosure(onPrivacyPolicy = onPrivacyPolicy)
                 Spacer(Modifier.height(16.dp))
                 PrimaryButton(
                     text = stringResource(
@@ -158,6 +173,17 @@ private fun LocationDisclosureSettingsPreview() {
     ThePreyTheme {
         Box(Modifier.background(MaterialTheme.colorScheme.background)) {
             LocationDisclosureContent(DisclosureVariant.OpenSettings, onPrimary = {}, onNotNow = {}, onPrivacyPolicy = {})
+        }
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 800)
+@Preview(widthDp = 360, heightDp = 800, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun LocationDisclosureAllTheTimePreview() {
+    ThePreyTheme {
+        Box(Modifier.background(MaterialTheme.colorScheme.background)) {
+            LocationDisclosureContent(DisclosureVariant.AllTheTime, onPrimary = {}, onNotNow = {}, onPrivacyPolicy = {})
         }
     }
 }
