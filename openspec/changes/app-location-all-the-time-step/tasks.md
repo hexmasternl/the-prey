@@ -21,7 +21,7 @@
 
 ## 4. Website and docs
 
-- [ ] 4.1 Update `website/src/content/{en,nl}/how-to/get-started.md` step 8 and the location answer in `website/src/content/{en,nl}/faq/_index.md`: after precise location is approved, the app shows a step that opens the settings for "Allow all the time"; in Settings, Grant location access sits above "Why The Prey uses your location". Follow the `the-prey-docs-sync` and `the-prey-website-content` skills and verify `hugo --source website/src` builds.
+- [x] 4.1 Update `website/src/content/{en,nl}/how-to/get-started.md` step 8 and the location answer in `website/src/content/{en,nl}/faq/_index.md`: after precise location is approved, the app shows a step that opens the settings for "Allow all the time"; in Settings, Grant location access sits above "Why The Prey uses your location". Follow the `the-prey-docs-sync` and `the-prey-website-content` skills and verify `hugo --source website/src` builds.
 - [ ] 4.2 Update `docs/play-store/location-disclosure.md`: the reference paragraph (Settings shows a collapsible panel; Grant location access shows the disclosure dialog before the prompt) and reviewer step 4. Update the `the-prey-play-store` skill's *Prominent disclosure* bullet the same way.
 - [ ] 4.3 Confirm no Play Console change is needed per the `the-prey-play-store` skill: no new permission, no runtime background request, disclosure text unchanged. Note it in the PR description.
 
