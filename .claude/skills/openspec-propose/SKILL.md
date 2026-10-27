@@ -94,6 +94,15 @@ When ready to implement, run /opsx:apply
    openspec status --change "<name>"
    ```
 
+5a. **Link the change to a GitHub issue** (see the `the-prey-openspec-github-sync` skill, *Link*)
+
+   Every proposed change gets exactly one GitHub issue that names it, and `proposal.md` links back to it.
+   - If the proposal came from a GitHub issue (triage, or the user named one), use that issue: write its managed `openspec-sync` block and add the `openspec` + kind labels.
+   - Otherwise search for an existing issue naming the change, and create one if there is none.
+   - Put `> GitHub issue: [#<n>](https://github.com/hexmasternl/the-prey/issues/<n>)` on the line under the `# Proposal` heading.
+
+   The back-link is committed with the proposal in step 6. If `gh` isn't authenticated, still commit the proposal and tell the user to run the sync skill once `gh auth login` is done.
+
 6. **Commit and push to `development`**
 
    Stage only the new change's files and push straight to `development` (no branch, no PR):
