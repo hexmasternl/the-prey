@@ -3,7 +3,7 @@
 ## 1. Game State Service: own-location broadcasts
 
 - [x] 1.1 Add `ownLocationBatches` to `GameSession.Live` in `data/game/GameStateService.kt`, incremented when an applied `locations-updated` payload contains an entry for the current user (case-insensitive) and carried over on snapshots like `locationBatches`; verify with `GameStateServiceTest` cases for a batch with the current user (+1), a batch naming only others (unchanged, while `locationBatches` +1) and a snapshot (unchanged)
-- [ ] 1.2 Update the realtime client rules in `.claude/skills/the-prey-realtime-communication/SKILL.md` if they list what `GameSession.Live` exposes; verify the skill mentions own-location batches or needs no change
+- [x] 1.2 Update the realtime client rules in `.claude/skills/the-prey-realtime-communication/SKILL.md` if they list what `GameSession.Live` exposes; verify the skill mentions own-location batches or needs no change
 
 ## 2. Game screen: moment of the last own broadcast
 
