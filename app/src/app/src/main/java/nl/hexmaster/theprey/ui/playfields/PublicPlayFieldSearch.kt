@@ -59,7 +59,7 @@ sealed interface NearMeState {
 }
 
 /** No location at all: the default when a screen offers no Near me. */
-private object NoLocation : LocationSource {
+object NoLocationSource : LocationSource {
     override fun positions() = emptyFlow<GeoPosition>()
 }
 
@@ -79,7 +79,7 @@ class PublicPlayFieldSearch(
     private val repository: PlayFieldRepository,
     private val scope: CoroutineScope,
     initialQuery: String = "",
-    private val locationSource: LocationSource = NoLocation,
+    private val locationSource: LocationSource = NoLocationSource,
     private val hasLocationAccess: () -> Boolean = { false },
     initialNearMe: Boolean = false,
 ) {
