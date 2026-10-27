@@ -184,8 +184,8 @@ The next-broadcast tile SHALL show a progress bar and a number of seconds, both 
 
 #### Scenario: Countdown waits at zero
 
-- **WHEN** the countdown reaches zero before the next snapshot arrives
-- **THEN** the tile shows `0s` and an empty bar until the next snapshot re-seeds it
+- **WHEN** the countdown reaches zero before a broadcast of the prey's location or a new snapshot arrives
+- **THEN** the tile shows `0s` and an empty bar until that broadcast or snapshot restarts it
 
 #### Scenario: Missing interval falls back to 30 seconds
 
@@ -200,3 +200,41 @@ All text and accessibility descriptions in the prey HUD SHALL be available in En
 
 - **WHEN** the device language is Dutch
 - **THEN** the HUD's pills, tile labels and arrow description are shown in Dutch
+
+### Requirement: Next-broadcast countdown restarts on the prey's own broadcast
+
+When a live location broadcast includes the prey's own location, the next-broadcast countdown SHALL start over at the full broadcast interval from the moment the broadcast arrived, without waiting for a snapshot. A broadcast that names only other players SHALL NOT restart it. A later snapshot SHALL seed the countdown again from the server's values.
+
+#### Scenario: Own broadcast restarts the countdown
+
+- **WHEN** the tile shows `0s` with a 180-second interval and a location broadcast arrives that includes the prey's location
+- **THEN** the tile shows `180s` and a full bar, and keeps ticking down from there
+
+#### Scenario: Broadcast arrives before the countdown ends
+
+- **WHEN** the tile shows `4s` with a 60-second interval and a location broadcast arrives that includes the prey's location
+- **THEN** the tile shows `60s` and a full bar
+
+#### Scenario: Broadcast of another player only
+
+- **WHEN** the tile shows `90s` and a location broadcast arrives that names only a penalised other prey
+- **THEN** the tile keeps counting down from `90s` and does not restart
+
+#### Scenario: Snapshot after a broadcast
+
+- **WHEN** the countdown was restarted by a broadcast and then a snapshot arrives reporting 120 seconds until the next broadcast
+- **THEN** the tile shows `120s`
+
+### Requirement: Penalised prey restarts on the sweep cadence
+
+While the prey has an active penalty, a restart caused by its own broadcast SHALL use 30 seconds, the cadence at which a penalised player is broadcast, and the bar's full length SHALL be 30 seconds. When the penalty ends, restarts SHALL use the broadcast interval again.
+
+#### Scenario: Penalised prey is broadcast
+
+- **WHEN** the prey has an active penalty and a location broadcast includes the prey's location
+- **THEN** the tile shows `30s` and a full bar
+
+#### Scenario: Penalty ended
+
+- **WHEN** the prey's penalty has ended, the broadcast interval is 180 seconds and a location broadcast includes the prey's location
+- **THEN** the tile shows `180s` and a full bar
