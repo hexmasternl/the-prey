@@ -15,9 +15,9 @@
 
 - [x] 3.1 Reorder `LocationSection` in `ui/settings/SettingsScreen.kt`: status card → instruction text → Grant location access → disclosure panel (design decision 7).
 - [x] 3.2 Make `DisclosurePanel` collapsible: header row with `ic_alert` in the caution colour, `settings_location_why` and a chevron, as one toggle with `Role.Button`, an expanded/collapsed `stateDescription` and a 48 dp minimum height. The body is the shared `LocationDisclosure` in `AnimatedVisibility`, with `rememberSaveable` state collapsed by default. Add previews for collapsed and expanded, in EN and NL.
-- [ ] 3.3 Show `LocationDisclosureDialog(DisclosureVariant.Disclosure)` before the `GrantStep.RequestPrecise` prompt: Continue records acceptance and launches the prompt (and the notification prompt on 13+), Not now closes it. The open-settings steps stay direct (design decision 8).
+- [x] 3.3 Show `LocationDisclosureDialog(DisclosureVariant.Disclosure)` before the `GrantStep.RequestPrecise` prompt: Continue records acceptance and launches the prompt (and the notification prompt on 13+), Not now closes it. The open-settings steps stay direct (design decision 8).
 - [x] 3.4 Add `settings_location_why` ("Why The Prey uses your location" / "Waarom The Prey je locatie gebruikt") to `res/values/strings.xml` and `res/values-nl/strings.xml`, following the `the-prey-multilingual` skill.
-- [ ] 3.5 Verify on a device: Settings opens with the panel collapsed below the button; tapping expands and collapses it; TalkBack announces it as a button with its state; with location Off, Grant location access shows the dialog first and only Continue shows the system prompt — **needs human:** needs a device.
+- [ ] 3.5 Verify on a device: Settings opens with the panel collapsed below the button; tapping expands and collapses it; TalkBack announces it as a button with its state; with location Off, Grant location access shows the dialog first and only Continue shows the system prompt — **auto: needs human:** needs a device with TalkBack
 
 ## 4. Website and docs
 

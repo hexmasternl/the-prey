@@ -88,7 +88,9 @@ import nl.hexmaster.theprey.data.location.notificationsAllowed
 import nl.hexmaster.theprey.data.location.readLocationAccess
 import nl.hexmaster.theprey.ui.components.PrimaryButton
 import nl.hexmaster.theprey.ui.components.SecondaryButton
+import nl.hexmaster.theprey.ui.consent.DisclosureVariant
 import nl.hexmaster.theprey.ui.consent.LocationDisclosure
+import nl.hexmaster.theprey.ui.consent.LocationDisclosureDialog
 import nl.hexmaster.theprey.ui.consent.currentPrivacyPolicyUrl
 import nl.hexmaster.theprey.ui.consent.openAppSettings
 import nl.hexmaster.theprey.ui.theme.ThePreyTheme
@@ -110,7 +112,7 @@ private val PanelShape = RoundedCornerShape(12.dp)
 /**
  * The Settings screen. Location permissions are read on every resume of the back-stack entry
  * (also after returning from the system settings); the system prompt only ever runs from the
- * Grant action under the always-visible disclosure, never on opening the screen.
+ * Grant action, after Continue in the disclosure dialog, never on opening the screen.
  */
 @Composable
 fun SettingsScreen(
@@ -130,6 +132,7 @@ fun SettingsScreen(
     var access by remember { mutableStateOf(readLocationAccess(context)) }
     var notifications by remember { mutableStateOf(notificationsAllowed(context)) }
     var rationale by remember { mutableStateOf(activity.shouldExplainFine()) }
+    var showDisclosure by rememberSaveable { mutableStateOf(false) }
     val refresh = {
         access = readLocationAccess(context)
         notifications = notificationsAllowed(context)
@@ -178,17 +181,28 @@ fun SettingsScreen(
             onPrivacyPolicy = { uriHandler.openUri(privacyUrl) },
             onGrant = {
                 when (location.step) {
-                    GrantStep.RequestPrecise -> scope.launch {
-                        // The panel right above the button is the disclosure: record it before the prompt.
-                        consentStore.setDisclosureAccepted(true)
-                        locationLauncher.launch(arrayOf(FINE, COARSE))
-                    }
+                    // The prominent disclosure comes right before the prompt; only Continue leads to it.
+                    GrantStep.RequestPrecise -> showDisclosure = true
                     GrantStep.OpenSettingsForPrecise, GrantStep.OpenSettingsForAllTheTime -> context.openAppSettings()
                     GrantStep.None -> Unit
                 }
             },
             onResetHints = viewModel::resetHints,
         )
+        if (showDisclosure) {
+            LocationDisclosureDialog(
+                variant = DisclosureVariant.Disclosure,
+                onPrimary = {
+                    showDisclosure = false
+                    scope.launch {
+                        consentStore.setDisclosureAccepted(true)
+                        locationLauncher.launch(arrayOf(FINE, COARSE))
+                    }
+                },
+                onNotNow = { showDisclosure = false },
+                onPrivacyPolicy = { uriHandler.openUri(privacyUrl) },
+            )
+        }
         SnackbarHost(
             snackbarHostState,
             Modifier.align(Alignment.BottomCenter).windowInsetsPadding(WindowInsets.safeDrawing),
