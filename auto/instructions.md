@@ -16,7 +16,25 @@ Implement a change **only** when both hold:
 
    If `gh project list --owner hexmasternl` no longer shows "The Prey" as number 3, use the number it does show for that title.
 
-Every other change is out of scope for this run: no issue line, an issue that isn't on the project, or any other status (`Backlog`, `In progress`, `In review`, `Done`). Don't implement, annotate, archive or otherwise touch it, and don't link it to an issue or change any project status yourself. If the `gh project` lookup fails, implement nothing: report the error and stop.
+Every other change is out of scope for this run: no issue line, an issue that isn't on the project, or any other status (`Backlog`, `In progress`, `In review`, `Done`). Don't implement, annotate, archive or otherwise touch it, and don't link it to an issue or change its project status. If the `gh project` lookup fails, implement nothing: report the error and stop.
+
+## Project status
+
+The run moves the issue of each change it works on, and only those, through two statuses on "The Prey": `Ready` → `In progress` when it starts the change, and `In progress` → `In review` when the run's PR is open and the change has nothing left but human work. It never sets any other status (never `Backlog`, `Ready` or `Done`) and never moves any other issue.
+
+Set a status by the issue's project item id (`.id` of the item from the eligibility query, or `gh project item-list 3 --owner hexmasternl --format json --limit 1000 | jq -r '.items[] | select(.content.number == <n> and .content.repository == "hexmasternl/the-prey") | .id'`):
+
+```
+gh project item-edit --id <item-id> --project-id PVT_kwDOEHaUVM4Bo76G \
+  --field-id PVTSSF_lADOEHaUVM4Bo76GzhnZtxM --single-select-option-id <option-id>
+```
+
+| Status | Option id |
+|---|---|
+| `In progress` | `47fc9ee4` |
+| `In review` | `df73e18b` |
+
+If the ids are rejected (project or field recreated), look them up with `gh project list --owner hexmasternl` and `gh project field-list <number> --owner hexmasternl --format json` and use the ones for "The Prey", its `Status` field and the option by name. If a status update still fails, don't stop the run: carry on with the change and list the issue and the error in the log and the PR body, so a human can move it.
 
 ## Ground rules
 
@@ -38,7 +56,7 @@ Every other change is out of scope for this run: no issue line, an issue that is
 
 ## Per change
 
-1. `openspec status --change "<name>" --json`. If artifacts are missing (`blocked`), skip the change and note it. Do not invent missing artifacts.
+1. `openspec status --change "<name>" --json`. If artifacts are missing (`blocked`), skip the change and note it; its issue stays `Ready`. Do not invent missing artifacts. Otherwise, before the first edit, move the change's issue to **`In progress`** (see "Project status").
 2. `openspec instructions apply --change "<name>" --json`; read every file in `contextFiles` (proposal, design, specs, tasks) and the code they reference before editing.
 3. For each unchecked task, in order:
    - Implement it minimally, matching the surrounding code's style, naming and comment density.
@@ -74,6 +92,7 @@ Keep `auto/log.md` (create it if missing; append, never overwrite). Per change:
 
 ```
 ## <change-name> — <done | partial | blocked | skipped>
+- Issue: #<n>, status <In progress | In review | update failed: <error>>
 - Tasks: <done>/<total>; needs human: <ids>
 - Decisions: <choice made where the artifacts were silent, and why>
 - Blockers: <what stopped progress, with the failing command and its key error line>
@@ -89,6 +108,7 @@ Stop when every change is done, partial (only "needs human" tasks left) or block
 1. Make sure the worktree is clean and every commit is on the run branch.
 2. `git push -u origin run/<identifier>` (never `--force`).
 3. `gh pr create --base development --head run/<identifier> --title "feat: autonomous run <identifier>"` with a body that has one section per change: summary, tasks done, tasks left for a human (and why), how it was verified, decisions worth reviewing, and any Play Store or infrastructure note. List skipped or blocked changes with the reason, and the eligible issue numbers the run started from. End the body with the attribution line from the session instructions.
-4. If the push or PR fails, report the error and stop; don't retry with other flags.
+4. If the push or PR fails, report the error and stop; don't retry with other flags. The issues stay `In progress`.
+5. Once the PR exists, move to **`In review`** the issue of every change that is done or partial (all tasks checked, or only "needs human" tasks left). A blocked change, or one stopped with agent work still open, stays `In progress`; say so in the PR body under that change. Record the final status per issue in `auto/log.md` and commit that (`chore(auto): log project status`), then push the run branch again.
 
-End with a short summary: the PR URL, changes archived, changes left with human tasks (and which), changes blocked (and why), and the final `openspec list` output. Report failures as they are; don't call anything done that you did not verify.
+End with a short summary: the PR URL, the project status each issue ended on, changes archived, changes left with human tasks (and which), changes blocked (and why), and the final `openspec list` output. Report failures as they are; don't call anything done that you did not verify.

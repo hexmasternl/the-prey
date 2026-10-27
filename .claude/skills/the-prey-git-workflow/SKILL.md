@@ -67,6 +67,8 @@ git push
 
 For an archive, the change's implementation should already be merged into `development` (the feature or run PR). If it isn't yet, tell the user and ask before archiving — otherwise `development` claims the change is done while the code is still in an open PR.
 
+After an archive is pushed, move the change's linked issue (the `> GitHub issue:` line in `proposal.md`) to **`Done`** on the GitHub project "The Prey" when it is an item there; an issue that isn't on the board stays off it. The commands and ids are in the archive skill (`openspec-archive-change`, step "Move the linked issue to `Done`").
+
 ## Applying one OpenSpec change
 
 1. Step 0, then create the worktree and branch from `development`:
@@ -136,6 +138,7 @@ Don't remove a worktree that has uncommitted or unpushed work — ask first.
 - [ ] Repo root is on `main` or `development`, never on a feature/run branch.
 - [ ] Nothing was committed or pushed to `main`.
 - [ ] Propose/archive → committed and pushed straight to `development`.
+- [ ] Archive → linked issue set to `Done` on "The Prey" project (if it's on the board).
 - [ ] Apply → `features/{change-name}` in `../the-prey-worktrees/{change-name}`, PR into `development`.
 - [ ] Autonomous run → one `run/{identifier}` branch, one worktree, one PR into `development`.
 - [ ] Frequent, logical, conventional commits with `tasks.md` updates included.
