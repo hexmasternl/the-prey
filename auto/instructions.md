@@ -1,6 +1,22 @@
 # Autonomous OpenSpec implementation
 
-You are running unattended. Nobody will answer questions or approve plans. Implement every open OpenSpec change in this repository, one change at a time, until each one is done or genuinely blocked. Then stop and report.
+You are running unattended. Nobody will answer questions or approve plans. Implement every **eligible** open OpenSpec change in this repository (see "Eligibility"), one change at a time, until each one is done or genuinely blocked. Then stop and report.
+
+## Eligibility
+
+Implement a change **only** when both hold:
+
+1. Its `proposal.md` references a GitHub issue: the `> GitHub issue: [#<n>](https://github.com/hexmasternl/the-prey/issues/<n>)` line under the title (see the `the-prey-openspec-github-sync` skill).
+2. That issue has the status **Ready** on the GitHub project **"The Prey"** (owner `hexmasternl`, project number 3). Check it with:
+
+   ```
+   gh project item-list 3 --owner hexmasternl --format json --limit 1000 \
+     | jq -r '.items[] | select(.status == "Ready" and .content.type == "Issue" and .content.repository == "hexmasternl/the-prey") | .content.number'
+   ```
+
+   If `gh project list --owner hexmasternl` no longer shows "The Prey" as number 3, use the number it does show for that title.
+
+Every other change is out of scope for this run: no issue line, an issue that isn't on the project, or any other status (`Backlog`, `In progress`, `In review`, `Done`). Don't implement, annotate, archive or otherwise touch it, and don't link it to an issue or change any project status yourself. If the `gh project` lookup fails, implement nothing: report the error and stop.
 
 ## Ground rules
 
@@ -17,7 +33,8 @@ You are running unattended. Nobody will answer questions or approve plans. Imple
 
 1. `git status`. If the tree is dirty, commit nothing that isn't yours: note the dirty paths and leave them alone.
 2. `openspec list --json` → every active change with remaining tasks (skip `archive/`).
-3. Order: changes with the most tasks already done first (they are nearly finished), then by age, oldest first. If a change's proposal or design names another open change as a prerequisite, do that one first.
+3. Keep only the eligible changes (see "Eligibility"). If none is eligible, log that in `auto/log.md`, commit nothing else, open no PR, and stop.
+4. Order: changes with the most tasks already done first (they are nearly finished), then by age, oldest first. If a change's proposal or design names another open change as a prerequisite, do that one first when it is eligible too; when it isn't, mark the dependent change blocked and name the prerequisite.
 
 ## Per change
 
@@ -71,7 +88,7 @@ Stop when every change is done, partial (only "needs human" tasks left) or block
 
 1. Make sure the worktree is clean and every commit is on the run branch.
 2. `git push -u origin run/<identifier>` (never `--force`).
-3. `gh pr create --base development --head run/<identifier> --title "feat: autonomous run <identifier>"` with a body that has one section per change: summary, tasks done, tasks left for a human (and why), how it was verified, decisions worth reviewing, and any Play Store or infrastructure note. List skipped or blocked changes with the reason. End the body with the attribution line from the session instructions.
+3. `gh pr create --base development --head run/<identifier> --title "feat: autonomous run <identifier>"` with a body that has one section per change: summary, tasks done, tasks left for a human (and why), how it was verified, decisions worth reviewing, and any Play Store or infrastructure note. List skipped or blocked changes with the reason, and the eligible issue numbers the run started from. End the body with the attribution line from the session instructions.
 4. If the push or PR fails, report the error and stop; don't retry with other flags.
 
 End with a short summary: the PR URL, changes archived, changes left with human tasks (and which), changes blocked (and why), and the final `openspec list` output. Report failures as they are; don't call anything done that you did not verify.
