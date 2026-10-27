@@ -2,7 +2,7 @@
 
 ## 1. Server: near-me public search (PlayFields)
 
-- [ ] 1.1 Add a `GeoDistance.Meters(GpsCoordinate a, GpsCoordinate b)` haversine helper to the PlayFields domain models, with unit tests for a known pair (Amsterdam–Utrecht ≈ 35 km) and zero distance; verify with `dotnet test server/src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/`
+- [x] 1.1 Add a `GeoDistance.Meters(GpsCoordinate a, GpsCoordinate b)` haversine helper to the PlayFields domain models, with unit tests for a known pair (Amsterdam–Utrecht ≈ 35 km) and zero distance; verify with `dotnet test server/src/PlayFields/HexMaster.ThePrey.PlayFields.Tests/`
 - [ ] 1.2 Add `int? DistanceMeters = null` as the last parameter of `PlayFieldSummaryDto` and a `ToSummaryDto(int? distanceMeters)` overload in `PlayFieldMappings`; verify the solution builds and existing tests still pass (`GET /playfields` output unchanged)
 - [ ] 1.3 Change `IPlayFieldRepository.SearchPublicAsync` to take a nullable search text and update `TableStoragePlayFieldRepository` (no name filter when null; code comment on the in-memory scan and a future geohash/search index); verify with a build and the existing repository tests, if any
 - [ ] 1.4 Extend `SearchPublicPlayFieldsQuery` with `GpsCoordinate? Origin` and `RadiusKm` (constants: default 25, min 1, max 100, max results 50) and the handler: validation, radius clamp, centre-distance filter, nearest-first order, cap, `DistanceMeters`; verify with new tests in `Tests/SearchPublicPlayFields/` for name-only (unchanged, null distance), near-only, both, missing centre excluded, radius boundary, clamp, cap of 50 and every validation error (Bogus fakers in `Tests/Factories/`)
