@@ -30,4 +30,4 @@
 
 ## 5. Integration check
 
-- [ ] 5.1 Run the system locally (Aspire + emulator with a mock location near a public playfield) and confirm: near-me lists it with a distance, combined name search works, a build of the previous app version still searches by name, and the PlayFields logs and traces contain no coordinates
+- [ ] 5.1 Run the system locally (Aspire + emulator with a mock location near a public playfield) and confirm: near-me lists it with a distance, combined name search works, a build of the previous app version still searches by name, and the PlayFields logs and traces contain no coordinates — **auto: needs human:** needs Aspire running locally plus an emulator with a mock location and an older app build
