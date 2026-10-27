@@ -90,3 +90,9 @@ Start: repo root on `development` (= `origin/development` b9475938); dirty `.cla
 - Decisions: the own-location check is a small public `GameStateReducer.locationsInclude(envelope, userId)` helper (design decision 1's second option) so the reducer's `Reduction` type stays as is. The bar's full length is the restart interval only after an own broadcast or while penalised; a plain snapshot keeps `currentPingInterval` (0 still falls back to 30 s in `broadcastProgress`), as design decision 3 says. 1.2: the realtime skill does not list `GameSession.Live` fields, so no skill change. 3.3: website EN + NL already match.
 - Blockers: none
 - Commits: 7, eab1a125..d295b23c
+
+## app-location-all-the-time-step — partial
+- Tasks: 12/15; needs human: 2.1 (preview render check in Android Studio; code and light/dark previews are in), 3.5 (device + TalkBack), 5.2 (Android 11+ device, fresh install)
+- Decisions: commit order differs from task order so every commit compiles: strings (2.2) → dialog variant (2.1) → view model + tests + host (1.1–1.3 together, because the host's exhaustive `when` over `ConsentUiState` needs the new state). Closing the step (background granted or return from settings) also ends the flow (`open = false`), so a later resume never reopens the disclosure. The AllTheTime dialog shows its own body + steps instead of the full disclosure (accepted moments before) and no privacy link, as task 2.1 says. Two extra strings `settings_location_why_expanded` / `_collapsed` (EN + NL) back the panel's `stateDescription` (design decision 7 asks for one but names no strings); the chevron is the existing `ic_chevron_right` rotated. Get-started step 8 (EN + NL) now walks through dialog → precise → Open settings → Allow all the time, and mentions the panel below the button. No Play Console change: no manifest change, no runtime `ACCESS_BACKGROUND_LOCATION` request, disclosure strings unchanged.
+- Blockers: none
+- Commits: 11, d5c99e27..349b88c0
