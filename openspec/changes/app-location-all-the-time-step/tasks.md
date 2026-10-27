@@ -27,5 +27,5 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and verify it passes.
-- [ ] 5.2 On an Android 11+ device with a fresh install: sign in, Continue, allow precise "While using the app" → the step appears; Open settings → set "Allow all the time" → back → step gone, Play now enabled. Repeat with Back without setting it → step gone, background-location error shown. Repeat with Not now. Restart the app → no dialog by itself — **needs human:** needs a device.
+- [x] 5.1 Run `./gradlew lintDebug testDebugUnitTest` from `app/src` and verify it passes.
+- [ ] 5.2 On an Android 11+ device with a fresh install: sign in, Continue, allow precise "While using the app" → the step appears; Open settings → set "Allow all the time" → back → step gone, Play now enabled. Repeat with Back without setting it → step gone, background-location error shown. Repeat with Not now. Restart the app → no dialog by itself — **auto: needs human:** needs an Android 11+ device with a fresh install
