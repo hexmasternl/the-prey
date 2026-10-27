@@ -249,7 +249,7 @@ locally on the device's monotonic clock; `serverTime` corrects for device clock 
 | Role pill, penalty | own participant `hasActivePenalty`; `prey-updated` `penalized` (`penaltyEndsAt`) / `penalty-cleared`; `participant-changed` |
 | Proximity pill, hunter distance tile | `roleState.hunterDistanceMeters` at snapshot time; recomputed locally from the device fix and the hunter's `lastKnownLocation` as `locations-updated` moves it |
 | Time left | `status.gameDurationLeft` |
-| Next broadcast bar | `status.nextPingDuration` over `status.currentPingInterval` (30 s when 0) |
+| Next broadcast bar | `status.nextPingDuration` over `status.currentPingInterval` (30 s when 0) at snapshot time; restarts from the broadcast interval (30 s while penalised, the sweep cadence) at every `locations-updated` batch that includes the prey's own location, not at batches naming only other players |
 
 **Hunter HUD**
 
