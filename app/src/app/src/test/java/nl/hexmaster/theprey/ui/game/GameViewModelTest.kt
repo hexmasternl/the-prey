@@ -257,4 +257,59 @@ class GameViewModelTest {
 
         assertEquals(42_000L, sut.ready().lastPingAtElapsed)
     }
+
+    @Test
+    fun uiState_ShouldRecordOwnBroadcastTime_WhenABatchWithOwnLocationIsApplied() = runTest {
+        val sut = viewModel()
+        assertNull(sut.ready().lastOwnBroadcastAtElapsed)
+
+        now = 42_000
+        sessions.state.value = GameSession.Live(
+            snapshot, lastSeq = 1, connection = ConnectionState.Connected, locationBatches = 1, ownLocationBatches = 1,
+        )
+
+        assertEquals(42_000L, sut.ready().lastOwnBroadcastAtElapsed)
+    }
+
+    @Test
+    fun uiState_ShouldNotRecordOwnBroadcastTime_WhenOnlyOtherPlayersAreBroadcast() = runTest {
+        val sut = viewModel()
+
+        now = 42_000
+        sessions.state.value = GameSession.Live(snapshot, lastSeq = 1, connection = ConnectionState.Connected, locationBatches = 1)
+
+        assertEquals(42_000L, sut.ready().lastPingAtElapsed)
+        assertNull(sut.ready().lastOwnBroadcastAtElapsed)
+    }
+
+    @Test
+    fun uiState_ShouldClearOwnBroadcastTime_WhenANewSnapshotArrives() = runTest {
+        val sut = viewModel()
+        now = 42_000
+        sessions.state.value = GameSession.Live(snapshot, lastSeq = 1, connection = ConnectionState.Connected, ownLocationBatches = 1)
+
+        now = 50_000
+        sessions.state.value = GameSession.Live(
+            snapshot.copy(serverTime = "2026-08-31T11:41:00+00:00"), lastSeq = null, connection = ConnectionState.Connected, ownLocationBatches = 1,
+        )
+
+        assertNull(sut.ready().lastOwnBroadcastAtElapsed)
+    }
+
+    @Test
+    fun uiState_ShouldLetSnapshotWin_WhenSnapshotAndOwnBroadcastArriveTogether() = runTest {
+        val sut = viewModel()
+
+        now = 42_000
+        sessions.state.value = GameSession.Live(
+            snapshot.copy(serverTime = "2026-08-31T11:41:00+00:00"), lastSeq = null, connection = ConnectionState.Connected, ownLocationBatches = 1,
+        )
+        assertNull(sut.ready().lastOwnBroadcastAtElapsed)
+
+        now = 45_000
+        sessions.state.value = GameSession.Live(
+            snapshot.copy(serverTime = "2026-08-31T11:41:00+00:00"), lastSeq = 1, connection = ConnectionState.Connected, ownLocationBatches = 2,
+        )
+        assertEquals(45_000L, sut.ready().lastOwnBroadcastAtElapsed)
+    }
 }

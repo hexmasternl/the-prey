@@ -7,7 +7,7 @@
 
 ## 2. Game screen: moment of the last own broadcast
 
-- [ ] 2.1 Track `lastOwnBroadcastAt` in `ui/game/GameViewModel.kt` from `ownLocationBatches` (set on change, cleared on reseed, snapshot wins in the same emission) and expose it as `ActiveGameUi.Ready.lastOwnBroadcastAtElapsed`; verify with `GameViewModelTest` cases mirroring the existing `lastPingAtElapsed` tests, plus one where only `locationBatches` changes and `lastOwnBroadcastAtElapsed` stays null
+- [x] 2.1 Track `lastOwnBroadcastAt` in `ui/game/GameViewModel.kt` from `ownLocationBatches` (set on change, cleared on reseed, snapshot wins in the same emission) and expose it as `ActiveGameUi.Ready.lastOwnBroadcastAtElapsed`; verify with `GameViewModelTest` cases mirroring the existing `lastPingAtElapsed` tests, plus one where only `locationBatches` changes and `lastOwnBroadcastAtElapsed` stays null
 
 ## 3. Prey HUD restart rule
 
