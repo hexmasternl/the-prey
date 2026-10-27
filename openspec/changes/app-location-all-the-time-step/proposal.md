@@ -15,7 +15,10 @@ The system prompt can't ask for "always" itself. From Android 11 no permission d
 - **Same flow, same limits.** The step belongs to the flow that showed the disclosure: the one-time automatic flow on the main menu and every flow started by a game action. It never opens by itself on a later visit. A game action that is waiting for location keeps running on the precise grant, as today.
 - **Android 9 and lower:** precise location already includes background, so there's no step.
 - **No runtime request for `ACCESS_BACKGROUND_LOCATION`.** No manifest change and no Play Console change. The disclosure text already covers background collection.
-- **Texts in English and Dutch**; the website's get-started steps and FAQ describe the guided step.
+- **Settings: Grant location access moves above the warning.** In the Location section the instruction text and the **Grant location access** button come directly below the status card, above the location tracking warning.
+- **Settings: the warning becomes a collapsible panel.** Collapsed by default, it shows the orange warning triangle and "Why The Prey uses your location". Tapping it expands the panel to the full disclosure (body, the four points and the privacy link); tapping again collapses it. It stays visible in every permission state.
+- **Settings: the disclosure dialog comes before the system prompt.** With the panel collapsed and below the button, it no longer counts as the disclosure before a prompt. So when Grant location access would show the system location prompt, it first shows the same disclosure dialog as the main menu, and only **Continue** leads to the prompt. When the action opens the system settings page instead, nothing changes: the app shows no prompt there.
+- **Texts in English and Dutch**; the website's get-started steps and FAQ describe the guided step and the new Settings layout. `docs/play-store/location-disclosure.md` describes the Settings flow as it now works.
 
 ## Capabilities
 
@@ -26,10 +29,13 @@ _None._
 ### Modified Capabilities
 
 - `location-tracking-consent`: a precise grant inside the disclosure flow is followed by an "Allow all the time" step on Android 10+, which opens the app's settings page and closes when the player returns with background location granted or declines.
+- `app-settings`: the disclosure becomes a collapsible warning panel ("Why The Prey uses your location") below the Grant location access action, and the action shows the disclosure dialog before any system location prompt.
 
 ## Impact
 
 - **Android:** `ui/consent/LocationConsentViewModel.kt` (new `ConsentUiState.AllTheTime`, background grant in the permission checks), `ui/consent/LocationConsentHost.kt` (reads `ACCESS_BACKGROUND_LOCATION` on resume and after the prompt, maps the new state), `ui/consent/LocationDisclosureDialog.kt` (new `DisclosureVariant.AllTheTime` plus preview), `res/values/strings.xml` + `res/values-nl/strings.xml`. Tests: `LocationConsentViewModelTest`.
-- **Unchanged:** `PlayAction.kt` and the main-menu error, the Settings screen's `GrantStep`, `AndroidManifest.xml`, the disclosure text, `docs/play-store/location-disclosure.md` and the Play Console answers.
-- **Website:** `how-to/get-started.md` and `faq/_index.md` (EN + NL) mention that the app walks the player to "Allow all the time".
+- **Android, Settings:** `ui/settings/SettingsScreen.kt` (`LocationSection` order, collapsible `DisclosurePanel`, disclosure dialog before the `RequestPrecise` prompt, previews), new string `settings_location_why` (EN + NL).
+- **Unchanged:** `PlayAction.kt` and the main-menu error, the Settings screen's `GrantStep`, `AndroidManifest.xml`, the disclosure text and the Play Console answers.
+- **Docs:** `docs/play-store/location-disclosure.md`: the reference paragraph and reviewer step 4 (Settings shows the disclosure dialog before the prompt; the panel is collapsible).
+- **Website:** `how-to/get-started.md` and `faq/_index.md` (EN + NL) mention that the app walks the player to "Allow all the time" and the Settings layout.
 - **Server:** none.
