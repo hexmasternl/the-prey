@@ -101,14 +101,32 @@ Keep `auto/log.md` (create it if missing; append, never overwrite). Per change:
 
 Update `auto/log.md` when a change is finished and commit it on its own (`chore(auto): log <change-name>`).
 
+## Critic review
+
+Once every change is done, partial or blocked, and before "Finish", have the run's app changes reviewed by the `app-critic` agent and fix what it rejects. Skip this section when the run changed nothing under `app/src` (`git diff --quiet development...HEAD -- app/src`); log "critic: skipped, no app changes".
+
+1. **Review.** Launch the `app-critic` agent (Agent tool, `subagent_type: "app-critic"`). Give it the worktree path, the diff to review (`git diff development...HEAD -- app/src`), the names of the changes applied in this run and the specs they touch. Ask it to review the changed code and whatever it touches on all three yardsticks, and to mark each finding as **introduced by this run** or **pre-existing**.
+2. **Satisfied?** The critic is satisfied when it reports no **Blocker** or **Major** finding introduced by this run. Pre-existing findings and Minor findings never fail the review: list them in the PR body, don't fix them (no drive-by work).
+3. **Fix.** When it is not satisfied, fix each Blocker and Major finding introduced by this run, following the same rules as the tasks: stay within the changes' scope, verify with `./gradlew assembleDebug lintDebug testDebugUnitTest` from `app/src`, never weaken or delete tests, and commit each fix on its own (`fix(app): <what>`, with `critic round <n>` and the finding title in the body). When a finding contradicts the change's specs or design, follow the specs, don't fix it, and record why under "Decisions". Then go back to step 1 with the new diff.
+4. **At most two fix rounds.** Review → fix → review → fix → review, then stop, whatever the last verdict. If the critic is still not satisfied after the second fix round, don't start a third: carry its remaining Blocker and Major findings into `auto/log.md` and the PR body (under "Critic review: not satisfied") so a human picks them up, and move the affected issues to `In review` as usual.
+5. Log the outcome in `auto/log.md` and commit it on its own (`chore(auto): log critic review`):
+
+   ```
+   ## Critic review — <satisfied | not satisfied | skipped>
+   - Rounds: <reviews run>/<fix rounds run>
+   - Fixed: <finding titles, with short shas>
+   - Open: <remaining Blocker/Major findings introduced by this run>
+   - Pre-existing / Minor: <count, listed in the PR body>
+   ```
+
 ## Finish
 
-Stop when every change is done, partial (only "needs human" tasks left) or blocked. Then:
+Stop when the critic review is done (satisfied, not satisfied after two fix rounds, or skipped). Then:
 
 1. Make sure the worktree is clean and every commit is on the run branch.
 2. `git push -u origin run/<identifier>` (never `--force`).
-3. `gh pr create --base development --head run/<identifier> --title "feat: autonomous run <identifier>"` with a body that has one section per change: summary, tasks done, tasks left for a human (and why), how it was verified, decisions worth reviewing, and any Play Store or infrastructure note. List skipped or blocked changes with the reason, and the eligible issue numbers the run started from. End the body with the attribution line from the session instructions.
+3. `gh pr create --base development --head run/<identifier> --title "feat: autonomous run <identifier>"` with a body that has one section per change: summary, tasks done, tasks left for a human (and why), how it was verified, decisions worth reviewing, and any Play Store or infrastructure note. Add a "Critic review" section with the verdict, the rounds run, the findings fixed, the Blocker/Major findings still open, and the pre-existing and Minor findings. List skipped or blocked changes with the reason, and the eligible issue numbers the run started from. End the body with the attribution line from the session instructions.
 4. If the push or PR fails, report the error and stop; don't retry with other flags. The issues stay `In progress`.
 5. Once the PR exists, move to **`In review`** the issue of every change that is done or partial (all tasks checked, or only "needs human" tasks left). A blocked change, or one stopped with agent work still open, stays `In progress`; say so in the PR body under that change. Record the final status per issue in `auto/log.md` and commit that (`chore(auto): log project status`), then push the run branch again.
 
-End with a short summary: the PR URL, the project status each issue ended on, changes archived, changes left with human tasks (and which), changes blocked (and why), and the final `openspec list` output. Report failures as they are; don't call anything done that you did not verify.
+End with a short summary: the PR URL, the project status each issue ended on, the critic verdict, changes archived, changes left with human tasks (and which), changes blocked (and why), and the final `openspec list` output. Report failures as they are; don't call anything done that you did not verify.
