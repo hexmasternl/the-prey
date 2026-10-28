@@ -46,11 +46,11 @@ Location is the heart of The Prey, so it deserves special mention:
 
 Before the app asks for location permission, it shows a notice that explains how location tracking works. In short:
 
-- The Prey tracks your device's **precise location** **only while you are in an active game**.
+- The Prey collects your device's **precise location** and sends it to our servers **only while you are in an active game**.
 - Collection continues while the app is closed or not in use, in the background, or while the screen is off, so the game keeps working when your phone is in your pocket.
 - Tracking runs as a **foreground service**, with a **persistent notification** for as long as it runs.
 - Tracking **stops as soon as the game ends or you leave it**.
-- The game needs your position to show players to the Hunter and to check that you stay inside the playfield.
+- Your position is used to show players to the Hunter and to check that you stay inside the playfield. It is only shared with the players of that game.
 - When you use **Near me** on the public playfields, the app sends your approximate position once to find nearby playfields. It is not stored.
 
 Outside a game, the main menu only shows your current coordinates on your own screen; they are not sent to our servers. The only exception is Near me, and only when you tap it: then a position rounded to about 1 km is sent once and not stored.

@@ -46,11 +46,11 @@ Locatie is het hart van The Prey en verdient daarom een aparte vermelding:
 
 Voordat de app om toestemming voor je locatie vraagt, toont hij een melding die uitlegt hoe de locatievolging werkt. Kort samengevat:
 
-- The Prey volgt de **precieze locatie** van je apparaat **alleen terwijl je in een actief spel zit**.
+- The Prey verzamelt de **precieze locatie** van je apparaat en stuurt die naar onze servers, **alleen terwijl je in een actief spel zit**.
 - Dat gaat door terwijl de app gesloten is of niet wordt gebruikt, op de achtergrond, of terwijl het scherm uit staat, zodat het spel blijft werken als je telefoon in je zak zit.
 - De volging draait als **voorgrondservice**, met een **vaste melding** zolang die loopt.
 - De volging **stopt zodra het spel eindigt of je het spel verlaat**.
-- Het spel heeft je positie nodig om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft.
+- Je positie wordt gebruikt om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft. Die wordt alleen gedeeld met de spelers van dat spel.
 - Als je **In de buurt** gebruikt bij de openbare speelvelden, stuurt de app één keer je geschatte positie om speelvelden in de buurt te vinden. Die wordt niet opgeslagen.
 
 Buiten een spel toont het hoofdmenu je huidige coördinaten alleen op je eigen scherm; ze worden niet naar onze servers gestuurd. De enige uitzondering is In de buurt, en alleen als je erop tikt: dan wordt één keer een positie gestuurd die is afgerond op ongeveer 1 km, en die wordt niet opgeslagen.

@@ -50,11 +50,11 @@
     <!-- Melding over locatievolging -->
     <string name="location_consent_eyebrow">Locatievolging</string>
     <string name="location_consent_title">The Prey gebruikt je locatie</string>
-    <string name="location_consent_body">The Prey volgt de precieze locatie van je apparaat alleen terwijl je in een actief spel zit.</string>
+    <string name="location_consent_body">The Prey verzamelt de precieze locatie van je apparaat en stuurt die naar onze servers, alleen terwijl je in een actief spel zit.</string>
     <string name="location_consent_point_background">Dat gaat door terwijl de app gesloten is of niet wordt gebruikt, op de achtergrond, of terwijl het scherm uit staat.</string>
     <string name="location_consent_point_notification">De volging draait als voorgrondservice, met een vaste melding zolang die loopt.</string>
     <string name="location_consent_point_stop">De volging stopt zodra het spel eindigt of je het spel verlaat.</string>
-    <string name="location_consent_point_purpose">Het spel heeft je positie nodig om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft.</string>
+    <string name="location_consent_point_purpose">Je positie wordt gebruikt om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft. Die wordt alleen gedeeld met de spelers van dat spel.</string>
     <string name="location_consent_point_near_me">Als je In de buurt gebruikt bij de openbare speelvelden, stuurt de app één keer je geschatte positie om speelvelden in de buurt te vinden. Die wordt niet opgeslagen.</string>
     <string name="location_consent_privacy">Lees de privacyverklaring</string>
     <string name="location_consent_continue">Doorgaan</string>
