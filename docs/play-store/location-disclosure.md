@@ -19,11 +19,11 @@ through a system prompt.
 | Key | English | Dutch |
 |---|---|---|
 | `location_consent_title` | The Prey uses your location | The Prey gebruikt je locatie |
-| `location_consent_body` | The Prey tracks your device's precise location only while you are in an active game. | The Prey volgt de precieze locatie van je apparaat alleen terwijl je in een actief spel zit. |
+| `location_consent_body` | The Prey collects your device's precise location and sends it to our servers, only while you are in an active game. | The Prey verzamelt de precieze locatie van je apparaat en stuurt die naar onze servers, alleen terwijl je in een actief spel zit. |
 | `location_consent_point_background` | Collection continues while the app is closed or not in use, in the background, or while the screen is off. | Dat gaat door terwijl de app gesloten is of niet wordt gebruikt, op de achtergrond, of terwijl het scherm uit staat. |
 | `location_consent_point_notification` | Tracking runs as a foreground service, with a persistent notification for as long as it runs. | De volging draait als voorgrondservice, met een vaste melding zolang die loopt. |
 | `location_consent_point_stop` | Tracking stops as soon as the game ends or you leave it. | De volging stopt zodra het spel eindigt of je het spel verlaat. |
-| `location_consent_point_purpose` | The game needs your position to show players to the Hunter and to check that you stay inside the playfield. | Het spel heeft je positie nodig om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft. |
+| `location_consent_point_purpose` | Your position is used to show players to the Hunter and to check that you stay inside the playfield. It is only shared with the players of that game. | Je positie wordt gebruikt om spelers aan de Jager te tonen en om te controleren dat je binnen het speelveld blijft. Die wordt alleen gedeeld met de spelers van dat spel. |
 | `location_consent_point_near_me` | When you use Near me on the public playfields, the app sends your approximate position once to find nearby playfields. It is not stored. | Als je In de buurt gebruikt bij de openbare speelvelden, stuurt de app één keer je geschatte positie om speelvelden in de buurt te vinden. Die wordt niet opgeslagen. |
 | Actions | Continue / Not now | Doorgaan / Niet nu |
 
